@@ -6,4 +6,12 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Folder Include="wwwroot\Assets\fonts\" />
+    <Folder Include="wwwroot\Assets\image\avatar\" />
+    <Folder Include="wwwroot\Assets\image\categories\" />
+    <Folder Include="wwwroot\Assets\image\svg\" />
+    <Folder Include="wwwroot\Assets\svg\" />
+  </ItemGroup>
+
 </Project>
