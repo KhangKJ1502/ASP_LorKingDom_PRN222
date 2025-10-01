@@ -1,8 +1,454 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "ToyLand - Toy Wonderland";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="hero-banner">
+        <div class="hero-overlay"></div>
+        <img src="~/images/hero/colorful-toys-and-children-playing.jpg" alt="Discover Amazing Toys World" class="hero-image active" id="heroImage1">
+        <img src="~/images/hero/educational-toys-and-learning-games.jpg" alt="Smart Educational Toys" class="hero-image" id="heroImage2">
+        <img src="~/images/hero/famous-toy-brands-display.jpg" alt="Trusted Global Brands" class="hero-image" id="heroImage3">
+
+        <button class="hero-nav-btn hero-prev" onclick="prevSlide()">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+        </button>
+
+        <button class="hero-nav-btn hero-next" onclick="nextSlide()">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+        </button>
+
+        <div class="hero-dots">
+            <button class="hero-dot active" onclick="goToSlide(0)"></button>
+            <button class="hero-dot" onclick="goToSlide(1)"></button>
+            <button class="hero-dot" onclick="goToSlide(2)"></button>
+        </div>
+
+        <div class="hero-decorations">
+            <div class="hero-decoration hero-decoration-1"></div>
+            <div class="hero-decoration hero-decoration-2"></div>
+        </div>
+    </div>
+
+    <div class="hero-content">
+        <div class="container">
+            <div class="hero-content-inner">
+                <div class="hero-badges">
+                    <span class="badge badge-primary badge-glow" id="heroBadge1">50% OFF</span>
+                    <span class="badge badge-outline" id="heroBadge2">Best Seller</span>
+                    <div class="hero-rating">
+                        <div class="stars">
+                            <svg class="star" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                            </svg>
+                            <svg class="star" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                            </svg>
+                            <svg class="star" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                            </svg>
+                            <svg class="star" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                            </svg>
+                            <svg class="star" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                            </svg>
+                        </div>
+                        <span class="rating-text">(4.9/5 • 12K+ reviews)</span>
+                    </div>
+                </div>
+
+                <h1 class="hero-title" id="heroTitle">Discover Amazing Toys World</h1>
+                <p class="hero-subtitle" id="heroSubtitle">Thousands of high-quality products for your beloved children</p>
+
+                <div class="hero-actions">
+                    <button class="btn btn-primary btn-lg">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                        </svg>
+                        <span id="heroCtaText">Shop Now</span>
+                    </button>
+                    <button class="btn btn-outline btn-lg">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                        </svg>
+                        Watch Demo
+                    </button>
+                </div>
+
+                <div class="hero-stats">
+                    <div class="stat-item">
+                        <div class="stat-value">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+                                <polyline points="17 6 23 6 23 12"></polyline>
+                            </svg>
+                            <span>10K+</span>
+                        </div>
+                        <div class="stat-label">Products</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="9" cy="7" r="4"></circle>
+                                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                            </svg>
+                            <span>50K+</span>
+                        </div>
+                        <div class="stat-label">Happy Customers</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="8" r="7"></circle>
+                                <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline>
+                            </svg>
+                            <span>99%</span>
+                        </div>
+                        <div class="stat-label">Satisfaction</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Category Section -->
+<section class="category-section">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">CATEGORIES</h2>
+            <p class="section-subtitle">Discover amazing toys for every age and interest</p>
+        </div>
+
+        <div class="category-grid">
+            <!-- First Row -->
+            <div class="category-item" data-delay="0">
+                <div class="category-icon">
+                    <img src="~/images/categories/action-figures.png" alt="Action Figures">
+                </div>
+                <h3 class="category-name">Action Figures</h3>
+            </div>
+            <div class="category-item" data-delay="50">
+                <div class="category-icon">
+                    <img src="~/images/categories/building-blocks.png" alt="Building Blocks">
+                </div>
+                <h3 class="category-name">Building Blocks</h3>
+            </div>
+            <div class="category-item" data-delay="100">
+                <div class="category-icon">
+                    <img src="~/images/categories/dolls-plush.png" alt="Dolls & Plush">
+                </div>
+                <h3 class="category-name">Dolls & Plush</h3>
+            </div>
+            <div class="category-item" data-delay="150">
+                <div class="category-icon">
+                    <img src="~/images/categories/educational.png" alt="Educational Toys">
+                </div>
+                <h3 class="category-name">Educational Toys</h3>
+            </div>
+            <div class="category-item" data-delay="200">
+                <div class="category-icon">
+                    <img src="~/images/categories/electronic.png" alt="Electronic Toys">
+                </div>
+                <h3 class="category-name">Electronic Toys</h3>
+            </div>
+            <div class="category-item" data-delay="250">
+                <div class="category-icon">
+                    <img src="~/images/categories/outdoor-sports.png" alt="Outdoor & Sports">
+                </div>
+                <h3 class="category-name">Outdoor & Sports</h3>
+            </div>
+            <div class="category-item" data-delay="300">
+                <div class="category-icon">
+                    <img src="~/images/categories/vehicles.png" alt="Toy Vehicles">
+                </div>
+                <h3 class="category-name">Toy Vehicles</h3>
+            </div>
+            <div class="category-item" data-delay="350">
+                <div class="category-icon">
+                    <img src="~/images/categories/arts-crafts.png" alt="Arts & Crafts">
+                </div>
+                <h3 class="category-name">Arts & Crafts</h3>
+            </div>
+
+            <!-- Second Row -->
+            <div class="category-item" data-delay="400">
+                <div class="category-icon">
+                    <img src="~/images/categories/baby-toys.png" alt="Baby Toys">
+                </div>
+                <h3 class="category-name">Baby Toys</h3>
+            </div>
+            <div class="category-item" data-delay="450">
+                <div class="category-icon">
+                    <img src="~/images/categories/board-games.png" alt="Board Games">
+                </div>
+                <h3 class="category-name">Board Games</h3>
+            </div>
+            <div class="category-item" data-delay="500">
+                <div class="category-icon">
+                    <img src="~/images/categories/musical.png" alt="Musical Toys">
+                </div>
+                <h3 class="category-name">Musical Toys</h3>
+            </div>
+            <div class="category-item" data-delay="550">
+                <div class="category-icon">
+                    <img src="~/images/categories/science-kits.png" alt="Science Kits">
+                </div>
+                <h3 class="category-name">Science Kits</h3>
+            </div>
+            <div class="category-item" data-delay="600">
+                <div class="category-icon">
+                    <img src="~/images/categories/pretend-play.png" alt="Pretend Play">
+                </div>
+                <h3 class="category-name">Pretend Play</h3>
+            </div>
+            <div class="category-item" data-delay="650">
+                <div class="category-icon">
+                    <img src="~/images/categories/remote-control.png" alt="Remote Control">
+                </div>
+                <h3 class="category-name">Remote Control</h3>
+            </div>
+            <div class="category-item" data-delay="700">
+                <div class="category-icon">
+                    <img src="~/images/categories/water-toys.png" alt="Water Toys">
+                </div>
+                <h3 class="category-name">Water Toys</h3>
+            </div>
+            <div class="category-item" data-delay="750">
+                <div class="category-icon">
+                    <img src="~/images/categories/collectibles.png" alt="Collectibles">
+                </div>
+                <h3 class="category-name">Collectibles</h3>
+            </div>
+        </div>
+
+        <div class="text-center mt-5">
+            <button class="btn btn-outline-primary btn-lg">View All Categories</button>
+        </div>
+    </div>
+</section>
+
+<!-- Promotion Banner -->
+<section class="promotion-section">
+    <div class="container">
+        <div class="promotion-banner">
+            <div class="promotion-content">
+                <span class="promotion-badge">SPECIAL OFFER</span>
+                <h2 class="promotion-title">Summer Sale - Up to 50% OFF</h2>
+                <p class="promotion-text">Limited time offer on selected toys</p>
+                <button class="btn btn-light btn-lg">Shop Now</button>
+            </div>
+            <div class="promotion-image">
+                <img src="~/images/promotion/summer-sale.jpg" alt="Summer Sale">
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Featured Products -->
+<section class="products-section">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">Featured Products</h2>
+            <p class="section-subtitle">Handpicked toys loved by children</p>
+        </div>
+
+        <div class="products-grid">
+            <div class="product-card">
+                <div class="product-image">
+                    <img src="~/images/products/product-1.jpg" alt="Product 1">
+                    <button class="product-wishlist">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                        </svg>
+                    </button>
+                    <span class="product-badge">New</span>
+                </div>
+                <div class="product-info">
+                    <h3 class="product-name">LEGO City Police Station</h3>
+                    <div class="product-rating">
+                        <div class="stars">★★★★★</div>
+                        <span>(128)</span>
+                    </div>
+                    <div class="product-price">
+                        <span class="price-current">$89.99</span>
+                        <span class="price-original">$119.99</span>
+                    </div>
+                    <button class="btn btn-primary btn-block">Add to Cart</button>
+                </div>
+            </div>
+
+            <!-- More product cards... -->
+            <div class="product-card">
+                <div class="product-image">
+                    <img src="~/images/products/product-2.jpg" alt="Product 2">
+                    <button class="product-wishlist">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                        </svg>
+                    </button>
+                    <span class="product-badge badge-sale">-30%</span>
+                </div>
+                <div class="product-info">
+                    <h3 class="product-name">Barbie Dreamhouse</h3>
+                    <div class="product-rating">
+                        <div class="stars">★★★★★</div>
+                        <span>(256)</span>
+                    </div>
+                    <div class="product-price">
+                        <span class="price-current">$149.99</span>
+                        <span class="price-original">$199.99</span>
+                    </div>
+                    <button class="btn btn-primary btn-block">Add to Cart</button>
+                </div>
+            </div>
+
+            <div class="product-card">
+                <div class="product-image">
+                    <img src="~/images/products/product-3.jpg" alt="Product 3">
+                    <button class="product-wishlist">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div class="product-info">
+                    <h3 class="product-name">Hot Wheels Track Set</h3>
+                    <div class="product-rating">
+                        <div class="stars">★★★★☆</div>
+                        <span>(89)</span>
+                    </div>
+                    <div class="product-price">
+                        <span class="price-current">$39.99</span>
+                    </div>
+                    <button class="btn btn-primary btn-block">Add to Cart</button>
+                </div>
+            </div>
+
+            <div class="product-card">
+                <div class="product-image">
+                    <img src="~/images/products/product-4.jpg" alt="Product 4">
+                    <button class="product-wishlist">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                        </svg>
+                    </button>
+                    <span class="product-badge badge-hot">Hot</span>
+                </div>
+                <div class="product-info">
+                    <h3 class="product-name">Educational STEM Kit</h3>
+                    <div class="product-rating">
+                        <div class="stars">★★★★★</div>
+                        <span>(342)</span>
+                    </div>
+                    <div class="product-price">
+                        <span class="price-current">$59.99</span>
+                    </div>
+                    <button class="btn btn-primary btn-block">Add to Cart</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Popular Products -->
+<section class="products-section bg-light">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">Popular Products</h2>
+            <p class="section-subtitle">Best-selling toys this month</p>
+        </div>
+
+        <div class="products-grid">
+            <!-- Similar product cards structure -->
+            <div class="product-card">
+                <div class="product-image">
+                    <img src="~/images/products/popular-1.jpg" alt="Popular Product 1">
+                    <button class="product-wishlist">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                        </svg>
+                    </button>
+                    <span class="product-badge badge-bestseller">Best Seller</span>
+                </div>
+                <div class="product-info">
+                    <h3 class="product-name">Nintendo Switch OLED</h3>
+                    <div class="product-rating">
+                        <div class="stars">★★★★★</div>
+                        <span>(1,234)</span>
+                    </div>
+                    <div class="product-price">
+                        <span class="price-current">$349.99</span>
+                    </div>
+                    <button class="btn btn-primary btn-block">Add to Cart</button>
+                </div>
+            </div>
+
+            <!-- Add more popular products -->
+        </div>
+    </div>
+</section>
+
+<!-- Brand Section -->
+<section class="brand-section">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">Trusted Brands</h2>
+            <p class="section-subtitle">Official partners worldwide</p>
+        </div>
+
+        <div class="brand-grid">
+            <div class="brand-item">
+                <img src="~/images/brands/lego.png" alt="LEGO">
+            </div>
+            <div class="brand-item">
+                <img src="~/images/brands/barbie.png" alt="Barbie">
+            </div>
+            <div class="brand-item">
+                <img src="~/images/brands/hot-wheels.png" alt="Hot Wheels">
+            </div>
+            <div class="brand-item">
+                <img src="~/images/brands/nerf.png" alt="Nerf">
+            </div>
+            <div class="brand-item">
+                <img src="~/images/brands/fisher-price.png" alt="Fisher Price">
+            </div>
+            <div class="brand-item">
+                <img src="~/images/brands/hasbro.png" alt="Hasbro">
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Newsletter Section -->
+<section class="newsletter-section">
+    <div class="container">
+        <div class="newsletter-content">
+            <div class="newsletter-icon">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                    <polyline points="22,6 12,13 2,6"></polyline>
+                </svg>
+            </div>
+            <div class="newsletter-text">
+                <h2 class="newsletter-title">Subscribe to Our Newsletter</h2>
+                <p class="newsletter-subtitle">Get the latest updates on new products and special offers</p>
+            </div>
+            <div class="newsletter-form">
+                <input type="email" class="form-control" placeholder="Enter your email">
+                <button class="btn btn-primary">Subscribe</button>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script src="~/js/home.js"></script>
+}
