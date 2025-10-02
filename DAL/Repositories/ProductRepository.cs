@@ -1,4 +1,5 @@
 ﻿using DAL.IRepositories;
+using DAL.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,5 +10,6 @@ namespace DAL.Repository
 {
     internal class ProductRepository : IProductRepository
     {
+     
     }
 }
