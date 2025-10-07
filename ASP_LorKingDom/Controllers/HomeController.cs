@@ -1,5 +1,5 @@
 using System.Diagnostics;
-using ASP_LorKingDom.Models;
+using DAL.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ASP_LorKingDom.Controllers
