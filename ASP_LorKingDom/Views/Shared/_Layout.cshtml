@@ -9,6 +9,11 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+          integrity="sha512-SzlrxWUlpfuzQ+pcUCosxcglQRNAq/DZjVsC0lE3xgI1Gx9l9QKf5nLDGosVdC1p5c+X1Y9wM5Vd8N6b+9l9FA=="
+          crossorigin="anonymous"
+          referrerpolicy="no-referrer" />
 
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/home.css" asp-append-version="true" />
@@ -67,7 +72,12 @@
 
                     <!-- Actions -->
                     <div class="header-actions">
-                        <button class="header-action-btn" id="wishlistBtn">
+                        <button class="header-action-btn" id="wishlistBtn"
+                                type="button"
+                                data-bs-toggle="offcanvas"
+                                data-bs-target="#wishlistOffcanvas"
+                                aria-controls="wishlistOffcanvas"
+                                title="Danh sách yêu thích">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
                             </svg>
@@ -312,6 +322,8 @@
             </div>
         </div>
     </footer>
+    @await Html.PartialAsync("_Wishlist")
+
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
