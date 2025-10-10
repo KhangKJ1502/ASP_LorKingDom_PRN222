@@ -12,7 +12,9 @@ namespace BLL
             // services.AddScoped<IProductService, ProductService>();
 
             // ✳️ Thêm dòng này:
-            services.AddScoped<ISystemHealthService, SystemHealthService>();
+            //services.AddScoped<ISystemHealthService, SystemHealthService>();
+
+            services.AddScoped<ISuperCategoryService, SuperCategoryService>();
 
             return services;
         }
