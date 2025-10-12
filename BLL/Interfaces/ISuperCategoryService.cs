@@ -24,7 +24,5 @@ namespace BLL.Interfaces
         // Sửa tên + trạng thái (edit)
         Task<bool> UpdateAsync(int id, string name, bool isDeleted);
 
-        // Xóa mềm (set IsDeleted=true)
-        Task<bool> SoftDeleteAsync(int id);
     }
 }

@@ -60,14 +60,7 @@ namespace DAL.Repositories
             await _context.SaveChangesAsync();
         }
 
-        public async Task EditIsDeletedAsync(int id, bool isDeleted)
-        {
-            var entity = await _context.SuperCategories.FindAsync(id);
-            if (entity == null) return;
-
-            entity.IsDeleted = isDeleted;
-            await _context.SaveChangesAsync();
-        }
+    
 
         public async Task<bool> ExistsByNameAsync(string name, int? excludeId = null)
         {

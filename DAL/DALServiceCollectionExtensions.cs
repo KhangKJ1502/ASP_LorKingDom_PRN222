@@ -17,8 +17,9 @@ namespace DAL
             // services.AddScoped<IProductRepository, ProductRepository>();
 
             services.AddScoped<ISuperCategoryRepository, SuperCategoryRepository>();
+            services.AddScoped<IPriceRangeRepository, PriceRangeRepository>();
             // ✳️ Thêm dòng này:
-           
+
 
             return services;
         }

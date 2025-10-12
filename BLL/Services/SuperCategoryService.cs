@@ -76,15 +76,7 @@ namespace BLL.Services
             return true;
         }
 
-        public async Task<bool> SoftDeleteAsync(int id)
-        {
-            var e = await _repo.GetByIdAsync(id);
-            if (e == null) return false;
-
-            // Dùng method chuyên chỉnh IsDeleted trong Repository
-            await _repo.EditIsDeletedAsync(id, true);
-            return true;
-        }
+     
 
         private static SuperCategoryDto Map(SuperCategory x) => new()
         {

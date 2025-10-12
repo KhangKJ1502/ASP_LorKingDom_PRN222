@@ -80,16 +80,6 @@ namespace WebUI.Controllers
         }
 
 
-        //// POST: /SuperCategory/DeleteSuperCategory
-        //[HttpPost]
-        //[ValidateAntiForgeryToken]
-        //public async Task<IActionResult> DeleteSuperCategory(int id)
-        //{
-        //    await _service.SoftDeleteAsync(id);
-        //    TempData["Success"] = "Xóa mềm thành công!";
-        //    return RedirectToAction(nameof(Manage));
-        //}
-
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {

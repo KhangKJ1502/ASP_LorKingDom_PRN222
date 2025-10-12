@@ -15,7 +15,7 @@ namespace BLL
             //services.AddScoped<ISystemHealthService, SystemHealthService>();
 
             services.AddScoped<ISuperCategoryService, SuperCategoryService>();
-
+            services.AddScoped<IPriceRangeService, PriceRangeService>();
             return services;
         }
     }

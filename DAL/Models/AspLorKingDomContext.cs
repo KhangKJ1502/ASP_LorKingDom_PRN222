@@ -531,10 +531,17 @@ public partial class AspLorKingDomContext : DbContext
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
-            entity.Property(e => e.PriceRange1)
-                .HasMaxLength(100)
-                .HasColumnName("PriceRange");
+
+            // NEW: map 2 cột min/max (decimal)
+            entity.Property(e => e.PriceRangeMin)
+                .HasColumnType("decimal(12, 2)")
+                .HasColumnName("PriceRangeMin");
+
+            entity.Property(e => e.PriceRangeMax)
+                .HasColumnType("decimal(12, 2)")
+                .HasColumnName("PriceRangeMax");
         });
+
 
         modelBuilder.Entity<Product>(entity =>
         {
