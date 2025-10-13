@@ -27,6 +27,14 @@ public partial class Order
 
     public decimal TotalAmount { get; set; }
 
+    public decimal PaidByWalletAmount { get; set; }
+
+    public decimal PaidByExternalAmount { get; set; }
+
+    public DateTime? PaymentCompletedAt { get; set; }
+
+    public string RefundStatus { get; set; } = null!;
+
     public bool IsDeleted { get; set; }
 
     public DateTime CreatedAt { get; set; }
@@ -37,9 +45,13 @@ public partial class Order
 
     public virtual ICollection<OrderDetail> OrderDetails { get; set; } = new List<OrderDetail>();
 
+    public virtual OrderRefund? OrderRefund { get; set; }
+
     public virtual ICollection<OrderStatusHistory> OrderStatusHistories { get; set; } = new List<OrderStatusHistory>();
 
     public virtual ICollection<PaymentHistory> PaymentHistories { get; set; } = new List<PaymentHistory>();
 
     public virtual StatusOrder Status { get; set; } = null!;
+
+    public virtual ICollection<WalletTransaction> WalletTransactions { get; set; } = new List<WalletTransaction>();
 }

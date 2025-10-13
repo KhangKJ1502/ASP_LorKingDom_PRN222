@@ -35,11 +35,19 @@ public partial class Account
 
     public virtual ICollection<Cart> Carts { get; set; } = new List<Cart>();
 
+    public virtual ICollection<EmailOtp> EmailOtps { get; set; } = new List<EmailOtp>();
+
     public virtual ICollection<ExternalLogin> ExternalLogins { get; set; } = new List<ExternalLogin>();
 
-    public virtual ICollection<NotificationMessage> NotificationMessages { get; set; } = new List<NotificationMessage>();
+    public virtual ICollection<Notification> NotificationCreatedByNavigations { get; set; } = new List<Notification>();
 
-    public virtual ICollection<NotificationRecipient> NotificationRecipients { get; set; } = new List<NotificationRecipient>();
+    public virtual ICollection<Notification> NotificationTargetUsers { get; set; } = new List<Notification>();
+
+    public virtual ICollection<OrderRefund> OrderRefundAccounts { get; set; } = new List<OrderRefund>();
+
+    public virtual ICollection<OrderRefund> OrderRefundApprovedByNavigations { get; set; } = new List<OrderRefund>();
+
+    public virtual ICollection<OrderRefund> OrderRefundRequestedByNavigations { get; set; } = new List<OrderRefund>();
 
     public virtual ICollection<OrderStatusHistory> OrderStatusHistories { get; set; } = new List<OrderStatusHistory>();
 
@@ -63,7 +71,13 @@ public partial class Account
 
     public virtual Role? Role { get; set; }
 
+    public virtual ICollection<UserNotification> UserNotifications { get; set; } = new List<UserNotification>();
+
     public virtual ICollection<Voucher> Vouchers { get; set; } = new List<Voucher>();
+
+    public virtual Wallet? Wallet { get; set; }
+
+    public virtual ICollection<WalletTransaction> WalletTransactions { get; set; } = new List<WalletTransaction>();
 
     public virtual ICollection<Wishlist> Wishlists { get; set; } = new List<Wishlist>();
 }

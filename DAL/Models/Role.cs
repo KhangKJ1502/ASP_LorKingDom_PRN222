@@ -15,5 +15,5 @@ public partial class Role
 
     public virtual ICollection<Account> Accounts { get; set; } = new List<Account>();
 
-    public virtual ICollection<NotificationMessage> NotificationMessages { get; set; } = new List<NotificationMessage>();
+    public virtual ICollection<Notification> Notifications { get; set; } = new List<Notification>();
 }

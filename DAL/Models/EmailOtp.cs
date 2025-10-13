@@ -7,7 +7,9 @@ public partial class EmailOtp
 {
     public int EmailOtpId { get; set; }
 
-    public string Email { get; set; } = null!;
+    public int? AccountId { get; set; }
+
+    public string? Email { get; set; }
 
     public string Purpose { get; set; } = null!;
 
@@ -18,4 +20,6 @@ public partial class EmailOtp
     public DateTime ExpiresAt { get; set; }
 
     public bool IsUsed { get; set; }
+
+    public virtual Account? Account { get; set; }
 }
