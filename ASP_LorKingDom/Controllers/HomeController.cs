@@ -23,6 +23,22 @@ namespace ASP_LorKingDom.Controllers
             return View();
         }
 
+        [HttpGet]
+        public IActionResult Login()
+        {
+            return View();
+        }
+        [HttpGet]
+        public IActionResult Signup()
+        {
+            return View();
+        }
+
+        public IActionResult Profile()
+        {
+            return View();
+        }
+
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {

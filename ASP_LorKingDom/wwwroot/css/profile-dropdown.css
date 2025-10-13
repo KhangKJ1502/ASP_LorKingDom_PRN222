@@ -1,0 +1,169 @@
+﻿/* ===== Profile Dropdown - Compact ToyLand Style ===== */
+.profile-dropdown-container {
+    position: relative;
+    width: 100px;
+}
+
+    /* Avatar button */
+    .profile-dropdown-container .profile-button {
+        background: transparent;
+        border: none;
+        padding: 2px;
+        line-height: 1;
+    }
+
+        .profile-dropdown-container .profile-button .icon {
+            width: 24px;
+            height: 24px;
+        }
+
+    /* Dropdown card */
+    .profile-dropdown-container .dropdown-menu {
+        --toy-orange: #e86e35;
+        --toy-orange-light: #ffede1;
+        --toy-border: #f4dfd3;
+        --toy-text: #333;
+        --toy-muted: #6b7280;
+        min-width: 210px; /* nhỏ gọn hơn */
+        padding: 0;
+        border: 1px solid var(--toy-border);
+        border-radius: 10px; /* bo góc nhỏ hơn */
+        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        background: #fff;
+        z-index: 1080;
+    }
+
+    /* Header */
+    .profile-dropdown-container .dropdown-header {
+        padding: 10px 14px 6px;
+    }
+
+    .profile-dropdown-container .dropdown-title {
+        color: var(--toy-orange);
+        font-weight: 700;
+        font-size: 14px;
+    }
+
+    /* Divider */
+    .profile-dropdown-container .dropdown-divider {
+        margin: 0;
+        border-top: 1px solid var(--toy-border) !important;
+    }
+
+    /* Items */
+    .profile-dropdown-container .dropdown-item {
+        padding: 8px 14px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        color: var(--toy-text);
+        font-weight: 500;
+        border-radius: 0;
+        transition: all 0.15s ease;
+    }
+
+        .profile-dropdown-container .dropdown-item .dropdown-icon {
+            width: 18px;
+            height: 18px;
+            color: var(--toy-muted);
+        }
+
+        /* Hover */
+        .profile-dropdown-container .dropdown-item:hover {
+            background: var(--toy-orange-light);
+            color: var(--toy-orange);
+        }
+
+            .profile-dropdown-container .dropdown-item:hover .dropdown-icon {
+                color: var(--toy-orange);
+            }
+
+    /* Logout (danger) */
+    .profile-dropdown-container .logout-item {
+        color: #d44;
+    }
+
+        .profile-dropdown-container .logout-item .dropdown-icon {
+            color: #d44;
+        }
+
+        .profile-dropdown-container .logout-item:hover {
+            background: #ffe9e9;
+            color: #c33;
+        }
+
+            .profile-dropdown-container .logout-item:hover .dropdown-icon {
+                color: #c33;
+            }
+
+
+.header-main,
+.site-header {
+    overflow: visible;
+}
+
+.profile-dropdown-container .dropdown-menu {
+    min-width: 210px;
+    width: max-content;
+    max-width: 260px;
+    left: auto !important;
+    right: 0 !important;
+    inset-inline-start: auto !important;
+    inset-inline-end: 0 !important;
+}
+
+    .profile-dropdown-container .dropdown-menu.show {
+        margin-top: 50px !important; 
+    }
+.profile-dropdown-container {
+    position: relative;
+    display: inline-block;
+}
+
+.profile-button {
+    border: 0;
+    background: transparent;
+    padding: 6px;
+    border-radius: 999px;
+}
+
+.profile-dropdown-container .dropdown-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    left: auto;
+    margin: 0;
+    min-width: 240px;
+    border-radius: 16px;
+    box-shadow: 0 12px 24px rgba(0,0,0,.08);
+    transform: none !important; 
+}
+
+
+.profile-dropdown-container .dropdown-header {
+    padding: .5rem 1rem;
+    font-weight: 600;
+    color: #e87439; 
+}
+
+.profile-dropdown-container .dropdown-divider {
+    margin: .25rem 0;
+}
+
+.profile-dropdown-container .dropdown-item {
+    border-radius: 10px;
+}
+
+    .profile-dropdown-container .dropdown-item:hover {
+        background: #fff5ef;
+    }
+
+.profile-dropdown-container .logout-item:hover {
+    background: #fff1f1;
+}
+
+.header-actions, .site-header {
+    overflow: visible;
+}
