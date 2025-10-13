@@ -1,24 +1,25 @@
-﻿using DAL.Data;
+﻿
 using DAL.Interfaces;
 using DAL.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using System;
-
+using DAL.Models;
 namespace DAL
 {
     public static class DALServiceCollectionExtensions
     {
         public static IServiceCollection AddDAL(this IServiceCollection services, string? connectionString)
         {
-            services.AddDbContext<AppDbContext>(opt => opt.UseSqlServer(connectionString));
+            services.AddDbContext<AspLorKingDomContext>(opt => opt.UseSqlServer(connectionString));
 
             // Repo của bạn ...
             // services.AddScoped<IProductRepository, ProductRepository>();
 
-
+            services.AddScoped<ISuperCategoryRepository, SuperCategoryRepository>();
+            services.AddScoped<IPriceRangeRepository, PriceRangeRepository>();
             // ✳️ Thêm dòng này:
-            services.AddScoped<IDbHealthCheck, DbHealthCheck>();
+
 
             return services;
         }

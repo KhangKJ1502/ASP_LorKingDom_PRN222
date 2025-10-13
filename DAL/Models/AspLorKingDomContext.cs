@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 namespace DAL.Models;
 
@@ -91,9 +92,18 @@ public partial class AspLorKingDomContext : DbContext
 
     public virtual DbSet<Wishlist> Wishlists { get; set; }
 
+    private string GetConnectionString()
+    {
+        IConfiguration configuration = new ConfigurationBuilder()
+            .SetBasePath(Directory.GetCurrentDirectory())
+            .AddJsonFile("appsettings.json", true, true)
+            .Build();
+        var connectionstring = configuration["ConnectionStrings:DefaultConnection"];
+        return connectionstring;
+    }
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Data Source=DESKTOP-T27O90D\\SQLEXPRESS ;Initial Catalog=ASP_LorKingDom;Persist Security Info=True;User ID=sa;Password=khangmc1502@;Trust Server Certificate=True ");
+        => optionsBuilder.UseSqlServer(GetConnectionString());
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -521,10 +531,17 @@ public partial class AspLorKingDomContext : DbContext
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
-            entity.Property(e => e.PriceRange1)
-                .HasMaxLength(100)
-                .HasColumnName("PriceRange");
+
+            // NEW: map 2 cột min/max (decimal)
+            entity.Property(e => e.PriceRangeMin)
+                .HasColumnType("decimal(12, 2)")
+                .HasColumnName("PriceRangeMin");
+
+            entity.Property(e => e.PriceRangeMax)
+                .HasColumnType("decimal(12, 2)")
+                .HasColumnName("PriceRangeMax");
         });
+
 
         modelBuilder.Entity<Product>(entity =>
         {
