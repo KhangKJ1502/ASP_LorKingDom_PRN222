@@ -17,6 +17,9 @@
 
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/home.css" asp-append-version="true" />
+
+    @await RenderSectionAsync("Styles", required: false)   <!-- THÊM DÒNG NÀY -->
+
 </head>
 <body>
     <!-- Header -->
@@ -93,12 +96,7 @@
                             <span class="action-badge action-badge-primary">3</span>
                         </a>
 
-                        <a href="/Home/Profile" class="header-action-btn" id="profileBtn">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                                <circle cx="12" cy="7" r="4"></circle>
-                            </svg>
-                        </a>
+                        @await Html.PartialAsync("_ProfileDropdown")
 
                         <button class="header-action-btn mobile-menu-btn" id="mobileMenuBtn">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -328,6 +326,12 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+          if (window.lucide) lucide.createIcons();
+        });
+    </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
