@@ -36,19 +36,6 @@ namespace DAL.Repositories
                 .ToListAsync();
         }
 
-        public async Task<List<SuperCategory>> SearchAsync(string keyword, bool includeDeleted = false)
-        {
-            var query = _context.SuperCategories.AsQueryable();
-
-            if (!string.IsNullOrWhiteSpace(keyword))
-                query = query.Where(x => x.SuperCategoryName.Contains(keyword));
-
-            if (!includeDeleted)
-                query = query.Where(x => !x.IsDeleted);
-
-            return await query.OrderBy(x => x.SuperCategoryName).ToListAsync();
-        }
-
         public async Task<SuperCategory?> GetByIdAsync(int id)
         {
             return await _context.SuperCategories.FirstOrDefaultAsync(x => x.SuperCategoryId == id);
