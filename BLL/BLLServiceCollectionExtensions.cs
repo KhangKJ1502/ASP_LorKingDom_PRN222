@@ -13,6 +13,7 @@ namespace BLL
 
             // ✳️ Thêm dòng này:
             //services.AddScoped<ISystemHealthService, SystemHealthService>();
+            services.AddScoped<IOriginService, OriginService>();
 
             services.AddScoped<IMaterialService, MaterialService>();
             services.AddScoped<IBrandService, BrandService>();
