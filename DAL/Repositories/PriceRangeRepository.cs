@@ -53,33 +53,7 @@ namespace DAL.Repositories
                 .ToListAsync();
         }
 
-        public async Task<List<PriceRange>> SearchAsync(string keyword, bool includeDeleted = false)
-        {
-            var q = _context.PriceRanges.AsQueryable();
-
-            if (!includeDeleted)
-                q = q.Where(x => !x.IsDeleted);
-
-            if (!string.IsNullOrWhiteSpace(keyword))
-            {
-                if (TryParseRange(keyword, out var iMin, out var iMax))
-                {
-                    q = q.Where(x => !(x.PriceRangeMax < iMin || x.PriceRangeMin > iMax));
-                }
-                else if (TryParseNumber(keyword, out var value))
-                {
-                    q = q.Where(x =>
-                        (x.PriceRangeMin <= value && x.PriceRangeMax >= value) ||
-                        x.PriceRangeMin == value || x.PriceRangeMax == value);
-                }
-            }
-
-            return await q.OrderBy(x => x.PriceRangeMin).ToListAsync();
-        }
-
-        // ================= helpers =================
-
-        // Hỗ trợ "100,000 - 300000" / "100000-300000" (dấu phẩy, chấm, khoảng trắng không quan trọng)
+       
         private static bool TryParseRange(string input, out decimal min, out decimal max)
         {
             min = max = 0;
