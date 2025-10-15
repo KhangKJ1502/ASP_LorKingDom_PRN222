@@ -1,0 +1,277 @@
+﻿@{
+    ViewData["Title"] = "Add Product";
+    Layout = "_AdminLayout";
+}
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet" />
+<link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+<link rel="stylesheet" href="~/css/NewProductCss.css" asp-append-version="true" />
+
+<div class="container">
+    <!-- UI only: không xử lý gì, action="#" -->
+    <form action="#" method="get" enctype="multipart/form-data" class="needs-validation" novalidate>
+        <div class="row">
+            <h2 class="text-center mb-4 fw-bold text-primary">Thêm Sản Phẩm Mới</h2>
+
+            <div class="col-md-6">
+                <!-- Basic Information Section -->
+                <div class="form-section">
+                    <h5 class="section-title">
+                        <i class="fas fa-info-circle"></i>
+                        Thông Tin Cơ Bản
+                    </h5>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Tên Sản Phẩm</label>
+                            <input type="text" class="form-control" name="ProductName" placeholder="Nhập tên sản phẩm" required
+                                   oninvalid="this.setCustomValidity('Please enter the product name.')"
+                                   oninput="this.setCustomValidity('')" />
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Category</label>
+                            <select class="form-select" name="CategoryId" required>
+                                <option value="">-- Chọn Category --</option>
+                                <option value="1">Robot</option>
+                                <option value="2">Xếp hình</option>
+                                <option value="3">Búp bê</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label">Giới Tính</label>
+                            <select class="form-select" name="SexId">
+                                <option value="">Không xác định</option>
+                                <option value="1">Bé trai</option>
+                                <option value="2">Bé gái</option>
+                                <option value="3">Unisex</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label">Khoảng Giá</label>
+                            <select class="form-select" name="PriceRangeId">
+                                <option value="">-- Chọn --</option>
+                                <option value="1">Dưới 100k</option>
+                                <option value="2">100k - 300k</option>
+                                <option value="3">Trên 300k</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label">Thương Hiệu</label>
+                            <select class="form-select" name="BrandId">
+                                <option value="">-- Chọn --</option>
+                                <option value="1">Lego</option>
+                                <option value="2">Mattel</option>
+                                <option value="3">Hasbro</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label">Khoảng Tuổi</label>
+                            <select class="form-select" name="AgeId">
+                                <option value="">-- Chọn --</option>
+                                <option value="1">3-5</option>
+                                <option value="2">6-8</option>
+                                <option value="3">9-12</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label">Chất Liệu</label>
+                            <select class="form-select" name="MaterialId">
+                                <option value="">-- Chọn --</option>
+                                <option value="1">Nhựa an toàn</option>
+                                <option value="2">Gỗ</option>
+                                <option value="3">Kim loại</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label">Nguồn Gốc</label>
+                            <select class="form-select" name="OriginId" required>
+                                <option value="">-- Chọn --</option>
+                                <option value="1">Việt Nam</option>
+                                <option value="2">Thái Lan</option>
+                                <option value="3">Nhật Bản</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Description Section -->
+                <div class="form-section">
+                    <h5 class="section-title">
+                        <i class="fas fa-align-left"></i>
+                        Miêu Tả Sản Phẩm
+                    </h5>
+                    <div id="editor-container" style="min-height:160px;"></div>
+                    <!-- input ẩn nếu sau này cần lấy nội dung -->
+                    <input type="hidden" name="Description" id="DescriptionHidden" />
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <!-- Pricing Section -->
+                <div class="form-section">
+                    <h5 class="section-title">
+                        <i class="fas fa-dollar-sign"></i>
+                        Giá Và Số Lượng
+                    </h5>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Giá (VND)</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-tag"></i></span>
+                                <input type="number" class="form-control" name="Price" min="0" placeholder="0" required />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Số Lượng</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-cubes"></i></span>
+                                <input type="number" class="form-control" name="StockQuantity" min="0" placeholder="0" required />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Images Section -->
+                <div class="form-section">
+                    <h5 class="section-title">
+                        <i class="fas fa-images"></i>
+                        Ảnh Sản Phẩm
+                    </h5>
+
+                    <div class="row g-4">
+                        <div class="row">
+                            <!-- Main Image Column -->
+                            <div class="col-md-4">
+                                <h6 class="fw-bold mb-3">Ảnh Chính</h6>
+                                <div class="upload-container d-flex align-items-center">
+                                    <div class="upload-box" onclick="document.getElementById('mainImageUpload').click()">
+                                        <input type="file" id="mainImageUpload" name="MainImageUpload" hidden accept="image/*" />
+                                        <i class="fas fa-cloud-upload-alt"></i>
+                                        <span>Chọn Để Thêm Ảnh</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Preview Image Column -->
+                            <div class="col-md-8">
+                                <h6 class="fw-bold mb-3">Ảnh Mẫu</h6>
+                                <div id="previewContainer" class="d-flex flex-wrap gap-2"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-12 mt-3">
+                        <div class="image-upload-section">
+                            <h4>Ảnh Chi Tiết (Tối Đa 8 Ảnh)</h4>
+                            <div class="upload-container mess-error">
+                                <!-- Hidden file input -->
+                                <input type="file" id="detailImagesInput" name="DetailImages" multiple accept="image/*" hidden />
+                                <!-- Drop zone -->
+                                <div class="drop-zone"
+                                     onclick="document.getElementById('detailImagesInput').click()"
+                                     ondragover="event.preventDefault()"
+                                     ondrop="handleDrop(event)">
+                                    <div class="upload-prompt">
+                                        <i class="fas fa-cloud-upload-alt"></i>
+                                        <p>Kéo và thả hình ảnh vào đây hoặc nhấp để tải lên</p>
+                                        <small class="text-muted">(Tối Đa 8 Ảnh, JPEG/PNG/WEBP)</small>
+                                    </div>
+                                </div>
+                                <!-- Preview grid -->
+                                <div id="previewGrid" class="preview-grid"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit Buttons (để UI đẹp, vẫn giữ nút) -->
+                <div class="d-flex justify-content-end gap-3 mt-4">
+                    <a href="#" class="btn btn-primary btn-sm">Trở Về</a>
+                    <button type="button" class="btn btn-primary px-4" onclick="alert('UI demo only')">
+                        <i class="fas fa-plus-circle me-2"></i>Thêm Sản Phẩm
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Modal Error: UI-only, không gắn TempData -->
+<div class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="errorModalLabel">Thông Báo Lỗi</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p id="errorMessage">Lỗi ví dụ (UI demo)</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+
+    <script>
+        // Khởi tạo Quill để hiển thị editor
+        document.addEventListener('DOMContentLoaded', function () {
+            const quill = new Quill('#editor-container', { theme: 'snow' });
+            // Demo nội dung sẵn
+            quill.root.innerHTML = "<p>Mô tả sản phẩm demo...</p>";
+        });
+
+        // Upload demo: preview ảnh chính
+        document.getElementById('mainImageUpload')?.addEventListener('change', function (e) {
+            const file = e.target.files?.[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function () {
+                const img = document.createElement('img');
+                img.src = reader.result;
+                img.style.maxWidth = '120px';
+                img.style.borderRadius = '8px';
+                const container = document.getElementById('previewContainer');
+                container.innerHTML = "";
+                container.appendChild(img);
+            };
+            reader.readAsDataURL(file);
+        });
+
+        // Upload demo: ảnh chi tiết (tối đa 8)
+        function handleFiles(files) {
+            const grid = document.getElementById('previewGrid');
+            grid.innerHTML = "";
+            const list = Array.from(files).slice(0, 8);
+            list.forEach(f => {
+                const reader = new FileReader();
+                reader.onload = function () {
+                    const wrap = document.createElement('div');
+                    wrap.className = 'thumb';
+                    wrap.innerHTML = `<img src="${reader.result}" style="width:100%;height:100%;object-fit:cover;border-radius:8px" />`;
+                    grid.appendChild(wrap);
+                };
+                reader.readAsDataURL(f);
+            });
+        }
+        document.getElementById('detailImagesInput')?.addEventListener('change', e => handleFiles(e.target.files));
+        function handleDrop(e) {
+            e.preventDefault();
+            if (e.dataTransfer?.files?.length) {
+                handleFiles(e.dataTransfer.files);
+            }
+        }
+    </script>
+}

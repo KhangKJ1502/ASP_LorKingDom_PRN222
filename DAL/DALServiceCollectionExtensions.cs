@@ -15,9 +15,11 @@ namespace DAL
 
             // Repo của bạn ...
             // services.AddScoped<IProductRepository, ProductRepository>();
+            //Nhánh Product 
             services.AddScoped<ICategoryRepository, CategoryRepository>();
-
+            services.AddScoped<IAgeRepository, AgeRepository>();
             services.AddScoped<IOriginRepository, OriginRepository>();
+            services.AddScoped<ISexRepository, SexRepository>();
             services.AddScoped<IMaterialRepository, MaterialRepository>();
             services.AddScoped<IBrandRepository, BrandRepository>();
             services.AddScoped<ISuperCategoryRepository, SuperCategoryRepository>();
