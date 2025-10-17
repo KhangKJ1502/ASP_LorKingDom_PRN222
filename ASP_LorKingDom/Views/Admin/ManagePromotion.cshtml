@@ -1,7 +1,7 @@
 ﻿@model IEnumerable<BLL.DTOs.PromotionDto>
 @{
     Layout = "_AdminLayout";
-    ViewData["Title"] = "Quản Lý Khuyến Mãi Sản Phẩm";
+    ViewData["Title"] = "Quản Lý Khuyến Mãi";
     var keyword = (string?)ViewBag.Keyword ?? "";
     var edit = ViewBag.EditPromotion as BLL.DTOs.PromotionDto;
 }
@@ -154,8 +154,6 @@
         border-radius: 6px;
         margin-top: 1rem;
     }
-
-   
 </style>
 
 <div class="container-fluid px-5">
@@ -173,7 +171,7 @@
             <!-- Tìm kiếm -->
             <form class="mb-4" method="get" asp-action="Manage" asp-controller="Promotion">
                 <div class="input-group search-box">
-                    <input type="text" name="keyword" value="@keyword" class="form-control" placeholder="Tìm theo tên/mô tả...">
+                    <input type="text" name="keyword" value="@keyword" class="form-control" placeholder="Tìm theo mã/mô tả...">
                     <button class="btn btn-outline-secondary" type="submit">
                         <i class="fa-solid fa-magnifying-glass"></i>
                     </button>
@@ -195,8 +193,7 @@
                         <tr>
                             <th style="white-space:nowrap">ID</th>
                             <th style="white-space:nowrap">Hành Động</th>
-                            <th>Tên KM</th>
-                            <th>Sản phẩm</th>
+                            <th>Mã KM</th>
                             <th>Giảm (%)</th>
                             <th>Thời gian</th>
                             <th style="white-space:nowrap">Trạng Thái</th>
@@ -217,8 +214,7 @@
                                             <i class="fa-solid fa-pen-to-square"></i>
                                         </a>
                                     </td>
-                                    <td>@x.Name</td>
-                                    <td>@(string.IsNullOrEmpty(x.ProductName) ? "—" : x.ProductName)</td>
+                                    <td>@x.PromotionCode</td>
                                     <td>@(x.DiscountPercent?.ToString("0.##") ?? "—")</td>
                                     <td>
                                         @x.StartDate.ToString("dd/MM/yyyy HH:mm")
@@ -232,7 +228,7 @@
                                         }
                                         else
                                         {
-                                            <span class="badge bg-success">@x.Status</span>
+                                            <span class="badge bg-@(x.Status == "Active" ? "success" : "warning")">@x.Status</span>
                                         }
                                     </td>
                                     <td>@x.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
@@ -242,7 +238,7 @@
                         else
                         {
                             <tr>
-                                <td colspan="8" class="text-center text-muted">Không có dữ liệu.</td>
+                                <td colspan="7" class="text-center text-muted">Không có dữ liệu.</td>
                             </tr>
                         }
                     </tbody>
@@ -272,47 +268,44 @@
                     <div class="row g-3">
                         <div class="col-lg-12">
                             <label class="form-label">
-                                <i class="fa-solid fa-heading me-1"></i>
-                                Tên khuyến mãi <span class="text-danger">*</span>
+                                <i class="fa-solid fa-barcode me-1"></i>
+                                Mã khuyến mãi <span class="text-danger">*</span>
                             </label>
-                            <input type="text" class="form-control" name="Name" id="promotionName"
-                                   value="@(edit?.Name ?? "")" placeholder="Nhập tên khuyến mãi" required />
-                        </div>
-
-                        <div class="col-lg-6">
-                            <label class="form-label">
-                                <i class="fa-solid fa-box me-1"></i>
-                                Sản phẩm
-                            </label>
-                            @if (ViewBag.Products is IEnumerable<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem> products && products.Any())
-                            {
-                                <select class="form-select" name="ProductId" id="productId">
-                                    <option value="">-- Không gán sản phẩm --</option>
-                                    @foreach (var p in products)
-                                    {
-                                        <option value="@p.Value"
-                                                selected="@( (edit?.ProductId?.ToString() ?? "") == p.Value ? "selected" : null )">
-                                            @p.Text
-                                        </option>
-                                    }
-                                </select>
-                            }
-                            else
-                            {
-                                <input type="number" name="ProductId" id="productId" class="form-control"
-                                       value="@(edit?.ProductId?.ToString() ?? "")" placeholder="ProductId (tuỳ chọn)" />
-                            }
+                            <input type="text" class="form-control" name="PromotionCode" id="promotionCode"
+                                   value="@(edit?.PromotionCode ?? "")" placeholder="VD: SUMMER2024, SALE50..." required />
+                            <small class="form-text">Mã khuyến mãi phải duy nhất</small>
                         </div>
 
                         <div class="col-lg-6">
                             <label class="form-label">
                                 <i class="fa-solid fa-percent me-1"></i>
-                                Giảm giá (%)
+                                Giảm giá (%) <span class="text-danger">*</span>
                             </label>
                             <input type="number" step="0.01" min="0" max="100" class="form-control"
                                    name="DiscountPercent" id="discountPercent"
                                    value="@(edit?.DiscountPercent?.ToString("0.##") ?? "")"
-                                   placeholder="0 - 100" />
+                                   placeholder="0 - 100" required />
+                        </div>
+
+                        <div class="col-lg-6">
+                            <label class="form-label">
+                                <i class="fa-solid fa-toggle-on me-1"></i>
+                                Trạng thái <span class="text-danger">*</span>
+                            </label>
+                            <input type="hidden" name="Status" id="status" value="@(edit?.Status ?? "Active")" />
+                            <div class="btn-group d-flex" role="group">
+                                <input type="radio" class="btn-check" name="statusRadio" id="statusActive" value="Active"
+                                       checked="@((edit?.Status ?? "Active") == "Active" ? "checked" : null)" onchange="updateStatus(this.value)" autocomplete="off">
+                                <label class="btn btn-outline-success" for="statusActive">
+                                    <i class="fa-solid fa-circle-check me-1"></i>Active
+                                </label>
+
+                                <input type="radio" class="btn-check" name="statusRadio" id="statusInactive" value="Inactive"
+                                       checked="@(edit?.Status == "Inactive" ? "checked" : null)" onchange="updateStatus(this.value)" autocomplete="off">
+                                <label class="btn btn-outline-danger" for="statusInactive">
+                                    <i class="fa-solid fa-circle-xmark me-1"></i>Inactive
+                                </label>
+                            </div>
                         </div>
 
                         <div class="col-lg-6">
@@ -342,45 +335,8 @@
                                       rows="2" placeholder="Nhập mô tả khuyến mãi...">@(edit?.Description ?? "")</textarea>
                         </div>
 
-                        <div class="col-lg-6">
-                            <label class="form-label">
-                                <i class="fa-solid fa-toggle-on me-1"></i>
-                                Trạng thái <span class="text-danger">*</span>
-                            </label>
-                            <input type="hidden" name="Status" id="status" value="@(edit?.Status ?? "Active")" />
-                            <div class="btn-group d-flex" role="group">
-                                <input type="radio" class="btn-check" name="statusRadio" id="statusActive" value="Active"
-                                       checked="@((edit?.Status ?? "Active") == "Active" ? "checked" : null)" autocomplete="off">
-                                <label class="btn btn-outline-success" for="statusActive">
-                                    <i class="fa-solid fa-circle-check me-1"></i>Active
-                                </label>
-
-                                <input type="radio" class="btn-check" name="statusRadio" id="statusInactive" value="Inactive"
-                                       checked="@(edit?.Status == "Inactive" ? "checked" : null)" autocomplete="off">
-                                <label class="btn btn-outline-danger" for="statusInactive">
-                                    <i class="fa-solid fa-circle-xmark me-1"></i>Inactive
-                                </label>
-                            </div>
-                        </div>
-
                         @if (edit != null)
                         {
-                            <div class="col-lg-6" id="isDeletedRow">
-                                <label class="form-label">
-                                    <i class="fa-solid fa-circle-check me-1"></i>
-                                    Trạng thái hoạt động
-                                </label>
-                                <select class="form-select" name="IsDeleted" id="isDeleted">
-                                    <option value="false" selected="@(edit.IsDeleted ? null : "selected")">
-                                        ✅ Hoạt động
-                                    </option>
-                                    <option value="true" selected="@(edit.IsDeleted ? "selected" : null)">
-                                        ⛔ Vô hiệu hóa
-                                    </option>
-                                </select>
-                                <div class="form-text">Vô hiệu hóa sẽ ngừng áp dụng khuyến mãi này</div>
-                            </div>
-
                             <div class="col-12">
                                 <div class="info-box">
                                     <div class="text-muted small">
@@ -435,6 +391,10 @@
 
 @section Scripts {
     <script>
+        function updateStatus(value) {
+            document.getElementById('status').value = value;
+        }
+
         document.addEventListener('DOMContentLoaded', function () {
             // Hiển thị toast nếu có lỗi
             const hasError = '@(ViewBag.ShowErrorModal == true ? "true" : "false")';
@@ -459,10 +419,8 @@
             form.reset();
             document.getElementById('promotionModalLabel').innerHTML = '<i class="fa-solid fa-tag me-2"></i>Thêm khuyến mãi mới';
             document.getElementById('promotionId').value = '0';
-
-            // Ẩn IsDeleted khi thêm mới
-            const isDeletedRow = document.getElementById('isDeletedRow');
-            if (isDeletedRow) isDeletedRow.style.display = 'none';
+            document.getElementById('status').value = 'Active';
+            document.getElementById('statusActive').checked = true;
         }
 
         function closeModal() {

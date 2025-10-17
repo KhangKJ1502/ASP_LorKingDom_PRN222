@@ -2,9 +2,7 @@
 using BLL.DTOs;
 using BLL.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace WebUI.Controllers
@@ -12,12 +10,10 @@ namespace WebUI.Controllers
     public class PromotionController : Controller
     {
         private readonly IPromotionService _promotionService;
-        private readonly IProductService? _productService;
 
-        public PromotionController(IPromotionService promotionService, IProductService? productService = null)
+        public PromotionController(IPromotionService promotionService)
         {
             _promotionService = promotionService;
-            _productService = productService;
         }
 
         public IActionResult Index() => RedirectToAction(nameof(Manage));
@@ -27,14 +23,6 @@ namespace WebUI.Controllers
         {
             var promotions = await _promotionService.GetAllAsync(keyword);
             ViewBag.Keyword = keyword ?? "";
-
-            if (_productService != null)
-            {
-                var items = await _productService.GetSelectListAsync();
-                ViewBag.Products = items
-                    .Select(p => new SelectListItem { Value = p.Value, Text = p.Text })
-                    .ToList();
-            }
 
             if (TempData["EditPromotionId"] is int pid && pid > 0)
             {
@@ -71,14 +59,12 @@ namespace WebUI.Controllers
                     var ok = await _promotionService.UpdateAsync(new PromotionUpdateDto
                     {
                         PromotionId = dto.PromotionId,
-                        ProductId = dto.ProductId,
-                        Name = dto.Name,
+                        PromotionCode = dto.PromotionCode,
                         Description = dto.Description,
                         DiscountPercent = dto.DiscountPercent,
                         StartDate = dto.StartDate,
                         EndDate = dto.EndDate,
-                        Status = dto.Status,
-                        IsDeleted = dto.IsDeleted
+                        Status = dto.Status
                     });
                     if (!ok) throw new InvalidOperationException("Cập nhật thất bại hoặc không tìm thấy bản ghi.");
                     TempData["Success"] = "✅ Cập nhật khuyến mãi thành công.";
@@ -87,8 +73,7 @@ namespace WebUI.Controllers
                 {
                     var created = await _promotionService.CreateAsync(new PromotionCreateDto
                     {
-                        ProductId = dto.ProductId,
-                        Name = dto.Name,
+                        PromotionCode = dto.PromotionCode,
                         Description = dto.Description,
                         DiscountPercent = dto.DiscountPercent,
                         StartDate = dto.StartDate,
@@ -106,25 +91,19 @@ namespace WebUI.Controllers
                 ViewBag.ErrorMessage = ex.Message;
 
                 var promotions = await _promotionService.GetAllAsync(keyword);
-                if (_productService != null)
-                {
-                    var items = await _productService.GetSelectListAsync();
-                    ViewBag.Products = items.Select(p => new SelectListItem { Value = p.Value, Text = p.Text }).ToList();
-                }
                 ViewBag.Keyword = keyword ?? "";
 
                 ViewBag.EditPromotion = dto.PromotionId > 0
                     ? new PromotionDto
                     {
                         PromotionId = dto.PromotionId,
-                        ProductId = dto.ProductId,
-                        Name = dto.Name,
+                        PromotionCode = dto.PromotionCode,
                         Description = dto.Description,
                         DiscountPercent = dto.DiscountPercent,
                         StartDate = dto.StartDate,
                         EndDate = dto.EndDate,
                         Status = dto.Status,
-                        IsDeleted = dto.IsDeleted
+                        IsDeleted = false
                     }
                     : null;
 
@@ -185,16 +164,16 @@ namespace WebUI.Controllers
 
         // AJAX validations
         [HttpGet]
-        public async Task<IActionResult> CheckNameExists(string name, int? excludeId)
+        public async Task<IActionResult> CheckCodeExists(string code, int? excludeId)
         {
-            var exists = await _promotionService.ExistsByNameAsync(name, excludeId);
+            var exists = await _promotionService.ExistsByNameAsync(code, excludeId);
             return Json(new { valid = !exists });
         }
 
         [HttpGet]
-        public async Task<IActionResult> CheckOverlap(int productId, DateTime startDate, DateTime endDate, int? excludeId)
+        public async Task<IActionResult> CheckOverlap(DateTime startDate, DateTime endDate, int? excludeId)
         {
-            var overlap = await _promotionService.HasOverlapAsync(productId, startDate, endDate, excludeId);
+            var overlap = await _promotionService.HasOverlapAsync(0, startDate, endDate, excludeId);
             return Json(new { valid = !overlap });
         }
     }

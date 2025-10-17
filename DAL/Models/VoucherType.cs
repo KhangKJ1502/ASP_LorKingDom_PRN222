@@ -10,6 +10,4 @@ public partial class VoucherType
     public string VoucherTypeName { get; set; } = null!;
 
     public DateTime CreatedAt { get; set; }
-
-    public virtual ICollection<Voucher> Vouchers { get; set; } = new List<Voucher>();
 }

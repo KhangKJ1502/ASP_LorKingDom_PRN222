@@ -40,8 +40,7 @@ namespace BLL.Services
 
             var entity = new Promotion
             {
-                ProductId = dto.ProductId,
-                Name = dto.Name,
+                PromotionCode = dto.PromotionCode,
                 Description = dto.Description,
                 DiscountPercent = dto.DiscountPercent,
                 StartDate = dto.StartDate,
@@ -63,8 +62,7 @@ namespace BLL.Services
             var toUpdate = new Promotion
             {
                 PromotionId = dto.PromotionId,
-                ProductId = dto.ProductId,
-                Name = dto.Name,
+                PromotionCode = dto.PromotionCode,
                 Description = dto.Description,
                 DiscountPercent = dto.DiscountPercent,
                 StartDate = dto.StartDate,
@@ -93,8 +91,8 @@ namespace BLL.Services
             return list.Select(Map).ToList();
         }
 
-        public Task<bool> ExistsByNameAsync(string name, int? excludeId = null)
-            => _repo.ExistsByNameAsync(name, excludeId);
+        public Task<bool> ExistsByNameAsync(string code, int? excludeId = null)
+            => _repo.ExistsByNameAsync(code, excludeId);
 
         public Task<bool> HasOverlapAsync(int productId, DateTime start, DateTime end, int? excludeId = null)
             => _repo.HasOverlapAsync(productId, start, end, excludeId);
@@ -102,9 +100,7 @@ namespace BLL.Services
         private static PromotionDto Map(Promotion x) => new()
         {
             PromotionId = x.PromotionId,
-            ProductId = x.ProductId,
-            ProductName = x.Product?.ProductName,
-            Name = x.Name,
+            PromotionCode = x.PromotionCode,
             Description = x.Description,
             DiscountPercent = x.DiscountPercent,
             StartDate = x.StartDate,

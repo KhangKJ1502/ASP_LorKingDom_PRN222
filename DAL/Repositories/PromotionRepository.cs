@@ -21,14 +21,13 @@ namespace DAL.Repositories
         public async Task<List<Promotion>> GetAllAsync(string? keyword)
         {
             var query = _context.Promotions
-                .Include(p => p.Product)
                 .Where(p => !p.IsDeleted);
 
             if (!string.IsNullOrWhiteSpace(keyword))
             {
                 var kw = $"%{keyword.Trim()}%";
                 query = query.Where(p =>
-                    EF.Functions.Like(p.Name, kw) ||
+                    EF.Functions.Like(p.PromotionCode, kw) ||
                     (p.Description != null && EF.Functions.Like(p.Description, kw)));
             }
 
@@ -40,7 +39,6 @@ namespace DAL.Repositories
         public Task<Promotion?> GetByIdAsync(int id)
         {
             return _context.Promotions
-                .Include(p => p.Product)
                 .FirstOrDefaultAsync(p => p.PromotionId == id && !p.IsDeleted);
         }
 
@@ -58,13 +56,12 @@ namespace DAL.Repositories
                 .FirstOrDefaultAsync(p => p.PromotionId == promotion.PromotionId);
             if (existing == null) return false;
 
-            existing.Name = promotion.Name;
+            existing.PromotionCode = promotion.PromotionCode;
             existing.Description = promotion.Description;
             existing.DiscountPercent = promotion.DiscountPercent;
             existing.StartDate = promotion.StartDate;
             existing.EndDate = promotion.EndDate;
             existing.Status = promotion.Status;
-            existing.ProductId = promotion.ProductId;
             existing.UpdatedAt = DateTime.Now;
 
             await _context.SaveChangesAsync();
@@ -119,7 +116,6 @@ namespace DAL.Repositories
         {
             var now = DateTime.Now;
             return await _context.Promotions
-                .Include(p => p.Product)
                 .Where(p => !p.IsDeleted
                             && p.Status == "Active"
                             && p.StartDate <= now
@@ -133,28 +129,28 @@ namespace DAL.Repositories
             var now = DateTime.Now;
             return _context.Promotions
                 .Where(p => !p.IsDeleted
-                            && p.ProductId == productId
                             && p.Status == "Active"
                             && p.StartDate <= now
-                            && p.EndDate >= now)
+                            && p.EndDate >= now
+                            && p.Products.Any(pr => pr.ProductId == productId))
                 .OrderByDescending(p => p.CreatedAt)
                 .ToListAsync();
         }
 
-        public Task<bool> ExistsByNameAsync(string name, int? excludeId = null)
+        public Task<bool> ExistsByNameAsync(string code, int? excludeId = null)
         {
-            var query = _context.Promotions.Where(p => p.Name == name && !p.IsDeleted);
+            var query = _context.Promotions.Where(p => p.PromotionCode == code && !p.IsDeleted);
             if (excludeId.HasValue)
                 query = query.Where(p => p.PromotionId != excludeId.Value);
             return query.AnyAsync();
         }
 
-        public Task<bool> HasOverlapAsync(int productId, DateTime start, DateTime end, int? excludeId = null)
+        public Task<bool> HasOverlapAsync(int promotionId, DateTime start, DateTime end, int? excludeId = null)
         {
             if (end < start) (start, end) = (end, start);
 
             var query = _context.Promotions
-                .Where(p => p.ProductId == productId && !p.IsDeleted);
+                .Where(p => !p.IsDeleted);
 
             if (excludeId.HasValue)
                 query = query.Where(p => p.PromotionId != excludeId.Value);

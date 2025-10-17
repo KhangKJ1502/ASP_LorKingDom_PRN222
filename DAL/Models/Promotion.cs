@@ -7,9 +7,7 @@ public partial class Promotion
 {
     public int PromotionId { get; set; }
 
-    public int? ProductId { get; set; }
-
-    public string Name { get; set; } = null!;
+    public string PromotionCode { get; set; } = null!;
 
     public string? Description { get; set; }
 
@@ -27,5 +25,5 @@ public partial class Promotion
 
     public DateTime? UpdatedAt { get; set; }
 
-    public virtual Product? Product { get; set; }
+    public virtual ICollection<Product> Products { get; set; } = new List<Product>();
 }

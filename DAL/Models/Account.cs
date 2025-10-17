@@ -11,7 +11,7 @@ public partial class Account
 
     public string AccountName { get; set; } = null!;
 
-    public string PhoneNumber { get; set; } = null!;
+    public string? PhoneNumber { get; set; }
 
     public string Email { get; set; } = null!;
 
@@ -72,8 +72,6 @@ public partial class Account
     public virtual Role? Role { get; set; }
 
     public virtual ICollection<UserNotification> UserNotifications { get; set; } = new List<UserNotification>();
-
-    public virtual ICollection<Voucher> Vouchers { get; set; } = new List<Voucher>();
 
     public virtual Wallet? Wallet { get; set; }
 
