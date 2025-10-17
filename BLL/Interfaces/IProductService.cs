@@ -1,12 +1,13 @@
-﻿using System;
+﻿// BLL/Interfaces/IProductService.cs
+using BLL.DTOs;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
-namespace BLL.IServices
+namespace BLL.Interfaces
 {
-    internal interface IProductService
+    public interface IProductService
     {
+        Task<List<SelectItemDto>> GetSelectListAsync(string? keyword = null, int limit = 200);
+        Task<bool> ExistsAsync(int productId);
     }
 }

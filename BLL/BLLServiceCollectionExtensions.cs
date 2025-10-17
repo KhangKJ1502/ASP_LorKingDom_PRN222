@@ -1,6 +1,7 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using BLL.Interfaces;
+﻿using BLL.Interfaces;
 using BLL.Services;
+using BLL.Validators;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace BLL
 {
@@ -16,6 +17,10 @@ namespace BLL
 
             services.AddScoped<ISuperCategoryService, SuperCategoryService>();
             services.AddScoped<IPriceRangeService, PriceRangeService>();
+            services.AddScoped<IPromotionService, PromotionService>();
+            services.AddScoped<PromotionValidator>();
+
+            services.AddScoped<INotificationService, NotificationService>();
             return services;
         }
     }

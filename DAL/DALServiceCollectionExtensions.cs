@@ -18,7 +18,16 @@ namespace DAL
 
             services.AddScoped<ISuperCategoryRepository, SuperCategoryRepository>();
             services.AddScoped<IPriceRangeRepository, PriceRangeRepository>();
+            services.AddScoped<IPromotionRepository, PromotionRepository>();
+
+            //NOTIFICATION
+          services.AddScoped<INotificationRepository, NotificationRepository>();
+            services.AddScoped<IUserNotificationRepository, UserNotificationRepository>();
+            services.AddScoped<INotificationLogRepository, NotificationLogRepository>();
             // ✳️ Thêm dòng này:
+
+            services.AddScoped<IAccountRepository, AccountRepository>();
+            services.AddScoped<IRoleRepository, RoleRepository>();
 
 
             return services;

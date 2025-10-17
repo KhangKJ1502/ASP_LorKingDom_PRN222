@@ -1,0 +1,472 @@
+﻿@model IEnumerable<BLL.DTOs.PromotionDto>
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Quản Lý Khuyến Mãi Sản Phẩm";
+    var keyword = (string?)ViewBag.Keyword ?? "";
+    var edit = ViewBag.EditPromotion as BLL.DTOs.PromotionDto;
+}
+
+<style>
+    .search-box .form-control {
+        border: 1px solid #000 !important;
+        box-shadow: none !important;
+    }
+
+    .search-box .btn {
+        border: 1px solid #000 !important;
+        border-left: none !important;
+    }
+
+    .toast-top-right {
+        top: 120px !important;
+        right: 24px !important;
+        left: auto !important;
+        bottom: auto !important;
+    }
+
+    #liveToast.toast {
+        min-width: 520px;
+        padding: 1rem 1.25rem;
+        border-radius: 12px;
+        box-shadow: 0 8px 24px rgba(0,0,0,.18);
+    }
+
+    #liveToast .toast-body {
+        font-size: 1.1rem;
+        font-weight: 600;
+        word-break: break-word;
+    }
+
+    .deleted-row {
+        opacity: .6;
+        background: #f8f9fa;
+    }
+
+    /* Custom Modal Styling */
+    #promotionModal .modal-content {
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    }
+
+    #promotionModal .modal-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 16px 16px 0 0;
+        padding: 1.5rem;
+        border: none;
+    }
+
+    #promotionModal .modal-title {
+        font-weight: 600;
+        font-size: 1.25rem;
+    }
+
+    #promotionModal .btn-close {
+        filter: brightness(0) invert(1);
+        opacity: 0.8;
+    }
+
+        #promotionModal .btn-close:hover {
+            opacity: 1;
+        }
+
+    #promotionModal .modal-body {
+        padding: 2rem;
+        background-color: #f8f9fa;
+    }
+
+    #promotionModal .form-label {
+        font-weight: 500;
+        color: #495057;
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+    }
+
+    #promotionModal .form-control,
+    #promotionModal .form-select {
+        border: 2px solid #e9ecef;
+        border-radius: 8px;
+        padding: 0.65rem 0.875rem;
+        transition: all 0.3s ease;
+        background-color: white;
+    }
+
+        #promotionModal .form-control:focus,
+        #promotionModal .form-select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.15);
+        }
+
+    #promotionModal textarea.form-control {
+        resize: vertical;
+        min-height: 80px;
+    }
+
+    #promotionModal .text-danger {
+        color: #dc3545;
+    }
+
+    #promotionModal .modal-footer {
+        border-top: 1px solid #e9ecef;
+        padding: 1.25rem 2rem;
+        background-color: white;
+        border-radius: 0 0 16px 16px;
+    }
+
+    #promotionModal .btn {
+        padding: 0.625rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    #promotionModal .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+    }
+
+        #promotionModal .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+    #promotionModal .btn-outline-secondary {
+        border: 2px solid #6c757d;
+        color: #6c757d;
+    }
+
+        #promotionModal .btn-outline-secondary:hover {
+            background-color: #6c757d;
+            color: white;
+        }
+
+    #promotionModal .form-text {
+        font-size: 0.85rem;
+        color: #6c757d;
+        margin-top: 0.25rem;
+    }
+
+    #promotionModal .info-box {
+        background-color: #e7f3ff;
+        border-left: 4px solid #667eea;
+        padding: 0.75rem 1rem;
+        border-radius: 6px;
+        margin-top: 1rem;
+    }
+
+   
+</style>
+
+<div class="container-fluid px-5">
+    <h1 class="mt-4">Quản Lý Khuyến Mãi</h1>
+
+    <div class="card mb-4 mt-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <div><i class="fa-solid fa-tags me-1"></i> Danh Sách Khuyến Mãi</div>
+            <button class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#promotionModal" onclick="openAddModal()">
+                <i class="fa-solid fa-plus me-1"></i> Thêm Khuyến Mãi
+            </button>
+        </div>
+
+        <div class="card-body">
+            <!-- Tìm kiếm -->
+            <form class="mb-4" method="get" asp-action="Manage" asp-controller="Promotion">
+                <div class="input-group search-box">
+                    <input type="text" name="keyword" value="@keyword" class="form-control" placeholder="Tìm theo tên/mô tả...">
+                    <button class="btn btn-outline-secondary" type="submit">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </button>
+                </div>
+            </form>
+
+            @if (TempData["Error"] is string e)
+            {
+                <div class="alert alert-danger">@e</div>
+            }
+            @if (TempData["Success"] is string s)
+            {
+                <div class="alert alert-success">@s</div>
+            }
+
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th style="white-space:nowrap">ID</th>
+                            <th style="white-space:nowrap">Hành Động</th>
+                            <th>Tên KM</th>
+                            <th>Sản phẩm</th>
+                            <th>Giảm (%)</th>
+                            <th>Thời gian</th>
+                            <th style="white-space:nowrap">Trạng Thái</th>
+                            <th style="white-space:nowrap">Ngày Tạo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null && Model.Any())
+                        {
+                            foreach (var x in Model)
+                            {
+                                <tr class="@(x.IsDeleted ? "deleted-row" : "")">
+                                    <td>@x.PromotionId</td>
+                                    <td style="white-space:nowrap">
+                                        <a class="btn btn-sm btn-warning" title="Cập nhật"
+                                           asp-action="Edit" asp-controller="Promotion"
+                                           asp-route-id="@x.PromotionId" asp-route-keyword="@keyword">
+                                            <i class="fa-solid fa-pen-to-square"></i>
+                                        </a>
+                                    </td>
+                                    <td>@x.Name</td>
+                                    <td>@(string.IsNullOrEmpty(x.ProductName) ? "—" : x.ProductName)</td>
+                                    <td>@(x.DiscountPercent?.ToString("0.##") ?? "—")</td>
+                                    <td>
+                                        @x.StartDate.ToString("dd/MM/yyyy HH:mm")
+                                        —
+                                        @x.EndDate.ToString("dd/MM/yyyy HH:mm")
+                                    </td>
+                                    <td>
+                                        @if (x.IsDeleted)
+                                        {
+                                            <span class="badge bg-secondary">Đã vô hiệu</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-success">@x.Status</span>
+                                        }
+                                    </td>
+                                    <td>@x.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="8" class="text-center text-muted">Không có dữ liệu.</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Thêm/Sửa Promotion -->
+<div class="modal fade" id="promotionModal" tabindex="-1" aria-labelledby="promotionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 id="promotionModalLabel" class="modal-title">
+                    <i class="fa-solid fa-tag me-2"></i>
+                    @(edit != null ? "Cập nhật khuyến mãi" : "Thêm khuyến mãi mới")
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="closeModal()"></button>
+            </div>
+
+            <form method="post" asp-action="SavePromotion" asp-controller="Promotion" id="promotionForm">
+                @Html.AntiForgeryToken()
+                <div class="modal-body">
+                    <input type="hidden" name="PromotionId" id="promotionId" value="@(edit?.PromotionId ?? 0)" />
+
+                    <div class="row g-3">
+                        <div class="col-lg-12">
+                            <label class="form-label">
+                                <i class="fa-solid fa-heading me-1"></i>
+                                Tên khuyến mãi <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" class="form-control" name="Name" id="promotionName"
+                                   value="@(edit?.Name ?? "")" placeholder="Nhập tên khuyến mãi" required />
+                        </div>
+
+                        <div class="col-lg-6">
+                            <label class="form-label">
+                                <i class="fa-solid fa-box me-1"></i>
+                                Sản phẩm
+                            </label>
+                            @if (ViewBag.Products is IEnumerable<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem> products && products.Any())
+                            {
+                                <select class="form-select" name="ProductId" id="productId">
+                                    <option value="">-- Không gán sản phẩm --</option>
+                                    @foreach (var p in products)
+                                    {
+                                        <option value="@p.Value"
+                                                selected="@( (edit?.ProductId?.ToString() ?? "") == p.Value ? "selected" : null )">
+                                            @p.Text
+                                        </option>
+                                    }
+                                </select>
+                            }
+                            else
+                            {
+                                <input type="number" name="ProductId" id="productId" class="form-control"
+                                       value="@(edit?.ProductId?.ToString() ?? "")" placeholder="ProductId (tuỳ chọn)" />
+                            }
+                        </div>
+
+                        <div class="col-lg-6">
+                            <label class="form-label">
+                                <i class="fa-solid fa-percent me-1"></i>
+                                Giảm giá (%)
+                            </label>
+                            <input type="number" step="0.01" min="0" max="100" class="form-control"
+                                   name="DiscountPercent" id="discountPercent"
+                                   value="@(edit?.DiscountPercent?.ToString("0.##") ?? "")"
+                                   placeholder="0 - 100" />
+                        </div>
+
+                        <div class="col-lg-6">
+                            <label class="form-label">
+                                <i class="fa-solid fa-calendar-check me-1"></i>
+                                Ngày bắt đầu <span class="text-danger">*</span>
+                            </label>
+                            <input type="datetime-local" class="form-control" name="StartDate" id="startDate"
+                                   value="@(edit != null ? edit.StartDate.ToString("yyyy-MM-ddTHH:mm") : "")" required />
+                        </div>
+
+                        <div class="col-lg-6">
+                            <label class="form-label">
+                                <i class="fa-solid fa-calendar-xmark me-1"></i>
+                                Ngày kết thúc <span class="text-danger">*</span>
+                            </label>
+                            <input type="datetime-local" class="form-control" name="EndDate" id="endDate"
+                                   value="@(edit != null ? edit.EndDate.ToString("yyyy-MM-ddTHH:mm") : "")" required />
+                        </div>
+
+                        <div class="col-lg-12">
+                            <label class="form-label">
+                                <i class="fa-solid fa-align-left me-1"></i>
+                                Mô tả
+                            </label>
+                            <textarea class="form-control" name="Description" id="description"
+                                      rows="2" placeholder="Nhập mô tả khuyến mãi...">@(edit?.Description ?? "")</textarea>
+                        </div>
+
+                        <div class="col-lg-6">
+                            <label class="form-label">
+                                <i class="fa-solid fa-toggle-on me-1"></i>
+                                Trạng thái <span class="text-danger">*</span>
+                            </label>
+                            <input type="hidden" name="Status" id="status" value="@(edit?.Status ?? "Active")" />
+                            <div class="btn-group d-flex" role="group">
+                                <input type="radio" class="btn-check" name="statusRadio" id="statusActive" value="Active"
+                                       checked="@((edit?.Status ?? "Active") == "Active" ? "checked" : null)" autocomplete="off">
+                                <label class="btn btn-outline-success" for="statusActive">
+                                    <i class="fa-solid fa-circle-check me-1"></i>Active
+                                </label>
+
+                                <input type="radio" class="btn-check" name="statusRadio" id="statusInactive" value="Inactive"
+                                       checked="@(edit?.Status == "Inactive" ? "checked" : null)" autocomplete="off">
+                                <label class="btn btn-outline-danger" for="statusInactive">
+                                    <i class="fa-solid fa-circle-xmark me-1"></i>Inactive
+                                </label>
+                            </div>
+                        </div>
+
+                        @if (edit != null)
+                        {
+                            <div class="col-lg-6" id="isDeletedRow">
+                                <label class="form-label">
+                                    <i class="fa-solid fa-circle-check me-1"></i>
+                                    Trạng thái hoạt động
+                                </label>
+                                <select class="form-select" name="IsDeleted" id="isDeleted">
+                                    <option value="false" selected="@(edit.IsDeleted ? null : "selected")">
+                                        ✅ Hoạt động
+                                    </option>
+                                    <option value="true" selected="@(edit.IsDeleted ? "selected" : null)">
+                                        ⛔ Vô hiệu hóa
+                                    </option>
+                                </select>
+                                <div class="form-text">Vô hiệu hóa sẽ ngừng áp dụng khuyến mãi này</div>
+                            </div>
+
+                            <div class="col-12">
+                                <div class="info-box">
+                                    <div class="text-muted small">
+                                        <i class="fa-regular fa-clock me-1"></i>
+                                        <strong>Ngày tạo:</strong> @(edit.CreatedAt.ToString("dd/MM/yyyy HH:mm"))
+                                        @if (edit.UpdatedAt != null)
+                                        {
+                                            <span class="ms-3">
+                                                <i class="fa-solid fa-rotate me-1"></i>
+                                                <strong>Cập nhật:</strong> @edit.UpdatedAt?.ToString("dd/MM/yyyy HH:mm")
+                                            </span>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" onclick="closeModal()">
+                        <i class="fa-solid fa-xmark me-1"></i>
+                        Hủy
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fa-solid fa-floppy-disk me-1"></i>
+                        @(edit != null ? "Lưu thay đổi" : "Thêm mới")
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Toast lỗi -->
+<div class="toast-container position-fixed p-3 toast-top-right" style="z-index:2080;">
+    <div id="liveToast" class="toast align-items-center text-bg-danger border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body fs-5 fw-semibold">
+                <i class="fa-solid fa-circle-exclamation me-2"></i>
+                @ViewBag.ErrorMessage
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Đóng"></button>
+        </div>
+    </div>
+</div>
+
+<!-- Font Awesome 6 -->
+<link rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+      crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Hiển thị toast nếu có lỗi
+            const hasError = '@(ViewBag.ShowErrorModal == true ? "true" : "false")';
+            if (hasError === "true") {
+                const toastEl = document.getElementById('liveToast');
+                if (toastEl) {
+                    const toast = new bootstrap.Toast(toastEl, { delay: 5000 });
+                    toast.show();
+                }
+            }
+
+            // Hiển thị modal nếu cần
+            const needShow = '@((edit != null || (ViewBag.ShowErrorModal == true)) ? "true" : "false")';
+            if (needShow === "true") {
+                const modalEl = document.getElementById('promotionModal');
+                if (modalEl) new bootstrap.Modal(modalEl).show();
+            }
+        });
+
+        function openAddModal() {
+            const form = document.getElementById('promotionForm');
+            form.reset();
+            document.getElementById('promotionModalLabel').innerHTML = '<i class="fa-solid fa-tag me-2"></i>Thêm khuyến mãi mới';
+            document.getElementById('promotionId').value = '0';
+
+            // Ẩn IsDeleted khi thêm mới
+            const isDeletedRow = document.getElementById('isDeletedRow');
+            if (isDeletedRow) isDeletedRow.style.display = 'none';
+        }
+
+        function closeModal() {
+            window.location.href = '@Url.Action("Manage", "Promotion")';
+        }
+    </script>
+}

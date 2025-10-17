@@ -1,6 +1,7 @@
 ﻿// Program.cs (ASP.NET Core 8)
 using BLL; // AddBLL()
-using DAL; // AddDAL()
+using DAL;
+using WebUI.BackgroundServices; // AddDAL()
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,7 +10,7 @@ builder.Configuration
     .AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true) // gitignore
     .AddUserSecrets<Program>(optional: true)                                     // mỗi dev tự set
     .AddEnvironmentVariables();
-
+builder.Services.AddHostedService<NotificationWorkerService>();
 // 2) Lấy connection string
 var conn = builder.Configuration.GetConnectionString("DefaultConnection")
            ?? throw new InvalidOperationException("Missing ConnectionStrings:DefaultConnection");

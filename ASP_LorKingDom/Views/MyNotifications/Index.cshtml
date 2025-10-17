@@ -1,0 +1,520 @@
+﻿@model BLL.DTOs.PagedResult<BLL.DTOs.UserNotificationDto>
+@{
+    ViewData["Title"] = "Thông Báo Của Tôi";
+    Layout = "_Layout"; // hoặc "_UserLayout" tùy project của bạn
+}
+
+<style>
+    .notification-container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+
+    .notification-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 16px;
+        margin-bottom: 2rem;
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+    }
+
+        .notification-header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 0;
+        }
+
+    .notification-stats {
+        display: flex;
+        gap: 2rem;
+        margin-top: 1rem;
+        font-size: 0.95rem;
+    }
+
+        .notification-stats span {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+    .filter-tabs {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        border-bottom: 2px solid #e5e7eb;
+        padding-bottom: 0;
+    }
+
+    .filter-tab {
+        padding: 0.75rem 1.5rem;
+        background: none;
+        border: none;
+        color: #6b7280;
+        font-weight: 600;
+        cursor: pointer;
+        position: relative;
+        transition: all 0.3s ease;
+        text-decoration: none;
+    }
+
+        .filter-tab:hover {
+            color: #667eea;
+        }
+
+        .filter-tab.active {
+            color: #667eea;
+        }
+
+            .filter-tab.active::after {
+                content: '';
+                position: absolute;
+                bottom: -2px;
+                left: 0;
+                right: 0;
+                height: 2px;
+                background: #667eea;
+            }
+
+    .notification-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .notification-item {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s ease;
+        border-left: 4px solid transparent;
+        cursor: pointer;
+        position: relative;
+    }
+
+        .notification-item:hover {
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+            transform: translateY(-2px);
+        }
+
+        .notification-item.unread {
+            background: #f0f9ff;
+            border-left-color: #667eea;
+        }
+
+            .notification-item.unread::before {
+                content: '';
+                position: absolute;
+                top: 1.5rem;
+                right: 1.5rem;
+                width: 10px;
+                height: 10px;
+                background: #667eea;
+                border-radius: 50%;
+                box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+            }
+
+    .notification-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        flex-shrink: 0;
+    }
+
+        .notification-icon.info {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .notification-icon.warning {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .notification-icon.error {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .notification-icon.promo {
+            background: #e9d5ff;
+            color: #7c3aed;
+        }
+
+        .notification-icon.system {
+            background: #e5e7eb;
+            color: #374151;
+        }
+
+    .notification-content {
+        display: flex;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+
+    .notification-body {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .notification-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #1f2937;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .notification-message {
+        color: #6b7280;
+        font-size: 0.95rem;
+        line-height: 1.6;
+        margin-bottom: 0.75rem;
+    }
+
+    .notification-meta {
+        display: flex;
+        gap: 1rem;
+        font-size: 0.85rem;
+        color: #9ca3af;
+    }
+
+        .notification-meta i {
+            margin-right: 0.25rem;
+        }
+
+    .mark-read-btn {
+        padding: 0.5rem 1rem;
+        background: #667eea;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        white-space: nowrap;
+    }
+
+        .mark-read-btn:hover {
+            background: #5568d3;
+            transform: scale(1.05);
+        }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: #9ca3af;
+    }
+
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .empty-state h3 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            color: #6b7280;
+        }
+
+    .pagination {
+        margin-top: 2rem;
+        display: flex;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+        .pagination .page-link {
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+            color: #667eea;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+            .pagination .page-link:hover {
+                background: #f0f9ff;
+                border-color: #667eea;
+            }
+
+        .pagination .page-item.active .page-link {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+    .badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+
+
+    .notification-header {
+        padding: 1.5rem;
+    }
+
+        .notification-header h1 {
+            font-size: 1.5rem;
+        }
+
+    .notification-stats {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .notification-content {
+        flex-direction: column;
+    }
+
+    .notification-item {
+        padding: 1rem;
+    }
+
+    .mark-read-btn {
+        width: 100%;
+    }
+
+    }
+</style>
+
+<div class="notification-container">
+    <!-- Header -->
+    <div class="notification-header">
+        <h1><i class="fa-solid fa-bell me-2"></i>Thông Báo Của Tôi</h1>
+        <div class="notification-stats">
+            <span>
+                <i class="fa-solid fa-envelope"></i>
+                Tổng số: <strong>@Model.Total</strong>
+            </span>
+            <span>
+                <i class="fa-solid fa-envelope-open"></i>
+                Chưa đọc: <strong>@Model.Items.Count(n => !n.IsRead)</strong>
+            </span>
+        </div>
+    </div>
+
+    <!-- Filter Tabs -->
+    <div class="filter-tabs">
+        <a href="@Url.Action("Index", new { page = 1, pageSize = Model.PageSize })"
+           class="filter-tab @(Context.Request.Query["isRead"].ToString() == "" ? "active" : "")">
+            <i class="fa-solid fa-list"></i> Tất cả
+        </a>
+        <a href="@Url.Action("Index", new { isRead = false, page = 1, pageSize = Model.PageSize })"
+           class="filter-tab @(Context.Request.Query["isRead"].ToString() == "false" ? "active" : "")">
+            <i class="fa-solid fa-envelope"></i> Chưa đọc
+        </a>
+        <a href="@Url.Action("Index", new { isRead = true, page = 1, pageSize = Model.PageSize })"
+           class="filter-tab @(Context.Request.Query["isRead"].ToString() == "true" ? "active" : "")">
+            <i class="fa-solid fa-envelope-open"></i> Đã đọc
+        </a>
+    </div>
+
+    <!-- Notification List -->
+    @if (Model.Items != null && Model.Items.Any())
+    {
+        <div class="notification-list">
+            @foreach (var notification in Model.Items)
+            {
+                <div class="notification-item @(notification.IsRead ? "read" : "unread")">
+                    <div class="notification-content">
+                        <div class="notification-icon @notification.Title.ToLower().Contains("info") ? " info" :
+                             @notification.Title.ToLower().Contains("warning") ? "warning" :
+                             @notification.Title.ToLower().Contains("error") ? "error" :
+                             @notification.Title.ToLower().Contains("promo") ? "promo" : "system">
+                            @if (notification.Title.ToLower().Contains("info"))
+                            {
+                                <i class="fa-solid fa-circle-info"></i>
+                            }
+                            else if (notification.Title.ToLower().Contains("warning"))
+                            {
+                                <i class="fa-solid fa-triangle-exclamation"></i>
+                            }
+                            else if (notification.Title.ToLower().Contains("error"))
+                            {
+                                <i class="fa-solid fa-circle-exclamation"></i>
+                            }
+                            else if (notification.Title.ToLower().Contains("promo"))
+                            {
+                                <i class="fa-solid fa-gift"></i>
+                            }
+                            else
+                            {
+                                <i class="fa-solid fa-bell"></i>
+                            }
+                        </div>
+
+                        <div class="notification-body">
+                            <div class="notification-title">
+                                @notification.Title
+                                @if (!notification.IsRead)
+                                {
+                                    <span class="badge bg-primary">Mới</span>
+                                }
+                            </div>
+                            <div class="notification-message">
+                                @notification.Message
+                            </div>
+                            <div class="notification-meta">
+                                <span>
+                                    <i class="fa-regular fa-clock"></i>
+                                    @GetTimeAgo(notification.ScheduledAt)
+                                </span>
+                                @if (notification.DeliveredAt.HasValue)
+                                {
+                                    <span>
+                                        <i class="fa-solid fa-check"></i>
+                                        Đã gửi: @notification.DeliveredAt.Value.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+                                    </span>
+                                }
+                                @if (notification.ReadAt.HasValue)
+                                {
+                                    <span>
+                                        <i class="fa-solid fa-eye"></i>
+                                        Đã đọc: @notification.ReadAt.Value.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+                                    </span>
+                                }
+                            </div>
+                        </div>
+
+                        @if (!notification.IsRead)
+                        {
+                            <form method="post" asp-action="MarkRead" asp-controller="MyNotifications" style="margin-left: auto;">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@notification.UserNotificationId" />
+                                <button type="submit" class="mark-read-btn" title="Đánh dấu đã đọc">
+                                    <i class="fa-solid fa-check"></i> Đánh dấu đã đọc
+                                </button>
+                            </form>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Pagination -->
+        @if (Model.Total > Model.PageSize)
+        {
+            var totalPages = (int)Math.Ceiling((double)Model.Total / Model.PageSize);
+            var currentPage = Model.Page;
+            var isReadParam = Context.Request.Query["isRead"].ToString();
+
+            <nav class="pagination" aria-label="Notification pagination">
+                <ul class="pagination mb-0">
+                    @if (currentPage > 1)
+                    {
+                        <li class="page-item">
+                            <a class="page-link" href="@Url.Action("Index", new { isRead = isReadParam, page = currentPage - 1, pageSize = Model.PageSize })">
+                                <i class="fa-solid fa-chevron-left"></i>
+                            </a>
+                        </li>
+                    }
+
+                    @for (int i = Math.Max(1, currentPage - 2); i <= Math.Min(totalPages, currentPage + 2); i++)
+                    {
+                        <li class="page-item @(i == currentPage ? "active" : "")">
+                            <a class="page-link" href="@Url.Action("Index", new { isRead = isReadParam, page = i, pageSize = Model.PageSize })">@i</a>
+                        </li>
+                    }
+
+                    @if (currentPage < totalPages)
+                    {
+                        <li class="page-item">
+                            <a class="page-link" href="@Url.Action("Index", new { isRead = isReadParam, page = currentPage + 1, pageSize = Model.PageSize })">
+                                <i class="fa-solid fa-chevron-right"></i>
+                            </a>
+                        </li>
+                    }
+                </ul>
+            </nav>
+        }
+    }
+    else
+    {
+        <div class="empty-state">
+            <i class="fa-regular fa-bell-slash"></i>
+            <h3>Không có thông báo</h3>
+            <p>Bạn chưa có thông báo nào. Hãy quay lại sau!</p>
+        </div>
+    }
+</div>
+
+@functions {
+    string GetTimeAgo(DateTime dateTime)
+    {
+        var localTime = dateTime.ToLocalTime();
+        var timeSpan = DateTime.Now - localTime;
+
+        if (timeSpan.TotalMinutes < 1)
+            return "Vừa xong";
+        if (timeSpan.TotalMinutes < 60)
+            return $"{(int)timeSpan.TotalMinutes} phút trước";
+        if (timeSpan.TotalHours < 24)
+            return $"{(int)timeSpan.TotalHours} giờ trước";
+        if (timeSpan.TotalDays < 7)
+            return $"{(int)timeSpan.TotalDays} ngày trước";
+        if (timeSpan.TotalDays < 30)
+            return $"{(int)(timeSpan.TotalDays / 7)} tuần trước";
+        if (timeSpan.TotalDays < 365)
+            return $"{(int)(timeSpan.TotalDays / 30)} tháng trước";
+
+        return localTime.ToString("dd/MM/yyyy");
+    }
+}
+
+@section Scripts {
+    <script>
+        // Auto refresh mỗi 30 giây để cập nhật thông báo mới
+        let autoRefreshInterval;
+
+        function startAutoRefresh() {
+            autoRefreshInterval = setInterval(() => {
+                // Chỉ refresh nếu đang ở tab "Tất cả" hoặc "Chưa đọc"
+                const isRead = new URLSearchParams(window.location.search).get('isRead');
+                if (isRead !== 'true') {
+                    location.reload();
+                }
+            }, 30000); // 30 giây
+        }
+
+        // Dừng auto refresh khi user không active
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden) {
+                clearInterval(autoRefreshInterval);
+            } else {
+                startAutoRefresh();
+            }
+        });
+
+        // Bắt đầu auto refresh
+        startAutoRefresh();
+
+        // Animate notifications on load
+        document.addEventListener('DOMContentLoaded', function() {
+            const notifications = document.querySelectorAll('.notification-item');
+            notifications.forEach((notif, index) => {
+                notif.style.opacity = '0';
+                notif.style.transform = 'translateY(20px)';
+
+                setTimeout(() => {
+                    notif.style.transition = 'all 0.3s ease';
+                    notif.style.opacity = '1';
+                    notif.style.transform = 'translateY(0)';
+                }, index * 50);
+            });
+        });
+    </script>
+}
