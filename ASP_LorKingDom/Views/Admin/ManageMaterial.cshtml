@@ -1,0 +1,247 @@
+﻿@model IEnumerable<BLL.DTOs.MaterialDto>
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Quản Lí Chất Liệu";
+    var q = (string?)ViewBag.Query ?? "";
+}
+<style>
+    .search-box .form-control {
+        border: 1px solid #000 !important;
+        box-shadow: none !important;
+    }
+
+    .search-box .btn {
+        border: 1px solid #000 !important;
+        border-left: none !important;
+    }
+
+    .toast-top-right {
+        top: 120px !important;
+        right: 24px !important;
+        left: auto !important;
+        bottom: auto !important;
+    }
+
+    #liveToast.toast {
+        min-width: 520px;
+        padding: 1rem 1.25rem;
+        border-radius: 12px;
+        box-shadow: 0 8px 24px rgba(0,0,0,.18);
+    }
+
+    #liveToast .toast-body {
+        font-size: 1.1rem;
+        font-weight: 600;
+        word-break: break-word;
+    }
+
+    .deleted-row {
+        opacity: 0.6;
+        background: #f8f9fa;
+    }
+</style>
+
+<div class="container-fluid px-5">
+    <h1 class="mt-4">Quản Lí Chất Liệu</h1>
+
+    <!-- Form thêm mới -->
+    <form class="mt-4" asp-action="SaveMaterial" asp-controller="Material" method="post">
+        @Html.AntiForgeryToken()
+        <div class="row g-2 align-items-end">
+            <input type="hidden" name="id" value="0" />
+            <div class="col-md-4">
+                <label class="form-label">Tên Chất Liệu</label>
+                <input type="text" name="name" class="form-control" required />
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Mô tả</label>
+                <input type="text" name="description" class="form-control" placeholder="Mô tả ngắn (tùy chọn)" />
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Trạng thái</label>
+                <select class="form-select" name="isDeleted" required>
+                    <option value="false">Hoạt động (0)</option>
+                    <option value="true">Không hoạt động (1)</option>
+                </select>
+            </div>
+            <div class="col-12 col-md-2">
+                <button class="btn btn-primary w-100" type="submit">Thêm Chất Liệu</button>
+            </div>
+        </div>
+    </form>
+
+    <div class="card mb-4 mt-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <div><i class="fa-solid fa-table me-1"></i> Danh Sách Chất Liệu</div>
+        </div>
+
+        <div class="card-body">
+            <!-- Tìm kiếm -->
+            <form class="mb-4" method="get" asp-action="Manage" asp-controller="Material">
+                <div class="input-group search-box">
+                    <input type="text" name="q" value="@q" class="form-control" placeholder="Tìm kiếm chất liệu...">
+                    <button class="btn btn-outline-secondary" type="submit">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </button>
+                </div>
+            </form>
+
+            @if (TempData["Error"] is string e)
+            {
+                <div class="alert alert-danger">@e</div>
+            }
+            @if (TempData["Success"] is string s)
+            {
+                <div class="alert alert-success">@s</div>
+            }
+
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th style="white-space:nowrap">ID</th>
+                            <th style="white-space:nowrap">Hành Động</th>
+                            <th>Tên Chất Liệu</th>
+                            <th>Mô tả</th>
+                            <th style="white-space:nowrap">Trạng Thái</th>
+                            <th style="white-space:nowrap">Ngày Tạo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null && Model.Any())
+                        {
+                            @foreach (var x in Model)
+                            {
+                                <tr class="@(x.IsDeleted ? "deleted-row" : "")">
+                                    <td>@x.Id</td>
+                                    <td style="white-space:nowrap">
+                                        <a class="btn btn-sm btn-warning ms-1" title="Cập nhật"
+                                           asp-action="Edit" asp-controller="Material"
+                                           asp-route-id="@x.Id" asp-route-q="@q">
+                                            <i class="fa-solid fa-pen-to-square"></i>
+                                        </a>
+                                    </td>
+                                    <td>@x.Name</td>
+                                    <td>@x.Description</td>
+                                    <td>
+                                        @if (x.IsDeleted)
+                                        {
+                                            <span class="badge bg-secondary">Không còn hoạt động</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-success">Hoạt Động</span>
+                                        }
+                                    </td>
+                                    <td>@(x.CreatedAt?.ToString("dd/MM/yyyy HH:mm"))</td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="6" class="text-center text-muted">Không có dữ liệu.</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Edit Material -->
+@{
+    var edit = ViewBag.EditMaterial as BLL.DTOs.MaterialDto;
+}
+<div class="modal fade @(edit != null ? "show d-block" : "")"
+     id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="@(edit == null)">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 id="editModalLabel" class="modal-title">Cập nhật Chất Liệu</h5>
+                <a href="@Url.Action("Manage", "Material")" class="btn-close"></a>
+            </div>
+
+            <form method="post" asp-action="SaveMaterial" asp-controller="Material">
+                @Html.AntiForgeryToken()
+                <div class="modal-body">
+                    <input type="hidden" name="id" value="@(edit?.Id ?? 0)" />
+
+                    <div class="mb-3">
+                        <label class="form-label">Tên Chất Liệu</label>
+                        <input type="text" class="form-control" name="name" value="@(edit?.Name ?? "")" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Mô tả</label>
+                        <textarea class="form-control" name="description" rows="3" placeholder="Mô tả ngắn (tùy chọn)">@edit?.Description</textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Trạng thái</label>
+                        <select class="form-select" name="isDeleted" required>
+                            <option value="false" selected="@(edit?.IsDeleted == false)">Hoạt động (0)</option>
+                            <option value="true" selected="@(edit?.IsDeleted == true)">Không hoạt động (1)</option>
+                        </select>
+                        <div class="form-text">
+                            Chọn “Không hoạt động” tương đương đặt IsDeleted = 1.
+                        </div>
+                    </div>
+
+                    <div class="mb-2 text-muted small">
+                        <i class="fa-regular fa-clock me-1"></i>
+                        Ngày tạo: @(edit?.CreatedAt?.ToString("dd/MM/yyyy HH:mm") ?? "—")
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <a href="@Url.Action("Manage", "Material")" class="btn btn-outline-secondary">Hủy</a>
+                    <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@* modal báo lỗi *@
+<div class="toast-container position-fixed p-3 toast-top-right" style="z-index:2080;">
+    <div id="liveToast" class="toast align-items-center text-bg-danger border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body fs-5 fw-semibold">
+                <i class="fa-solid fa-circle-exclamation me-2"></i>
+                @ViewBag.ErrorMessage
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Đóng"></button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const hasError = '@(ViewBag.ShowErrorModal == true ? "true" : "false")';
+            if (hasError === "true") {
+                const toastEl = document.getElementById('liveToast');
+                if (toastEl) {
+                    const toast = new bootstrap.Toast(toastEl, { delay: 5000 });
+                    toast.show();
+                }
+            }
+        });
+    </script>
+
+    @if (ViewBag.EditMaterial != null || ViewBag.ShowErrorModal == true)
+    {
+        <script>
+            document.body.classList.add('modal-open');
+            document.body.style.overflow = 'hidden';
+        </script>
+    }
+}
+
+@section Styles {
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+          crossorigin="anonymous" referrerpolicy="no-referrer" />
+}

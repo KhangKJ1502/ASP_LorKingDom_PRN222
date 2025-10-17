@@ -111,10 +111,9 @@ public partial class AspLorKingDomContext : DbContext
     }
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         => optionsBuilder.UseSqlServer(GetConnectionString());
-
-
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+
         modelBuilder.Entity<Account>(entity =>
         {
             entity.HasKey(e => e.AccountId).HasName("PK__Accounts__349DA586FDF63712");

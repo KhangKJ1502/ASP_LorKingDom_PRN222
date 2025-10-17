@@ -6,7 +6,6 @@ namespace DAL.Interfaces
     {
         Task<List<SuperCategory>> GetAllAsync(string? keyword);
         Task<List<SuperCategory>> GetActiveAsync();
-        Task<List<SuperCategory>> SearchAsync(string keyword, bool includeDeleted = false);
         Task<SuperCategory?> GetByIdAsync(int id);
         Task AddAsync(SuperCategory entity);
         Task UpdateAsync(SuperCategory entity);

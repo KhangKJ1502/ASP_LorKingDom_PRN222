@@ -6,7 +6,7 @@ namespace DAL.Interfaces
     {
         Task<List<PriceRange>> GetAllAsync(string? keyword);
         Task<List<PriceRange>> GetActiveAsync();
-        Task<List<PriceRange>> SearchAsync(string keyword, bool includeDeleted = false);
+        //Task<List<PriceRange>> SearchAsync(string keyword, bool includeDeleted = false);
         Task<PriceRange?> GetByIdAsync(int id);
         Task AddAsync(PriceRange entity);
         Task UpdateAsync(PriceRange entity);
