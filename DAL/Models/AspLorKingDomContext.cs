@@ -1,7 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using System;
-using System.Collections.Generic;
 
 namespace DAL.Models;
 
@@ -38,6 +36,8 @@ public partial class AspLorKingDomContext : DbContext
 
     public virtual DbSet<ExternalLogin> ExternalLogins { get; set; }
 
+    public virtual DbSet<LoginHistory> LoginHistories { get; set; }
+
     public virtual DbSet<Material> Materials { get; set; }
 
     public virtual DbSet<Notification> Notifications { get; set; }
@@ -63,8 +63,6 @@ public partial class AspLorKingDomContext : DbContext
     public virtual DbSet<ProductImage> ProductImages { get; set; }
 
     public virtual DbSet<Promotion> Promotions { get; set; }
-
-    public virtual DbSet<RefreshToken> RefreshTokens { get; set; }
 
     public virtual DbSet<ReviewBlog> ReviewBlogs { get; set; }
 
@@ -109,7 +107,7 @@ public partial class AspLorKingDomContext : DbContext
         var connectionstring = configuration["ConnectionStrings:DefaultConnection"];
         return connectionstring;
     }
-  
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         => optionsBuilder.UseSqlServer(GetConnectionString());
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -341,6 +339,31 @@ public partial class AspLorKingDomContext : DbContext
             entity.HasOne(d => d.Account).WithMany(p => p.ExternalLogins)
                 .HasForeignKey(d => d.AccountId)
                 .HasConstraintName("FK_ExternalLogins_Accounts");
+        });
+
+        modelBuilder.Entity<LoginHistory>(entity =>
+        {
+            entity.HasKey(e => e.LoginId).HasName("PK_LoginHistory");
+
+            entity.Property(e => e.LoginId).HasColumnName("LoginID");
+            entity.Property(e => e.AccountId).HasColumnName("AccountID");
+            entity.Property(e => e.LoginTime)
+                .HasColumnType("datetime")
+                .HasDefaultValueSql("(getdate())");
+            entity.Property(e => e.IpAddress).HasMaxLength(50);
+            entity.Property(e => e.UserAgent).HasMaxLength(255);
+            entity.Property(e => e.IsSuccess).HasDefaultValue(true);
+            entity.Property(e => e.FailedLoginAttempts).HasDefaultValue(0);
+            entity.Property(e => e.LockoutEnd).HasColumnType("datetime");
+            entity.Property(e => e.CreatedAt)
+                .HasColumnType("datetime")
+                .HasDefaultValueSql("(getdate())");
+
+            entity.HasOne(d => d.Account)
+                .WithMany(p => p.LoginHistories)
+                .HasForeignKey(d => d.AccountId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_LoginHistory_Accounts");
         });
 
         modelBuilder.Entity<Material>(entity =>
@@ -711,24 +734,6 @@ public partial class AspLorKingDomContext : DbContext
             entity.Property(e => e.StartDate).HasColumnType("datetime");
             entity.Property(e => e.Status).HasMaxLength(15);
             entity.Property(e => e.UpdatedAt).HasColumnType("datetime");
-        });
-
-        modelBuilder.Entity<RefreshToken>(entity =>
-        {
-            entity.HasKey(e => e.RefreshTokenId).HasName("PK__RefreshT__F5845E59FFC2C77E");
-
-            entity.Property(e => e.RefreshTokenId).HasColumnName("RefreshTokenID");
-            entity.Property(e => e.AccountId).HasColumnName("AccountID");
-            entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
-            entity.Property(e => e.ExpiresAt).HasColumnType("datetime");
-            entity.Property(e => e.RevokedAt).HasColumnType("datetime");
-            entity.Property(e => e.Token).HasMaxLength(500);
-
-            entity.HasOne(d => d.Account).WithMany(p => p.RefreshTokens)
-                .HasForeignKey(d => d.AccountId)
-                .HasConstraintName("FK_RefreshTokens_Accounts");
         });
 
         modelBuilder.Entity<ReviewBlog>(entity =>
