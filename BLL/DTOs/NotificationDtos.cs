@@ -5,7 +5,9 @@ namespace BLL.DTOs
 {
     public class NotificationCreateDto
     {
-        [Required] public int CreatedBy { get; set; }
+        [Required]
+        public int CreatedBy { get; set; }
+
         public string? ConditionJson { get; set; }
 
         [Required, StringLength(200)]
@@ -15,22 +17,49 @@ namespace BLL.DTOs
         public string Message { get; set; } = null!;
 
         [Required, StringLength(50)]
-        public string Type { get; set; } = "system"; // info/promo/system
+        public string Type { get; set; } = "General"; // General|Order|Promotion|System
 
         [Required, StringLength(50)]
-        public string TargetType { get; set; } = "All"; // All/Role/User/Condition
+        public string TargetType { get; set; } = "All"; // All|SingleUser|ByRole|ByCondition
 
         public int? TargetRoleId { get; set; }
         public int? TargetUserId { get; set; }
 
-        [Required] public DateTime ScheduledAt { get; set; }
+        [Required]
+        public DateTime ScheduledAt { get; set; }
 
         public DateTime? ExpireAt { get; set; }
     }
 
-    public class NotificationUpdateDto : NotificationCreateDto
+    public class NotificationUpdateDto
     {
-        [Required] public int NotificationId { get; set; }
+        [Required]
+        public int NotificationId { get; set; }
+
+        [Required]
+        public int CreatedBy { get; set; }
+
+        public string? ConditionJson { get; set; }
+
+        [Required, StringLength(200)]
+        public string Title { get; set; } = null!;
+
+        [Required, StringLength(4000)]
+        public string Message { get; set; } = null!;
+
+        [Required, StringLength(50)]
+        public string Type { get; set; } = "General";
+
+        [Required, StringLength(50)]
+        public string TargetType { get; set; } = "All";
+
+        public int? TargetRoleId { get; set; }
+        public int? TargetUserId { get; set; }
+
+        [Required]
+        public DateTime ScheduledAt { get; set; }
+
+        public DateTime? ExpireAt { get; set; }
     }
 
     public class NotificationDto
@@ -50,6 +79,11 @@ namespace BLL.DTOs
         public bool IsSent { get; set; }
         public bool IsCanceled { get; set; }
         public DateTime CreatedAt { get; set; }
+
+        // Navigation properties
+        public string? TargetRoleName { get; set; }
+        public string? TargetUserEmail { get; set; }
+        public string? CreatedByEmail { get; set; }
     }
 
     public class NotificationFilterDto
@@ -89,11 +123,13 @@ namespace BLL.DTOs
         // View helpers
         public string Title { get; set; } = "";
         public string Message { get; set; } = "";
+        public string Type { get; set; } = "General";
         public DateTime ScheduledAt { get; set; }
     }
 
     /// <summary>
-    /// Dùng chung cho cả Create và Update để lưu Notification.
+    /// Dùng chung cho cả Create và Update để lưu Notification từ UI.
+    /// Controller sẽ normalize Type/TargetType và convert UTC trước khi gửi xuống Service.
     /// </summary>
     public class NotificationSaveDto
     {
@@ -111,10 +147,10 @@ namespace BLL.DTOs
         public string Message { get; set; } = null!;
 
         [Required, StringLength(50)]
-        public string Type { get; set; } = "system"; // info/promo/system
+        public string Type { get; set; } = "General"; // General|Order|Promotion|System
 
         [Required, StringLength(50)]
-        public string TargetType { get; set; } = "All"; // All/Role/User/Condition
+        public string TargetType { get; set; } = "All"; // All|SingleUser|ByRole|ByCondition
 
         public int? TargetRoleId { get; set; }
         public int? TargetUserId { get; set; }
@@ -124,4 +160,5 @@ namespace BLL.DTOs
 
         public DateTime? ExpireAt { get; set; }
     }
+
 }

@@ -1,7 +1,8 @@
 ﻿// Program.cs (ASP.NET Core 8)
 using BLL; // AddBLL()
 using DAL;
-using WebUI.BackgroundServices; // AddDAL()
+using WebUI.BackgroundServices;
+using WebUI.Hubs; // AddDAL()
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,6 +21,10 @@ builder.Services.AddDAL(conn);
 builder.Services.AddBLL();
 builder.Services.AddControllersWithViews();
 
+//ChatHUb
+builder.Services.AddControllersWithViews();
+builder.Services.AddSignalR();
+
 var app = builder.Build();
 
 // 4) Pipeline mặc định
@@ -34,6 +39,7 @@ app.UseStaticFiles();
 
 app.UseRouting();
 app.UseAuthorization();
+app.MapHub<ChatHub>("/chatHub");
 
 // 5) Map cả attribute-routed controllers (ví dụ /health/db) lẫn conventional route
 app.MapControllers(); // để các controller có [Route] hoạt động (HealthController)

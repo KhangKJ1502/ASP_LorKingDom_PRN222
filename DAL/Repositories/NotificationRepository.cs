@@ -45,10 +45,10 @@ namespace DAL.Repositories
 
             // exact filters
             if (!string.IsNullOrWhiteSpace(type))
-                q = q.Where(x => x.Type == type); // 'General','Order','Promotion','System'
+                q = q.Where(x => x.Type == type);
 
             if (!string.IsNullOrWhiteSpace(targetType))
-                q = q.Where(x => x.TargetType == targetType); // 'All','SingleUser','ByRole','ByCondition'
+                q = q.Where(x => x.TargetType == targetType);
 
             if (targetRoleId.HasValue)
                 q = q.Where(x => x.TargetRoleId == targetRoleId.Value);
@@ -83,7 +83,6 @@ namespace DAL.Repositories
 
         public Task<Notification?> GetByIdAsync(int id)
         {
-            // thường cần Role/User/Creator để hiển thị UI
             return _db.Notifications
                 .AsSplitQuery()
                 .Include(x => x.TargetRole)
@@ -109,7 +108,6 @@ namespace DAL.Repositories
 
         public async Task UpdateAsync(Notification entity)
         {
-            // Có thể dùng attach + set modified selective nếu cần concurrency
             _db.Notifications.Update(entity);
             await _db.SaveChangesAsync();
         }

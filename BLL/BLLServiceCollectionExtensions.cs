@@ -27,6 +27,7 @@ namespace BLL
             services.AddScoped<PromotionValidator>();
 
             services.AddScoped<INotificationService, NotificationService>();
+            services.AddScoped<IChatService, ChatService>();
             return services;
         }
     }
