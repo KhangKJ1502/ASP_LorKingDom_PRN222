@@ -1,0 +1,142 @@
+﻿@{
+    ViewData["Title"] = "Blog - ToyLand";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/blog.css" asp-append-version="true" />
+}
+
+<div class="blog-container">
+    <!-- Featured Post Section -->
+    <section class="featured-post-section mb-5">
+        <div class="featured-post-card">
+            <div class="featured-post-image">
+                <img src="https://www.mykingdom.com.vn/cdn/shop/articles/lego-mega-sale_5a80f6e6-ed9a-4a0a-879d-7b2de1314c52.jpg?v=1760622737"
+                     alt="Bài viết nổi bật" class="img-fluid">
+            </div>
+            <div class="featured-post-content">
+                <span class="badge bg-primary">Đồ chơi sáng tạo</span>
+                <h1 class="featured-post-title">Khám phá bộ Lego mới nhất năm 2025</h1>
+                <p class="featured-post-overview">
+                    Bộ sưu tập Lego mới mang đến trải nghiệm sáng tạo độc đáo cho trẻ em và người lớn yêu thích lắp ráp.
+                </p>
+                <div class="featured-post-meta">
+                    <span class="meta-item">
+                        <i class="fas fa-user"></i> Admin ToyLand
+                    </span>
+                    <span class="meta-item">
+                        <i class="fas fa-calendar"></i> 19/10/2025
+                    </span>
+                </div>
+                <a href="/blog/lego-2025" class="btn btn-primary btn-read-more">
+                    Đọc tiếp <i class="fas fa-arrow-right ms-2"></i>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <div class="row">
+        <!-- Main Content Area (8 columns) -->
+        <div class="col-lg-8">
+            <!-- Posts Grid -->
+            <section class="posts-grid-section">
+                <div class="posts-grid">
+                    @for (int i = 1; i <= 3; i++)
+                    {
+                        <article class="blog-card">
+                            <div class="blog-card-image">
+                                <img src="https://www.mykingdom.com.vn/cdn/shop/articles/Jinx_27fa88e7-c74a-4801-844e-f0efae871894.jpg?v=1760524046"
+                                     alt="Bài viết @i" class="img-fluid">
+                            </div>
+                            <div class="blog-card-content">
+                                <span class="blog-category-badge">Tin tức</span>
+                                <h3 class="blog-card-title">Bài viết mẫu số @i</h3>
+                                <p class="blog-card-overview">
+                                    Đây là đoạn mô tả ngắn cho bài viết mẫu số @i. Dùng để xem thử bố cục và kiểu hiển thị.
+                                </p>
+                                <div class="blog-card-meta">
+                                    <span class="meta-item">
+                                        <i class="fas fa-user"></i> Người viết @i
+                                    </span>
+                                    <span class="meta-item">
+                                        <i class="fas fa-calendar"></i> @(DateTime.Now.AddDays(-i).ToString("dd/MM/yyyy"))
+                                    </span>
+                                </div>
+                                <a href="/blog/sample-@i" class="blog-card-link">
+                                    Đọc tiếp <i class="fas fa-arrow-right ms-1"></i>
+                                </a>
+                            </div>
+                        </article>
+                    }
+                </div>
+            </section>
+
+            <!-- Pagination -->
+            <nav class="pagination-section mt-5" aria-label="Blog pagination">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item disabled">
+                        <span class="page-link"><i class="fas fa-chevron-left"></i> Trang trước</span>
+                    </li>
+                    <li class="page-item active"><span class="page-link">1</span></li>
+                    <li class="page-item"><a class="page-link" href="#">2</a></li>
+                    <li class="page-item"><a class="page-link" href="#">3</a></li>
+                    <li class="page-item">
+                        <a class="page-link" href="#">Trang sau <i class="fas fa-chevron-right"></i></a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+
+        <!-- Sidebar (4 columns) -->
+        <aside class="col-lg-4">
+            <!-- Search Bar -->
+            <div class="sidebar-widget search-widget">
+                <h5 class="widget-title">Tìm kiếm bài viết</h5>
+                <form method="get" action="/blog" class="search-form">
+                    <div class="input-group">
+                        <input type="text" class="form-control search-input" placeholder="Nhập từ khóa...">
+                        <button class="btn btn-primary" type="submit">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Categories Widget -->
+            <div class="sidebar-widget categories-widget">
+                <h5 class="widget-title">Chuyên mục</h5>
+                <ul class="categories-list">
+                    <li class="category-item">
+                        <a href="#" class="category-link">Đồ chơi trẻ em <span class="category-count">(5)</span></a>
+                    </li>
+                    <li class="category-item">
+                        <a href="#" class="category-link">Mô hình <span class="category-count">(3)</span></a>
+                    </li>
+                    <li class="category-item">
+                        <a href="#" class="category-link">Xe điều khiển <span class="category-count">(4)</span></a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Recent Posts Widget -->
+            <div class="sidebar-widget recent-posts-widget">
+                <h5 class="widget-title">Bài viết gần đây</h5>
+                <ul class="recent-posts-list">
+                    @for (int i = 1; i <= 3; i++)
+                    {
+                        <li class="recent-post-item">
+                            <div class="recent-post-thumbnail">
+                                <img src="https://www.mykingdom.com.vn/cdn/shop/articles/do-choi-giao-duc-cho-be-3-6-tuoi.jpg?v=1760847407"
+                                     alt="Bài viết @i" class="img-fluid">
+                            </div>
+                            <div class="recent-post-info">
+                                <a href="/blog/recent-@i" class="recent-post-title">Bài viết gần đây @i</a>
+                                <span class="recent-post-date">@DateTime.Now.AddDays(-i).ToString("dd/MM/yyyy")</span>
+                            </div>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </aside>
+    </div>
+</div>

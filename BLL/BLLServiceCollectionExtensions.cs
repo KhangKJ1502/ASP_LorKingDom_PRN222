@@ -14,6 +14,14 @@ namespace BLL
 
             // ✳️ Thêm dòng này:
             //services.AddScoped<ISystemHealthService, SystemHealthService>();
+
+            // Nhánh Authentication
+            services.AddScoped<IAccountService, AccountService>();
+            services.AddScoped<IEmailOtpService, EmailOtpService>();
+
+            // Nhánh Role
+            services.AddScoped<IRoleService, RoleService>();
+
             //Nhánh Product
             services.AddScoped<ISexService, SexService>();
             services.AddScoped<IAgeService, AgeService>();

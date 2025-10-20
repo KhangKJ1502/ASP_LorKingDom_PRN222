@@ -1,0 +1,185 @@
+﻿@{
+    ViewData["Title"] = "Khám phá bộ LEGO mới nhất 2025 - ToyLand Blog";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/blog-detail.css" asp-append-version="true" />
+}
+
+<div class="blog-detail-container">
+    <!-- Breadcrumb Navigation -->
+    <nav class="breadcrumb-nav mb-4" aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/">Trang chủ</a></li>
+            <li class="breadcrumb-item"><a href="/blog">Blog</a></li>
+            <li class="breadcrumb-item active">Khám phá bộ LEGO mới nhất 2025</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <!-- Main Content Area -->
+        <div class="col-lg-8">
+            <article class="blog-detail-article">
+                <header class="article-header">
+                    <span class="article-category">Đồ chơi sáng tạo</span>
+                    <h1 class="article-title">Khám phá bộ LEGO mới nhất năm 2025</h1>
+                    <div class="article-meta">
+                        <span class="meta-item">
+                            <i class="fas fa-user"></i> Admin ToyLand
+                        </span>
+                        <span class="meta-item">
+                            <i class="fas fa-calendar"></i> 19/10/2025
+                        </span>
+                    </div>
+                </header>
+
+                <!-- Featured Image -->
+                <div class="article-featured-image mb-4">
+                    <img src="https://via.placeholder.com/800x400?text=LEGO+2025+Collection"
+                         alt="LEGO 2025 Collection" class="img-fluid rounded">
+                </div>
+
+                <!-- Article Content -->
+                <div class="article-content">
+                    <p>
+                        Bộ sưu tập LEGO năm 2025 mang đến những trải nghiệm lắp ráp sáng tạo vượt trội 
+                        với các mẫu mô hình thành phố, xe cộ, và robot hoàn toàn mới. 
+                        Thiết kế tinh tế, màu sắc bắt mắt và chất liệu an toàn sẽ khiến cả trẻ em lẫn người lớn đều say mê.
+                    </p>
+                    <p>
+                        Các bộ LEGO mới này không chỉ giúp phát triển tư duy logic mà còn khơi gợi trí tưởng tượng không giới hạn. 
+                        Hãy cùng ToyLand khám phá những thiết kế nổi bật và độc quyền trong năm nay!
+                    </p>
+                </div>
+
+                <!-- Share Buttons -->
+                <div class="article-share-section mt-5">
+                    <h5 class="share-title">Chia sẻ bài viết</h5>
+                    <div class="share-buttons">
+                        <a href="#" class="share-btn share-facebook">
+                            <i class="fab fa-facebook-f"></i> Facebook
+                        </a>
+                        <a href="#" class="share-btn share-twitter">
+                            <i class="fab fa-twitter"></i> Twitter
+                        </a>
+                        <button class="share-btn share-copy" onclick="copyToClipboard(window.location.href)">
+                            <i class="fas fa-link"></i> Sao chép liên kết
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Comments Section -->
+                <section class="comments-section mt-5">
+                    <h3 class="comments-title">Bình luận (3)</h3>
+
+                    <div class="comments-list">
+                        @for (int i = 1; i <= 3; i++)
+                        {
+                            <div class="comment-item">
+                                <div class="comment-header d-flex align-items-center">
+                                    <img src="https://via.placeholder.com/60?text=U@i" class="rounded-circle me-3" />
+                                    <div>
+                                        <h5 class="comment-author-name">Người dùng @i</h5>
+                                        <span class="comment-date">@DateTime.Now.AddDays(-i).ToString("dd/MM/yyyy HH:mm")</span>
+                                    </div>
+                                </div>
+                                <div class="comment-content mt-2">
+                                    <p>Bộ LEGO này trông thật tuyệt! Mình rất thích cách phối màu năm nay.</p>
+                                </div>
+                                <div class="comment-actions">
+                                    <button class="comment-action-btn like-btn">
+                                        <i class="fas fa-thumbs-up"></i> <span class="like-count">@i</span>
+                                    </button>
+                                    <button class="comment-action-btn dislike-btn">
+                                        <i class="fas fa-thumbs-down"></i> <span class="dislike-count">0</span>
+                                    </button>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Comment Form -->
+                    <div class="comment-form-section mt-4">
+                        <h4 class="form-title">Gửi bình luận</h4>
+                        <form>
+                            <div class="form-group mb-3">
+                                <textarea class="form-control comment-textarea"
+                                          placeholder="Nhập bình luận của bạn..."
+                                          rows="4"></textarea>
+                            </div>
+                            <button type="button" class="btn btn-primary btn-submit-comment">
+                                <i class="fas fa-paper-plane"></i> Gửi bình luận
+                            </button>
+                        </form>
+                    </div>
+                </section>
+            </article>
+        </div>
+
+        <!-- Sidebar -->
+        <aside class="col-lg-4">
+            <!-- Related Posts -->
+            <div class="sidebar-widget related-posts-widget">
+                <h5 class="widget-title">Bài viết liên quan</h5>
+                <ul class="related-posts-list">
+                    @for (int i = 1; i <= 3; i++)
+                    {
+                        <li class="related-post-item">
+                            <img src="https://via.placeholder.com/120x80?text=Related+@i" class="img-fluid rounded me-2" />
+                            <div class="related-post-info">
+                                <a href="/blog/related-@i" class="related-post-title">Bài viết LEGO liên quan @i</a>
+                                <span class="related-post-category">Đồ chơi</span>
+                            </div>
+                        </li>
+                    }
+                </ul>
+            </div>
+
+            <!-- Categories -->
+            <div class="sidebar-widget categories-widget mt-4">
+                <h5 class="widget-title">Chuyên mục</h5>
+                <ul class="categories-list">
+                    <li class="category-item"><a href="#">Đồ chơi trẻ em (5)</a></li>
+                    <li class="category-item"><a href="#">Xe điều khiển (3)</a></li>
+                    <li class="category-item"><a href="#">Mô hình LEGO (7)</a></li>
+                </ul>
+            </div>
+
+            <!-- Recent Posts -->
+            <div class="sidebar-widget recent-posts-widget mt-4">
+                <h5 class="widget-title">Bài viết gần đây</h5>
+                <ul class="recent-posts-list">
+                    @for (int i = 1; i <= 3; i++)
+                    {
+                        <li class="recent-post-item">
+                            <img src="https://via.placeholder.com/80x80?text=Post+@i" class="img-fluid rounded me-2" />
+                            <div class="recent-post-info">
+                                <a href="/blog/recent-@i">Bài viết gần đây @i</a>
+                                <span class="recent-post-date">@DateTime.Now.AddDays(-i).ToString("dd/MM/yyyy")</span>
+                            </div>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </aside>
+    </div>
+</div>
+
+<script>
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(() => {
+            alert('Liên kết đã được sao chép!');
+        }).catch(() => {
+            alert('Không thể sao chép liên kết');
+        });
+    }
+
+    // Like/Dislike demo
+    document.querySelectorAll('.comment-action-btn').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const active = this.classList.contains('active');
+            this.classList.toggle('active');
+            console.log(this.textContent.trim() + (active ? ' removed' : ' added'));
+        });
+    });
+</script>

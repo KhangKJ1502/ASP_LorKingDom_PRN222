@@ -1,6 +1,7 @@
 ﻿// Program.cs (ASP.NET Core 8)
 using BLL; // AddBLL()
 using DAL;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using WebUI.BackgroundServices; // AddDAL()
 
 var builder = WebApplication.CreateBuilder(args);
@@ -20,6 +21,16 @@ builder.Services.AddDAL(conn);
 builder.Services.AddBLL();
 builder.Services.AddControllersWithViews();
 
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/Auth/Login"; // Đường dẫn đến trang đăng nhập
+        options.LogoutPath = "/Auth/Logout"; // Đường dẫn đăng xuất
+        options.AccessDeniedPath = "/Home/Error"; // Trang lỗi khi không có quyền
+        options.ExpireTimeSpan = TimeSpan.FromDays(7); // Cookie hết hạn sau 7 ngày
+        options.SlidingExpiration = true; // Gia hạn cookie nếu hoạt động
+    });
+
 var app = builder.Build();
 
 // 4) Pipeline mặc định
@@ -33,6 +44,7 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+app.UseAuthentication();
 app.UseAuthorization();
 
 // 5) Map cả attribute-routed controllers (ví dụ /health/db) lẫn conventional route
