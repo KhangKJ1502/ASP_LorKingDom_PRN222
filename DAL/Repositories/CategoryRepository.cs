@@ -63,6 +63,20 @@ namespace DAL.Repositories
             return await _context.Categories.AnyAsync(x => x.CategoryName == name &&
                               (excludeId == null || x.CategoryId != excludeId));
         }
+
+        public async Task<int> SetIsDeletedBySuperCategoryAsync(int superCategoryId, bool isDeleted)
+        {
+            // EF Core 7 có thể dùng ExecuteUpdateAsync, nhưng để tương thích rộng, update từng entity
+            var items = await _context.Categories
+                .Where(c => c.SuperCategoryId == superCategoryId)
+                .ToListAsync();
+
+            foreach (var c in items)
+                c.IsDeleted = isDeleted;
+
+            await _context.SaveChangesAsync();
+            return items.Count;
+        }
     }
 
 }
