@@ -6,8 +6,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using DAL.Models;
-using DAL.IRepositories;
-using DAL.Repository;
 namespace DAL
 {
     public static class DALServiceCollectionExtensions

@@ -1,6 +1,5 @@
 ﻿using BLL.DTOs;
 using BLL.Interfaces;
-using BLL.IServices;
 using BLL.Validators;
 using DAL.Models;
 using System;
@@ -11,7 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using DAL.Interfaces;
 using DAL.Models;
-using DAL.IRepositories;
+
 namespace BLL.Services
 {
     public class ProductService : IProductService
