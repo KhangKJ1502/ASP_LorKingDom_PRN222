@@ -1,0 +1,140 @@
+﻿@{
+    ViewData["Title"] = "Quản lý bài viết - ToyLand Admin";
+}
+
+<div class="admin-container">
+    <!-- Admin Header -->
+    <div class="admin-header">
+        <div class="header-content">
+            <h1 class="admin-title">Quản lý bài viết</h1>
+            <p class="admin-subtitle">Quản lý tất cả bài viết blog của ToyLand</p>
+        </div>
+        <a href="/admin/blogs/create" class="btn btn-primary btn-add-new">
+            <i class="fas fa-plus"></i> Thêm bài viết mới
+        </a>
+    </div>
+
+    <!-- Filters Section -->
+    <div class="filters-section">
+        <form method="get" action="/admin/blogs" class="filters-form">
+            <div class="filter-group">
+                <label for="searchTitle" class="filter-label">Tìm kiếm theo tiêu đề</label>
+                <input type="text" id="searchTitle" name="search" class="form-control filter-input"
+                       placeholder="Nhập tiêu đề bài viết..." value="">
+            </div>
+
+            <div class="filter-group">
+                <label for="categoryFilter" class="filter-label">Chuyên mục</label>
+                <select id="categoryFilter" name="category" class="form-control filter-select">
+                    <option value="">Tất cả chuyên mục</option>
+                    <option value="1" selected>Đồ chơi trẻ em</option>
+                    <option value="2">Mô hình LEGO</option>
+                    <option value="3">Xe điều khiển</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label for="statusFilter" class="filter-label">Trạng thái</label>
+                <select id="statusFilter" name="status" class="form-control filter-select">
+                    <option value="">Tất cả trạng thái</option>
+                    <option value="published" selected>Đã xuất bản</option>
+                    <option value="draft">Bản nháp</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn btn-filter">
+                <i class="fas fa-filter"></i> Lọc
+            </button>
+            <a href="/admin/blogs" class="btn btn-reset">
+                <i class="fas fa-redo"></i> Đặt lại
+            </a>
+        </form>
+    </div>
+
+    <!-- Data Table -->
+    <div class="table-section">
+        <div class="table-responsive">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th><input type="checkbox" id="selectAll" class="form-check-input"></th>
+                        <th>Ảnh</th>
+                        <th>Tiêu đề</th>
+                        <th>Tác giả</th>
+                        <th>Chuyên mục</th>
+                        <th>Trạng thái</th>
+                        <th>Ngày tạo</th>
+                        <th>Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (int i = 1; i <= 5; i++)
+                    {
+                        <tr>
+                            <td><input type="checkbox" class="form-check-input row-checkbox"></td>
+                            <td>
+                                <img src="https://via.placeholder.com/80x60?text=Blog+@i" class="table-thumbnail" />
+                            </td>
+                            <td><h5 class="blog-title">Bài viết mẫu số @i</h5></td>
+                            <td>Admin ToyLand</td>
+                            <td><span class="category-badge">Đồ chơi trẻ em</span></td>
+                            <td>
+                                @if (i % 2 == 0)
+                                {
+                                    <span class="status-badge status-published">
+                                        <i class="fas fa-check-circle"></i> Đã xuất bản
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="status-badge status-draft">
+                                        <i class="fas fa-file-alt"></i> Bản nháp
+                                    </span>
+                                }
+                            </td>
+                            <td>@DateTime.Now.AddDays(-i).ToString("dd/MM/yyyy")</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <a href="/blog/sample-@i" class="action-btn view-btn" title="Xem">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="/admin/blogs/edit/@i" class="action-btn edit-btn" title="Sửa">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <button class="action-btn delete-btn" onclick="deleteBlog(@i)" title="Xóa">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    <nav class="pagination-section" aria-label="Admin pagination">
+        <ul class="pagination justify-content-center">
+            <li class="page-item disabled"><span class="page-link"><i class="fas fa-chevron-left"></i> Trước</span></li>
+            <li class="page-item active"><span class="page-link">1</span></li>
+            <li class="page-item"><a class="page-link" href="#">2</a></li>
+            <li class="page-item"><a class="page-link" href="#">3</a></li>
+            <li class="page-item"><a class="page-link" href="#">Sau <i class="fas fa-chevron-right"></i></a></li>
+        </ul>
+    </nav>
+</div>
+
+<script>
+    // Select All Checkbox
+    document.getElementById('selectAll').addEventListener('change', function () {
+        document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = this.checked);
+    });
+
+    // Delete Blog (demo only)
+    function deleteBlog(id) {
+        if (confirm(`Xóa bài viết #${id}?`)) {
+            alert(`Đã xóa bài viết #${id} (mock demo)`);
+        }
+    }
+</script>

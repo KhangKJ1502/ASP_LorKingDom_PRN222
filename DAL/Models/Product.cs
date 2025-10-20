@@ -23,6 +23,8 @@ public partial class Product
 
     public int? OriginId { get; set; }
 
+    public int? PromotionId { get; set; }
+
     public string ProductName { get; set; } = null!;
 
     public decimal Price { get; set; }
@@ -57,7 +59,7 @@ public partial class Product
 
     public virtual ICollection<ProductImage> ProductImages { get; set; } = new List<ProductImage>();
 
-    public virtual ICollection<Promotion> Promotions { get; set; } = new List<Promotion>();
+    public virtual Promotion? Promotion { get; set; }
 
     public virtual ICollection<ReviewProduct> ReviewProducts { get; set; } = new List<ReviewProduct>();
 

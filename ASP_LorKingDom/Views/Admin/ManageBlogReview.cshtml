@@ -1,0 +1,160 @@
+﻿@{
+    ViewData["Title"] = "Quản lý bình luận - ToyLand Admin";
+}
+
+<div class="admin-container">
+    <!-- Admin Header -->
+    <div class="admin-header">
+        <div class="header-content">
+            <h1 class="admin-title">Quản lý bình luận Blog</h1>
+            <p class="admin-subtitle">Quản lý và kiểm duyệt tất cả bình luận trên blog</p>
+        </div>
+    </div>
+
+    <!-- Filters Section -->
+    <div class="filters-section">
+        <form method="get" action="/admin/blog-reviews" class="filters-form">
+            <div class="filter-group">
+                <label for="searchComment" class="filter-label">Tìm kiếm bình luận</label>
+                <input type="text" id="searchComment" name="search" class="form-control filter-input"
+                       placeholder="Nhập nội dung bình luận..." value="">
+            </div>
+
+            <div class="filter-group">
+                <label for="blogFilter" class="filter-label">Bài viết</label>
+                <select id="blogFilter" name="blog" class="form-control filter-select">
+                    <option value="">Tất cả bài viết</option>
+                    <option value="1" selected>Bộ LEGO 2025</option>
+                    <option value="2">Xe điều khiển RC</option>
+                    <option value="3">Mô hình Gundam</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label for="userFilter" class="filter-label">Người bình luận</label>
+                <input type="text" id="userFilter" name="user" class="form-control filter-input"
+                       placeholder="Nhập tên người dùng..." value="">
+            </div>
+
+            <button type="submit" class="btn btn-filter">
+                <i class="fas fa-filter"></i> Lọc
+            </button>
+            <a href="/admin/blog-reviews" class="btn btn-reset">
+                <i class="fas fa-redo"></i> Đặt lại
+            </a>
+        </form>
+    </div>
+
+    <!-- Data Table -->
+    <div class="table-section">
+        <div class="table-responsive">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th><input type="checkbox" id="selectAll" class="form-check-input"></th>
+                        <th>Nội dung bình luận</th>
+                        <th>Người bình luận</th>
+                        <th>Bài viết</th>
+                        <th>Tương tác</th>
+                        <th>Ngày bình luận</th>
+                        <th>Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (int i = 1; i <= 5; i++)
+                    {
+                        <tr data-comment-id="@i">
+                            <td><input type="checkbox" class="form-check-input row-checkbox"></td>
+                            <td>
+                                <p class="comment-text">Bình luận mẫu số @i: Sản phẩm này thật tuyệt vời!</p>
+                            </td>
+                            <td>
+                                <div class="user-cell d-flex align-items-center">
+                                    <img src="https://via.placeholder.com/50x50?text=U@i" class="rounded-circle me-2" />
+                                    <span class="user-name">Người dùng @i</span>
+                                </div>
+                            </td>
+                            <td>
+                                <a href="/blog/sample-@i" class="blog-link" target="_blank">
+                                    Bài viết mẫu @i <i class="fas fa-external-link-alt"></i>
+                                </a>
+                            </td>
+                            <td>
+                                <span class="me-2"><i class="fas fa-thumbs-up"></i> @(i * 3)</span>
+                                <span><i class="fas fa-thumbs-down"></i> @i</span>
+                            </td>
+                            <td>@DateTime.Now.AddDays(-i).ToString("dd/MM/yyyy HH:mm")</td>
+                            <td>
+                                <button class="action-btn view-btn" onclick="viewCommentDetail(@i)" title="Xem chi tiết">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="action-btn delete-btn" onclick="deleteComment(@i)" title="Xóa">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    <nav class="pagination-section" aria-label="Admin pagination">
+        <ul class="pagination justify-content-center">
+            <li class="page-item disabled"><span class="page-link"><i class="fas fa-chevron-left"></i> Trước</span></li>
+            <li class="page-item active"><span class="page-link">1</span></li>
+            <li class="page-item"><a class="page-link" href="#">2</a></li>
+            <li class="page-item"><a class="page-link" href="#">3</a></li>
+            <li class="page-item"><a class="page-link" href="#">Sau <i class="fas fa-chevron-right"></i></a></li>
+        </ul>
+    </nav>
+</div>
+
+<!-- Comment Detail Modal -->
+<div class="modal fade" id="commentDetailModal" tabindex="-1" role="dialog" aria-labelledby="commentDetailLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Chi tiết bình luận</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="commentDetailContent">
+                <p><strong>Người dùng:</strong> Demo User</p>
+                <p><strong>Nội dung:</strong> Đây là nội dung chi tiết của bình luận mẫu.</p>
+                <p><strong>Bài viết:</strong> LEGO City Adventures</p>
+                <p><strong>Ngày:</strong> 19/10/2025 20:00</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Select All Checkbox
+    document.getElementById('selectAll').addEventListener('change', function () {
+        document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = this.checked);
+    });
+
+    // View Comment Detail (mock)
+    function viewCommentDetail(commentId) {
+        document.getElementById('commentDetailContent').innerHTML = `
+            <p><strong>Người dùng:</strong> Người dùng ${commentId}</p>
+            <p><strong>Nội dung:</strong> Bình luận mẫu ${commentId} - Sản phẩm này rất đáng mua!</p>
+            <p><strong>Bài viết:</strong> Bài viết mẫu ${commentId}</p>
+            <p><strong>Ngày:</strong> ${new Date().toLocaleString()}</p>
+        `;
+        $('#commentDetailModal').modal('show');
+    }
+
+    // Delete Comment (mock)
+    function deleteComment(id) {
+        if (confirm(\`Xóa bình luận #\${id}?\`)) {
+            alert(\`Đã xóa bình luận #\${id} (demo)\`);
+        }
+    }
+</script>

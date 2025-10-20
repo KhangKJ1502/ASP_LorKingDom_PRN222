@@ -15,37 +15,41 @@
     <!-- dùng DIV cho dropdown-menu để dễ định dạng header/divider -->
     <div class="dropdown-menu dropdown-menu-end" role="menu" aria-labelledby="profileMenuBtn">
         <div class="dropdown-header">
-            <span class="dropdown-title">My Account</span>
+            <span>My Account</span>
         </div>
         <div class="dropdown-divider"></div>
 
         @if (!isAuth)
         {
             <a class="dropdown-item d-flex align-items-center gap-2"
-               asp-controller="Home" asp-action="Login" role="menuitem">
+               asp-controller="Auth" asp-action="Login" role="menuitem">
                 <i data-lucide="log-in" class="dropdown-icon"></i>
                 <span>Login</span>
             </a>
             <a class="dropdown-item d-flex align-items-center gap-2"
-               asp-controller="Home" asp-action="Signup" role="menuitem">
+               asp-controller="Auth" asp-action="Signup" role="menuitem">
                 <i data-lucide="user-plus" class="dropdown-icon"></i>
                 <span>Sign Up</span>
             </a>
             <div class="dropdown-divider"></div>
         }
 
-        <a class="dropdown-item d-flex align-items-center gap-2"
-           asp-controller="Home" asp-action="Profile" role="menuitem">
-            <i data-lucide="user-circle" class="dropdown-icon"></i>
-            <span>Profile</span>
-        </a>
-
         @if (isAuth)
         {
-            <a class="dropdown-item d-flex align-items-center gap-2 logout-item" href="/Account/Logout" role="menuitem">
-                <i data-lucide="log-out" class="dropdown-icon"></i>
-                <span>Logout</span>
+            <a class="dropdown-item d-flex align-items-center gap-2"
+               asp-controller="Home" asp-action="Profile" role="menuitem">
+                <i data-lucide="user-circle" class="dropdown-icon"></i>
+                <span>Profile</span>
             </a>
+
+            <form asp-controller="Auth" asp-action="Logout" method="post">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="dropdown-item d-flex align-items-center gap-2 logout-item" role="menuitem">
+                    <i data-lucide="log-out" class="dropdown-icon"></i>
+                    <span>Logout</span>
+                </button>
+            </form>
+            
         }
     </div>
 </div>
