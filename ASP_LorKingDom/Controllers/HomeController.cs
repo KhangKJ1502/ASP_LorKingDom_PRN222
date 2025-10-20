@@ -1,6 +1,7 @@
-using System.Diagnostics;
 using DAL.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Diagnostics;
 
 namespace ASP_LorKingDom.Controllers
 {
@@ -32,17 +33,7 @@ namespace ASP_LorKingDom.Controllers
             return View();
         }
 
-        [HttpGet]
-        public IActionResult Login()
-        {
-            return View();
-        }
-        [HttpGet]
-        public IActionResult Signup()
-        {
-            return View();
-        }
-
+        [Authorize]
         public IActionResult Profile()
         {
             return View();

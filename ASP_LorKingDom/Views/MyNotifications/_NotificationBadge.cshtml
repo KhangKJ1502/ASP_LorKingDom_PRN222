@@ -1,0 +1,279 @@
+﻿@* 
+    Component này hiển thị icon thông báo với badge số lượng chưa đọc
+    Đặt trong _Layout.cshtml hoặc navbar của bạn
+*@
+
+<style>
+    .notification-bell {
+        position: relative;
+        display: inline-block;
+        cursor: pointer;
+        padding: 0.5rem;
+        margin: 0 0.5rem;
+        transition: all 0.3s ease;
+    }
+
+        .notification-bell:hover {
+            transform: scale(1.1);
+        }
+
+        .notification-bell i {
+            font-size: 1.5rem;
+            color: #6b7280;
+        }
+
+        .notification-bell:hover i {
+            color: #667eea;
+        }
+
+    .notification-badge {
+        position: absolute;
+        top: 0;
+        right: 0;
+        background: #ef4444;
+        color: white;
+        font-size: 0.7rem;
+        font-weight: 700;
+        padding: 0.15rem 0.4rem;
+        border-radius: 10px;
+        min-width: 18px;
+        text-align: center;
+        box-shadow: 0 2px 6px rgba(239, 68, 68, 0.4);
+        animation: pulse 2s infinite;
+    }
+
+        .notification-badge.hidden {
+            display: none;
+        }
+
+
+    .notification-bell .bell-shake {
+        animation: bellShake 0.5s;
+    }
+
+
+ 
+
+    /* Dropdown for quick view (optional) */
+    .notification-dropdown {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        width: 350px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        margin-top: 0.5rem;
+        display: none;
+        z-index: 1000;
+        max-height: 400px;
+        overflow-y: auto;
+    }
+
+        .notification-dropdown.show {
+            display: block;
+            animation: dropdownSlide 0.3s ease;
+        }
+
+
+
+    .notification-dropdown-header {
+        padding: 1rem;
+        border-bottom: 1px solid #e5e7eb;
+        font-weight: 600;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .notification-dropdown-item {
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid #f3f4f6;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+
+        .notification-dropdown-item:hover {
+            background: #f9fafb;
+        }
+
+        .notification-dropdown-item.unread {
+            background: #f0f9ff;
+        }
+
+    .notification-dropdown-footer {
+        padding: 0.75rem;
+        text-align: center;
+        border-top: 1px solid #e5e7eb;
+    }
+
+        .notification-dropdown-footer a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+            .notification-dropdown-footer a:hover {
+                text-decoration: underline;
+            }
+</style>
+
+<div class="notification-bell" id="notificationBell" onclick="toggleNotificationDropdown()">
+    <a href="@Url.Action("Index", "MyNotifications")" style="text-decoration: none; color: inherit;">
+        <i class="fa-solid fa-bell" id="bellIcon"></i>
+        <span class="notification-badge hidden" id="notificationBadge">0</span>
+    </a>
+
+    @* Optional: Quick view dropdown *@
+    <div class="notification-dropdown" id="notificationDropdown">
+        <div class="notification-dropdown-header">
+            <span>Thông báo</span>
+            <button onclick="markAllAsRead()" class="btn btn-sm btn-link" style="font-size: 0.8rem;">
+                Đánh dấu tất cả đã đọc
+            </button>
+        </div>
+        <div id="notificationDropdownList">
+            <div style="padding: 2rem; text-align: center; color: #9ca3af;">
+                <i class="fa-solid fa-spinner fa-spin"></i> Đang tải...
+            </div>
+        </div>
+        <div class="notification-dropdown-footer">
+            <a href="@Url.Action("Index", "MyNotifications")">Xem tất cả thông báo</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    let notificationCheckInterval;
+    let currentUnreadCount = 0;
+
+    // Kiểm tra số lượng thông báo chưa đọc
+    async function checkUnreadNotifications() {
+        try {
+            const response = await fetch('@Url.Action("GetUnreadCount", "MyNotifications")');
+            const data = await response.json();
+
+            if (data.success) {
+                updateBadge(data.count);
+            }
+        } catch (error) {
+            console.error('Error checking notifications:', error);
+        }
+    }
+
+    // Cập nhật badge
+    function updateBadge(count) {
+        const badge = document.getElementById('notificationBadge');
+        const bellIcon = document.getElementById('bellIcon');
+
+        if (count > 0) {
+            badge.textContent = count > 99 ? '99+' : count;
+            badge.classList.remove('hidden');
+
+            // Nếu có thông báo mới, làm chuông rung
+            if (count > currentUnreadCount) {
+                bellIcon.classList.add('bell-shake');
+                setTimeout(() => bellIcon.classList.remove('bell-shake'), 500);
+
+                // Optional: Show browser notification
+                if (Notification.permission === "granted") {
+                    new Notification("Thông báo mới", {
+                        body: `Bạn có ${count - currentUnreadCount} thông báo mới`,
+                        icon: '/images/notification-icon.png'
+                    });
+                }
+            }
+
+            currentUnreadCount = count;
+        } else {
+            badge.classList.add('hidden');
+            currentUnreadCount = 0;
+        }
+    }
+
+    // Toggle dropdown (optional feature)
+    function toggleNotificationDropdown() {
+        const dropdown = document.getElementById('notificationDropdown');
+        dropdown.classList.toggle('show');
+
+        if (dropdown.classList.contains('show')) {
+            loadRecentNotifications();
+        }
+    }
+
+    // Load recent notifications for dropdown
+    async function loadRecentNotifications() {
+        const listContainer = document.getElementById('notificationDropdownList');
+        listContainer.innerHTML = '<div style="padding: 2rem; text-align: center; color: #9ca3af;"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải...</div>';
+
+        try {
+            const response = await fetch('@Url.Action("Index", "MyNotifications")?pageSize=5');
+            // Note: Bạn cần tạo API endpoint trả về JSON thay vì View
+            // Hoặc parse HTML (không recommended)
+
+            // Giả sử có endpoint API
+            // const data = await response.json();
+            // renderNotificationList(data.items);
+
+            listContainer.innerHTML = '<div style="padding: 1rem; text-align: center;"><a href="@Url.Action("Index", "MyNotifications")" class="btn btn-primary btn-sm">Xem tất cả thông báo</a></div>';
+        } catch (error) {
+            listContainer.innerHTML = '<div style="padding: 2rem; text-align: center; color: #ef4444;">Lỗi tải dữ liệu</div>';
+        }
+    }
+
+    // Mark all as read
+    async function markAllAsRead() {
+        if (!confirm('Đánh dấu tất cả thông báo là đã đọc?')) return;
+
+        try {
+            const formData = new FormData();
+            const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+            if (token) formData.append('__RequestVerificationToken', token);
+
+            const response = await fetch('@Url.Action("MarkAllRead", "MyNotifications")', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (response.ok) {
+                updateBadge(0);
+                document.getElementById('notificationDropdown').classList.remove('show');
+                // Optional: reload page or show success message
+                location.reload();
+            }
+        } catch (error) {
+            console.error('Error marking all as read:', error);
+            alert('Có lỗi xảy ra. Vui lòng thử lại.');
+        }
+    }
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(event) {
+        const bell = document.getElementById('notificationBell');
+        const dropdown = document.getElementById('notificationDropdown');
+
+        if (!bell.contains(event.target)) {
+            dropdown.classList.remove('show');
+        }
+    });
+
+    // Request notification permission
+    if ("Notification" in window && Notification.permission === "default") {
+        Notification.requestPermission();
+    }
+
+    // Start checking for notifications
+    checkUnreadNotifications();
+    notificationCheckInterval = setInterval(checkUnreadNotifications, 30000); // Check every 30 seconds
+
+    // Stop checking when page is hidden
+    document.addEventListener('visibilitychange', function() {
+        if (document.hidden) {
+            clearInterval(notificationCheckInterval);
+        } else {
+            checkUnreadNotifications();
+            notificationCheckInterval = setInterval(checkUnreadNotifications, 30000);
+        }
+    });
+</script>

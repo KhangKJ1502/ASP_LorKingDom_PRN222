@@ -21,6 +21,7 @@
     @await RenderSectionAsync("Styles", required: false)   <!-- THÊM DÒNG NÀY -->
 
 </head>
+@await Html.PartialAsync("_ChatWidget")
 <body>
     <!-- Header -->
     <header class="site-header">
@@ -194,7 +195,7 @@
 
                             <a href="/Home/Brands" class="nav-link">Brands</a>
                             <a href="/Home/Promotions" class="nav-link">Promotions</a>
-                            <a href="/Home/News" class="nav-link">News</a>
+                            <a href="/Blog/Index" class="nav-link">Blog</a>
                             <a href="/Home/Contact" class="nav-link">Contact</a>
                         </div>
 
@@ -327,11 +328,27 @@
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
           if (window.lucide) lucide.createIcons();
         });
     </script>
+    @if (TempData["Success"] != null)
+    {
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Welcome!',
+                    text: '@Html.Raw(TempData["Success"])',
+                    confirmButtonText: 'Tiếp tục',
+                    confirmButtonColor: '#28a745', 
+                    timer: 3000,
+                });
+            });
+        </script>
+    }
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

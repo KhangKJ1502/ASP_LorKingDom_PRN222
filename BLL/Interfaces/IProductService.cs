@@ -1,11 +1,10 @@
-﻿using System;
+﻿// BLL/Interfaces/IProductService.cs
+using BLL.DTOs;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using BLL.DTOs;
 
-namespace BLL.IServices
+namespace BLL.Interfaces
 {
     public interface IProductService
     {

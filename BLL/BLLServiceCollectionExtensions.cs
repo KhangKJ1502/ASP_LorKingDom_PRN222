@@ -1,6 +1,7 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using BLL.Interfaces;
+﻿using BLL.Interfaces;
 using BLL.Services;
+using BLL.Validators;
+using Microsoft.Extensions.DependencyInjection;
 using BLL.IServices;
 
 namespace BLL
@@ -14,6 +15,14 @@ namespace BLL
 
             // ✳️ Thêm dòng này:
             //services.AddScoped<ISystemHealthService, SystemHealthService>();
+
+            // Nhánh Authentication
+            services.AddScoped<IAccountService, AccountService>();
+            services.AddScoped<IEmailOtpService, EmailOtpService>();
+
+            // Nhánh Role
+            services.AddScoped<IRoleService, RoleService>();
+
             //Nhánh Product
             services.AddScoped<IProductService, ProductService>();
             services.AddScoped<IProductImageService, ProductImageService>();
@@ -25,6 +34,11 @@ namespace BLL
             services.AddScoped<IBrandService, BrandService>();
             services.AddScoped<ISuperCategoryService, SuperCategoryService>();
             services.AddScoped<IPriceRangeService, PriceRangeService>();
+            services.AddScoped<IPromotionService, PromotionService>();
+            services.AddScoped<PromotionValidator>();
+
+            services.AddScoped<INotificationService, NotificationService>();
+            services.AddScoped<IChatService, ChatService>();
             return services;
         }
     }
