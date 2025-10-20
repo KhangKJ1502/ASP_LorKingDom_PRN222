@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using BLL.Interfaces;
 using BLL.Services;
+using BLL.IServices;
 
 namespace BLL
 {
@@ -14,6 +15,8 @@ namespace BLL
             // ✳️ Thêm dòng này:
             //services.AddScoped<ISystemHealthService, SystemHealthService>();
             //Nhánh Product
+            services.AddScoped<IProductService, ProductService>();
+            services.AddScoped<IProductImageService, ProductImageService>();
             services.AddScoped<ISexService, SexService>();
             services.AddScoped<IAgeService, AgeService>();
             services.AddScoped<IOriginService, OriginService>();

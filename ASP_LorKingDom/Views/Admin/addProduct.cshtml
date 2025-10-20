@@ -1,201 +1,330 @@
-﻿@{
-    ViewData["Title"] = "Add Product";
+﻿@model BLL.DTOs.ProductDto
+@using BLL.DTOs
+
+@{
     Layout = "_AdminLayout";
+    ViewData["Title"] = Model?.Id > 0 ? "Cập nhật sản phẩm" : "Thêm sản phẩm";
+
+    var categories = ViewBag.Categories as List<CategoryDto>;
+    var brands = ViewBag.Brands as List<BrandDto>;
+    var materials = ViewBag.Materials as List<MaterialDto>;
+    var ages = ViewBag.Ages as List<AgeDto>;
+    var sexes = ViewBag.Sexes as List<SexDto>;
+    var origins = ViewBag.Origins as List<OriginDto>;
+    var priceRanges = ViewBag.PriceRanges as List<PriceRangeDto>;
+
+    var isEdit = Model?.Id > 0;
+    var st = Model?.ProductStatus ?? "Available";
 }
 
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet" />
-<link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet" />
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-<link rel="stylesheet" href="~/css/NewProductCss.css" asp-append-version="true" />
+@section Styles {
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet" />
+    <link href="~/css/NewProduct.css" rel="stylesheet" asp-append-version="true" />
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+          crossorigin="anonymous" referrerpolicy="no-referrer" />
 
-<div class="container">
-    <!-- UI only: không xử lý gì, action="#" -->
-    <form action="#" method="get" enctype="multipart/form-data" class="needs-validation" novalidate>
+    <style>
+        /* Toast giống Category */
+        .toast-top-right {
+            top: 120px !important;
+            right: 24px !important;
+            left: auto !important;
+            bottom: auto !important;
+        }
+
+        #liveToast.toast {
+            min-width: 520px;
+            padding: 1rem 1.25rem;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,.18);
+        }
+
+        #liveToast .toast-body {
+            font-size: 1.05rem;
+            font-weight: 600;
+            word-break: break-word;
+        }
+
+        /* Nút X xoá ảnh */
+        .btn-remove-img {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            width: 24px;
+            height: 24px;
+            padding: 0;
+            border: none;
+            border-radius: 50%;
+            font-weight: bold;
+            line-height: 1;
+            background: #dc3545 !important;
+            color: #fff;
+        }
+
+            .btn-remove-img:hover {
+                background: #bb2d3b !important;
+            }
+
+        /* Ô upload & thumbnail */
+        .upload-box {
+            border: 2px dashed #d7dce3;
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: all .2s ease;
+            background: #fff;
+        }
+
+            .upload-box:hover {
+                border-color: #9fb3c8;
+                background: #f8fafc;
+            }
+
+        .preview-grid {
+            display: grid;
+            grid-template-columns: repeat(4,minmax(0,1fr));
+            gap: .5rem;
+        }
+
+        .thumb {
+            width: 100%;
+            padding-top: 100%;
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #f1f5f9;
+        }
+
+            .thumb > img {
+                position: absolute;
+                inset: 0;
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+    </style>
+}
+
+<div class="product-page container px-4">
+    <h2 class="text-center mb-4 fw-bold text-primary">
+        @(isEdit ? "Cập nhật Sản Phẩm" : "Thêm Sản Phẩm Mới")
+    </h2>
+
+    <form asp-action="Save" asp-controller="Product" method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="Id" />
+        <input type="hidden" asp-for="DescriptionHtml" id="DescriptionHidden" />
+
         <div class="row">
-            <h2 class="text-center mb-4 fw-bold text-primary">Thêm Sản Phẩm Mới</h2>
-
+            <!-- Left -->
             <div class="col-md-6">
-                <!-- Basic Information Section -->
                 <div class="form-section">
-                    <h5 class="section-title">
-                        <i class="fas fa-info-circle"></i>
-                        Thông Tin Cơ Bản
-                    </h5>
-
+                    <h5 class="section-title"><i class="fas fa-info-circle me-1"></i>Thông Tin Cơ Bản</h5>
                     <div class="row g-3">
-                        <div class="col-md-6">
+                        <div class="col-md-8">
                             <label class="form-label">Tên Sản Phẩm</label>
-                            <input type="text" class="form-control" name="ProductName" placeholder="Nhập tên sản phẩm" required
-                                   oninvalid="this.setCustomValidity('Please enter the product name.')"
-                                   oninput="this.setCustomValidity('')" />
+                            <input class="form-control" asp-for="ProductName" placeholder="Nhập tên sản phẩm" required />
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label">Category</label>
-                            <select class="form-select" name="CategoryId" required>
+                            <label class="form-label">Danh Mục</label>
+                            <select class="form-select" asp-for="CategoryId" required>
                                 <option value="">-- Chọn Category --</option>
-                                <option value="1">Robot</option>
-                                <option value="2">Xếp hình</option>
-                                <option value="3">Búp bê</option>
+                                @if (categories != null)
+                                {
+                                    foreach (var c in categories)
+                                    {
+                                        <option value="@c.Id" selected="@(c.Id == Model?.CategoryId)">@c.Name</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Thương Hiệu</label>
+                            <select class="form-select" asp-for="BrandId">
+                                <option value="">-- Chọn --</option>
+                                @if (brands != null)
+                                {
+                                    foreach (var b in brands)
+                                    {
+                                        <option value="@b.Id" selected="@(b.Id == Model?.BrandId)">@b.Name</option>
+                                    }
+                                }
                             </select>
                         </div>
 
                         <div class="col-md-4">
                             <label class="form-label">Giới Tính</label>
-                            <select class="form-select" name="SexId">
+                            <select class="form-select" asp-for="SexId">
                                 <option value="">Không xác định</option>
-                                <option value="1">Bé trai</option>
-                                <option value="2">Bé gái</option>
-                                <option value="3">Unisex</option>
-                            </select>
-                        </div>
-
-                        <div class="col-md-4">
-                            <label class="form-label">Khoảng Giá</label>
-                            <select class="form-select" name="PriceRangeId">
-                                <option value="">-- Chọn --</option>
-                                <option value="1">Dưới 100k</option>
-                                <option value="2">100k - 300k</option>
-                                <option value="3">Trên 300k</option>
-                            </select>
-                        </div>
-
-                        <div class="col-md-4">
-                            <label class="form-label">Thương Hiệu</label>
-                            <select class="form-select" name="BrandId">
-                                <option value="">-- Chọn --</option>
-                                <option value="1">Lego</option>
-                                <option value="2">Mattel</option>
-                                <option value="3">Hasbro</option>
+                                @if (sexes != null)
+                                {
+                                    foreach (var s in sexes)
+                                    {
+                                        <option value="@s.Id" selected="@(s.Id == Model?.SexId)">@s.Name</option>
+                                    }
+                                }
                             </select>
                         </div>
 
                         <div class="col-md-4">
                             <label class="form-label">Khoảng Tuổi</label>
-                            <select class="form-select" name="AgeId">
+                            <select class="form-select" asp-for="AgeId">
                                 <option value="">-- Chọn --</option>
-                                <option value="1">3-5</option>
-                                <option value="2">6-8</option>
-                                <option value="3">9-12</option>
+                                @if (ages != null)
+                                {
+                                    foreach (var a in ages)
+                                    {
+                                        <option value="@a.Id" selected="@(a.Id == Model?.AgeId)">@a.AgeRange</option>
+                                    }
+                                }
                             </select>
                         </div>
 
                         <div class="col-md-4">
                             <label class="form-label">Chất Liệu</label>
-                            <select class="form-select" name="MaterialId">
+                            <select class="form-select" asp-for="MaterialId">
                                 <option value="">-- Chọn --</option>
-                                <option value="1">Nhựa an toàn</option>
-                                <option value="2">Gỗ</option>
-                                <option value="3">Kim loại</option>
+                                @if (materials != null)
+                                {
+                                    foreach (var m in materials)
+                                    {
+                                        <option value="@m.Id" selected="@(m.Id == Model?.MaterialId)">@m.Name</option>
+                                    }
+                                }
                             </select>
                         </div>
 
-                        <div class="col-md-4">
+                        <div class="col-md-6">
                             <label class="form-label">Nguồn Gốc</label>
-                            <select class="form-select" name="OriginId" required>
+                            <select class="form-select" asp-for="OriginId">
                                 <option value="">-- Chọn --</option>
-                                <option value="1">Việt Nam</option>
-                                <option value="2">Thái Lan</option>
-                                <option value="3">Nhật Bản</option>
+                                @if (origins != null)
+                                {
+                                    foreach (var o in origins)
+                                    {
+                                        <option value="@o.Id" selected="@(o.Id == Model?.OriginId)">@o.Name</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Khoảng Giá</label>
+                            <select class="form-select" asp-for="PriceRangeId">
+                                <option value="">-- Chọn --</option>
+                                @if (priceRanges != null)
+                                {
+                                    foreach (var pr in priceRanges)
+                                    {
+                                        <option value="@pr.Id" selected="@(pr.Id == Model?.PriceRangeId)">
+                                            @($"{pr.PriceRangeMin:#,0} - {pr.PriceRangeMax:#,0}")
+                                        </option>
+                                    }
+                                }
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Trạng Thái</label>
+                            <select class="form-select" asp-for="ProductStatus">
+                                <option value="Available" selected="@(st=="Available")">Hoạt động</option>
+                                <option value="OutOfStock" selected="@(st=="OutOfStock")">Hết hàng</option>
+                                <option value="Discontinued" selected="@(st=="Discontinued")">Không còn hoạt động</option>
                             </select>
                         </div>
                     </div>
                 </div>
 
-                <!-- Description Section -->
                 <div class="form-section">
-                    <h5 class="section-title">
-                        <i class="fas fa-align-left"></i>
-                        Miêu Tả Sản Phẩm
-                    </h5>
+                    <h5 class="section-title"><i class="fas fa-align-left me-1"></i>Miêu Tả Sản Phẩm</h5>
                     <div id="editor-container" style="min-height:160px;"></div>
-                    <!-- input ẩn nếu sau này cần lấy nội dung -->
-                    <input type="hidden" name="Description" id="DescriptionHidden" />
                 </div>
             </div>
 
+            <!-- Right -->
             <div class="col-md-6">
-                <!-- Pricing Section -->
                 <div class="form-section">
-                    <h5 class="section-title">
-                        <i class="fas fa-dollar-sign"></i>
-                        Giá Và Số Lượng
-                    </h5>
+                    <h5 class="section-title"><i class="fas fa-dollar-sign me-1"></i>Giá Và Số Lượng</h5>
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="form-label">Giá (VND)</label>
                             <div class="input-group">
                                 <span class="input-group-text"><i class="fas fa-tag"></i></span>
-                                <input type="number" class="form-control" name="Price" min="0" placeholder="0" required />
+                                <input type="number" class="form-control" asp-for="Price" min="0" step="1" placeholder="0" required />
                             </div>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Số Lượng</label>
                             <div class="input-group">
                                 <span class="input-group-text"><i class="fas fa-cubes"></i></span>
-                                <input type="number" class="form-control" name="StockQuantity" min="0" placeholder="0" required />
+                                <input type="number" class="form-control" asp-for="StockQuantity" min="0" step="1" placeholder="0" required />
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Images Section -->
                 <div class="form-section">
-                    <h5 class="section-title">
-                        <i class="fas fa-images"></i>
-                        Ảnh Sản Phẩm
-                    </h5>
+                    <h5 class="section-title"><i class="fas fa-images me-1"></i>Ảnh Sản Phẩm</h5>
 
                     <div class="row g-4">
                         <div class="row">
-                            <!-- Main Image Column -->
                             <div class="col-md-4">
                                 <h6 class="fw-bold mb-3">Ảnh Chính</h6>
-                                <div class="upload-container d-flex align-items-center">
-                                    <div class="upload-box" onclick="document.getElementById('mainImageUpload').click()">
-                                        <input type="file" id="mainImageUpload" name="MainImageUpload" hidden accept="image/*" />
-                                        <i class="fas fa-cloud-upload-alt"></i>
-                                        <span>Chọn Để Thêm Ảnh</span>
-                                    </div>
+                                <div class="upload-box" onclick="document.getElementById('mainImageUpload').click()">
+                                    <input type="file" id="mainImageUpload" name="MainImageUpload" hidden accept="image/*" />
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                    <div class="small text-muted mt-1">Nhấp để chọn ảnh</div>
                                 </div>
                             </div>
-                            <!-- Preview Image Column -->
                             <div class="col-md-8">
-                                <h6 class="fw-bold mb-3">Ảnh Mẫu</h6>
-                                <div id="previewContainer" class="d-flex flex-wrap gap-2"></div>
+                                <h6 class="fw-bold mb-3">Xem Trước</h6>
+                                <div id="previewContainer" class="d-flex flex-wrap gap-2 position-relative">
+                                    @if (!string.IsNullOrWhiteSpace(Model?.MainImageUrl))
+                                    {
+                                        <div class="img-wrapper position-relative d-inline-block">
+                                            <img src="@Model.MainImageUrl" class="img-preview" style="max-width:120px;border-radius:8px;" />
+                                            <button type="button" class="btn btn-sm btn-danger btn-remove-img" onclick="removeMainImage()">×</button>
+                                        </div>
+                                    }
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     <div class="col-md-12 mt-3">
-                        <div class="image-upload-section">
-                            <h4>Ảnh Chi Tiết (Tối Đa 8 Ảnh)</h4>
-                            <div class="upload-container mess-error">
-                                <!-- Hidden file input -->
-                                <input type="file" id="detailImagesInput" name="DetailImages" multiple accept="image/*" hidden />
-                                <!-- Drop zone -->
-                                <div class="drop-zone"
-                                     onclick="document.getElementById('detailImagesInput').click()"
-                                     ondragover="event.preventDefault()"
-                                     ondrop="handleDrop(event)">
-                                    <div class="upload-prompt">
-                                        <i class="fas fa-cloud-upload-alt"></i>
-                                        <p>Kéo và thả hình ảnh vào đây hoặc nhấp để tải lên</p>
-                                        <small class="text-muted">(Tối Đa 8 Ảnh, JPEG/PNG/WEBP)</small>
-                                    </div>
-                                </div>
-                                <!-- Preview grid -->
-                                <div id="previewGrid" class="preview-grid"></div>
-                            </div>
+                        <h6 class="fw-bold">Ảnh Chi Tiết (Tối thiểu 4 – Tối đa 8 ảnh)</h6>
+                        <div class="upload-box"
+                             onclick="document.getElementById('detailImagesInput').click()"
+                             ondragover="event.preventDefault()" ondrop="handleDrop(event)">
+                            <input type="file" id="detailImagesInput" name="DetailImages" multiple accept="image/*" hidden />
+                            <div><i class="fas fa-cloud-upload-alt"></i></div>
+                            <small class="text-muted">(JPEG/PNG/WEBP)</small>
                         </div>
+                        <div id="previewGrid" class="preview-grid mt-2"></div>
+
+                        @* Render ảnh phụ có sẵn khi Edit (không có nút X vì xóa DB cần flow riêng) *@
+                        @if (Model?.SecondaryImageUrls != null && Model.SecondaryImageUrls.Any())
+                        {
+                            <div class="mt-2">
+                                <div class="preview-grid">
+                                    @foreach (var u in Model.SecondaryImageUrls)
+                                    {
+                                        <div class="thumb"><img src="@u" /></div>
+                                    }
+                                </div>
+                            </div>
+                        }
                     </div>
                 </div>
 
-                <!-- Submit Buttons (để UI đẹp, vẫn giữ nút) -->
                 <div class="d-flex justify-content-end gap-3 mt-4">
-                    <a href="#" class="btn btn-primary btn-sm">Trở Về</a>
-                    <button type="button" class="btn btn-primary px-4" onclick="alert('UI demo only')">
-                        <i class="fas fa-plus-circle me-2"></i>Thêm Sản Phẩm
+                    <a asp-action="Manage" asp-controller="Product" class="btn btn-outline-secondary">Trở về</a>
+                    <button type="submit" class="btn btn-primary px-4">
+                        <i class="fas fa-save me-2"></i>@(isEdit ? "Lưu thay đổi" : "Thêm sản phẩm")
                     </button>
                 </div>
             </div>
@@ -203,75 +332,149 @@
     </form>
 </div>
 
-<!-- Modal Error: UI-only, không gắn TempData -->
-<div class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title" id="errorModalLabel">Thông Báo Lỗi</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+<!-- Toast lỗi -->
+<div class="toast-container position-fixed p-3 toast-top-right" style="z-index:2080;">
+    <div id="liveToast" class="toast align-items-center text-bg-danger border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body">
+                <i class="fa-solid fa-circle-exclamation me-2"></i>
+                @Html.Raw(ViewBag.ErrorMessage) @* cho phép danh sách HTML từ Controller *@
             </div>
-            <div class="modal-body">
-                <p id="errorMessage">Lỗi ví dụ (UI demo)</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Đóng"></button>
         </div>
     </div>
 </div>
 
 @section Scripts {
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
-
     <script>
-        // Khởi tạo Quill để hiển thị editor
-        document.addEventListener('DOMContentLoaded', function () {
-            const quill = new Quill('#editor-container', { theme: 'snow' });
-            // Demo nội dung sẵn
-            quill.root.innerHTML = "<p>Mô tả sản phẩm demo...</p>";
+        // Quill
+        const quill = new Quill('#editor-container', {
+            theme: 'snow',
+            modules: { toolbar: [['bold','italic','underline','strike'],[{ 'list':'ordered'},{'list':'bullet'}],['link'],['clean']] }
         });
 
-        // Upload demo: preview ảnh chính
+        // Load mô tả khi edit
+        @if (!string.IsNullOrWhiteSpace(Model?.DescriptionHtml))
+        {
+            <text>
+                    quill.root.innerHTML = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.DescriptionHtml));
+            </text>
+        }
+
+        // Trước khi submit: lấy HTML từ Quill
+        document.querySelector('form')?.addEventListener('submit', function(){
+            document.getElementById('DescriptionHidden').value = quill.root.innerHTML;
+        });
+
+        // ===== ẢNH CHÍNH =====
         document.getElementById('mainImageUpload')?.addEventListener('change', function (e) {
             const file = e.target.files?.[0];
             if (!file) return;
             const reader = new FileReader();
             reader.onload = function () {
-                const img = document.createElement('img');
-                img.src = reader.result;
-                img.style.maxWidth = '120px';
-                img.style.borderRadius = '8px';
                 const container = document.getElementById('previewContainer');
                 container.innerHTML = "";
-                container.appendChild(img);
+                const wrap = document.createElement('div');
+                wrap.className = 'img-wrapper position-relative d-inline-block';
+                wrap.innerHTML = `
+                    <img src="${reader.result}" class="img-preview" style="max-width:120px;border-radius:8px;" />
+                    <button type="button" class="btn btn-sm btn-danger btn-remove-img" onclick="removeMainImage()">×</button>`;
+                container.appendChild(wrap);
             };
             reader.readAsDataURL(file);
         });
 
-        // Upload demo: ảnh chi tiết (tối đa 8)
+        function removeMainImage() {
+            const container = document.getElementById('previewContainer');
+            container.innerHTML = "";
+            const input = document.getElementById('mainImageUpload');
+            if (input) input.value = "";
+        }
+
+        // ===== ẢNH CHI TIẾT =====
+        let selectedDetailFiles = [];
+
         function handleFiles(files) {
             const grid = document.getElementById('previewGrid');
             grid.innerHTML = "";
+
             const list = Array.from(files).slice(0, 8);
-            list.forEach(f => {
+            selectedDetailFiles = list;
+
+            list.forEach((f, index) => {
                 const reader = new FileReader();
                 reader.onload = function () {
                     const wrap = document.createElement('div');
-                    wrap.className = 'thumb';
-                    wrap.innerHTML = `<img src="${reader.result}" style="width:100%;height:100%;object-fit:cover;border-radius:8px" />`;
+                    wrap.className = 'thumb position-relative';
+                    wrap.innerHTML = `
+                        <img src="${reader.result}" />
+                        <button type="button" class="btn btn-sm btn-danger btn-remove-img"
+                                onclick="removeDetailImage(${index})">×</button>`;
+                    grid.appendChild(wrap);
+                };
+                reader.readAsDataURL(f);
+            });
+
+            // Cập nhật lại input file
+            syncDetailInput();
+        }
+
+        function removeDetailImage(index) {
+            selectedDetailFiles.splice(index, 1);
+            redrawDetailPreviews();
+            syncDetailInput();
+        }
+
+        function redrawDetailPreviews(){
+            const grid = document.getElementById('previewGrid');
+            grid.innerHTML = "";
+            selectedDetailFiles.forEach((f, i) => {
+                const reader = new FileReader();
+                reader.onload = function () {
+                    const wrap = document.createElement('div');
+                    wrap.className = 'thumb position-relative';
+                    wrap.innerHTML = `
+                        <img src="${reader.result}" />
+                        <button type="button" class="btn btn-sm btn-danger btn-remove-img"
+                                onclick="removeDetailImage(${i})">×</button>`;
                     grid.appendChild(wrap);
                 };
                 reader.readAsDataURL(f);
             });
         }
+
+        function syncDetailInput(){
+            const dt = new DataTransfer();
+            selectedDetailFiles.forEach(f => dt.items.add(f));
+            document.getElementById('detailImagesInput').files = dt.files;
+        }
+
         document.getElementById('detailImagesInput')?.addEventListener('change', e => handleFiles(e.target.files));
+
         function handleDrop(e) {
             e.preventDefault();
             if (e.dataTransfer?.files?.length) {
-                handleFiles(e.dataTransfer.files);
+                const files = Array.from(e.dataTransfer.files).slice(0, 8);
+                handleFiles(files);
+
+                // UX: nhắc tối thiểu 4 ảnh (validate cứng vẫn ở Controller)
+                if (selectedDetailFiles.length < 4) {
+                    alert("Vui lòng chọn ít nhất 4 ảnh chi tiết (tối thiểu 4, tối đa 8).");
+                }
             }
         }
+
+        // ===== Toast =====
+        document.addEventListener('DOMContentLoaded', function () {
+            const hasError = '@(ViewBag.ShowErrorModal == true ? "true" : "false")';
+            if (hasError === "true") {
+                const toastEl = document.getElementById('liveToast');
+                if (toastEl) {
+                    const toast = new bootstrap.Toast(toastEl, { delay: 5000 });
+                    toast.show();
+                }
+            }
+        });
     </script>
 }
