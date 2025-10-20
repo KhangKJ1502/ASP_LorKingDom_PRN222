@@ -1,0 +1,207 @@
+﻿@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chat Demo - Test Portal</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 900px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 40px;
+            font-size: 14px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-top: 30px;
+        }
+
+        .card {
+            border: 2px solid #e5e7eb;
+            border-radius: 16px;
+            padding: 24px;
+            transition: all 0.3s ease;
+        }
+
+            .card:hover {
+                border-color: #667eea;
+                box-shadow: 0 8px 24px rgba(102, 126, 234, 0.2);
+                transform: translateY(-4px);
+            }
+
+            .card h2 {
+                color: #667eea;
+                margin-bottom: 16px;
+                font-size: 20px;
+            }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #374151;
+            font-size: 14px;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+
+            input:focus {
+                outline: none;
+                border-color: #667eea;
+            }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            font-size: 15px;
+        }
+
+            button:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            }
+
+            button:active {
+                transform: translateY(0);
+            }
+
+        .info {
+            background: #f3f4f6;
+            border-left: 4px solid #667eea;
+            padding: 12px 16px;
+            border-radius: 6px;
+            margin-top: 30px;
+            font-size: 13px;
+            color: #4b5563;
+        }
+
+            .info strong {
+                color: #667eea;
+            }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Chat Support Demo</h1>
+        <p class="subtitle">Test hệ thống chat khách hàng - nhân viên</p>
+
+        <div class="grid">
+            <!-- Customer Card -->
+            <div class="card">
+                <h2>👤 Khách hàng</h2>
+                <form id="customerForm">
+                    <div class="form-group">
+                        <label for="customerId">User ID</label>
+                        <input type="text" id="customerId" placeholder="customer123" value="customer1" />
+                    </div>
+                    <div class="form-group">
+                        <label for="customerName">Tên hiển thị</label>
+                        <input type="text" id="customerName" placeholder="Nguyễn Văn A" value="Khách hàng 1" />
+                    </div>
+                    <button type="submit">Mở chat khách hàng</button>
+                </form>
+            </div>
+
+            <!-- Staff Card -->
+            <div class="card">
+                <h2>👨‍💼 Nhân viên</h2>
+                <form id="staffForm">
+                    <div class="form-group">
+                        <label for="staffId">Staff ID</label>
+                        <input type="text" id="staffId" placeholder="staff1" value="staff1" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="staffName">Tên nhân viên</label>
+                        <input type="text" id="staffName" placeholder="Trần Thị B" value="Nhân viên 1" />
+                    </div>
+                    <button type="submit">Mở console nhân viên</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="info">
+            <strong>💡 Hướng dẫn test:</strong><br>
+            1. Mở Staff Console trước để nhân viên online<br>
+            2. Mở Customer Chat để khách hàng bắt đầu chat<br>
+            3. Có thể mở nhiều tab để test multiple users
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('customerForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const userId = document.getElementById('customerId').value.trim() || 'customer1';
+            const name = document.getElementById('customerName').value.trim() || 'Khách hàng';
+            const url = `/Chat/Customer?userId=${encodeURIComponent(userId)}&name=${encodeURIComponent(name)}`;
+            window.open(url, '_blank');
+        });
+
+        document.getElementById('staffForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const userId = document.getElementById('staffId').value.trim();
+            if (!userId) {
+                alert('Vui lòng nhập Staff ID');
+                return;
+            }
+            const name = document.getElementById('staffName').value.trim() || 'Nhân viên';
+            const url = `/Chat/Staff?userId=${encodeURIComponent(userId)}&name=${encodeURIComponent(name)}`;
+            window.open(url, '_blank');
+        });
+    </script>
+</body>
+</html>

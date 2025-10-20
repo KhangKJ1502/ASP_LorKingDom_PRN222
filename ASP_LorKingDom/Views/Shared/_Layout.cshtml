@@ -21,6 +21,7 @@
     @await RenderSectionAsync("Styles", required: false)   <!-- THÊM DÒNG NÀY -->
 
 </head>
+@await Html.PartialAsync("_ChatWidget")
 <body>
     <!-- Header -->
     <header class="site-header">

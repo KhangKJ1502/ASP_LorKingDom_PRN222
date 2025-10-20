@@ -38,6 +38,7 @@ namespace DAL
 
             services.AddScoped<IAccountRepository, AccountRepository>();
             services.AddScoped<IRoleRepository, RoleRepository>();
+            services.AddSingleton<IChatStoreRepository, InMemoryChatStoreRepository>();
 
 
             return services;

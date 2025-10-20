@@ -1,6 +1,7 @@
 ﻿// Program.cs (ASP.NET Core 8)
 using BLL; // AddBLL()
 using DAL;
+using WebUI.Hubs; // AddDAL()
 using Microsoft.AspNetCore.Authentication.Cookies;
 using WebUI.BackgroundServices; // AddDAL()
 
@@ -20,6 +21,10 @@ var conn = builder.Configuration.GetConnectionString("DefaultConnection")
 builder.Services.AddDAL(conn);
 builder.Services.AddBLL();
 builder.Services.AddControllersWithViews();
+
+//ChatHUb
+builder.Services.AddControllersWithViews();
+builder.Services.AddSignalR();
 
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
@@ -46,6 +51,7 @@ app.UseStaticFiles();
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
+app.MapHub<ChatHub>("/chatHub");
 
 // 5) Map cả attribute-routed controllers (ví dụ /health/db) lẫn conventional route
 app.MapControllers(); // để các controller có [Route] hoạt động (HealthController)

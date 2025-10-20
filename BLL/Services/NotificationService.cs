@@ -63,14 +63,14 @@ namespace BLL.Services
             {
                 Title = dto.Title.Trim(),
                 Message = dto.Message.Trim(),
-                Type = NormalizeType(dto.Type),
-                TargetType = NormalizeTargetType(dto.TargetType),
+                Type = dto.Type, // Đã normalize từ Controller
+                TargetType = dto.TargetType, // Đã normalize từ Controller
                 TargetRoleId = dto.TargetRoleId,
                 TargetUserId = dto.TargetUserId,
                 ConditionJson = dto.ConditionJson,
-                ScheduledAt = EnsureUtc(dto.ScheduledAt),
-                ExpireAt = dto.ExpireAt.HasValue ? EnsureUtc(dto.ExpireAt.Value) : null,
-                CreatedBy = dto.CreatedBy,
+                ScheduledAt = dto.ScheduledAt, // Đã convert UTC từ Controller
+                ExpireAt = dto.ExpireAt, // Đã convert UTC từ Controller
+                CreatedBy = 10,
                 CreatedAt = DateTime.UtcNow,
                 IsSent = false,
                 IsCanceled = false
@@ -95,12 +95,11 @@ namespace BLL.Services
                 if (duplicated) throw new InvalidOperationException($"Tiêu đề '{dto.Title}' đã tồn tại");
             }
 
-            // Chỉ cho phép sửa các field nội dung & thời gian (tránh đổi đối tượng nhận sau khi đã lên lịch)
             entity.Title = dto.Title.Trim();
             entity.Message = dto.Message.Trim();
-            entity.Type = NormalizeType(dto.Type);
-            entity.ScheduledAt = EnsureUtc(dto.ScheduledAt);
-            entity.ExpireAt = dto.ExpireAt.HasValue ? EnsureUtc(dto.ExpireAt.Value) : null;
+            entity.Type = dto.Type; // Đã normalize từ Controller
+            entity.ScheduledAt = dto.ScheduledAt; // Đã convert UTC từ Controller
+            entity.ExpireAt = dto.ExpireAt; // Đã convert UTC từ Controller
 
             await _notificationRepo.UpdateAsync(entity);
         }
@@ -140,7 +139,6 @@ namespace BLL.Services
             if (notif.IsCanceled) throw new InvalidOperationException("Thông báo đã bị hủy");
             if (notif.IsSent) throw new InvalidOperationException("Thông báo đã gửi trước đó");
 
-            // Cưỡng bức gửi ngay
             await DispatchOneAsync(notif, DateTime.UtcNow);
         }
 
@@ -160,6 +158,7 @@ namespace BLL.Services
                 DeliveredAt = x.DeliveredAt,
                 Title = x.Notification?.Title ?? "",
                 Message = x.Notification?.Message ?? "",
+                Type = x.Notification?.Type ?? "General",
                 ScheduledAt = x.Notification?.ScheduledAt ?? DateTime.MinValue
             }).ToList();
 
@@ -174,8 +173,13 @@ namespace BLL.Services
 
         public async Task MarkReadAsync(int userNotificationId)
         {
-            // Không nhận userId ở chữ ký -> chỉ đánh dấu read, phần bảo mật nên kiểm ở Controller bằng user hiện tại
             await _userNotificationRepo.MarkReadAsync(userNotificationId, DateTime.UtcNow);
+        }
+
+        public async Task<int> GetUnreadCountAsync(int userId)
+        {
+            var (_, total) = await _userNotificationRepo.GetByUserAsync(userId, isRead: false, page: 1, pageSize: 1);
+            return total;
         }
 
         // =================== Worker ===================
@@ -214,7 +218,11 @@ namespace BLL.Services
                 ExpireAt = e.ExpireAt,
                 IsSent = e.IsSent,
                 IsCanceled = e.IsCanceled,
-                CreatedAt = e.CreatedAt
+                CreatedAt = e.CreatedAt,
+                // Navigation properties
+                TargetRoleName = e.TargetRole?.RoleName,
+                TargetUserEmail = e.TargetUser?.Email,
+                CreatedByEmail = e.CreatedByNavigation?.Email
             };
         }
 
@@ -223,70 +231,73 @@ namespace BLL.Services
             if (string.IsNullOrWhiteSpace(dto.Title))
                 throw new InvalidOperationException("Title không được rỗng");
 
+            if (string.IsNullOrWhiteSpace(dto.Message))
+                throw new InvalidOperationException("Message không được rỗng");
+
             if (await _notificationRepo.ExistsByTitleAsync(dto.Title.Trim()))
                 throw new InvalidOperationException($"Tiêu đề '{dto.Title}' đã tồn tại");
 
-            var tt = NormalizeTargetType(dto.TargetType);
-            switch (tt)
+            // Validate Type (đã normalize từ Controller)
+            if (!IsValidType(dto.Type))
+                throw new InvalidOperationException($"Type '{dto.Type}' không hợp lệ. Phải là: General, Order, Promotion, System");
+
+            // Validate TargetType (đã normalize từ Controller)
+            if (!IsValidTargetType(dto.TargetType))
+                throw new InvalidOperationException($"TargetType '{dto.TargetType}' không hợp lệ. Phải là: All, SingleUser, ByRole, ByCondition");
+
+            switch (dto.TargetType)
             {
                 case "SingleUser":
                     if (!dto.TargetUserId.HasValue)
                         throw new InvalidOperationException("Phải chỉ định TargetUserId khi TargetType = SingleUser");
+
+                    var user = await _accountRepo.GetByIdAsync(dto.TargetUserId.Value);
+                    if (user == null)
+                        throw new InvalidOperationException($"User ID {dto.TargetUserId.Value} không tồn tại");
                     break;
+
                 case "ByRole":
                     if (!dto.TargetRoleId.HasValue)
                         throw new InvalidOperationException("Phải chỉ định TargetRoleId khi TargetType = ByRole");
+
+                    var role = await _roleRepo.GetByIdAsync(dto.TargetRoleId.Value);
+                    if (role == null)
+                        throw new InvalidOperationException($"Role ID {dto.TargetRoleId.Value} không tồn tại");
                     break;
+
                 case "ByCondition":
                     if (string.IsNullOrWhiteSpace(dto.ConditionJson))
                         throw new InvalidOperationException("Phải chỉ định ConditionJson khi TargetType = ByCondition");
                     break;
+
+                case "All":
+                    // Không cần validate gì thêm
+                    break;
             }
 
             var now = DateTime.UtcNow.AddMinutes(-5);
-            if (EnsureUtc(dto.ScheduledAt) < now)
+            if (dto.ScheduledAt < now)
                 throw new InvalidOperationException("Thời gian gửi không được ở quá khứ");
 
-            if (dto.ExpireAt.HasValue && EnsureUtc(dto.ExpireAt.Value) <= EnsureUtc(dto.ScheduledAt))
+            if (dto.ExpireAt.HasValue && dto.ExpireAt.Value <= dto.ScheduledAt)
                 throw new InvalidOperationException("ExpireAt phải sau ScheduledAt");
         }
 
-        private static DateTime EnsureUtc(DateTime dt)
-            => dt.Kind == DateTimeKind.Utc ? dt : DateTime.SpecifyKind(dt, DateTimeKind.Utc);
-
-        private static string NormalizeType(string type)
+        private static bool IsValidType(string type)
         {
-            // Chuẩn hóa theo schema DB: General|Order|Promotion|System
-            var t = (type ?? "").Trim().ToLowerInvariant();
-            return t switch
-            {
-                "general" => "General",
-                "order" => "Order",
-                "promotion" => "Promotion",
-                "system" => "System",
-                _ => "General"
-            };
+            return type is "General" or "Order" or "Promotion" or "System";
         }
 
-        private static string NormalizeTargetType(string targetType)
+        private static bool IsValidTargetType(string targetType)
         {
-            // Chuẩn hóa: All|SingleUser|ByRole|ByCondition
-            var t = (targetType ?? "").Trim().ToLowerInvariant();
-            return t switch
-            {
-                "all" => "All",
-                "singleuser" or "user" => "SingleUser",
-                "byrole" or "role" => "ByRole",
-                "bycondition" or "condition" => "ByCondition",
-                _ => "All"
-            };
+            return targetType is "All" or "SingleUser" or "ByRole" or "ByCondition";
         }
 
         private async Task<bool> DispatchOneAsync(Notification notif, DateTime nowUtc)
         {
             try
             {
-                // Bỏ qua nếu đã hết hạn tại thời điểm gửi
+                // Bỏ qua nếu đã hết hạn
                 if (notif.ExpireAt.HasValue && notif.ExpireAt.Value <= nowUtc)
                 {
                     await _logRepo.AddAsync(new NotificationLog
@@ -297,6 +308,7 @@ namespace BLL.Services
                         Details = "Hết hạn trước khi gửi",
                         SentAt = nowUtc
                     });
+                    await _notificationRepo.MarkSentAsync(notif.NotificationId, nowUtc);
                     return false;
                 }
 
@@ -312,12 +324,11 @@ namespace BLL.Services
                         Details = "Không có người nhận",
                         SentAt = nowUtc
                     });
-                    // Vẫn mark sent để không lặp vô hạn
                     await _notificationRepo.MarkSentAsync(notif.NotificationId, nowUtc);
                     return true;
                 }
 
-                // Tạo bản ghi UserNotifications (đánh dấu DeliveredAt để hiển thị lên đầu)
+                // Tạo bản ghi UserNotifications
                 var userNotifs = recipients.Select(uid => new UserNotification
                 {
                     NotificationId = notif.NotificationId,
@@ -328,7 +339,7 @@ namespace BLL.Services
 
                 await _userNotificationRepo.CreateRangeAsync(userNotifs);
 
-                // Mark & log
+                // Mark sent & log
                 await _notificationRepo.MarkSentAsync(notif.NotificationId, nowUtc);
 
                 await _logRepo.AddAsync(new NotificationLog
@@ -359,7 +370,7 @@ namespace BLL.Services
         private async Task<List<int>> BuildRecipientsAsync(Notification notif)
         {
             var list = new List<int>();
-            switch (NormalizeTargetType(notif.TargetType))
+            switch (notif.TargetType)
             {
                 case "All":
                     {
@@ -384,8 +395,7 @@ namespace BLL.Services
                     }
                 case "ByCondition":
                     {
-                        // TODO: parse ConditionJson để lọc người dùng theo điều kiện (tuỳ business)
-                        // Tạm thời: không ai
+                        // TODO: parse ConditionJson để lọc người dùng theo điều kiện
                         break;
                     }
             }
@@ -394,12 +404,11 @@ namespace BLL.Services
 
         private string GetSentToDescription(Notification notif)
         {
-            var tt = NormalizeTargetType(notif.TargetType);
-            return tt switch
+            return notif.TargetType switch
             {
                 "All" => "Tất cả người dùng",
-                "SingleUser" => notif.TargetUser?.Email ?? "User không xác định",
-                "ByRole" => notif.TargetRole?.RoleName ?? $"RoleId={notif.TargetRoleId}",
+                "SingleUser" => notif.TargetUser?.Email ?? $"UserID={notif.TargetUserId}",
+                "ByRole" => notif.TargetRole?.RoleName ?? $"RoleID={notif.TargetRoleId}",
                 "ByCondition" => "Theo điều kiện",
                 _ => "N/A"
             };
