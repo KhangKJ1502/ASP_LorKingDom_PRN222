@@ -2,6 +2,7 @@
 using BLL.Services;
 using BLL.Validators;
 using Microsoft.Extensions.DependencyInjection;
+using BLL.IServices;
 
 namespace BLL
 {
@@ -23,6 +24,8 @@ namespace BLL
             services.AddScoped<IRoleService, RoleService>();
 
             //Nhánh Product
+            services.AddScoped<IProductService, ProductService>();
+            services.AddScoped<IProductImageService, ProductImageService>();
             services.AddScoped<ISexService, SexService>();
             services.AddScoped<IAgeService, AgeService>();
             services.AddScoped<IOriginService, OriginService>();

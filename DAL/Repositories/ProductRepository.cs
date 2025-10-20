@@ -2,6 +2,7 @@
 using DAL.Interfaces;
 using DAL.Models;
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -10,51 +11,60 @@ namespace DAL.Repositories
 {
     public class ProductRepository : IProductRepository
     {
-        private readonly AspLorKingDomContext _db;
+        private readonly AspLorKingDomContext _ctx;
 
-        public ProductRepository(AspLorKingDomContext db)
+        public ProductRepository(AspLorKingDomContext ctx)
         {
-            _db = db;
+            _ctx = ctx;
         }
 
-        public async Task<List<(int Id, string Name)>> GetBasicListAsync(string? keyword = null, int limit = 200)
+        public async Task<List<Product>> GetAllAsync(string? keyword)
         {
-            IQueryable<Product> q = _db.Products.AsNoTracking();
-
-            // Nếu có cột IsDeleted:
-            // q = q.Where(p => !p.IsDeleted);
+            var q = _ctx.Products
+                .Include(p => p.Category)
+                .Include(p => p.Brand)
+                .Include(p => p.ProductImages)
+                .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(keyword))
-            {
-                var kw = $"%{keyword.Trim()}%";
-                q = q.Where(p => p.ProductName != null && EF.Functions.Like(p.ProductName, kw));
-            }
+                q = q.Where(p => p.ProductName.Contains(keyword) || p.Sku.Contains(keyword));
 
-            // 1) Select sang kiểu dịch được (ProductLite)
-            // 2) ToListAsync() (thực thi SQL)
-            // 3) Map sang tuple trên bộ nhớ
-            var rows = await q
-                .OrderBy(p => p.ProductName)
-                .Select(p => new ProductLite { Id = p.ProductId, Name = p.ProductName! })
-                .Take(limit)
-                .ToListAsync();
-
-            return rows.Select(r => (r.Id, r.Name)).ToList();
+            return await q.OrderByDescending(p => p.CreatedAt).ToListAsync();
         }
 
-        // DTO tạm để EF dịch ra SQL
-        private sealed class ProductLite
+        public async Task<Product?> GetByIdAsync(int id)
         {
-            public int Id { get; set; }
-            public string Name { get; set; } = null!;
+            return await _ctx.Products
+                .Include(p => p.Category)
+                .Include(p => p.Brand)
+                .FirstOrDefaultAsync(p => p.ProductId == id);
         }
 
-
-        public Task<bool> ExistsAsync(int productId)
+        public async Task AddAsync(Product entity)
         {
-            return _db.Products
-                .AsNoTracking()
-                .AnyAsync(p => p.ProductId == productId /* && !p.IsDeleted */);
+            await _ctx.Products.AddAsync(entity);
+            await _ctx.SaveChangesAsync();
         }
+
+        public async Task UpdateAsync(Product entity)
+        {
+            _ctx.Products.Update(entity);
+            await _ctx.SaveChangesAsync();
+        }
+
+        public async Task<bool> ExistsBySkuAsync(string sku)
+        {
+            return await _ctx.Products.AnyAsync(p => p.Sku == sku);
+        }
+        public async Task<bool> ExistsByNameAsync(string name, int? excludeId = null)
+        {
+            var query = _ctx.Products.Where(p => p.ProductName == name);
+            if (excludeId.HasValue)
+                query = query.Where(p => p.ProductId != excludeId.Value);
+
+            return await query.AnyAsync();
+        }
+
+
     }
 }

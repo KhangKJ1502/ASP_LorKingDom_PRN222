@@ -9,7 +9,12 @@ namespace DAL.Interfaces
 {
     public interface IProductRepository
     {
-        Task<List<(int Id, string Name)>> GetBasicListAsync(string? keyword = null, int limit = 200);
-        Task<bool> ExistsAsync(int productId);
+        Task<List<Product>> GetAllAsync(string? keyword);
+        Task<Product?> GetByIdAsync(int id);
+        Task AddAsync(Product entity);
+        Task UpdateAsync(Product entity);
+        Task<bool> ExistsBySkuAsync(string sku);
+        Task<bool> ExistsByNameAsync(string name, int? excludeId = null);
+
     }
 }

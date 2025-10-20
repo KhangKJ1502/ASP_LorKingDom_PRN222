@@ -4,6 +4,10 @@ using DAL.Models;
 using DAL.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using System;
+using DAL.Models;
+using DAL.IRepositories;
+using DAL.Repository;
 namespace DAL
 {
     public static class DALServiceCollectionExtensions
@@ -20,6 +24,9 @@ namespace DAL
             services.AddScoped<IEmailOtpRepository, EmailOtpRepository>();
 
             //Nhánh Product 
+            services.AddScoped<IProductRepository, ProductRepository>();
+            services.AddScoped<IProductImageRepository, ProductImageRepository>();
+
             services.AddScoped<ICategoryRepository, CategoryRepository>();
             services.AddScoped<IAgeRepository, AgeRepository>();
             services.AddScoped<IOriginRepository, OriginRepository>();

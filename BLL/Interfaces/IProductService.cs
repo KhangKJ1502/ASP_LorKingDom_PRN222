@@ -2,12 +2,15 @@
 using BLL.DTOs;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using BLL.DTOs;
 
 namespace BLL.Interfaces
 {
     public interface IProductService
     {
-        Task<List<SelectItemDto>> GetSelectListAsync(string? keyword = null, int limit = 200);
-        Task<bool> ExistsAsync(int productId);
+        Task<List<ProductDto>> GetAllAsync(string? keyword = null);
+        Task<ProductDto?> GetByIdAsync(int id);
+        Task<int> CreateAsync(ProductDto dto);     // dto.Id phải = 0
+        Task<bool> UpdateAsync(ProductDto dto);    // dto.Id > 0
     }
 }
