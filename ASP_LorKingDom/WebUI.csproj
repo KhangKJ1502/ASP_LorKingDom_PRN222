@@ -11,6 +11,7 @@
     <Folder Include="wwwroot\Assets\image\avatar\" />
     <Folder Include="wwwroot\Assets\image\categories\" />
     <Folder Include="wwwroot\Assets\image\svg\" />
+    <Folder Include="wwwroot\Assets\img-product\" />
     <Folder Include="wwwroot\Assets\svg\" />
   </ItemGroup>
 
@@ -20,6 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.9" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.9">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

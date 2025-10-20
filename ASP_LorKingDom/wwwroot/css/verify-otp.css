@@ -1,0 +1,107 @@
+﻿/* ===== Tổng thể ===== */
+.verify-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 75vh;
+    background: linear-gradient(135deg, #fff5f0 0%, #ffffff 100%);
+    padding: 1.5rem;
+}
+
+.verify-card {
+    background: #fff;
+    border-radius: 1.25rem;
+    padding: 2.5rem 2rem;
+    max-width: 420px;
+    width: 100%;
+    text-align: center;
+    animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ===== Badge và tiêu đề ===== */
+.otp-badge {
+    width: 70px;
+    height: 70px;
+    border-radius: 16px;
+    background: linear-gradient(135deg,#ff7a2a 0%,#ff9b50 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2rem;
+    color: #fff;
+    box-shadow: 0 8px 18px rgba(255,122,42,.3);
+}
+
+.verify-title {
+    font-weight: 800;
+    font-size: 1.8rem;
+    background: linear-gradient(135deg,#ff7a2a 0%,#ff9b50 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: .5rem;
+}
+
+.verify-subtitle {
+    font-size: 0.95rem;
+    color: #6b7280;
+}
+
+/* ===== OTP input ===== */
+.otp-input-group {
+    gap: 0.5rem;
+}
+
+.otp-input {
+    width: 48px;
+    height: 56px;
+    border-radius: 10px;
+    font-size: 1.5rem;
+    font-weight: 600;
+    border: 2px solid #ffe5d2;
+    transition: all .2s;
+}
+
+    .otp-input:focus {
+        border-color: #ff7a2a;
+        box-shadow: 0 0 0 3px rgba(255, 122, 42, .2);
+        outline: none;
+    }
+
+/* ===== Button ===== */
+.btn-primary {
+    background: linear-gradient(135deg,#ff7a2a 0%,#ff9b50 100%);
+    border: none;
+    border-radius: 12px;
+    padding: 0.8rem;
+    font-weight: 600;
+    box-shadow: 0 6px 16px rgba(255,122,42,.3);
+    transition: all 0.3s;
+}
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 22px rgba(255,122,42,.4);
+    }
+
+#resendBtn {
+    color: #ff7a2a;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+    #resendBtn[disabled] {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }

@@ -1,6 +1,4 @@
 ﻿using DAL.Models;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace DAL.Interfaces
 {
@@ -20,5 +18,13 @@ namespace DAL.Interfaces
         /// Lấy 1 account theo id (AsNoTracking).
         /// </summary>
         Task<Account?> GetByIdAsync(int accountId);
+
+        Task<Account?> GetByEmailAsync(string email);
+
+        Task AddAsync(Account entity);
+
+        Task UpdateAsync(Account entity);
+
+        Task<bool> ExistsByEmailAsync(string email);
     }
 }

@@ -1,5 +1,6 @@
 ﻿
 using DAL.Interfaces;
+using DAL.Models;
 using DAL.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,7 +16,15 @@ namespace DAL
 
             // Repo của bạn ...
             // services.AddScoped<IProductRepository, ProductRepository>();
+
+            // Nhánh Authentication
+            services.AddScoped<IAccountRepository, AccountRepository>();
+            services.AddScoped<IEmailOtpRepository, EmailOtpRepository>();
+
             //Nhánh Product 
+            services.AddScoped<IProductRepository, ProductRepository>();
+            services.AddScoped<IProductImageRepository, ProductImageRepository>();
+
             services.AddScoped<ICategoryRepository, CategoryRepository>();
             services.AddScoped<IAgeRepository, AgeRepository>();
             services.AddScoped<IOriginRepository, OriginRepository>();
@@ -27,7 +36,7 @@ namespace DAL
             services.AddScoped<IPromotionRepository, PromotionRepository>();
 
             //NOTIFICATION
-          services.AddScoped<INotificationRepository, NotificationRepository>();
+            services.AddScoped<INotificationRepository, NotificationRepository>();
             services.AddScoped<IUserNotificationRepository, UserNotificationRepository>();
             services.AddScoped<INotificationLogRepository, NotificationLogRepository>();
             // ✳️ Thêm dòng này:

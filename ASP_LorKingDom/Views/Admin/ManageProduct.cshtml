@@ -1,0 +1,178 @@
+﻿@model IEnumerable<BLL.DTOs.ProductDto>
+@{
+	Layout = "_AdminLayout";
+	ViewData["Title"] = "Quản Lí Sản Phẩm";
+	var q = (string?)ViewBag.Query ?? "";
+}
+@section Styles {
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <style>
+    .card-body { overflow-x: hidden; }
+
+    .table-wrap {
+      overflow-x: auto;
+      overflow-y: hidden;
+      /* nếu còn thấy dư khoảng, thử bỏ dòng dưới */
+      /* scrollbar-gutter: stable both-edges; */
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .table-wrap { 
+      scrollbar-width: thin;
+      scrollbar-color: #94a3b8 #e2e8f0;
+    }
+    .table-wrap::-webkit-scrollbar { height: 10px; }
+    .table-wrap::-webkit-scrollbar-track { background: #e2e8f0; border-radius: 999px; }
+    .table-wrap::-webkit-scrollbar-thumb {
+      background: linear-gradient(90deg,#94a3b8,#64748b);
+      border-radius: 999px; border: 2px solid #e2e8f0;
+    }
+    .table-wrap::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+    .table-wide { min-width: 1200px; }
+  </style>
+}
+
+
+<div class="container-fluid px-5">
+	<h1 class="mt-4">Quản Lí Sản Phẩm</h1>
+
+	<div class="d-flex justify-content-between align-items-center mt-3">
+		<form class="mb-0" method="get" asp-action="Manage" asp-controller="Product">
+			<div class="input-group search-box">
+				<input type="text" name="q" value="@q" class="form-control" placeholder="Tìm kiếm tên / SKU / thương hiệu...">
+				<button class="btn btn-outline-secondary" type="submit">
+					<i class="fa-solid fa-magnifying-glass"></i>
+				</button>
+			</div>
+		</form>
+		<a class="btn btn-primary" asp-controller="Product" asp-action="Create">
+			<i class="fa-solid fa-plus me-2"></i>Thêm Sản Phẩm
+		</a>
+	</div>
+
+	@if (TempData["Error"] is string e)
+	{
+		<div class="alert alert-danger mt-3">@e</div>
+	}
+	@if (TempData["Success"] is string s)
+	{
+		<div class="alert alert-success mt-3">@s</div>
+	}
+
+	<div class="card mt-3 mb-5">
+		<div class="card-header">
+			<i class="fa-solid fa-table me-1"></i> Danh Sách
+		</div>
+		<div class="card-body">
+			<div class="table-wrap">
+				<table class="table table-bordered table-striped table-hover align-middle table-wide">
+					<colgroup>
+						<col style="width:60px">
+						<col style="width:250px	">
+						<col style="width:120px">
+						<col style="width:250px">
+						<col style="width:250px">
+						<col style="width:250px">
+						<col style="width:250px">
+						<col style="width:250px">
+						<col style="width:250px">
+						<col style="width:250px">
+						<col style="width:400px">
+					</colgroup>
+
+
+					<thead class="table-dark">
+						<tr>
+							<th style="white-space:nowrap;">ID</th>
+							<th style="white-space:nowrap;">Hành Động</th>
+							<th>SKU</th>
+							<th>Ảnh</th>
+							<th>Tên SP</th>
+							<th>Danh Mục</th>
+							<th>Thương Hiệu</th>
+							<th class="text-end">Giá (VND)</th>
+							<th class="text-end">SL</th>
+							<th style="white-space:nowrap;">Trạng Thái</th>
+							<th style="white-space:nowrap;">Ngày Tạo</th>
+						</tr>
+					</thead>
+					<tbody>
+						@if (Model != null && Model.Any())
+						{
+							foreach (var x in Model)
+							{
+								<tr class="@(x.IsDeleted ? "deleted-row" : "")">
+									<td>@x.Id</td>
+									<td style="white-space:nowrap;">
+										<a class="btn btn-sm btn-warning" title="Cập nhật"
+										   asp-controller="Product" asp-action="Edit" asp-route-id="@x.Id">
+											<i class="fa-solid fa-pen-to-square"></i>
+										</a>
+									</td>
+									<td class="sku">@x.Sku</td>
+
+									<td>
+										@{
+											var img = string.IsNullOrWhiteSpace(x.MainImageUrl)
+											? Url.Content("~/assets/image/img-product/placeholder.png") // 👈 ảnh mặc định (tạo file nếu cần)
+											: x.MainImageUrl;
+										}
+										<img src="@img" alt="Ảnh @x.ProductName" style="width:56px;height:56px;object-fit:cover;border-radius:6px;border:1px solid #e5e7eb;" />
+									</td>
+
+									<td>@x.ProductName</td>
+									<td>@x.CategoryName</td>
+									<td>@x.BrandName</td>
+									<td class="text-end">@x.Price.ToString("#,0")</td>
+									<td class="text-end">@x.StockQuantity</td>
+									<td>
+										@{
+											var code = (x.ProductStatus ?? "").Trim(); // giữ nguyên dạng gốc: Available/OutOfStock/Discontinued
+											string st, cls;
+
+											switch (code)
+											{
+												case "Available":
+													st = "Hoạt động"; cls = "bg-success"; break;
+												case "OutOfStock":
+													st = "Hết hàng"; cls = "bg-danger"; break;
+												case "Discontinued":
+													st = "Không còn hoạt động"; cls = "bg-secondary"; break;
+												default:
+													st = "Hoạt động"; cls = "bg-success"; break;
+											}
+										}
+										<span class="badge @cls">@st</span>
+
+									</td>
+
+									<td>@x.CreatedAt?.ToString("dd/MM/yyyy HH:mm")</td>
+								</tr>
+							}
+						}
+						else
+						{
+							<tr>
+								<td colspan="10" class="text-center text-muted">Không có dữ liệu.</td>
+							</tr>
+						}
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</div>
+</div>
+
+@* @section Styles { *@
+@* 	<link rel="stylesheet" *@
+@* 		  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" *@
+@* 		  crossorigin="anonymous" referrerpolicy="no-referrer" /> *@
+@* 	<style> *@
+
+
+@* 	</style> *@
+@* } *@
+

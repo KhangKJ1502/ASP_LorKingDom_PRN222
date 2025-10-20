@@ -55,7 +55,7 @@
             </div>
 
             <!-- Signup Form -->
-            <form class="signup-form" method="post" asp-controller="Account" asp-action="Signup">
+            <form class="signup-form" method="post" asp-controller="Auth" asp-action="Signup">
                 @Html.AntiForgeryToken()
 
 
@@ -123,9 +123,27 @@
             <!-- Login link -->
             <p class="login-link">
                 Đã có tài khoản?
-                <a asp-controller="Account" asp-action="Login">Đăng nhập ngay</a>
+                <a asp-controller="Auth" asp-action="Login">Đăng nhập ngay</a>
             </p>
         </div>
     </div>
 </div>
+
+@section Scripts {
+    @if (TempData["Error"] != null)
+    {
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Đăng ký thất bại',
+                    text: '@Html.Raw(TempData["Error"])',
+                    confirmButtonText: 'Thử lại',
+                    confirmButtonColor: '#f97316',
+                    timer: 5000,
+                });
+            });
+        </script>
+    }
+}
     

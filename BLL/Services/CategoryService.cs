@@ -6,7 +6,6 @@ using DAL.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace BLL.Services
@@ -45,7 +44,13 @@ namespace BLL.Services
             var dto = new CategoryDto { Name = name, SuperCategoryId = superCategoryId, IsDeleted = isDeleted };
             CategoryValidator.Validate(dto);
 
-           
+            // Kiểm tra SuperCategory tồn tại
+            var super = await _superRepo.GetByIdAsync(superCategoryId)
+                        ?? throw new InvalidOperationException("Nhóm danh mục tổng không tồn tại.");
+
+            // Ràng buộc: nếu Category muốn hoạt động thì SuperCategory phải đang hoạt động
+            if (!isDeleted && super.IsDeleted)
+                throw new InvalidOperationException("Không thể tạo danh mục hoạt động vì Nhóm Danh Mục Tổng đang không hoạt động.");
 
             if (await _repo.ExistsByNameAsync(name))
                 throw new InvalidOperationException("Tên danh mục đã tồn tại.");
@@ -69,11 +74,18 @@ namespace BLL.Services
             var dto = new CategoryDto { Id = id, SuperCategoryId = superCategoryId, Name = name, IsDeleted = isDeleted };
             CategoryValidator.Validate(dto);
 
+            // Kiểm tra SuperCategory tồn tại
+            var super = await _superRepo.GetByIdAsync(superCategoryId)
+                        ?? throw new InvalidOperationException("Nhóm danh mục tổng không tồn tại.");
+
+            // Ràng buộc: nếu Category muốn hoạt động thì SuperCategory phải đang hoạt động
+            if (!isDeleted && super.IsDeleted)
+                throw new InvalidOperationException("Không thể đặt hoạt động vì Nhóm Danh Mục Tổng đang không hoạt động.");
 
             if (await _repo.ExistsByNameAsync(name, id))
                 throw new InvalidOperationException("Tên danh mục đã tồn tại.");
 
-            e.SuperCategoryId = superCategoryId;
+            e.SuperCategoryId = superCategoryId;      // cho phép chuyển nhóm
             e.CategoryName = name.Trim();
             e.IsDeleted = isDeleted;
 

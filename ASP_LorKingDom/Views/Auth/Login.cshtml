@@ -7,7 +7,6 @@
 	<link rel="stylesheet" href="~/css/login.css" asp-append-version="true" />
 }
 
-
 <div class="login-container">
 	<div class="decorative-section">
 		<div class="decorative-card">
@@ -52,7 +51,7 @@
 			</div>
 
 			@* Login Form *@
-			<form class="login-form" method="post" asp-controller="Account" asp-action="Login">
+			<form class="login-form" method="post" asp-controller="Auth" asp-action="Login">
 				@Html.AntiForgeryToken()
 
 				<div class="form-group">
@@ -72,8 +71,10 @@
 						<input type="checkbox" name="rememberMe" />
 						<span>Ghi nhớ đăng nhập</span>
 					</label>
-					<a asp-controller="Account" asp-action="ForgotPassword" class="forgot-link">Quên mật khẩu?</a>
+					<a asp-controller="Auth" asp-action="ForgotPassword" class="forgot-link">Quên mật khẩu?</a>
 				</div>
+
+				<input type="hidden" name="returnUrl" value="@ViewBag.ReturnUrl" />
 
 				<button type="submit" class="btn-primary">Đăng nhập</button>
 			</form>
@@ -86,7 +87,7 @@
 			@* Social Login *@
 			<div class="social-buttons">
 				<button type="button" class="btn-social"
-						onclick="window.location.href='@Url.Action("ExternalLogin","Account", new { provider = "Google" })'">
+						onclick="window.location.href='@Url.Action("ExternalLogin","Auth", new { provider = "Google" })'">
 					<svg class="social-icon" viewBox="0 0 24 24">
 						<path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
 						<path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
@@ -108,10 +109,26 @@
 			@* Sign up link *@
 			<p class="signup-link">
 				Chưa có tài khoản?
-				<a asp-controller="Account" asp-action="Signup">Đăng ký ngay</a>
+				<a asp-controller="Auth" asp-action="Signup">Đăng ký ngay</a>
 			</p>
 		</div>
 	</div>
-
-
 </div>
+
+@section Scripts {
+	@if (TempData["Error"] != null)
+	{
+		<script>
+			document.addEventListener('DOMContentLoaded', function () {
+				Swal.fire({
+					icon: 'error',
+					title: 'Đăng nhập thất bại',
+					text: '@Html.Raw(TempData["Error"])', // Razor sẽ thay thế thành nội dung lỗi thực tế
+					confirmButtonText: 'Thử lại',
+					confirmButtonColor: '#f97316',
+					timer: 5000,				
+				});
+			});
+		</script>
+	}
+}

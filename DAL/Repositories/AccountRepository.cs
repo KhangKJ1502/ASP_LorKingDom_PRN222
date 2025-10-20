@@ -1,9 +1,6 @@
 ﻿using DAL.Interfaces;
 using DAL.Models;
 using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace DAL.Repositories
 {
@@ -34,6 +31,28 @@ namespace DAL.Repositories
             return _db.Accounts
                 .AsNoTracking()
                 .FirstOrDefaultAsync(a => a.AccountId == accountId);
+        }
+
+        public async Task<Account?> GetByEmailAsync(string email)
+        {
+            return await _db.Accounts.FirstOrDefaultAsync(x => x.Email == email);
+        }
+
+        public async Task AddAsync(Account entity)
+        {
+            await _db.Accounts.AddAsync(entity);
+            await _db.SaveChangesAsync();
+        }
+
+        public async Task UpdateAsync(Account entity)
+        {
+            _db.Accounts.Update(entity);
+            await _db.SaveChangesAsync();
+        }
+
+        public async Task<bool> ExistsByEmailAsync(string email)
+        {
+            return await _db.Accounts.AnyAsync(x => x.Email == email);
         }
     }
 }

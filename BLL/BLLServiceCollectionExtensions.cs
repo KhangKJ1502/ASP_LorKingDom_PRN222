@@ -3,6 +3,7 @@ using BLL.Services;
 using BLL.Validators;
 using Microsoft.Extensions.DependencyInjection;
 
+
 namespace BLL
 {
     public static class BLLServiceCollectionExtensions
@@ -14,7 +15,17 @@ namespace BLL
 
             // ✳️ Thêm dòng này:
             //services.AddScoped<ISystemHealthService, SystemHealthService>();
+
+            // Nhánh Authentication
+            services.AddScoped<IAccountService, AccountService>();
+            services.AddScoped<IEmailOtpService, EmailOtpService>();
+
+            // Nhánh Role
+            services.AddScoped<IRoleService, RoleService>();
+
             //Nhánh Product
+            services.AddScoped<IProductService, ProductService>();
+            services.AddScoped<IProductImageService, ProductImageService>();
             services.AddScoped<ISexService, SexService>();
             services.AddScoped<IAgeService, AgeService>();
             services.AddScoped<IOriginService, OriginService>();
