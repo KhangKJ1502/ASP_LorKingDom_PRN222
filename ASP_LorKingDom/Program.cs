@@ -4,6 +4,10 @@ using DAL;
 using WebUI.Hubs; // AddDAL()
 using Microsoft.AspNetCore.Authentication.Cookies;
 using WebUI.BackgroundServices; // AddDAL()
+using DAL.Interfaces;
+using DAL.Repositories;
+using BLL.Interfaces;
+using BLL.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -35,6 +39,12 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.ExpireTimeSpan = TimeSpan.FromDays(7); // Cookie hết hạn sau 7 ngày
         options.SlidingExpiration = true; // Gia hạn cookie nếu hoạt động
     });
+
+// Thêm DI cho Cart và Product (giả định bạn đã có IProductService và ProductService trong BLL; nếu không, bỏ dòng đó)
+builder.Services.AddScoped<ICartRepository, CartRepository>();
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
+builder.Services.AddScoped<ICartService, CartService>();
+builder.Services.AddScoped<IProductService, ProductService>(); // Nếu có IProductService
 
 var app = builder.Build();
 

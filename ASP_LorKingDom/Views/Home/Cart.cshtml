@@ -2,97 +2,100 @@
     ViewData["Title"] = "Shopping Cart";
 }
 
-<div class="min-h-screen bg-gradient-to-br from-orange-50/30 to-white">
-    <div class="container mx-auto px-4 py-8">
+<!-- Tailwind CDN cho riêng trang Cart -->
+<script src="https://cdn.tailwindcss.com"></script>
+
+<div class="min-h-screen bg-gradient-to-br from-orange-50/40 to-white py-10">
+    <div class="container mx-auto px-4">
         <!-- Header -->
-        <div class="flex items-center gap-4 mb-8">
-            <a href="/">
-                <button class="rounded-full hover:bg-orange-100 transition-colors p-2">
-                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-                    </svg>
-                </button>
+        <div class="flex items-center gap-4 mb-10">
+            <a href="/" class="rounded-full hover:bg-orange-100 transition p-2">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                </svg>
             </a>
             <div>
-                <h1 class="text-4xl font-bold text-gradient font-fredoka">Shopping Cart</h1>
-                <p class="text-muted-foreground"><span id="cart-item-count">3</span> items in your cart</p>
+                <h1 class="text-4xl font-bold text-orange-600">Shopping Cart</h1>
+                <p class="text-gray-500"><span id="cart-item-count">0</span> items in your cart</p>
             </div>
         </div>
 
         <div class="grid lg:grid-cols-3 gap-8">
             <!-- Cart Items -->
             <div class="lg:col-span-2 space-y-6" id="cart-items-container">
-                <!-- Cart items will be rendered here by JavaScript -->
+                <!-- Render bởi JS -->
             </div>
 
-            <!-- Order Summary -->
+            <!-- Order Summary (gộp cả Promo) -->
             <div class="space-y-6">
-                <div class="sticky top-8 shadow-xl border-2 border-orange-100 rounded-xl bg-white">
-                    <div class="p-6 space-y-6">
-                        <h3 class="text-2xl font-bold text-gradient font-fredoka">Order Summary</h3>
+                <div class="sticky top-8 shadow-xl border border-orange-100 rounded-2xl bg-white p-6 space-y-6">
+                    <h3 class="text-2xl font-bold text-orange-600">Order Summary</h3>
 
-                        <div class="space-y-4">
-                            <div class="flex justify-between">
-                                <span class="text-gray-600">Subtotal (<span id="summary-item-count">3</span> items)</span>
-                                <span class="font-semibold">$<span id="subtotal">409.97</span></span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-gray-600">Shipping</span>
-                                <span class="font-semibold" id="shipping-cost">FREE</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-gray-600">Tax</span>
-                                <span class="font-semibold">$<span id="tax">32.80</span></span>
-                            </div>
-                            <div class="border-t border-orange-100 pt-4"></div>
-                            <div class="flex justify-between text-xl font-bold">
-                                <span>Total</span>
-                                <span class="text-orange-600">$<span id="total">442.77</span></span>
-                            </div>
+                    <div class="space-y-4">
+                        <div class="flex justify-between text-gray-700">
+                            <span>Subtotal (<span id="summary-item-count">0</span> items)</span>
+                            <span class="font-semibold" id="subtotal">0 ₫</span>
                         </div>
-
-                        <div class="space-y-3">
-                            <button class="w-full bg-gradient-warm text-white text-lg py-6 rounded-xl hover:opacity-90 transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl" id="checkout-btn">
-                                Proceed to Checkout
-                            </button>
-                            <button class="w-full border-2 border-orange-200 hover:bg-orange-50 rounded-xl py-3 transition-all bg-transparent flex items-center justify-center gap-2">
-                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
-                                </svg>
-                                Add Gift Message
-                            </button>
+                        <div class="flex justify-between text-gray-700">
+                            <span>Shipping</span>
+                            <span class="font-semibold" id="shipping-cost">MIỄN PHÍ</span>
                         </div>
-
-                        <!-- Trust Badges -->
-                        <div class="pt-4 border-t border-orange-100">
-                            <div class="flex items-center justify-center gap-4 text-sm text-gray-600">
-                                <div class="flex items-center gap-1">
-                                    <svg class="h-4 w-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                                    </svg>
-                                    <span>Secure</span>
-                                </div>
-                                <div class="flex items-center gap-1">
-                                    <svg class="h-4 w-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" />
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
-                                    </svg>
-                                    <span>Fast Delivery</span>
-                                </div>
-                            </div>
+                        <div class="flex justify-between text-gray-700">
+                            <span>Tax</span>
+                            <span class="font-semibold" id="tax">0 ₫</span>
+                        </div>
+                        <div class="border-t border-orange-100 pt-4"></div>
+                        <div class="flex justify-between text-xl font-bold">
+                            <span>Total</span>
+                            <span class="text-orange-600" id="total">0 ₫</span>
                         </div>
                     </div>
-                </div>
 
-                <!-- Promo Code -->
-                <div class="border-2 border-orange-100 rounded-xl bg-white">
-                    <div class="p-6">
-                        <h4 class="font-semibold mb-3">Have a promo code?</h4>
+                    <!-- Checkout -->
+                    <div class="space-y-3">
+                        <button id="checkout-btn"
+                                class="w-full bg-gradient-to-r from-orange-400 to-orange-500 text-white text-lg py-4 rounded-xl font-semibold hover:opacity-90 hover:scale-105 transition shadow-lg">
+                            Proceed to Checkout
+                        </button>
+                        <button class="w-full border-2 border-orange-300 hover:bg-orange-50 rounded-xl py-3 transition flex items-center justify-center gap-2 text-orange-600 font-medium">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
+                            </svg>
+                            Add Gift Message
+                        </button>
+                    </div>
+
+                    <!-- Promo code -->
+                    <div class="pt-2">
+                        <h4 class="font-semibold mb-3 text-gray-700">Have a promo code?</h4>
                         <div class="flex gap-2">
-                            <input type="text" placeholder="Enter code" class="flex-1 px-4 py-2 border-2 border-orange-200 rounded-xl focus:outline-none focus:border-orange-400 transition-colors" id="promo-code-input" />
-                            <button class="border-2 border-orange-200 hover:bg-orange-50 rounded-xl px-4 bg-transparent" id="apply-promo-btn">
+                            <input type="text" id="promo-code-input"
+                                   class="flex-1 px-4 py-2 border-2 border-orange-200 rounded-xl focus:outline-none focus:border-orange-400 transition"
+                                   placeholder="Enter code" />
+                            <button id="apply-promo-btn"
+                                    class="border-2 border-orange-300 text-orange-600 font-medium px-5 rounded-xl hover:bg-orange-50 transition">
                                 Apply
                             </button>
+                        </div>
+                    </div>
+
+                    <!-- Trust badges -->
+                    <div class="pt-4 border-t border-orange-100 flex items-center justify-center gap-4 text-sm text-gray-500">
+                        <div class="flex items-center gap-1">
+                            <svg class="h-4 w-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                            </svg>
+                            <span>Secure</span>
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <svg class="h-4 w-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9" />
+                            </svg>
+                            <span>Fast Delivery</span>
                         </div>
                     </div>
                 </div>
