@@ -54,6 +54,9 @@ namespace BLL.Validators
             var secCount = dto.SecondaryImageUrls?.Count(u => !string.IsNullOrWhiteSpace(u)) ?? 0;
             if (secCount < 4)
                 throw new ArgumentException("Vui lòng chọn ít nhất 4 ảnh chi tiết.");
+            if (secCount > 6)
+                throw new ArgumentException("Tối đa 6 ảnh chi tiết.");
+
         }
 
     }
