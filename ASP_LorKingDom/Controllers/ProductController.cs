@@ -86,7 +86,7 @@ namespace WebUI.Controllers
 
             if (DetailImages is { Length: > 0 })
             {
-                foreach (var f in DetailImages.Take(8))
+                foreach (var f in DetailImages.Take(6))
                 {
                     if (f is { Length: > 0 })
                     {
