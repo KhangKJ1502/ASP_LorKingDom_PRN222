@@ -3,7 +3,6 @@ using BLL.Interfaces;
 using DAL.Interfaces;
 using DAL.Models;
 
-
 namespace BLL.Services
 {
     public class AccountService : IAccountService
@@ -13,6 +12,32 @@ namespace BLL.Services
         public AccountService(IAccountRepository accountRepo)
         {
             _accountRepo = accountRepo;
+        }
+
+        #region ======== GET METHODS ========
+
+        public async Task<List<AccountDto>> GetAllAsync()
+        {
+            var list = await _accountRepo.GetAllAsync();
+            return list.Select(Map).ToList();
+        }
+
+        public async Task<List<AccountDto>> GetAllCustomerAsync()
+        {
+            var list = await _accountRepo.GetAllCustomerAsync();
+            return list.Select(Map).ToList();
+        }
+
+        public async Task<List<AccountDto>> GetAllStaffAsync()
+        {
+            var list = await _accountRepo.GetAllStaffAsync();
+            return list.Select(Map).ToList();
+        }
+
+        public async Task<List<AccountDto>> GetByRoleIdAsync(int roleId)
+        {
+            var list = await _accountRepo.GetByRoleIdAsync(roleId);
+            return list.Select(Map).ToList();
         }
 
         public async Task<AccountDto?> GetByEmailAsync(string email)
@@ -27,6 +52,10 @@ namespace BLL.Services
             return entity == null ? null : Map(entity);
         }
 
+        #endregion
+
+        #region ======== CREATE / UPDATE ========
+
         public async Task<int> CreateAsync(AccountDto dto)
         {
             var entity = new Account
@@ -36,11 +65,11 @@ namespace BLL.Services
                 PhoneNumber = dto.PhoneNumber,
                 Email = dto.Email,
                 Image = dto.Image,
-                Password = dto.Password,
+                Password = BCrypt.Net.BCrypt.HashPassword(dto.Password),
                 IsDeleted = dto.IsDeleted,
-                Status = dto.Status,
-                CreatedAt = dto.CreatedAt,
-                UpdatedAt = dto.UpdatedAt,
+                Status = dto.Status ?? "Active",
+                CreatedAt =  DateTime.Now,
+                UpdatedAt = dto.UpdatedAt ?? DateTime.Now,
                 Provider = dto.Provider
             };
 
@@ -58,15 +87,21 @@ namespace BLL.Services
             entity.PhoneNumber = dto.PhoneNumber;
             entity.Email = dto.Email;
             entity.Image = dto.Image;
-            entity.Password = dto.Password;
+            entity.Password = dto.Password.StartsWith("$2b$")
+                ? dto.Password
+                : BCrypt.Net.BCrypt.HashPassword(dto.Password);
             entity.IsDeleted = dto.IsDeleted;
             entity.Status = dto.Status;
-            entity.UpdatedAt = dto.UpdatedAt;
+            entity.UpdatedAt = DateTime.Now;
             entity.Provider = dto.Provider;
 
             await _accountRepo.UpdateAsync(entity);
             return true;
         }
+
+        #endregion
+
+        #region ======== AUTHENTICATION / VALIDATION ========
 
         public async Task<bool> ExistsByEmailAsync(string email)
         {
@@ -78,7 +113,14 @@ namespace BLL.Services
             var account = await _accountRepo.GetByEmailAsync(email);
             if (account != null && BCrypt.Net.BCrypt.Verify(password, account.Password))
             {
-                return new AccountDto { Id = account.AccountId, Email = account.Email, RoleId = account.RoleId };
+                return new AccountDto
+                {
+                    Id = account.AccountId,
+                    Email = account.Email,
+                    RoleId = account.RoleId,
+                    AccountName = account.AccountName,
+                    Image = account.Image
+                };
             }
             return null;
         }
@@ -90,9 +132,14 @@ namespace BLL.Services
 
             account.Password = BCrypt.Net.BCrypt.HashPassword(newPassword);
             account.UpdatedAt = DateTime.Now;
+
             await _accountRepo.UpdateAsync(account);
             return true;
         }
+
+        #endregion
+
+        #region ======== MAPPING ========
 
         private static AccountDto Map(Account x) => new()
         {
@@ -109,5 +156,7 @@ namespace BLL.Services
             UpdatedAt = x.UpdatedAt,
             Provider = x.Provider
         };
+
+        #endregion
     }
 }

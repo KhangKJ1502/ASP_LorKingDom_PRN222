@@ -1,0 +1,474 @@
+﻿@using System.Linq
+@model IEnumerable<BLL.DTOs.AccountDto>
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Quản Lý Nhân Viên";
+    var query = (string?)ViewBag.Query ?? "";
+    var edit = ViewBag.EditStaff as BLL.DTOs.AccountDto;
+    var roles = ViewBag.Roles as IEnumerable<dynamic> ?? Enumerable.Empty<dynamic>(); // RoleId, RoleName
+}
+
+<style>
+    .search-box .form-control { border: 1px solid #000 !important; box-shadow: none !important; }
+    .search-box .btn { border: 1px solid #000 !important; border-left: none !important; }
+    .toast-top-right { top: 120px !important; right: 24px !important; left: auto !important; bottom: auto !important; }
+    #liveToast.toast { min-width: 520px; padding: 1rem 1.25rem; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,.18); }
+    #liveToast .toast-body { font-size: 1.1rem; font-weight: 600; word-break: break-word; }
+    .deleted-row { opacity: .6; background: #f8f9fa; }
+
+    /* Modal */
+    #staffModal .modal-content { border: none; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,.15); }
+    #staffModal .modal-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 16px 16px 0 0; padding: 1.5rem; border: none; }
+    #staffModal .modal-title { font-weight: 600; font-size: 1.25rem; }
+    #staffModal .btn-close { filter: brightness(0) invert(1); opacity: .8; }
+    #staffModal .btn-close:hover { opacity: 1; }
+    #staffModal .modal-body { padding: 2rem; background-color: #f8f9fa; }
+    #staffModal .form-label { font-weight: 500; color: #495057; margin-bottom: .5rem; font-size: .9rem; }
+    #staffModal .form-control, #staffModal .form-select { border: 2px solid #e9ecef; border-radius: 8px; padding: .65rem .875rem; transition: .3s ease; background-color: white; }
+    #staffModal .form-control:focus, #staffModal .form-select:focus { border-color: #667eea; box-shadow: 0 0 0 .2rem rgba(102,126,234,.15); }
+    #staffModal .form-control:disabled { background-color: #e9ecef; color: #6c757d; }
+    #staffModal .text-danger { color: #dc3545; }
+    #staffModal .modal-footer { border-top: 1px solid #e9ecef; padding: 1.25rem 2rem; background-color: white; border-radius: 0 0 16px 16px; }
+    #staffModal .btn { padding: .625rem 1.5rem; border-radius: 8px; font-weight: 500; transition: .3s ease; }
+    #staffModal .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; }
+    #staffModal .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(102,126,234,.4); }
+    #staffModal .btn-outline-secondary { border: 2px solid #6c757d; color: #6c757d; }
+    #staffModal .btn-outline-secondary:hover { background-color: #6c757d; color: white; }
+    #staffModal .form-text { font-size: .85rem; color: #6c757d; margin-top: .25rem; }
+    #staffModal .info-box { background-color: #e7f3ff; border-left: 4px solid #667eea; padding: .75rem 1rem; border-radius: 6px; margin-top: 1rem; }
+
+    /* Avatar */
+    #staffModal .avatar-preview { width: 100px; height: 100px; border-radius: 50%; border: 3px solid #667eea; box-shadow: 0 4px 12px rgba(0,0,0,.1); object-fit: cover; }
+    #staffModal .avatar-placeholder { width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg,#667eea 0%,#764ba2 100%); display: inline-flex; align-items: center; justify-content: center; color: #fff; font-size: 2.5rem; font-weight: 700; border: 3px solid #667eea; box-shadow: 0 4px 12px rgba(0,0,0,.1); }
+
+    /* Table Avatar */
+    .staff-avatar { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; border: 2px solid #e9ecef; }
+    .avatar-placeholder-small { width: 45px; height: 45px; border-radius: 50%; background: linear-gradient(135deg,#667eea 0%,#764ba2 100%); display: inline-flex; align-items: center; justify-content: center; color: #fff; font-weight: 600; font-size: 1rem; border: 2px solid #e9ecef; }
+</style>
+
+<div class="container-fluid px-5">
+    <h1 class="mt-4">Quản Lý Nhân Viên</h1>
+
+    <div class="card mb-4 mt-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <div><i class="fa-solid fa-user-tie me-1"></i> Danh Sách Nhân Viên</div>
+            <button class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#staffModal" onclick="openAddModal()">
+                <i class="fa-solid fa-plus me-1"></i> Thêm Nhân Viên
+            </button>
+        </div>
+
+        <div class="card-body">
+            <!-- Tìm kiếm -->
+            <form class="mb-4" method="get" asp-action="Manage" asp-controller="AccountStaff">
+                <div class="input-group search-box">
+                    <input type="text" name="q" value="@query" class="form-control" placeholder="Tìm theo tên, email, số điện thoại...">
+                    <button class="btn btn-outline-secondary" type="submit">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </button>
+                </div>
+            </form>
+
+            @if (TempData["Error"] is string e)
+            { <div class="alert alert-danger">@e</div> }
+            @if (TempData["Success"] is string s)
+            { <div class="alert alert-success">@s</div> }
+
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th style="white-space:nowrap">ID</th>
+                            <th style="white-space:nowrap">Hành Động</th>
+                            <th>Avatar</th>
+                            <th>Tên nhân viên</th>
+                            <th>Email</th>
+                            <th>Số điện thoại</th>
+                            <th>Role</th>
+                            <th style="white-space:nowrap">Trạng Thái</th>
+                            <th style="white-space:nowrap">Ngày Tạo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null && Model.Any())
+                        {
+                            foreach (var staff in Model)
+                            {
+                                var roleName = "";
+                                if (staff.RoleId.HasValue)
+                                {
+                                    var r = roles.FirstOrDefault(x => (int)x.RoleId == staff.RoleId.Value);
+                                    roleName = r != null ? (string)r.RoleName : "";
+                                }
+                                <tr class="@(staff.IsDeleted ? "deleted-row" : "")">
+                                    <td>@staff.Id</td>
+                                    <td style="white-space:nowrap">
+                                        <a class="btn btn-sm btn-warning" title="Cập nhật"
+                                           asp-action="Edit" asp-controller="AccountStaff"
+                                           asp-route-id="@staff.Id" asp-route-q="@query">
+                                            <i class="fa-solid fa-pen-to-square"></i>
+                                        </a>
+                                    </td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(staff.Image))
+                                        {
+                                            <img src="@staff.Image" alt="Avatar" class="staff-avatar" />
+                                        }
+                                        else
+                                        {
+                                            <div class="avatar-placeholder-small">
+                                                @(staff.AccountName?.Substring(0, 1).ToUpper() ?? "S")
+                                            </div>
+                                        }
+                                    </td>
+                                    <td>@staff.AccountName</td>
+                                    <td>@staff.Email</td>
+                                    <td>@(staff.PhoneNumber ?? "—")</td>
+                                    <td>@(string.IsNullOrWhiteSpace(roleName) ? "—" : roleName)</td>
+                                    <td>
+                                        @if (staff.IsDeleted)
+                                        {
+                                            <span class="badge bg-secondary">Đã vô hiệu</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-@(staff.Status == "Active" ? "success" : "warning")">@staff.Status</span>
+                                        }
+                                    </td>
+                                    <td>@staff.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr><td colspan="9" class="text-center text-muted">Không có dữ liệu.</td></tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Add/Edit Staff -->
+<div class="modal fade" id="staffModal" tabindex="-1" aria-labelledby="staffModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 id="staffModalLabel" class="modal-title">
+                    <i class="fa-solid fa-user-tie me-2"></i>
+                    <span id="modalTitleText">@(edit != null ? "Cập nhật Thông Tin Nhân Viên" : "Thêm Nhân Viên Mới")</span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="closeModal()"></button>
+            </div>
+
+            <!-- action động theo Id -->
+            <form method="post"
+                  asp-controller="AccountStaff"
+                  asp-action="@(((edit?.Id ?? 0) > 0) ? "UpdateStaff" : "CreateStaff")"
+                  id="staffForm"
+                  enctype="multipart/form-data">
+                @Html.AntiForgeryToken()
+
+                <div class="modal-body">
+                    <input type="hidden" name="Id" id="staffId" value="@(edit?.Id ?? 0)" />
+                    <input type="hidden" name="q" value="@query" />
+
+                    <div class="row g-3">
+                        <!-- Avatar Upload + Preview -->
+                        <div class="col-12">
+                            <label class="form-label"><i class="fa-solid fa-image me-1"></i> Ảnh nhân viên</label>
+                            <div class="d-flex align-items-center gap-3 mb-2">
+                                <div id="avatarPreviewContainer">
+                                    @if (!string.IsNullOrEmpty(edit?.Image))
+                                    {
+                                        <img id="avatarPreview" src="@edit.Image" alt="Avatar" class="avatar-preview" />
+                                        <div id="avatarPreviewPlaceholder" class="avatar-placeholder" style="display:none;">
+                                            @(edit?.AccountName?.Substring(0, 1).ToUpper() ?? "S")
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div id="avatarPreviewPlaceholder" class="avatar-placeholder">
+                                            @(edit?.AccountName?.Substring(0, 1).ToUpper() ?? "S")
+                                        </div>
+                                        <img id="avatarPreview" src="" alt="Avatar" class="avatar-preview" style="display:none;" />
+                                    }
+                                </div>
+                                <div class="flex-grow-1">
+                                    <input class="form-control" type="file" id="avatarFile" name="AvatarFile" accept="image/png,image/jpeg,image/jpg,image/webp,image/gif" />
+                                    <small class="form-text">Hỗ trợ JPG/PNG/WebP/GIF. Tối đa <strong>2MB</strong>.</small>
+                                    <input type="hidden" name="ExistingImage" id="existingImage" value="@(edit?.Image ?? "")" />
+                                    <input type="hidden" name="RemoveImage" id="removeImage" value="false" />
+                                </div>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button type="button" class="btn btn-outline-secondary" onclick="triggerPickAvatar()"><i class="fa-solid fa-upload me-1"></i> Chọn ảnh</button>
+                                <button type="button" class="btn btn-outline-danger" onclick="clearAvatar()"><i class="fa-solid fa-trash-can me-1"></i> Xoá ảnh</button>
+                            </div>
+                        </div>
+
+                        <!-- Tên nhân viên -->
+                        <div class="col-lg-6">
+                            <label class="form-label"><i class="fa-solid fa-user me-1"></i> Tên nhân viên <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="AccountName" id="accountName" value="@(edit?.AccountName ?? "")" placeholder="Nhập tên nhân viên" required />
+                        </div>
+
+                        <!-- Số điện thoại -->
+                        <div class="col-lg-6">
+                            <label class="form-label"><i class="fa-solid fa-phone me-1"></i> Số điện thoại</label>
+                            <input type="text" class="form-control" name="PhoneNumber" id="phoneNumber" value="@(edit?.PhoneNumber ?? "")" placeholder="Nhập số điện thoại" />
+                        </div>
+
+                        <!-- Role -->
+                        <div class="col-lg-12">
+                            <label class="form-label"><i class="fa-solid fa-id-badge me-1"></i> Vai trò <span class="text-danger">*</span></label>
+                            <select class="form-select" name="RoleId" id="roleId" required>
+                                <option value="">-- Chọn vai trò --</option>
+                                @foreach (var r in roles)
+                                {
+                                    var rid = (int)r.RoleId;
+                                    var selected = (edit?.RoleId ?? 0) == rid ? "selected" : "";
+                                    <option value="@rid" selected="@( (edit?.RoleId ?? 0) == rid ? "selected" : null )">@r.RoleName</option>
+
+                                }
+                            </select>
+                            <small class="form-text"><i class="fa-solid fa-info-circle me-1"></i>Bắt buộc chọn đúng Role cho nhân viên.</small>
+                        </div>
+
+                        <!-- Email -->
+                        <div class="col-lg-12">
+                            <label class="form-label"><i class="fa-solid fa-envelope me-1"></i> Email <span class="text-danger" id="emailRequired">*</span></label>
+                            @if (edit != null)
+                            {
+                                <input type="email" class="form-control" name="Email" id="email" value="@edit.Email" disabled />
+                                <input type="hidden" name="Email" value="@edit.Email" />
+                                <small class="form-text"><i class="fa-solid fa-info-circle me-1"></i>Email không thể thay đổi</small>
+                            }
+                            else
+                            {
+                                <input type="email" class="form-control" name="Email" id="email" placeholder="Nhập email nhân viên" required />
+                                <small class="form-text"><i class="fa-solid fa-info-circle me-1"></i>Email sẽ được dùng để đăng nhập</small>
+                            }
+                        </div>
+
+                        <!-- Password (only create) -->
+                        <div class="col-lg-12" id="passwordSection" style="@(edit != null ? "display: none;" : "")">
+                            <label class="form-label"><i class="fa-solid fa-lock me-1"></i> Mật khẩu <span class="text-danger">*</span></label>
+                            <input type="password" class="form-control" name="Password" id="password" placeholder="Nhập mật khẩu" @(edit == null ? "required" : "") />
+                            <small class="form-text"><i class="fa-solid fa-info-circle me-1"></i>Mật khẩu tối thiểu 6 ký tự</small>
+                        </div>
+
+                        <!-- Confirm Password (only create) -->
+                        <div class="col-lg-12" id="confirmPasswordSection" style="@(edit != null ? "display: none;" : "")">
+                            <label class="form-label"><i class="fa-solid fa-lock me-1"></i> Xác nhận mật khẩu <span class="text-danger">*</span></label>
+                            <input type="password" class="form-control" name="ConfirmPassword" id="confirmPassword" placeholder="Nhập lại mật khẩu" @(edit == null ? "required" : "") />
+                        </div>
+
+                        <!-- Trạng thái -->
+                        <div class="col-lg-12">
+                            <label class="form-label"><i class="fa-solid fa-toggle-on me-1"></i> Trạng thái <span class="text-danger">*</span></label>
+                            <input type="hidden" name="Status" id="status" value="@(edit?.Status ?? "Active")" />
+                            <input type="hidden" name="IsDeleted" id="isDeleted" value="@((edit?.IsDeleted ?? false).ToString().ToLower())" />
+                            <div class="btn-group d-flex" role="group">
+                                <input type="radio" class="btn-check" name="statusRadio" id="statusActive" value="Active"
+                                       checked="@((edit?.IsDeleted ?? false) ? null : "checked")"
+                                       onchange="updateStatus(false)" autocomplete="off">
+                                <label class="btn btn-outline-success" for="statusActive"><i class="fa-solid fa-circle-check me-1"></i>Hoạt động</label>
+
+                                <input type="radio" class="btn-check" name="statusRadio" id="statusInactive" value="Inactive"
+                                       checked="@((edit?.IsDeleted ?? false) ? "checked" : null)"
+                                       onchange="updateStatus(true)" autocomplete="off">
+                                <label class="btn btn-outline-danger" for="statusInactive"><i class="fa-solid fa-ban me-1"></i>Vô hiệu</label>
+                            </div>
+                        </div>
+
+                        <!-- Info tạo/cập nhật -->
+                        @if (edit != null)
+                        {
+                            <div class="col-12">
+                                <div class="info-box">
+                                    <div class="text-muted small">
+                                        <i class="fa-regular fa-clock me-1"></i>
+                                        <strong>Ngày tạo:</strong> @(edit.CreatedAt.ToString("dd/MM/yyyy HH:mm"))
+                                        @if (edit.UpdatedAt != null)
+                                        {
+                                            <span class="ms-3"><i class="fa-solid fa-rotate me-1"></i><strong>Cập nhật:</strong> @edit.UpdatedAt?.ToString("dd/MM/yyyy HH:mm")</span>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" onclick="closeModal()">
+                        <i class="fa-solid fa-xmark me-1"></i> Hủy
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fa-solid fa-floppy-disk me-1"></i> Lưu thay đổi
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Notification -->
+<div class="toast-container position-fixed p-3 toast-top-right" style="z-index:2080;">
+    <div id="liveToast" class="toast align-items-center text-bg-danger border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body fs-5 fw-semibold">
+                <i class="fa-solid fa-circle-exclamation me-2"></i>
+                @ViewBag.ErrorMessage
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Đóng"></button>
+        </div>
+    </div>
+</div>
+
+<!-- Font Awesome 6 -->
+<link rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+      crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+@section Scripts {
+    <script>
+        function updateStatus(isDeleted) {
+            document.getElementById('status').value = isDeleted ? 'Inactive' : 'Active';
+            document.getElementById('isDeleted').value = isDeleted.toString();
+        }
+        function triggerPickAvatar() { document.getElementById('avatarFile').click(); }
+        function clearAvatar() {
+            const file = document.getElementById('avatarFile');
+            const img = document.getElementById('avatarPreview');
+            const placeholder = document.getElementById('avatarPreviewPlaceholder');
+            file.value = '';
+            document.getElementById('removeImage').value = 'true';
+            if (img) img.style.display = 'none';
+            if (placeholder) placeholder.style.display = '';
+        }
+        function openAddModal() {
+            const form = document.getElementById('staffForm');
+            if (form) {
+                form.reset();
+                form.setAttribute('action', '@Url.Action("CreateStaff", "AccountStaff")');
+            }
+            document.getElementById('staffId').value = '0';
+
+            // avatar reset
+            const img = document.getElementById('avatarPreview');
+            const placeholder = document.getElementById('avatarPreviewPlaceholder');
+            const existing = document.getElementById('existingImage');
+            const remove = document.getElementById('removeImage');
+            const file = document.getElementById('avatarFile');
+            if (file) file.value = '';
+            if (existing) existing.value = '';
+            if (remove) remove.value = 'false';
+            if (img) img.style.display = 'none';
+            if (placeholder) { placeholder.style.display = ''; placeholder.textContent = 'S'; }
+
+            // password inputs
+            document.getElementById('passwordSection').style.display = '';
+            document.getElementById('confirmPasswordSection').style.display = '';
+
+            // email
+            const emailInput = document.getElementById('email');
+            if (emailInput) { emailInput.disabled = false; emailInput.required = true; emailInput.value = ''; }
+            const emailRequired = document.getElementById('emailRequired'); if (emailRequired) emailRequired.style.display = '';
+
+            // role
+            const roleSel = document.getElementById('roleId');
+            if (roleSel) roleSel.value = '';
+
+            // title
+            document.getElementById('modalTitleText').textContent = 'Thêm Nhân Viên Mới';
+
+            // status default
+            document.getElementById('statusActive').checked = true; updateStatus(false);
+        }
+        function closeModal() { window.location.href = '@Url.Action("Manage", "AccountStaff", new { q = query })'; }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const form = document.getElementById('staffForm');
+            form.addEventListener('submit', function (e) {
+                const staffId = document.getElementById('staffId').value;
+                const roleId = document.getElementById('roleId').value;
+
+                if (!roleId) {
+                    e.preventDefault();
+                    alert('Vui lòng chọn vai trò (Role)!');
+                    return false;
+                }
+
+                if (staffId === '0') {
+                    const password = document.getElementById('password');
+                    const confirmPassword = document.getElementById('confirmPassword');
+                    if (password.value !== confirmPassword.value) {
+                        e.preventDefault();
+                        alert('Mật khẩu xác nhận không khớp!');
+                        return false;
+                    }
+                    if ((password.value || '').length < 6) {
+                        e.preventDefault();
+                        alert('Mật khẩu phải có ít nhất 6 ký tự!');
+                        return false;
+                    }
+                }
+            });
+
+            // preview avatar
+            const file = document.getElementById('avatarFile');
+            const img = document.getElementById('avatarPreview');
+            const placeholder = document.getElementById('avatarPreviewPlaceholder');
+            if (file) {
+                file.addEventListener('change', function () {
+                    const f = file.files && file.files[0];
+                    if (!f) return;
+                    const okTypes = ['image/png','image/jpeg','image/jpg','image/webp','image/gif'];
+                    if (!okTypes.includes(f.type)) { alert('Định dạng không hợp lệ. Vui lòng chọn PNG/JPG/WebP/GIF.'); file.value=''; return; }
+                    const MAX = 2 * 1024 * 1024;
+                    if (f.size > MAX) { alert('Kích thước ảnh tối đa 2MB.'); file.value=''; return; }
+                    const reader = new FileReader();
+                    reader.onload = function (ev) {
+                        if (img) { img.src = ev.target.result; img.style.display = ''; }
+                        if (placeholder) placeholder.style.display = 'none';
+                        const remove = document.getElementById('removeImage'); if (remove) remove.value = 'false';
+                    };
+                    reader.readAsDataURL(f);
+                });
+            }
+
+            // placeholder initial letter
+            const nameInput = document.getElementById('accountName');
+            if (nameInput) {
+                nameInput.addEventListener('input', function () {
+                    const val = (nameInput.value || '').trim();
+                    const ph = document.getElementById('avatarPreviewPlaceholder');
+                    const imgEl = document.getElementById('avatarPreview');
+                    if (ph && (imgEl && imgEl.style.display === 'none')) {
+                        ph.textContent = val ? val[0].toUpperCase() : 'S';
+                    }
+                });
+            }
+
+            // toast
+            const hasError = '@(ViewBag.ShowErrorModal == true ? "true" : "false")';
+            if (hasError === "true") {
+                const toastEl = document.getElementById('liveToast');
+                if (toastEl) { const toast = new bootstrap.Toast(toastEl, { delay: 5000 }); toast.show(); }
+            }
+
+            // modal show on edit or error
+            const needShow = '@((edit != null || (ViewBag.ShowErrorModal == true)) ? "true" : "false")';
+            if (needShow === "true") {
+                if (@((edit?.Id ?? 0) > 0).toString().toLowerCase() === 'true') {
+                    const f = document.getElementById('staffForm');
+                    if (f) f.setAttribute('action', '@Url.Action("UpdateStaff", "AccountStaff")');
+                }
+                const modalEl = document.getElementById('staffModal');
+                if (modalEl) new bootstrap.Modal(modalEl).show();
+            }
+        });
+    </script>
+}

@@ -11,10 +11,25 @@ namespace DAL.Repositories
 
         public async Task<List<Account>> GetAllAsync()
         {
-            // Chỉ lấy account Active, chưa xoá (theo schema: IsDeleted BIT, Status IN ('Active',...))
             return await _db.Accounts
                 .AsNoTracking()
                 .Where(a => !a.IsDeleted && a.Status == "Active")
+                .ToListAsync();
+        }
+
+        public async Task<List<Account>> GetAllCustomerAsync()
+        {
+            return await _db.Accounts
+                .AsNoTracking()
+                .Where(a => a.RoleId == 4 && !a.IsDeleted && a.Status == "Active")
+                .ToListAsync();
+        }
+
+        public async Task<List<Account>> GetAllStaffAsync()
+        {
+            return await _db.Accounts
+                .AsNoTracking()
+                .Where(a => (a.RoleId == 2 || a.RoleId == 3) && !a.IsDeleted && a.Status == "Active")
                 .ToListAsync();
         }
 
@@ -26,16 +41,18 @@ namespace DAL.Repositories
                 .ToListAsync();
         }
 
-        public Task<Account?> GetByIdAsync(int accountId)
+        public async Task<Account?> GetByIdAsync(int accountId)
         {
-            return _db.Accounts
+            return await _db.Accounts
                 .AsNoTracking()
                 .FirstOrDefaultAsync(a => a.AccountId == accountId);
         }
 
         public async Task<Account?> GetByEmailAsync(string email)
         {
-            return await _db.Accounts.FirstOrDefaultAsync(x => x.Email == email);
+            return await _db.Accounts
+                .AsNoTracking()
+                .FirstOrDefaultAsync(a => a.Email == email);
         }
 
         public async Task AddAsync(Account entity)
