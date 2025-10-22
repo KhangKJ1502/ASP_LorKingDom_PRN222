@@ -66,9 +66,7 @@ namespace BLL.Services
             if (await _repo.ExistsByNameAsync(name))
                 throw new ArgumentException("Tên sản phẩm đã tồn tại, vui lòng chọn tên khác.");
 
-            // ✅ Kiểm tra tất cả FK cha trong 1 lần (nếu product sẽ ở trạng thái hoạt động)
-            await EnsureParentsActiveIfProductActiveAsync(dto);
-
+         
             var sku = await GenerateUniqueSkuAsync();
 
             var entity = new Product
@@ -118,8 +116,8 @@ namespace BLL.Services
             var e = await _repo.GetByIdAsync(dto.Id);
             if (e == null) return false;
 
-            // ✅ Kiểm tra tất cả FK cha trong 1 lần (nếu product sẽ ở trạng thái hoạt động)
-            await EnsureParentsActiveIfProductActiveAsync(dto);
+            //// ✅ Kiểm tra tất cả FK cha trong 1 lần (nếu product sẽ ở trạng thái hoạt động)
+            //await EnsureParentsActiveIfProductActiveAsync(dto);
 
             e.ProductName = nameTrim;
             e.CategoryId = dto.CategoryId;
@@ -148,62 +146,6 @@ namespace BLL.Services
                 await _imageSvc.AddImagesAsync(e.ProductId, main, secs);
 
             return true;
-        }
-
-        // =========================
-        // Private helpers (FIX lỗi tuple)
-        // =========================
-
-        // Dùng type thay vì tuple để tránh lỗi collection initializer với lambda async
-        private readonly struct ParentCheck
-        {
-            public int? Value { get; }
-            public string Label { get; }
-            public Func<int, Task<bool>> IsActive { get; }
-
-            public ParentCheck(int? value, string label, Func<int, Task<bool>> isActive)
-            {
-                Value = value;
-                Label = label;
-                IsActive = isActive;
-            }
-        }
-
-        // Quy ước: Available/OutOfStock = hoạt động; Discontinued = không hoạt động
-        private static bool WillBeActive(ProductDto dto)
-        {
-            var status = dto.StockQuantity == 0 ? "OutOfStock" : (dto.ProductStatus ?? "Available");
-            return !string.Equals(status, "Discontinued", StringComparison.OrdinalIgnoreCase);
-        }
-
-        /// <summary>
-        /// Nếu sản phẩm sẽ hoạt động, tất cả FK cha (nếu có) phải đang hoạt động.
-        /// Nếu có cha nào ẩn, ném InvalidOperationException.
-        /// </summary>
-        private async Task EnsureParentsActiveIfProductActiveAsync(ProductDto dto)
-        {
-            if (!WillBeActive(dto)) return;
-
-            var checks = new List<ParentCheck>
-            {
-                new ParentCheck(dto.BrandId,      "Thương hiệu",  async id => { var x = await _brandRepo.GetByIdAsync(id);      return x != null && !x.IsDeleted; }),
-                new ParentCheck(dto.CategoryId,   "Danh mục",     async id => { var x = await _categoryRepo.GetByIdAsync(id);   return x != null && !x.IsDeleted; }),
-                new ParentCheck(dto.MaterialId,   "Chất liệu",    async id => { var x = await _materialRepo.GetByIdAsync(id);   return x != null && !x.IsDeleted; }),
-                new ParentCheck(dto.OriginId,     "Nguồn gốc",    async id => { var x = await _originRepo.GetByIdAsync(id);     return x != null && !x.IsDeleted; }),
-                new ParentCheck(dto.AgeId,        "Khoảng tuổi",  async id => { var x = await _ageRepo.GetByIdAsync(id);        return x != null && !x.IsDeleted; }),
-                new ParentCheck(dto.SexId,        "Giới tính",    async id => { var x = await _sexRepo.GetByIdAsync(id);        return x != null && !x.IsDeleted; }),
-                new ParentCheck(dto.PriceRangeId, "Khoảng giá",   async id => { var x = await _priceRangeRepo.GetByIdAsync(id); return x != null && !x.IsDeleted; }),
-            };
-
-            foreach (var c in checks)
-            {
-                if (c.Value.HasValue)
-                {
-                    var ok = await c.IsActive(c.Value.Value);
-                    if (!ok)
-                        throw new InvalidOperationException($"Không thể đặt sản phẩm hoạt động vì {c.Label} đang không hoạt động.");
-                }
-            }
         }
 
         private async Task<string> GenerateUniqueSkuAsync()
