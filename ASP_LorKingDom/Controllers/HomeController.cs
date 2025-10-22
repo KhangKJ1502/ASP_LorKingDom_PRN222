@@ -1,3 +1,4 @@
+using BLL.Interfaces;
 using DAL.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -8,15 +9,35 @@ namespace ASP_LorKingDom.Controllers
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
-
-        public HomeController(ILogger<HomeController> logger)
+        private readonly IProductService _productSvc;
+        public HomeController(ILogger<HomeController> logger, IProductService productSvc) // <- thêm service
         {
             _logger = logger;
+            _productSvc = productSvc;
         }
 
-        public IActionResult Index()
+
+
+        public async Task<IActionResult> Index(string? q)
         {
-            return View();
+            var all = await _productSvc.GetAllAsync(q);
+
+            var products = all
+                .Where(p => p.IsDeleted == false
+                            && p.StockQuantity > 0
+                            && p.ProductStatus == "Available"
+                            && p.CategoryId != null
+                            && p.MaterialId != null
+                            && p.AgeId != null
+                            && p.SexId != null
+                            && p.PriceRangeId != null
+                            && p.BrandId != null
+                            && p.OriginId != null)
+                .OrderByDescending(p => p.CreatedAt ?? DateTime.MinValue)
+                .Take(12)
+                .ToList();
+
+            return View(products);
         }
 
         public IActionResult Privacy()

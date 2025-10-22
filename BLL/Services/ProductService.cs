@@ -40,7 +40,7 @@ namespace BLL.Services
         {
             if (dto == null) throw new ArgumentNullException(nameof(dto));
             dto.Id = 0; // tạo mới
-            ProductValidator.Validate(dto);
+            ProductValidator.ValidateForCreate(dto);
             var name = dto.ProductName.Trim();
             if (await _repo.ExistsByNameAsync(name))
                 throw new ArgumentException("Tên sản phẩm đã tồn tại, vui lòng chọn tên khác.");

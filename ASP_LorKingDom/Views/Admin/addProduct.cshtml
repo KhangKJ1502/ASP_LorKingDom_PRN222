@@ -296,7 +296,7 @@
                     </div>
 
                     <div class="col-md-12 mt-3">
-                        <h6 class="fw-bold">Ảnh Chi Tiết (Tối thiểu 4 – Tối đa 8 ảnh)</h6>
+                        <h6 class="fw-bold">Ảnh Chi Tiết (Tối thiểu 4 – Tối đa 6 ảnh)</h6>
                         <div class="upload-box"
                              onclick="document.getElementById('detailImagesInput').click()"
                              ondragover="event.preventDefault()" ondrop="handleDrop(event)">
@@ -399,7 +399,7 @@
             const grid = document.getElementById('previewGrid');
             grid.innerHTML = "";
 
-            const list = Array.from(files).slice(0, 8);
+            const list = Array.from(files).slice(0, 6);
             selectedDetailFiles = list;
 
             list.forEach((f, index) => {
@@ -460,7 +460,7 @@
 
                 // UX: nhắc tối thiểu 4 ảnh (validate cứng vẫn ở Controller)
                 if (selectedDetailFiles.length < 4) {
-                    alert("Vui lòng chọn ít nhất 4 ảnh chi tiết (tối thiểu 4, tối đa 8).");
+                    alert("Vui lòng chọn ít nhất 4 ảnh chi tiết (tối thiểu 4, tối đa 6).");
                 }
             }
         }
