@@ -13,10 +13,12 @@ namespace BLL.Services
     public class BrandService : IBrandService
     {
         private readonly IBrandRepository _repo;
+        private readonly IProductRepository _productRepo;
 
-        public BrandService(IBrandRepository repo)
+        public BrandService(IBrandRepository repo, IProductRepository productRepo)
         {
             _repo = repo;
+            _productRepo = productRepo;
         }
 
         public async Task<List<BrandDto>> GetAllAsync(string? keyword = null)
@@ -70,6 +72,12 @@ namespace BLL.Services
             e.IsDeleted = isDeleted;
 
             await _repo.UpdateAsync(e);
+            if (isDeleted)
+            {
+                await _productRepo.SetIsDeletedByBrandAsync(id, true);
+            }
+            // Theo yêu cầu: khi bật lại Brand, KHÔNG tự bật lại product.
+
             return true;
         }
 

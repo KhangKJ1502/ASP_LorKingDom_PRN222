@@ -10,5 +10,6 @@ namespace DAL.Interfaces
     public interface IAgeRepository
     {
         Task<List<Age>> GetActiveAsync();
+        Task<Age?> GetByIdAsync(int id);
     }
 }
