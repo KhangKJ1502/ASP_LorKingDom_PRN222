@@ -13,10 +13,12 @@ namespace BLL.Services
     public class MaterialService : IMaterialService
     {
         private readonly IMaterialRepository _repo;
+        private readonly IProductRepository _productRepo;
 
-        public MaterialService(IMaterialRepository repo)
+        public MaterialService(IMaterialRepository repo, IProductRepository productRepo)
         {
             _repo = repo;
+            _productRepo = productRepo;
         }
 
         public async Task<List<MaterialDto>> GetAllAsync(string? keyword = null)
@@ -72,6 +74,11 @@ namespace BLL.Services
             e.IsDeleted = isDeleted;
 
             await _repo.UpdateAsync(e);
+            if (isDeleted)
+            {
+                await _productRepo.SetIsDeletedByMaterialAsync(id, true);
+                // Khi bật lại Material: KHÔNG tự bật Product con (giữ quy ước như Brand)
+            }
             return true;
         }
 

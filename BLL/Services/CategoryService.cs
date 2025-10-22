@@ -14,11 +14,13 @@ namespace BLL.Services
     {
         private readonly ICategoryRepository _repo;
         private readonly ISuperCategoryRepository _superRepo;
+        private readonly IProductRepository _productRepo;
 
-        public CategoryService(ICategoryRepository repo, ISuperCategoryRepository superRepo)
+        public CategoryService(ICategoryRepository repo, ISuperCategoryRepository superRepo, IProductRepository productRepo)
         {
             _repo = repo;
             _superRepo = superRepo;
+            _productRepo = productRepo;
         }
 
         public async Task<List<CategoryDto>> GetAllAsync(string? keyword = null)
@@ -90,6 +92,11 @@ namespace BLL.Services
             e.IsDeleted = isDeleted;
 
             await _repo.UpdateAsync(e);
+            if (isDeleted)
+            {
+                await _productRepo.SetIsDeletedByCategoryAsync(id, true);
+                // Theo quy ước: khi bật lại Category, KHÔNG tự bật lại Product con.
+            }
             return true;
         }
 
