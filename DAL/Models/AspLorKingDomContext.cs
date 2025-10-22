@@ -36,8 +36,6 @@ public partial class AspLorKingDomContext : DbContext
 
     public virtual DbSet<ExternalLogin> ExternalLogins { get; set; }
 
-    public virtual DbSet<LoginHistory> LoginHistories { get; set; }
-
     public virtual DbSet<Material> Materials { get; set; }
 
     public virtual DbSet<Notification> Notifications { get; set; }
@@ -110,17 +108,18 @@ public partial class AspLorKingDomContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         => optionsBuilder.UseSqlServer(GetConnectionString());
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Account>(entity =>
         {
-            entity.HasKey(e => e.AccountId).HasName("PK__Accounts__349DA586A769A739");
+            entity.HasKey(e => e.AccountId).HasName("PK__Accounts__349DA58612785760");
 
             entity.HasIndex(e => e.PhoneNumber, "UQ_Accounts_PhoneNumber_Filtered")
                 .IsUnique()
                 .HasFilter("([PhoneNumber] IS NOT NULL)");
 
-            entity.HasIndex(e => e.Email, "UQ__Accounts__A9D10534EF1E5B64").IsUnique();
+            entity.HasIndex(e => e.Email, "UQ__Accounts__A9D105340A6643A7").IsUnique();
 
             entity.Property(e => e.AccountId).HasColumnName("AccountID");
             entity.Property(e => e.AccountName).HasMaxLength(100);
@@ -148,7 +147,7 @@ public partial class AspLorKingDomContext : DbContext
 
         modelBuilder.Entity<Address>(entity =>
         {
-            entity.HasKey(e => e.AddressId).HasName("PK__Addresse__091C2A1B1539FD82");
+            entity.HasKey(e => e.AddressId).HasName("PK__Addresse__091C2A1B08878C24");
 
             entity.Property(e => e.AddressId).HasColumnName("AddressID");
             entity.Property(e => e.AccountId).HasColumnName("AccountID");
@@ -167,9 +166,9 @@ public partial class AspLorKingDomContext : DbContext
 
         modelBuilder.Entity<Age>(entity =>
         {
-            entity.HasKey(e => e.AgeId).HasName("PK__Ages__875454C2D1D38B6D");
+            entity.HasKey(e => e.AgeId).HasName("PK__Ages__875454C24845ED4B");
 
-            entity.HasIndex(e => e.AgeRange, "UQ__Ages__E0EBEE389E48070E").IsUnique();
+            entity.HasIndex(e => e.AgeRange, "UQ__Ages__E0EBEE38919A9823").IsUnique();
 
             entity.Property(e => e.AgeId).HasColumnName("AgeID");
             entity.Property(e => e.AgeRange).HasMaxLength(50);
@@ -180,33 +179,27 @@ public partial class AspLorKingDomContext : DbContext
 
         modelBuilder.Entity<BlogCategory>(entity =>
         {
-            entity.HasKey(e => e.BlogCategoryId).HasName("PK__BlogCate__6BD2DA610ECD5FA2");
+            entity.HasKey(e => e.BlogCategoryId).HasName("PK__BlogCate__6BD2DA6176304F13");
 
-            entity.HasIndex(e => e.BlogCategoryName, "UQ__BlogCate__06725EA7DA672795").IsUnique();
+            entity.HasIndex(e => e.BlogCategoryName, "UQ__BlogCate__06725EA7BB63225B").IsUnique();
 
             entity.Property(e => e.BlogCategoryId).HasColumnName("BlogCategoryID");
             entity.Property(e => e.BlogCategoryName).HasMaxLength(100);
-            entity.Property(e => e.Description).HasMaxLength(500);
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
+            entity.Property(e => e.Description).HasMaxLength(500);
             entity.Property(e => e.UpdatedAt).HasColumnType("datetime");
         });
 
         modelBuilder.Entity<BlogPost>(entity =>
         {
-            entity.HasKey(e => e.BlogPostId).HasName("PK__BlogPost__321741491513478A");
+            entity.HasKey(e => e.BlogPostId).HasName("PK__BlogPost__321741495154597E");
 
             entity.Property(e => e.BlogPostId).HasColumnName("BlogPostID");
             entity.Property(e => e.AccountId).HasColumnName("AccountID");
             entity.Property(e => e.BlogThumbnail).HasMaxLength(500);
             entity.Property(e => e.BlogTitle).HasMaxLength(255);
-            entity.Property(e => e.BlogContent).HasColumnType("nvarchar(max)");
-            entity.Property(e => e.BlogThumbnail).HasMaxLength(500);
-            entity.Property(e => e.BlogUrl).HasMaxLength(255);
-            entity.Property(e => e.IsPublished).HasDefaultValue(false);
-            entity.Property(e => e.IsFeatured).HasDefaultValue(false);
-            entity.Property(e => e.IsDeleted).HasDefaultValue(false);
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
@@ -225,11 +218,10 @@ public partial class AspLorKingDomContext : DbContext
                         .HasConstraintName("FK_BlogPostCategories_Categories"),
                     l => l.HasOne<BlogPost>().WithMany()
                         .HasForeignKey("BlogPostId")
-                        .OnDelete(DeleteBehavior.Cascade)
                         .HasConstraintName("FK_BlogPostCategories_Posts"),
                     j =>
                     {
-                        j.HasKey("BlogPostId", "BlogCategoryId").HasName("PK__BlogPost__34AA6CEF5AB0E329");
+                        j.HasKey("BlogPostId", "BlogCategoryId").HasName("PK__BlogPost__34AA6CEF1091870D");
                         j.ToTable("BlogPostCategories");
                         j.IndexerProperty<int>("BlogPostId").HasColumnName("BlogPostID");
                         j.IndexerProperty<int>("BlogCategoryId").HasColumnName("BlogCategoryID");
@@ -238,9 +230,9 @@ public partial class AspLorKingDomContext : DbContext
 
         modelBuilder.Entity<Brand>(entity =>
         {
-            entity.HasKey(e => e.BrandId).HasName("PK__Brands__DAD4F3BE60F1B91E");
+            entity.HasKey(e => e.BrandId).HasName("PK__Brands__DAD4F3BE87CD8AF7");
 
-            entity.HasIndex(e => e.BrandName, "UQ__Brands__2206CE9B9EC620FE").IsUnique();
+            entity.HasIndex(e => e.BrandName, "UQ__Brands__2206CE9B10A3A0C8").IsUnique();
 
             entity.Property(e => e.BrandId).HasColumnName("BrandID");
             entity.Property(e => e.BrandName).HasMaxLength(100);
@@ -251,7 +243,7 @@ public partial class AspLorKingDomContext : DbContext
 
         modelBuilder.Entity<Cart>(entity =>
         {
-            entity.HasKey(e => e.CartId).HasName("PK__Cart__51BCD7972E87D2DF");
+            entity.HasKey(e => e.CartId).HasName("PK__Cart__51BCD797A0391A4F");
 
             entity.ToTable("Cart");
 
@@ -269,7 +261,7 @@ public partial class AspLorKingDomContext : DbContext
 
         modelBuilder.Entity<CartItem>(entity =>
         {
-            entity.HasKey(e => e.CartItemId).HasName("PK__CartItem__488B0B2A91AD359A");
+            entity.HasKey(e => e.CartItemId).HasName("PK__CartItem__488B0B2AA946C93A");
 
             entity.Property(e => e.CartItemId).HasColumnName("CartItemID");
             entity.Property(e => e.AddedAt)
@@ -294,9 +286,9 @@ public partial class AspLorKingDomContext : DbContext
 
         modelBuilder.Entity<Category>(entity =>
         {
-            entity.HasKey(e => e.CategoryId).HasName("PK__Categori__19093A2B333D4897");
+            entity.HasKey(e => e.CategoryId).HasName("PK__Categori__19093A2B18C3AAD7");
 
-            entity.HasIndex(e => e.CategoryName, "UQ__Categori__8517B2E01D1EF6B4").IsUnique();
+            entity.HasIndex(e => e.CategoryName, "UQ_Categories_CategoryName").IsUnique();
 
             entity.Property(e => e.CategoryId).HasColumnName("CategoryID");
             entity.Property(e => e.CategoryName).HasMaxLength(255);
@@ -312,7 +304,7 @@ public partial class AspLorKingDomContext : DbContext
 
         modelBuilder.Entity<EmailOtp>(entity =>
         {
-            entity.HasKey(e => e.EmailOtpId).HasName("PK__EmailOtp__24FA0B157AD6BA19");
+            entity.HasKey(e => e.EmailOtpId).HasName("PK__EmailOtp__24FA0B150FF5F143");
 
             entity.Property(e => e.EmailOtpId).HasColumnName("EmailOtpID");
             entity.Property(e => e.AccountId).HasColumnName("AccountID");
@@ -332,7 +324,7 @@ public partial class AspLorKingDomContext : DbContext
 
         modelBuilder.Entity<ExternalLogin>(entity =>
         {
-            entity.HasKey(e => e.ExternalLoginId).HasName("PK__External__A8FDB38EF2A01900");
+            entity.HasKey(e => e.ExternalLoginId).HasName("PK__External__A8FDB38E3090A908");
 
             entity.HasIndex(e => new { e.Provider, e.ProviderKey }, "UQ_ExternalLogins").IsUnique();
 
@@ -349,34 +341,9 @@ public partial class AspLorKingDomContext : DbContext
                 .HasConstraintName("FK_ExternalLogins_Accounts");
         });
 
-        modelBuilder.Entity<LoginHistory>(entity =>
-        {
-            entity.HasKey(e => e.LoginId).HasName("PK_LoginHistory");
-
-            entity.Property(e => e.LoginId).HasColumnName("LoginID");
-            entity.Property(e => e.AccountId).HasColumnName("AccountID");
-            entity.Property(e => e.LoginTime)
-                .HasColumnType("datetime")
-                .HasDefaultValueSql("(getdate())");
-            entity.Property(e => e.IpAddress).HasMaxLength(50);
-            entity.Property(e => e.UserAgent).HasMaxLength(255);
-            entity.Property(e => e.IsSuccess).HasDefaultValue(true);
-            entity.Property(e => e.FailedLoginAttempts).HasDefaultValue(0);
-            entity.Property(e => e.LockoutEnd).HasColumnType("datetime");
-            entity.Property(e => e.CreatedAt)
-                .HasColumnType("datetime")
-                .HasDefaultValueSql("(getdate())");
-
-            entity.HasOne(d => d.Account)
-                .WithMany(p => p.LoginHistories)
-                .HasForeignKey(d => d.AccountId)
-                .OnDelete(DeleteBehavior.Cascade)
-                .HasConstraintName("FK_LoginHistory_Accounts");
-        });
-
         modelBuilder.Entity<Material>(entity =>
         {
-            entity.HasKey(e => e.MaterialId).HasName("PK__Material__C5061317C4562DE9");
+            entity.HasKey(e => e.MaterialId).HasName("PK__Material__C5061317E18C9D9B");
 
             entity.Property(e => e.MaterialId).HasColumnName("MaterialID");
             entity.Property(e => e.CreatedAt)
@@ -387,7 +354,7 @@ public partial class AspLorKingDomContext : DbContext
 
         modelBuilder.Entity<Notification>(entity =>
         {
-            entity.HasKey(e => e.NotificationId).HasName("PK__Notifica__20CF2E32BA6CF0E0");
+            entity.HasKey(e => e.NotificationId).HasName("PK__Notifica__20CF2E327F9DDCC7");
 
             entity.Property(e => e.NotificationId).HasColumnName("NotificationID");
             entity.Property(e => e.ConditionJson).HasColumnName("ConditionJSON");
@@ -408,20 +375,20 @@ public partial class AspLorKingDomContext : DbContext
             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.NotificationCreatedByNavigations)
                 .HasForeignKey(d => d.CreatedBy)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Notificat__Creat__0BD1B136");
+                .HasConstraintName("FK__Notificat__Creat__7A3223E8");
 
             entity.HasOne(d => d.TargetRole).WithMany(p => p.Notifications)
                 .HasForeignKey(d => d.TargetRoleId)
-                .HasConstraintName("FK__Notificat__Targe__09E968C4");
+                .HasConstraintName("FK__Notificat__Targe__7849DB76");
 
             entity.HasOne(d => d.TargetUser).WithMany(p => p.NotificationTargetUsers)
                 .HasForeignKey(d => d.TargetUserId)
-                .HasConstraintName("FK__Notificat__Targe__0ADD8CFD");
+                .HasConstraintName("FK__Notificat__Targe__793DFFAF");
         });
 
         modelBuilder.Entity<NotificationLog>(entity =>
         {
-            entity.HasKey(e => e.LogId).HasName("PK__Notifica__5E5499A8E61225D4");
+            entity.HasKey(e => e.LogId).HasName("PK__Notifica__5E5499A892C23BC0");
 
             entity.Property(e => e.LogId).HasColumnName("LogID");
             entity.Property(e => e.NotificationId).HasColumnName("NotificationID");
@@ -435,12 +402,12 @@ public partial class AspLorKingDomContext : DbContext
 
             entity.HasOne(d => d.Notification).WithMany(p => p.NotificationLogs)
                 .HasForeignKey(d => d.NotificationId)
-                .HasConstraintName("FK__Notificat__Notif__164F3FA9");
+                .HasConstraintName("FK__Notificat__Notif__04AFB25B");
         });
 
         modelBuilder.Entity<Order>(entity =>
         {
-            entity.HasKey(e => e.OrderId).HasName("PK__Orders__C3905BAF33358F28");
+            entity.HasKey(e => e.OrderId).HasName("PK__Orders__C3905BAF2A16D18D");
 
             entity.Property(e => e.OrderId).HasColumnName("OrderID");
             entity.Property(e => e.AccountId).HasColumnName("AccountID");
@@ -465,6 +432,7 @@ public partial class AspLorKingDomContext : DbContext
             entity.Property(e => e.StatusId).HasColumnName("StatusID");
             entity.Property(e => e.TotalAmount).HasColumnType("decimal(12, 2)");
             entity.Property(e => e.UpdatedAt).HasColumnType("datetime");
+            entity.Property(e => e.VoucherId).HasColumnName("VoucherID");
 
             entity.HasOne(d => d.Account).WithMany(p => p.Orders)
                 .HasForeignKey(d => d.AccountId)
@@ -475,11 +443,15 @@ public partial class AspLorKingDomContext : DbContext
                 .HasForeignKey(d => d.StatusId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Orders_StatusOrder");
+
+            entity.HasOne(d => d.Voucher).WithMany(p => p.Orders)
+                .HasForeignKey(d => d.VoucherId)
+                .HasConstraintName("FK_Orders_Vouchers");
         });
 
         modelBuilder.Entity<OrderDetail>(entity =>
         {
-            entity.HasKey(e => e.OrderDetailId).HasName("PK__OrderDet__D3B9D30C8CFC049C");
+            entity.HasKey(e => e.OrderDetailId).HasName("PK__OrderDet__D3B9D30C858654D0");
 
             entity.Property(e => e.OrderDetailId).HasColumnName("OrderDetailID");
             entity.Property(e => e.CreatedAt)
@@ -505,7 +477,7 @@ public partial class AspLorKingDomContext : DbContext
 
         modelBuilder.Entity<OrderRefund>(entity =>
         {
-            entity.HasKey(e => e.RefundId).HasName("PK__OrderRef__725AB9002C58BF2E");
+            entity.HasKey(e => e.RefundId).HasName("PK__OrderRef__725AB900E3068F08");
 
             entity.HasIndex(e => e.OrderId, "UX_OrderRefunds_OnePerOrder").IsUnique();
 
@@ -550,7 +522,7 @@ public partial class AspLorKingDomContext : DbContext
 
         modelBuilder.Entity<OrderStatusHistory>(entity =>
         {
-            entity.HasKey(e => e.OrderStatusHistoryId).HasName("PK__OrderSta__D16EDBA37FB71D46");
+            entity.HasKey(e => e.OrderStatusHistoryId).HasName("PK__OrderSta__D16EDBA3649F6887");
 
             entity.ToTable("OrderStatusHistory");
 
@@ -581,9 +553,9 @@ public partial class AspLorKingDomContext : DbContext
 
         modelBuilder.Entity<Origin>(entity =>
         {
-            entity.HasKey(e => e.OriginId).HasName("PK__Origins__171FA2C6E9781A4C");
+            entity.HasKey(e => e.OriginId).HasName("PK__Origins__171FA2C6B94C6F89");
 
-            entity.HasIndex(e => e.OriginName, "UQ__Origins__636F5CFD7E93B7DD").IsUnique();
+            entity.HasIndex(e => e.OriginName, "UQ__Origins__636F5CFDBA589623").IsUnique();
 
             entity.Property(e => e.OriginId).HasColumnName("OriginID");
             entity.Property(e => e.CreatedAt)
@@ -594,7 +566,7 @@ public partial class AspLorKingDomContext : DbContext
 
         modelBuilder.Entity<PaymentHistory>(entity =>
         {
-            entity.HasKey(e => e.PaymentHistoryId).HasName("PK__PaymentH__F3B93391608C774D");
+            entity.HasKey(e => e.PaymentHistoryId).HasName("PK__PaymentH__F3B933914C66753A");
 
             entity.ToTable("PaymentHistory");
 
@@ -632,7 +604,7 @@ public partial class AspLorKingDomContext : DbContext
 
         modelBuilder.Entity<PriceRange>(entity =>
         {
-            entity.HasKey(e => e.PriceRangeId).HasName("PK__PriceRan__B8A301FF1039FFA9");
+            entity.HasKey(e => e.PriceRangeId).HasName("PK__PriceRan__B8A301FF18394908");
 
             entity.Property(e => e.PriceRangeId).HasColumnName("PriceRangeID");
             entity.Property(e => e.CreatedAt)
@@ -644,9 +616,9 @@ public partial class AspLorKingDomContext : DbContext
 
         modelBuilder.Entity<Product>(entity =>
         {
-            entity.HasKey(e => e.ProductId).HasName("PK__Products__B40CC6EDE1F5EA30");
+            entity.HasKey(e => e.ProductId).HasName("PK__Products__B40CC6ED3FE9180D");
 
-            entity.HasIndex(e => e.Sku, "UQ__Products__CA1ECF0D55F39A8F").IsUnique();
+            entity.HasIndex(e => e.Sku, "UQ__Products__CA1ECF0DE0AE92A0").IsUnique();
 
             entity.Property(e => e.ProductId).HasColumnName("ProductID");
             entity.Property(e => e.AgeId).HasColumnName("AgeID");
@@ -714,7 +686,7 @@ public partial class AspLorKingDomContext : DbContext
 
         modelBuilder.Entity<ProductImage>(entity =>
         {
-            entity.HasKey(e => e.ImageId).HasName("PK__ProductI__7516F4EC1AB2782F");
+            entity.HasKey(e => e.ImageId).HasName("PK__ProductI__7516F4ECCE4157D7");
 
             entity.Property(e => e.ImageId).HasColumnName("ImageID");
             entity.Property(e => e.CreatedAt)
@@ -730,7 +702,7 @@ public partial class AspLorKingDomContext : DbContext
 
         modelBuilder.Entity<Promotion>(entity =>
         {
-            entity.HasKey(e => e.PromotionId).HasName("PK__Promotio__52C42F2F4CAADA7F");
+            entity.HasKey(e => e.PromotionId).HasName("PK__Promotio__52C42F2FC3718D98");
 
             entity.Property(e => e.PromotionId).HasColumnName("PromotionID");
             entity.Property(e => e.CreatedAt)
@@ -746,7 +718,7 @@ public partial class AspLorKingDomContext : DbContext
 
         modelBuilder.Entity<ReviewBlog>(entity =>
         {
-            entity.HasKey(e => e.ReviewBlogId).HasName("PK__ReviewBl__A19536C03CD579FF");
+            entity.HasKey(e => e.ReviewBlogId).HasName("PK__ReviewBl__A19536C00FFE7A8B");
 
             entity.HasIndex(e => new { e.AccountId, e.BlogPostId }, "UQ_ReviewBlogs_PostAccount").IsUnique();
 
@@ -768,7 +740,7 @@ public partial class AspLorKingDomContext : DbContext
 
         modelBuilder.Entity<ReviewBlogReaction>(entity =>
         {
-            entity.HasKey(e => e.ReactionBlogId).HasName("PK__ReviewBl__6A8A0D27C15C12DB");
+            entity.HasKey(e => e.ReactionBlogId).HasName("PK__ReviewBl__6A8A0D274A1F2D81");
 
             entity.HasIndex(e => new { e.ReviewBlogId, e.AccountId }, "UQ_ReviewBlogReactions").IsUnique();
 
@@ -793,7 +765,7 @@ public partial class AspLorKingDomContext : DbContext
 
         modelBuilder.Entity<ReviewBlogReply>(entity =>
         {
-            entity.HasKey(e => e.ReplyBlogId).HasName("PK__ReviewBl__59963641C3A95BA2");
+            entity.HasKey(e => e.ReplyBlogId).HasName("PK__ReviewBl__5996364185453999");
 
             entity.Property(e => e.ReplyBlogId).HasColumnName("ReplyBlogID");
             entity.Property(e => e.AccountId).HasColumnName("AccountID");
@@ -816,7 +788,7 @@ public partial class AspLorKingDomContext : DbContext
 
         modelBuilder.Entity<ReviewProduct>(entity =>
         {
-            entity.HasKey(e => e.ReviewProductId).HasName("PK__ReviewPr__02A6803A49EC0F05");
+            entity.HasKey(e => e.ReviewProductId).HasName("PK__ReviewPr__02A6803AAB0ADB6D");
 
             entity.HasIndex(e => new { e.AccountId, e.ProductId }, "UQ_Reviews_ProductAccount").IsUnique();
 
@@ -840,7 +812,7 @@ public partial class AspLorKingDomContext : DbContext
 
         modelBuilder.Entity<ReviewProductImage>(entity =>
         {
-            entity.HasKey(e => e.ReviewProductImageId).HasName("PK__ReviewPr__013E0F1EA45FF22C");
+            entity.HasKey(e => e.ReviewProductImageId).HasName("PK__ReviewPr__013E0F1E8E2F770E");
 
             entity.Property(e => e.ReviewProductImageId).HasColumnName("ReviewProductImageID");
             entity.Property(e => e.CreatedAt)
@@ -857,7 +829,7 @@ public partial class AspLorKingDomContext : DbContext
 
         modelBuilder.Entity<ReviewProductReaction>(entity =>
         {
-            entity.HasKey(e => e.ReactionProductId).HasName("PK__ReviewPr__B56FCAF10174C203");
+            entity.HasKey(e => e.ReactionProductId).HasName("PK__ReviewPr__B56FCAF1E4817863");
 
             entity.HasIndex(e => new { e.ReviewProductId, e.AccountId }, "UQ_ReviewProductReactions").IsUnique();
 
@@ -882,7 +854,7 @@ public partial class AspLorKingDomContext : DbContext
 
         modelBuilder.Entity<ReviewProductReply>(entity =>
         {
-            entity.HasKey(e => e.ReplyProductId).HasName("PK__ReviewPr__2DCE233C6D0FCF77");
+            entity.HasKey(e => e.ReplyProductId).HasName("PK__ReviewPr__2DCE233C6E1A1F46");
 
             entity.Property(e => e.ReplyProductId).HasColumnName("ReplyProductID");
             entity.Property(e => e.AccountId).HasColumnName("AccountID");
@@ -905,9 +877,9 @@ public partial class AspLorKingDomContext : DbContext
 
         modelBuilder.Entity<Role>(entity =>
         {
-            entity.HasKey(e => e.RoleId).HasName("PK__Roles__8AFACE3A8DAC58F4");
+            entity.HasKey(e => e.RoleId).HasName("PK__Roles__8AFACE3A6A384F8D");
 
-            entity.HasIndex(e => e.RoleName, "UQ__Roles__8A2B61604446922B").IsUnique();
+            entity.HasIndex(e => e.RoleName, "UQ__Roles__8A2B61606453CBA6").IsUnique();
 
             entity.Property(e => e.RoleId).HasColumnName("RoleID");
             entity.Property(e => e.CreatedAt)
@@ -919,9 +891,9 @@ public partial class AspLorKingDomContext : DbContext
 
         modelBuilder.Entity<Sex>(entity =>
         {
-            entity.HasKey(e => e.SexId).HasName("PK__Sexes__75622DB649AA1354");
+            entity.HasKey(e => e.SexId).HasName("PK__Sexes__75622DB63B773F64");
 
-            entity.HasIndex(e => e.SexName, "UQ__Sexes__BA354290F3305BCE").IsUnique();
+            entity.HasIndex(e => e.SexName, "UQ__Sexes__BA35429068DEF476").IsUnique();
 
             entity.Property(e => e.SexId).HasColumnName("SexID");
             entity.Property(e => e.CreatedAt)
@@ -932,7 +904,7 @@ public partial class AspLorKingDomContext : DbContext
 
         modelBuilder.Entity<StatusOrder>(entity =>
         {
-            entity.HasKey(e => e.StatusId).HasName("PK__StatusOr__C8EE204376E63A1F");
+            entity.HasKey(e => e.StatusId).HasName("PK__StatusOr__C8EE204398A312E8");
 
             entity.Property(e => e.StatusId).HasColumnName("StatusID");
             entity.Property(e => e.CreatedAt)
@@ -945,9 +917,9 @@ public partial class AspLorKingDomContext : DbContext
 
         modelBuilder.Entity<SuperCategory>(entity =>
         {
-            entity.HasKey(e => e.SuperCategoryId).HasName("PK__SuperCat__CEB990D3AC0B5921");
+            entity.HasKey(e => e.SuperCategoryId).HasName("PK__SuperCat__CEB990D37C9C25D4");
 
-            entity.HasIndex(e => e.SuperCategoryName, "UQ__SuperCat__3FA779DFA72FF413").IsUnique();
+            entity.HasIndex(e => e.SuperCategoryName, "UQ__SuperCat__3FA779DF84D30930").IsUnique();
 
             entity.Property(e => e.SuperCategoryId).HasColumnName("SuperCategoryID");
             entity.Property(e => e.CreatedAt)
@@ -958,7 +930,7 @@ public partial class AspLorKingDomContext : DbContext
 
         modelBuilder.Entity<UserNotification>(entity =>
         {
-            entity.HasKey(e => e.UserNotificationId).HasName("PK__UserNoti__EB2985C922F8A675");
+            entity.HasKey(e => e.UserNotificationId).HasName("PK__UserNoti__EB2985C9DE058616");
 
             entity.Property(e => e.UserNotificationId).HasColumnName("UserNotificationID");
             entity.Property(e => e.DeliveredAt).HasColumnType("datetime");
@@ -968,23 +940,23 @@ public partial class AspLorKingDomContext : DbContext
 
             entity.HasOne(d => d.Notification).WithMany(p => p.UserNotifications)
                 .HasForeignKey(d => d.NotificationId)
-                .HasConstraintName("FK__UserNotif__Notif__0FA2421A");
+                .HasConstraintName("FK__UserNotif__Notif__7E02B4CC");
 
             entity.HasOne(d => d.User).WithMany(p => p.UserNotifications)
                 .HasForeignKey(d => d.UserId)
-                .HasConstraintName("FK__UserNotif__UserI__10966653");
+                .HasConstraintName("FK__UserNotif__UserI__7EF6D905");
         });
 
         modelBuilder.Entity<Voucher>(entity =>
         {
-            entity.HasKey(e => e.VoucherId).HasName("PK__Voucher__3AEE79C18ABA1664");
+            entity.HasKey(e => e.VoucherId).HasName("PK__Voucher__3AEE79C161BBEA4F");
 
             entity.ToTable("Voucher");
 
-            entity.HasIndex(e => e.VoucherCode, "UQ__Voucher__7F0ABCA9B0C3A9BB").IsUnique();
+            entity.HasIndex(e => e.VoucherCode, "UQ__Voucher__7F0ABCA993964085").IsUnique();
 
             entity.Property(e => e.VoucherId).HasColumnName("VoucherID");
-            entity.Property(e => e.CreateAt)
+            entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
             entity.Property(e => e.DiscountValue).HasColumnType("decimal(12, 2)");
@@ -995,14 +967,23 @@ public partial class AspLorKingDomContext : DbContext
             entity.Property(e => e.Status)
                 .HasMaxLength(15)
                 .HasDefaultValue("Active");
-            entity.Property(e => e.UpdateAt).HasColumnType("datetime");
+            entity.Property(e => e.UpdatedAt).HasColumnType("datetime");
             entity.Property(e => e.VoucherCode).HasMaxLength(50);
             entity.Property(e => e.VoucherTypeId).HasColumnName("VoucherTypeID");
+
+            entity.HasOne(d => d.CreateByNavigation).WithMany(p => p.Vouchers)
+                .HasForeignKey(d => d.CreateBy)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasOne(d => d.VoucherType).WithMany(p => p.Vouchers)
+                .HasForeignKey(d => d.VoucherTypeId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Voucher_VoucherTypes");
         });
 
         modelBuilder.Entity<VoucherType>(entity =>
         {
-            entity.HasKey(e => e.VoucherTypeId).HasName("PK__VoucherT__6541283D2FD8CA04");
+            entity.HasKey(e => e.VoucherTypeId).HasName("PK__VoucherT__6541283D6FC5E854");
 
             entity.Property(e => e.VoucherTypeId).HasColumnName("VoucherTypeID");
             entity.Property(e => e.CreatedAt)
@@ -1013,9 +994,9 @@ public partial class AspLorKingDomContext : DbContext
 
         modelBuilder.Entity<Wallet>(entity =>
         {
-            entity.HasKey(e => e.WalletId).HasName("PK__Wallets__84D4F92E08C5CFE4");
+            entity.HasKey(e => e.WalletId).HasName("PK__Wallets__84D4F92E223721CB");
 
-            entity.HasIndex(e => e.AccountId, "UQ__Wallets__349DA5872E39C094").IsUnique();
+            entity.HasIndex(e => e.AccountId, "UQ__Wallets__349DA587364067BA").IsUnique();
 
             entity.Property(e => e.WalletId).HasColumnName("WalletID");
             entity.Property(e => e.AccountId).HasColumnName("AccountID");
@@ -1039,7 +1020,7 @@ public partial class AspLorKingDomContext : DbContext
 
         modelBuilder.Entity<WalletTransaction>(entity =>
         {
-            entity.HasKey(e => e.WalletTransactionId).HasName("PK__WalletTr__7184AECFC9E3F7AE");
+            entity.HasKey(e => e.WalletTransactionId).HasName("PK__WalletTr__7184AECF4E778150");
 
             entity.HasIndex(e => e.RelatedOrderId, "IX_WalletTxn_Order");
 
@@ -1087,7 +1068,7 @@ public partial class AspLorKingDomContext : DbContext
 
         modelBuilder.Entity<Wishlist>(entity =>
         {
-            entity.HasKey(e => e.WishlistId).HasName("PK__Wishlist__233189CBE1C97039");
+            entity.HasKey(e => e.WishlistId).HasName("PK__Wishlist__233189CBDDFE27BC");
 
             entity.HasIndex(e => new { e.AccountId, e.ProductId }, "UQ_Wishlists").IsUnique();
 

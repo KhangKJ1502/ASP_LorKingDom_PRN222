@@ -1,4 +1,4 @@
-namespace DAL.Models
+﻿namespace DAL.Models
 {
     public class ErrorViewModel
     {
@@ -6,4 +6,5 @@ namespace DAL.Models
 
         public bool ShowRequestId => !string.IsNullOrEmpty(RequestId);
     }
+
 }
