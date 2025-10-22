@@ -1,15 +1,10 @@
 ﻿using BLL.DTOs;
 using BLL.Interfaces;
 using BLL.Validators;
-using DAL.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
 using DAL.Interfaces;
 using DAL.Models;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace BLL.Services
 {

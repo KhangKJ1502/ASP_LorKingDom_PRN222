@@ -1,0 +1,265 @@
+﻿@model IEnumerable<BLL.DTOs.BlogCategoryDto>
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Quản Lí Chuyên Mục Blog";
+    var q = (string?)ViewBag.Query ?? "";
+}
+
+<style>
+    /* Tạo viền đen cho ô tìm kiếm */
+    .search-box .form-control {
+        border: 1px solid #000 !important;
+        box-shadow: none !important;
+    }
+
+    .search-box .btn {
+        border: 1px solid #000 !important;
+        border-left: none !important;
+    }
+
+    .toast-top-right {
+        top: 120px !important;
+        right: 24px !important;
+        left: auto !important;
+        bottom: auto !important;
+    }
+
+    #liveToast.toast {
+        min-width: 520px;
+        padding: 1rem 1.25rem;
+        border-radius: 12px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+    }
+
+    #liveToast .toast-body {
+        font-size: 1.1rem;
+        font-weight: 600;
+        word-break: break-word;
+    }
+
+    .deleted-row {
+        opacity: 0.6;
+        background: #f8f9fa;
+    }
+</style>
+
+<div class="container-fluid px-5">
+    <h1 class="mt-4">Quản Lí Chuyên Mục Blog</h1>
+
+    <!-- Form thêm mới -->
+    <form class="mt-4" asp-action="SaveBlogCategory" asp-controller="BlogCategory" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="id" value="0" />
+
+        <div class="d-flex gap-3 justify-content-start align-items-end">
+            <div class="col-md-3 p-0">
+                <label class="form-label">Tên Chuyên Mục</label>
+                <input type="text" name="name" class="form-control border" placeholder="Tên chuyên mục" required />
+            </div>
+            <div class="col-md-3 p-0">
+                <label class="form-label">Mô tả</label>
+                <input type="text" name="description" class="form-control border" placeholder="Mô tả chuyên mục (tùy chọn)" />
+            </div>       
+            <div class="col-md-2 p-0">
+                <button class="btn btn-primary w-100" type="submit">Thêm Chuyên Mục</button>
+            </div>
+        </div>
+    </form>
+
+    <div class="card mb-4 mt-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <div><i class="fa-solid fa-table me-1"></i> Danh Sách Chuyên Mục Blog</div>
+        </div>
+
+        <div class="card-body">
+            <!-- Tìm kiếm -->
+            <form class="mb-4" method="get" asp-action="Manage" asp-controller="BlogCategory">
+                <div class="input-group search-box">
+                    <input type="text" name="q" value="@q" class="form-control" placeholder="Tìm kiếm chuyên mục...">
+                    <button class="btn btn-outline-secondary" type="submit">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </button>
+                </div>
+            </form>
+
+            @if (TempData["Error"] is string e)
+            {
+                <div class="alert alert-danger">@e</div>
+            }
+            @if (TempData["Success"] is string s)
+            {
+                <div class="alert alert-success">@s</div>
+            }
+
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>ID</th>                          
+                            <th>Tên Chuyên Mục</th>
+                            <th>Mô tả</th>
+                            <th>Ngày Cập nhật</th>
+                            <th>Ngày Tạo</th>
+                            <th>Hành Động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model?.Any() == true)
+                        {
+                            foreach (var x in Model)
+                            {
+                                <tr>
+                                    <td>@x.BlogCategoryId</td>                             
+                                    <td>@x.BlogCategoryName</td>
+                                    <td>@(x.Description ?? "-")</td>
+                                    <td>@(x.UpdatedAt?.ToString("dd/MM/yyyy HH:mm") ?? x.CreatedAt.ToString("dd/MM/yyyy HH:mm"))</td>
+                                    <td>@x.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td style="white-space:nowrap;">
+                                        <a class="btn btn-sm btn-warning ms-1" title="Cập nhật"
+                                           asp-action="Edit" asp-controller="BlogCategory"
+                                           asp-route-id="@x.BlogCategoryId" asp-route-q="@q">
+                                            <i class="fa-solid fa-pen-to-square"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-danger" onclick="confirmDelete(@x.BlogCategoryId)" title="Xóa">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="6" class="text-center text-muted">Không có dữ liệu.</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Edit BlogCategory -->
+<div class="modal fade @(ViewBag.EditBlogCategory != null ? "show d-block" : "")"
+     id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="@(ViewBag.EditBlogCategory == null)">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 id="editModalLabel" class="modal-title">Cập nhật Chuyên Mục Blog</h5>
+                <a href="@Url.Action("Manage", "BlogCategory")" class="btn-close"></a>
+            </div>
+
+            <form method="post" asp-action="SaveBlogCategory" asp-controller="BlogCategory">
+                @Html.AntiForgeryToken()
+                <div class="modal-body">
+                    @{
+                        var edit = ViewBag.EditBlogCategory as BLL.DTOs.BlogCategoryDto;
+                    }
+                    <input type="hidden" name="id" value="@(edit?.BlogCategoryId ?? 0)" />
+
+                    <div class="mb-3">
+                        <label class="form-label">Tên Chuyên Mục</label>
+                        <input type="text" class="form-control" name="name" value="@(edit?.BlogCategoryName ?? "")" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Mô tả</label>
+                        <input type="text" class="form-control" name="description" value="@(edit?.Description ?? "")" placeholder="Mô tả chuyên mục (tùy chọn)" />
+                    </div>
+
+                    <div class="mb-2 text-muted small">
+                        <i class="fa-regular fa-clock me-1"></i>
+                        Ngày tạo: @(edit?.CreatedAt.ToString("dd/MM/yyyy HH:mm") ?? "—")
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <a href="@Url.Action("Manage", "BlogCategory")" class="btn btn-outline-secondary">Hủy</a>
+                    <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Toast báo lỗi -->
+<div class="toast-container position-fixed p-3 toast-top-right" style="z-index:2080;">
+    <div id="liveToast" class="toast align-items-center text-bg-danger border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body fs-5 fw-semibold">
+                <i class="fa-solid fa-circle-exclamation me-2"></i>
+                @ViewBag.ErrorMessage
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Confirm Delete
+        function confirmDelete(id) {
+            Swal.fire({
+                title: 'Xác nhận xóa?',
+                text: 'Bạn có chắc chắn muốn xóa chuyên mục blog này? Hành động này không thể hoàn tác.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Xóa',
+                cancelButtonText: 'Hủy'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    deleteBlogCategory(id);
+                }
+            });
+        }
+
+        // Delete BlogCategory
+        async function deleteBlogCategory(id) {
+            try {
+                const formData = new FormData();
+                formData.append('id', id);
+                formData.append('__RequestVerificationToken', document.querySelector('input[name="__RequestVerificationToken"]')?.value);
+
+                const response = await fetch(`/BlogCategory/Delete/${id}`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.ok) {
+                    Swal.fire('Thành công', 'Chuyên mục blog đã được xóa!', 'success').then(() => {
+                        location.reload();
+                    });
+                } else {
+                    throw new Error('Không thể xóa chuyên mục blog');
+                }
+            } catch (error) {
+                Swal.fire('Lỗi', error.message, 'error');
+            }
+        }
+
+        // Show Toast Error
+        document.addEventListener('DOMContentLoaded', function () {
+            const hasError = '@(ViewBag.ShowErrorModal == true ? "true" : "false")';
+            if (hasError === "true") {
+                const toastEl = document.getElementById('liveToast');
+                if (toastEl) {
+                    const toast = new bootstrap.Toast(toastEl, { delay: 5000 });
+                    toast.show();
+                }
+            }
+        });
+    </script>
+}
+
+@section Styles {
+
+    <style>
+        .deleted-row {
+            opacity: 0.6;
+            background: #f8f9fa;
+        }
+    </style>
+}

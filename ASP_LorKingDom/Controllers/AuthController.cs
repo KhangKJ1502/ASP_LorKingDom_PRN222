@@ -76,11 +76,6 @@ namespace WebUI.Controllers
                 TempData["Error"] = ex.Message;
                 return RedirectToAction("Login", "Auth", new { returnUrl });
             }
-            catch (Exception ex) // Lỗi bất ngờ khác
-            {
-                TempData["Error"] = "Đã xảy ra lỗi không mong muốn. Vui lòng thử lại.";
-                return RedirectToAction("Login", "Auth", new { returnUrl });
-            }
         }
 
         [HttpPost]
@@ -129,7 +124,6 @@ namespace WebUI.Controllers
             }
         }
 
-        // ...existing code...
 
         [HttpGet]
         public IActionResult ForgotPassword()
@@ -188,8 +182,6 @@ namespace WebUI.Controllers
             return new string(Enumerable.Repeat(chars, length).Select(s => s[random.Next(s.Length)]).ToArray());
         }
 
-        // ...existing code...
-
         [HttpGet]
         public IActionResult VerifyOtp()
         {
@@ -211,7 +203,7 @@ namespace WebUI.Controllers
             // Ghép OTP nếu client chưa gửi otpCode
             if (string.IsNullOrWhiteSpace(otpCode))
             {
-                otpCode = string.Concat(Otp1, Otp2, Otp3, Otp4, Otp5, Otp6)?.Trim();
+                otpCode = string.Concat(Otp1 ?? "", Otp2 ?? "", Otp3 ?? "", Otp4 ?? "", Otp5 ?? "", Otp6 ?? "")?.Trim();
             }
 
             // ✅ 1. Lấy lại password tạm lưu trong TempData

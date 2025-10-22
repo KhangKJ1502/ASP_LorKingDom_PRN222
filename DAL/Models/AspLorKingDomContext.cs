@@ -186,10 +186,11 @@ public partial class AspLorKingDomContext : DbContext
 
             entity.Property(e => e.BlogCategoryId).HasColumnName("BlogCategoryID");
             entity.Property(e => e.BlogCategoryName).HasMaxLength(100);
+            entity.Property(e => e.Description).HasMaxLength(500);
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
-            entity.Property(e => e.Description).HasMaxLength(500);
+            entity.Property(e => e.UpdatedAt).HasColumnType("datetime");
         });
 
         modelBuilder.Entity<BlogPost>(entity =>
@@ -200,6 +201,12 @@ public partial class AspLorKingDomContext : DbContext
             entity.Property(e => e.AccountId).HasColumnName("AccountID");
             entity.Property(e => e.BlogThumbnail).HasMaxLength(500);
             entity.Property(e => e.BlogTitle).HasMaxLength(255);
+            entity.Property(e => e.BlogContent).HasColumnType("nvarchar(max)");
+            entity.Property(e => e.BlogThumbnail).HasMaxLength(500);
+            entity.Property(e => e.BlogUrl).HasMaxLength(255);
+            entity.Property(e => e.IsPublished).HasDefaultValue(false);
+            entity.Property(e => e.IsFeatured).HasDefaultValue(false);
+            entity.Property(e => e.IsDeleted).HasDefaultValue(false);
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
@@ -218,6 +225,7 @@ public partial class AspLorKingDomContext : DbContext
                         .HasConstraintName("FK_BlogPostCategories_Categories"),
                     l => l.HasOne<BlogPost>().WithMany()
                         .HasForeignKey("BlogPostId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .HasConstraintName("FK_BlogPostCategories_Posts"),
                     j =>
                     {

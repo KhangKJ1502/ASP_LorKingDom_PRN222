@@ -1,0 +1,53 @@
+@model BLL.DTOs.ReviewBlogDto
+
+<div class="comment-item">
+    <div class="comment-header">
+        <div>
+            <span class="comment-author">@Model?.AuthorName</span>
+        </div>
+        <span class="comment-date">@Model?.CreatedAt.ToString("dd/MM/yyyy HH:mm")</span>
+    </div>
+
+    <div class="comment-content">@Model?.Comment</div>
+
+    <div class="comment-actions">
+        <form method="post" asp-action="ReactToReview" asp-controller="Blog" asp-route-reviewId="@Model?.ReviewBlogId" style="display:inline;" onsubmit="return handleReaction(event)">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="reactionType" value="like" />
+            <button type="submit" class="reaction-btn @(Model?.CurrentUserReactionType == true ? "active" : "")" title="Thích">
+                <i class="fas fa-thumbs-up"></i>
+                <span class="reaction-count">@Model?.LikeCount</span>
+            </button>
+        </form>
+
+        <form method="post" asp-action="ReactToReview" asp-controller="Blog" asp-route-reviewId="@Model?.ReviewBlogId" style="display:inline;" onsubmit="return handleReaction(event)">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="reactionType" value="dislike" />
+            <button type="submit" class="reaction-btn @(Model?.CurrentUserReactionType == false ? "active" : "")" title="Không thích">
+                <i class="fas fa-thumbs-down"></i>
+                <span class="reaction-count">@Model?.DislikeCount</span>
+            </button>
+        </form>
+    </div>
+
+    @if (Model?.Replies?.Any() == true)
+    {
+        <div class="replies-section">
+            <div style="font-weight: 600; margin-bottom: 0.8rem; font-size: 0.9rem;">Phản hồi từ quản lý:</div>
+            @foreach (var reply in Model.Replies)
+            {
+                <div class="reply-item">
+                    <div class="reply-header">
+                        <span class="reply-author">@reply.AuthorName</span>
+                        @if (reply.IsAdmin)
+                        {
+                            <span class="reply-admin-badge">Admin</span>
+                        }
+                        <span class="reply-date">@reply.CreatedAt.ToString("dd/MM/yyyy HH:mm")</span>
+                    </div>
+                    <div class="reply-content">@reply.Content</div>
+                </div>
+            }
+        </div>
+    }
+</div>

@@ -2,6 +2,7 @@
 using BLL.Interfaces;
 using DAL.Interfaces;
 using DAL.Models;
+using System.Security.Claims;
 
 
 namespace BLL.Services
@@ -92,6 +93,17 @@ namespace BLL.Services
             account.UpdatedAt = DateTime.Now;
             await _accountRepo.UpdateAsync(account);
             return true;
+        }
+
+        public async Task<AccountDto?> GetCurrentUserAsync(ClaimsPrincipal user)
+        {
+            if (user == null) return null;
+
+            var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(userIdClaim, out var userId))
+                return null;
+
+            return await GetByIdAsync(userId);
         }
 
         private static AccountDto Map(Account x) => new()

@@ -1,160 +1,366 @@
-﻿@{
+﻿@model List<BLL.DTOs.ReviewBlogDto>
+@{
     ViewData["Title"] = "Quản lý bình luận - ToyLand Admin";
+    Layout = "_AdminLayout";
+    var q = (string?)ViewBag.Query ?? "";
+    var blogFilter = (string?)ViewBag.BlogFilter ?? "";
+    var userFilter = (string?)ViewBag.UserFilter ?? "";
+    var currentPage = (int?)ViewBag.CurrentPage ?? 1;
+    var totalPages = (int?)ViewBag.TotalPages ?? 1;
+    var blogs = (List<BLL.DTOs.BlogPostDto>?)ViewBag.Blogs ?? new List<BLL.DTOs.BlogPostDto>();
 }
 
-<div class="admin-container">
-    <!-- Admin Header -->
-    <div class="admin-header">
-        <div class="header-content">
-            <h1 class="admin-title">Quản lý bình luận Blog</h1>
-            <p class="admin-subtitle">Quản lý và kiểm duyệt tất cả bình luận trên blog</p>
+<style>
+    .search-box .form-control {
+        border: 1px solid #000 !important;
+        box-shadow: none !important;
+    }
+
+    .search-box .btn {
+        border: 1px solid #000 !important;
+        border-left: none !important;
+    }
+
+    .toast-top-right {
+        top: 120px !important;
+        right: 24px !important;
+    }
+
+    #liveToast.toast {
+        min-width: 520px;
+        padding: 1rem 1.25rem;
+        border-radius: 12px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+    }
+
+    #liveToast .toast-body {
+        font-size: 1.1rem;
+        font-weight: 600;
+    }
+
+    .deleted-row {
+        opacity: 0.6;
+        background: #f8f9fa;
+    }
+
+    #reviewDetailModal .modal-content {
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    }
+
+    #reviewDetailModal .modal-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 16px 16px 0 0;
+        padding: 1.5rem;
+        border: none;
+    }
+
+    #reviewDetailModal .modal-title {
+        font-weight: 600;
+        font-size: 1.25rem;
+    }
+
+    #reviewDetailModal .btn-close {
+        filter: brightness(0) invert(1);
+        opacity: 0.8;
+    }
+
+    #reviewDetailModal .modal-body {
+        padding: 2rem;
+        background-color: #f8f9fa;
+    }
+
+    .review-content {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        max-height: 3em;
+        font-size: 0.95rem;
+    }
+
+    .author-badge {
+        display: inline-block;
+        background: #e7f3ff;
+        color: #0066cc;
+        padding: 0.35rem 0.75rem;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .reaction-stats {
+        display: flex;
+        gap: 1rem;
+        font-size: 0.9rem;
+        color: #6b7280;
+    }
+
+    .reaction-stats i {
+        color: #667eea;
+        margin-right: 0.3rem;
+    }
+
+    .date-text {
+        font-size: 0.9rem;
+        color: #6b7280;
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.4rem 0.75rem;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+</style>
+
+<div class="container-fluid px-5">
+    <h1 class="mt-4">Quản Lý Bình Luận Blog</h1>
+
+    <div class="card mb-4 mt-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <div><i class="fa-solid fa-comments me-2"></i>Danh Sách Bình Luận</div>
         </div>
-    </div>
 
-    <!-- Filters Section -->
-    <div class="filters-section">
-        <form method="get" action="/admin/blog-reviews" class="filters-form">
-            <div class="filter-group">
-                <label for="searchComment" class="filter-label">Tìm kiếm bình luận</label>
-                <input type="text" id="searchComment" name="search" class="form-control filter-input"
-                       placeholder="Nhập nội dung bình luận..." value="">
-            </div>
+        <div class="card-body">
+            <!-- Tìm kiếm và Lọc -->
+            <form class="mb-4" method="get" asp-action="ManageBlogReview" asp-controller="BlogReview">
+                <div class="row g-2 mb-3">
+                    <div class="col-md-4">
+                        <input type="text" name="q" value="@q" class="form-control"
+                            placeholder="Tìm kiếm nội dung bình luận...">
+                    </div>
+                    <div class="col-md-3">
+                        <select name="blog" class="form-control">
+                            <option value="">Tất cả bài viết</option>
+                            @foreach (var blog in blogs)
+                            {
+                                <option value="@blog.BlogPostId" selected="@(blogFilter == blog.BlogPostId.ToString())">
+                                    @blog.BlogTitle
+                                </option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <input type="text" name="user" value="@userFilter" class="form-control"
+                            placeholder="Tìm kiếm người bình luận...">
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn btn-primary w-100" type="submit">
+                            <i class="fa-solid fa-magnifying-glass"></i> Tìm kiếm
+                        </button>
+                    </div>
+                </div>
+            </form>
 
-            <div class="filter-group">
-                <label for="blogFilter" class="filter-label">Bài viết</label>
-                <select id="blogFilter" name="blog" class="form-control filter-select">
-                    <option value="">Tất cả bài viết</option>
-                    <option value="1" selected>Bộ LEGO 2025</option>
-                    <option value="2">Xe điều khiển RC</option>
-                    <option value="3">Mô hình Gundam</option>
-                </select>
-            </div>
+            @if (TempData["Error"] is string e)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    @e
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+            @if (TempData["Success"] is string s)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    @s
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
 
-            <div class="filter-group">
-                <label for="userFilter" class="filter-label">Người bình luận</label>
-                <input type="text" id="userFilter" name="user" class="form-control filter-input"
-                       placeholder="Nhập tên người dùng..." value="">
-            </div>
-
-            <button type="submit" class="btn btn-filter">
-                <i class="fas fa-filter"></i> Lọc
-            </button>
-            <a href="/admin/blog-reviews" class="btn btn-reset">
-                <i class="fas fa-redo"></i> Đặt lại
-            </a>
-        </form>
-    </div>
-
-    <!-- Data Table -->
-    <div class="table-section">
-        <div class="table-responsive">
-            <table class="admin-table">
-                <thead>
-                    <tr>
-                        <th><input type="checkbox" id="selectAll" class="form-check-input"></th>
-                        <th>Nội dung bình luận</th>
-                        <th>Người bình luận</th>
-                        <th>Bài viết</th>
-                        <th>Tương tác</th>
-                        <th>Ngày bình luận</th>
-                        <th>Hành động</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @for (int i = 1; i <= 5; i++)
-                    {
-                        <tr data-comment-id="@i">
-                            <td><input type="checkbox" class="form-check-input row-checkbox"></td>
-                            <td>
-                                <p class="comment-text">Bình luận mẫu số @i: Sản phẩm này thật tuyệt vời!</p>
-                            </td>
-                            <td>
-                                <div class="user-cell d-flex align-items-center">
-                                    <img src="https://via.placeholder.com/50x50?text=U@i" class="rounded-circle me-2" />
-                                    <span class="user-name">Người dùng @i</span>
-                                </div>
-                            </td>
-                            <td>
-                                <a href="/blog/sample-@i" class="blog-link" target="_blank">
-                                    Bài viết mẫu @i <i class="fas fa-external-link-alt"></i>
-                                </a>
-                            </td>
-                            <td>
-                                <span class="me-2"><i class="fas fa-thumbs-up"></i> @(i * 3)</span>
-                                <span><i class="fas fa-thumbs-down"></i> @i</span>
-                            </td>
-                            <td>@DateTime.Now.AddDays(-i).ToString("dd/MM/yyyy HH:mm")</td>
-                            <td>
-                                <button class="action-btn view-btn" onclick="viewCommentDetail(@i)" title="Xem chi tiết">
-                                    <i class="fas fa-eye"></i>
-                                </button>
-                                <button class="action-btn delete-btn" onclick="deleteComment(@i)" title="Xóa">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </td>
+            <!-- Bảng Dữ Liệu -->
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th style="width: 40px;">
+                                <input type="checkbox" id="selectAll" class="form-check-input">
+                            </th>
+                            <th>Nội dung bình luận</th>
+                            <th style="width: 150px;">Người bình luận</th>
+                            <th style="width: 180px;">Bài viết</th>
+                            <th style="width: 120px;">Tương tác</th>
+                            <th style="width: 100px;">Đánh giá</th>
+                            <th style="width: 130px;">Ngày bình luận</th>
+                            <th style="width: 130px; text-align: center;">Hành động</th>
                         </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model?.Any() == true)
+                        {
+                            @foreach (var review in Model)
+                            {
+                                <tr data-comment-id="@review.ReviewBlogId">
+                                    <td><input type="checkbox" class="form-check-input row-checkbox"></td>
+                                    <td>
+                                        <p class="review-content mb-0">@review.Comment</p>
+                                    </td>
+                                    <td>
+                                        <div class="user-cell">
+                                            <span class="author-badge">@review.AuthorName</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <a href="/Blog/Detail/@review.BlogPostId" class="blog-link" target="_blank">
+                                            Xem bài viết <i class="fas fa-external-link-alt"></i>
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <span class="me-2"><i class="fas fa-thumbs-up"></i> @review.LikeCount</span>
+                                        <span><i class="fas fa-thumbs-down"></i> @review.DislikeCount</span>
+                                    </td>
+                                    <td>
+                                        @review.Rating/5 <i class="fas fa-star" style="color: #ffc107;"></i>
+                                    </td>
+                                    <td>@review.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td style="text-align: center;">
+                                        <button type="button" class="btn btn-sm btn-info"
+                                            onclick="viewReviewDetail(@review.ReviewBlogId)" title="Xem">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <form method="post" asp-action="DeleteReview" asp-controller="BlogReview"
+                                            asp-route-id="@review.ReviewBlogId" style="display: inline;"
+                                            onsubmit="return confirm('Bạn có chắc chắn muốn xóa bình luận này?');">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-sm btn-danger" title="Xóa">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="8" style="text-align: center; color: #999;">Không có bình luận nào.</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <nav class="mt-4" aria-label="Blog pagination">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                        <a class="page-link"
+                            href="@Url.Action("ManageBlogReview", "BlogReview", new { q, blog = blogFilter, user = userFilter, page = currentPage - 1 })">
+                            <i class="fas fa-chevron-left me-1"></i>Trước
+                        </a>
+                    </li>
+
+                    @for (int i = 1; i <= totalPages; i++)
+                    {
+                        <li class="page-item @(i == currentPage ? "active" : "")">
+                            <a class="page-link"
+                                href="@Url.Action("ManageBlogReview", "BlogReview", new { q, blog = blogFilter, user = userFilter, page = i })">
+                                @i
+                            </a>
+                        </li>
                     }
-                </tbody>
-            </table>
+
+                    <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                        <a class="page-link"
+                            href="@Url.Action("ManageBlogReview", "BlogReview", new { q, blog = blogFilter, user = userFilter, page = currentPage + 1 })">
+                            Sau <i class="fas fa-chevron-right ms-1"></i>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
         </div>
     </div>
 
-    <!-- Pagination -->
-    <nav class="pagination-section" aria-label="Admin pagination">
-        <ul class="pagination justify-content-center">
-            <li class="page-item disabled"><span class="page-link"><i class="fas fa-chevron-left"></i> Trước</span></li>
-            <li class="page-item active"><span class="page-link">1</span></li>
-            <li class="page-item"><a class="page-link" href="#">2</a></li>
-            <li class="page-item"><a class="page-link" href="#">3</a></li>
-            <li class="page-item"><a class="page-link" href="#">Sau <i class="fas fa-chevron-right"></i></a></li>
-        </ul>
-    </nav>
-</div>
-
-<!-- Comment Detail Modal -->
-<div class="modal fade" id="commentDetailModal" tabindex="-1" role="dialog" aria-labelledby="commentDetailLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Chi tiết bình luận</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body" id="commentDetailContent">
-                <p><strong>Người dùng:</strong> Demo User</p>
-                <p><strong>Nội dung:</strong> Đây là nội dung chi tiết của bình luận mẫu.</p>
-                <p><strong>Bài viết:</strong> LEGO City Adventures</p>
-                <p><strong>Ngày:</strong> 19/10/2025 20:00</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Đóng</button>
+    <!-- Modal Chi Tiết Bình Luận -->
+    <div class="modal fade" id="commentDetailModal" tabindex="-1" aria-labelledby="reviewDetailLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content" id="reviewDetailModal">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="reviewDetailLabel">
+                        <i class="fa-solid fa-comment me-2"></i>Chi tiết bình luận
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="commentDetailContent">
+                    <!-- Content sẽ được load bằng JS -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-<script>
-    // Select All Checkbox
-    document.getElementById('selectAll').addEventListener('change', function () {
-        document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = this.checked);
-    });
+@section Scripts {
+        <script>
+            // Select All
+            document.getElementById('selectAll')?.addEventListener('change', function () {
+                document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = this.checked);
+            });
 
-    // View Comment Detail (mock)
-    function viewCommentDetail(commentId) {
-        document.getElementById('commentDetailContent').innerHTML = `
-            <p><strong>Người dùng:</strong> Người dùng ${commentId}</p>
-            <p><strong>Nội dung:</strong> Bình luận mẫu ${commentId} - Sản phẩm này rất đáng mua!</p>
-            <p><strong>Bài viết:</strong> Bài viết mẫu ${commentId}</p>
-            <p><strong>Ngày:</strong> ${new Date().toLocaleString()}</p>
-        `;
-        $('#commentDetailModal').modal('show');
-    }
+            // View Review Detail
+            async function viewReviewDetail(reviewId) {
+                try {
+                    const response = await fetch(`/Admin/BlogReview/Details/${reviewId}`);
+                    if (!response.ok) throw new Error('Không thể tải chi tiết bình luận');
 
-    // Delete Comment (mock)
-    function deleteComment(id) {
-        if (confirm(\`Xóa bình luận #\${id}?\`)) {
-            alert(\`Đã xóa bình luận #\${id} (demo)\`);
-        }
-    }
-</script>
+                    const review = await response.json();
+                    let repliesHtml = '';
+
+                    if (review.replies && review.replies.length > 0) {
+                        repliesHtml = '<h6 class="mt-3 mb-2"><strong>Phản hồi:</strong></h6>';
+                        review.replies.forEach(reply => {
+                            repliesHtml += `
+                                <div style="background: white; padding: 0.75rem; margin-bottom: 0.5rem; border-left: 3px solid #667eea; border-radius: 4px;">
+                                    <p class="mb-1"><strong>${reply.authorName}</strong></p>
+                                    <p class="mb-1">${reply.content}</p>
+                                    <small class="text-muted">${reply.createdAt}</small>
+                                </div>
+                            `;
+                        });
+                    }
+
+                    const content = `
+                        <div class="row g-3">
+                            <div class="col-md-12">
+                                <p><strong>Nội dung:</strong></p>
+                                <div style="background: white; padding: 0.75rem; border: 1px solid #e0e0e0; border-radius: 4px; margin-bottom: 1rem;">
+                                    ${review.content}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Người bình luận:</strong> ${review.authorName}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Email:</strong> ${review.authorEmail || 'N/A'}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Đánh giá:</strong> ${review.rating}/5 <i class="fas fa-star" style="color: #ffc107;"></i></p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Tương tác:</strong> 👍 ${review.likeCount} | 👎 ${review.dislikeCount}</p>
+                            </div>
+                            <div class="col-md-12">
+                                <p><strong>Ngày bình luận:</strong> ${review.createdAt}</p>
+                            </div>
+                            <div class="col-md-12">
+                                ${repliesHtml}
+                            </div>
+                        </div>
+                    `;
+
+                    document.getElementById('commentDetailContent').innerHTML = content;
+                    const modal = new bootstrap.Modal(document.getElementById('commentDetailModal'));
+                    modal.show();
+                } catch (error) {
+                    Swal.fire('Lỗi', error.message, 'error');
+                }
+            }
+        </script>
+}

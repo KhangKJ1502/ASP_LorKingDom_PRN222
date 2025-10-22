@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace DAL.Models;
+﻿namespace DAL.Models;
 
 public partial class BlogPost
 {
@@ -11,13 +8,17 @@ public partial class BlogPost
 
     public string BlogTitle { get; set; } = null!;
 
-    public string BlogOverview { get; set; } = null!;
+    public string BlogContent { get; set; } = null!;
 
     public string? BlogThumbnail { get; set; }
 
     public string? BlogUrl { get; set; }
 
     public bool IsPublished { get; set; }
+
+    public bool IsFeatured { get; set; }
+
+    public bool IsDeleted { get; set; }
 
     public DateTime CreatedAt { get; set; }
 
