@@ -25,5 +25,9 @@ namespace DAL.Repositories
                 .OrderBy(x => x.SexName)
                 .ToListAsync();
         }
+        public async Task<Sex?> GetByIdAsync(int id)
+        {
+            return await _context.Sexes.FirstOrDefaultAsync(s => s.SexId == id);
+        }
     }
 }

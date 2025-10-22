@@ -15,6 +15,7 @@ namespace DAL.Interfaces
         Task UpdateAsync(Product entity);
         Task<bool> ExistsBySkuAsync(string sku);
         Task<bool> ExistsByNameAsync(string name, int? excludeId = null);
+        Task<int> SetIsDeletedByBrandAsync(int brandId, bool isDeleted);
 
     }
 }

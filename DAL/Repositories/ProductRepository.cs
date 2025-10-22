@@ -65,6 +65,24 @@ namespace DAL.Repositories
             return await query.AnyAsync();
         }
 
+        public async Task<int> SetIsDeletedByBrandAsync(int brandId, bool isDeleted)
+        {
+            var items = await _ctx.Products
+                .Where(p => p.BrandId == brandId)
+                .ToListAsync();
 
+            foreach (var p in items)
+            {
+                p.IsDeleted = isDeleted;
+                if (isDeleted)
+                {
+                    // Bạn có thể đồng thời cho về trạng thái Discontinued để rõ nghĩa
+                    p.ProductStatus = "Discontinued";
+                }
+            }
+
+            await _ctx.SaveChangesAsync();
+            return items.Count;
+        }
     }
 }
