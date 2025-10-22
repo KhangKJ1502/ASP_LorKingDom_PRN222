@@ -301,7 +301,7 @@
                                         }
                                         else
                                         {
-                                            <span class="badge bg-@(customer.Status == "Active" ? "success" : "warning")">@customer.Status</span>
+                                            <span class="badge bg-@(customer.Status == "Hoạt Động" ? "success" : "warning")">@customer.Status</span>
                                         }
                                     </td>
                                     <td>@customer.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
@@ -399,7 +399,7 @@
                                 <i class="fa-solid fa-toggle-on me-1"></i>
                                 Trạng thái <span class="text-danger">*</span>
                             </label>
-                            <input type="hidden" name="Status" id="status" value="@(edit?.Status ?? "Active")" />
+                            <input type="hidden" name="Status" id="status" value="@(edit?.Status ?? "Hoạt Động")" />
                             <input type="hidden" name="IsDeleted" id="isDeleted" value="@((edit?.IsDeleted ?? false).ToString().ToLower())" />
                             <div class="btn-group d-flex" role="group">
                                 <input type="radio" class="btn-check" name="statusRadio" id="statusActive" value="Active"
