@@ -4,27 +4,23 @@ namespace DAL.Interfaces
 {
     public interface IAccountRepository
     {
-        /// <summary>
-        /// Lấy tất cả tài khoản Active, chưa bị xoá (phục vụ gửi All).
-        /// </summary>
+        // Public lists – Active & !Deleted
         Task<List<Account>> GetAllAsync();
-
-        /// <summary>
-        /// Lấy các tài khoản theo Role, chỉ Active và chưa xoá.
-        /// </summary>
+        Task<List<Account>> GetAllCustomerAsync();
+        Task<List<Account>> GetAllStaffAsync();
         Task<List<Account>> GetByRoleIdAsync(int roleId);
 
-        /// <summary>
-        /// Lấy 1 account theo id (AsNoTracking).
-        /// </summary>
-        Task<Account?> GetByIdAsync(int accountId);
+        // Admin lists – KHÔNG filter
+        Task<List<Account>> AdminGetAllStaffAsync();
+        Task<List<Account>> AdminGetAllCustomerAsync();
 
+        Task<Account?> GetByIdAsync(int accountId);
         Task<Account?> GetByEmailAsync(string email);
 
         Task AddAsync(Account entity);
-
         Task UpdateAsync(Account entity);
 
         Task<bool> ExistsByEmailAsync(string email);
+        Task<bool> ExistsByPhoneAsync(string phoneNumber, int? excludeId = null);
     }
 }

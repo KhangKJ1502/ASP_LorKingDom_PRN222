@@ -1,0 +1,505 @@
+﻿@model IEnumerable<BLL.DTOs.AccountDto>
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Quản Lý Khách Hàng";
+    var query = (string?)ViewBag.Query ?? "";
+    var edit = ViewBag.EditCustomer as BLL.DTOs.AccountDto;
+}
+
+<style>
+    .search-box .form-control {
+        border: 1px solid #000 !important;
+        box-shadow: none !important;
+    }
+
+    .search-box .btn {
+        border: 1px solid #000 !important;
+        border-left: none !important;
+    }
+
+    .toast-top-right {
+        top: 120px !important;
+        right: 24px !important;
+        left: auto !important;
+        bottom: auto !important;
+    }
+
+    #liveToast.toast {
+        min-width: 520px;
+        padding: 1rem 1.25rem;
+        border-radius: 12px;
+        box-shadow: 0 8px 24px rgba(0,0,0,.18);
+    }
+
+    #liveToast .toast-body {
+        font-size: 1.1rem;
+        font-weight: 600;
+        word-break: break-word;
+    }
+
+    .deleted-row {
+        opacity: .6;
+        background: #f8f9fa;
+    }
+
+    /* Custom Modal Styling */
+    #customerModal .modal-content {
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    }
+
+    #customerModal .modal-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 16px 16px 0 0;
+        padding: 1.5rem;
+        border: none;
+    }
+
+    #customerModal .modal-title {
+        font-weight: 600;
+        font-size: 1.25rem;
+    }
+
+    #customerModal .btn-close {
+        filter: brightness(0) invert(1);
+        opacity: 0.8;
+    }
+
+        #customerModal .btn-close:hover {
+            opacity: 1;
+        }
+
+    #customerModal .modal-body {
+        padding: 2rem;
+        background-color: #f8f9fa;
+    }
+
+    #customerModal .form-label {
+        font-weight: 500;
+        color: #495057;
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+    }
+
+    #customerModal .form-control,
+    #customerModal .form-select {
+        border: 2px solid #e9ecef;
+        border-radius: 8px;
+        padding: 0.65rem 0.875rem;
+        transition: all 0.3s ease;
+        background-color: white;
+    }
+
+        #customerModal .form-control:focus,
+        #customerModal .form-select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.15);
+        }
+
+        #customerModal .form-control:disabled {
+            background-color: #e9ecef;
+            color: #6c757d;
+        }
+
+    #customerModal .text-danger {
+        color: #dc3545;
+    }
+
+    #customerModal .modal-footer {
+        border-top: 1px solid #e9ecef;
+        padding: 1.25rem 2rem;
+        background-color: white;
+        border-radius: 0 0 16px 16px;
+    }
+
+    #customerModal .btn {
+        padding: 0.625rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    #customerModal .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+    }
+
+        #customerModal .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+    #customerModal .btn-outline-secondary {
+        border: 2px solid #6c757d;
+        color: #6c757d;
+    }
+
+        #customerModal .btn-outline-secondary:hover {
+            background-color: #6c757d;
+            color: white;
+        }
+
+    #customerModal .form-text {
+        font-size: 0.85rem;
+        color: #6c757d;
+        margin-top: 0.25rem;
+    }
+
+    #customerModal .info-box {
+        background-color: #e7f3ff;
+        border-left: 4px solid #667eea;
+        padding: 0.75rem 1rem;
+        border-radius: 6px;
+        margin-top: 1rem;
+    }
+
+    #customerModal .avatar-preview {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        border: 3px solid #667eea;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    #customerModal .avatar-placeholder {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 2.5rem;
+        font-weight: 700;
+        border: 3px solid #667eea;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Table Avatar */
+    .customer-avatar {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid #e9ecef;
+    }
+
+    .avatar-placeholder-small {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        font-size: 1rem;
+        border: 2px solid #e9ecef;
+    }
+</style>
+
+<div class="container-fluid px-5">
+    <h1 class="mt-4">Quản Lý Khách Hàng</h1>
+
+    <div class="card mb-4 mt-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <div><i class="fa-solid fa-users me-1"></i> Danh Sách Khách Hàng</div>
+        </div>
+
+        <div class="card-body">
+            <!-- Tìm kiếm -->
+            <form class="mb-4" method="get" asp-action="Manage" asp-controller="AccountCustomer">
+                <div class="input-group search-box">
+                    <input type="text" name="q" value="@query" class="form-control" placeholder="Tìm theo tên, email, số điện thoại...">
+                    <button class="btn btn-outline-secondary" type="submit">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </button>
+                </div>
+            </form>
+
+            @if (TempData["Error"] is string e)
+            {
+                <div class="alert alert-danger">@e</div>
+            }
+            @if (TempData["Success"] is string s)
+            {
+                <div class="alert alert-success">@s</div>
+            }
+
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th style="white-space:nowrap">ID</th>
+                            <th style="white-space:nowrap">Hành Động</th>
+                            <th>Avatar</th>
+                            <th>Tên khách hàng</th>
+                            <th>Email</th>
+                            <th>Số điện thoại</th>
+                            <th>Đăng nhập</th>
+                            <th style="white-space:nowrap">Trạng Thái</th>
+                            <th style="white-space:nowrap">Ngày Tạo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null && Model.Any())
+                        {
+                            foreach (var customer in Model)
+                            {
+                                <tr class="@(customer.IsDeleted ? "deleted-row" : "")">
+                                    <td>@customer.Id</td>
+                                    <td style="white-space:nowrap">
+                                        <a class="btn btn-sm btn-warning" title="Cập nhật"
+                                           asp-action="Edit" asp-controller="AccountCustomer"
+                                           asp-route-id="@customer.Id" asp-route-q="@query">
+                                            <i class="fa-solid fa-pen-to-square"></i>
+                                        </a>
+                                    </td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(customer.Image))
+                                        {
+                                            <img src="@customer.Image" alt="Avatar" class="customer-avatar" />
+                                        }
+                                        else
+                                        {
+                                            <div class="avatar-placeholder-small">
+                                                @(customer.AccountName?.Substring(0, 1).ToUpper() ?? "U")
+                                            </div>
+                                        }
+                                    </td>
+                                    <td>@customer.AccountName</td>
+                                    <td>@customer.Email</td>
+                                    <td>@(customer.PhoneNumber ?? "—")</td>
+                                    <td>
+                                        @if (customer.Provider == "Google")
+                                        {
+                                            <span class="badge bg-danger">
+                                                <i class="fa-brands fa-google me-1"></i>Google
+                                            </span>
+                                        }
+                                        else if (customer.Provider == "Facebook")
+                                        {
+                                            <span class="badge bg-info">
+                                                <i class="fa-brands fa-facebook me-1"></i>Facebook
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">
+                                                <i class="fa-solid fa-user me-1"></i>Local
+                                            </span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (customer.IsDeleted)
+                                        {
+                                            <span class="badge bg-secondary">Đã vô hiệu</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-@(customer.Status == "Hoạt Động" ? "success" : "warning")">@customer.Status</span>
+                                        }
+                                    </td>
+                                    <td>@customer.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="9" class="text-center text-muted">Không có dữ liệu.</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Edit Customer -->
+<div class="modal fade" id="customerModal" tabindex="-1" aria-labelledby="customerModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 id="customerModalLabel" class="modal-title">
+                    <i class="fa-solid fa-user-pen me-2"></i>
+                    Cập nhật thông tin khách hàng
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="closeModal()"></button>
+            </div>
+
+            <form method="post" asp-action="SaveCustomer" asp-controller="AccountCustomer" id="customerForm">
+                @Html.AntiForgeryToken()
+                <div class="modal-body">
+                    <input type="hidden" name="Id" id="customerId" value="@(edit?.Id ?? 0)" />
+                    <input type="hidden" name="q" value="@query" />
+
+                    <div class="row g-3">
+                        <!-- Avatar Preview -->
+                        @if (edit != null)
+                        {
+                            <div class="col-12 text-center mb-3">
+                                @if (!string.IsNullOrEmpty(edit.Image))
+                                {
+                                    <img src="@edit.Image" alt="Avatar" class="avatar-preview" />
+                                }
+                                else
+                                {
+                                    <div class="avatar-placeholder">
+                                        @(edit.AccountName?.Substring(0, 1).ToUpper() ?? "U")
+                                    </div>
+                                }
+                            </div>
+                        }
+
+                        <div class="col-lg-6">
+                            <label class="form-label">
+                                <i class="fa-solid fa-user me-1"></i>
+                                Tên khách hàng <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" class="form-control" name="AccountName" id="accountName"
+                                   value="@(edit?.AccountName ?? "")" placeholder="Nhập tên khách hàng" required />
+                        </div>
+
+                        <div class="col-lg-6">
+                            <label class="form-label">
+                                <i class="fa-solid fa-phone me-1"></i>
+                                Số điện thoại
+                            </label>
+                            <input type="text" class="form-control" name="PhoneNumber" id="phoneNumber"
+                                   value="@(edit?.PhoneNumber ?? "")" placeholder="Nhập số điện thoại" />
+                        </div>
+
+                        <div class="col-lg-6">
+                            <label class="form-label">
+                                <i class="fa-solid fa-envelope me-1"></i>
+                                Email
+                            </label>
+                            <input type="email" class="form-control" value="@(edit?.Email ?? "")" disabled />
+                            <small class="form-text">
+                                <i class="fa-solid fa-info-circle me-1"></i>Email không thể thay đổi
+                            </small>
+                        </div>
+
+                        <div class="col-lg-6">
+                            <label class="form-label">
+                                <i class="fa-solid fa-right-to-bracket me-1"></i>
+                                Phương thức đăng nhập
+                            </label>
+                            <input type="text" class="form-control" value="@(edit?.Provider ?? "Local")" disabled />
+                        </div>
+
+                        <div class="col-lg-12">
+                            <label class="form-label">
+                                <i class="fa-solid fa-toggle-on me-1"></i>
+                                Trạng thái <span class="text-danger">*</span>
+                            </label>
+                            <input type="hidden" name="Status" id="status" value="@(edit?.Status ?? "Hoạt Động")" />
+                            <input type="hidden" name="IsDeleted" id="isDeleted" value="@((edit?.IsDeleted ?? false).ToString().ToLower())" />
+                            <div class="btn-group d-flex" role="group">
+                                <input type="radio" class="btn-check" name="statusRadio" id="statusActive" value="Active"
+                                       checked="@((edit?.IsDeleted ?? false) ? null : "checked")"
+                                       onchange="updateStatus(false)" autocomplete="off">
+                                <label class="btn btn-outline-success" for="statusActive">
+                                    <i class="fa-solid fa-circle-check me-1"></i>Hoạt động
+                                </label>
+
+                                <input type="radio" class="btn-check" name="statusRadio" id="statusInactive" value="Inactive"
+                                       checked="@((edit?.IsDeleted ?? false) ? "checked" : null)"
+                                       onchange="updateStatus(true)" autocomplete="off">
+                                <label class="btn btn-outline-danger" for="statusInactive">
+                                    <i class="fa-solid fa-ban me-1"></i>Vô hiệu
+                                </label>
+                            </div>
+                        </div>
+
+                        @if (edit != null)
+                        {
+                            <div class="col-12">
+                                <div class="info-box">
+                                    <div class="text-muted small">
+                                        <i class="fa-regular fa-clock me-1"></i>
+                                        <strong>Ngày tạo:</strong> @(edit.CreatedAt.ToString("dd/MM/yyyy HH:mm"))
+                                        @if (edit.UpdatedAt != null)
+                                        {
+                                            <span class="ms-3">
+                                                <i class="fa-solid fa-rotate me-1"></i>
+                                                <strong>Cập nhật:</strong> @edit.UpdatedAt?.ToString("dd/MM/yyyy HH:mm")
+                                            </span>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" onclick="closeModal()">
+                        <i class="fa-solid fa-xmark me-1"></i>
+                        Hủy
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fa-solid fa-floppy-disk me-1"></i>
+                        Lưu thay đổi
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Notification -->
+<div class="toast-container position-fixed p-3 toast-top-right" style="z-index:2080;">
+    <div id="liveToast" class="toast align-items-center text-bg-danger border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body fs-5 fw-semibold">
+                <i class="fa-solid fa-circle-exclamation me-2"></i>
+                @ViewBag.ErrorMessage
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Đóng"></button>
+        </div>
+    </div>
+</div>
+
+<!-- Font Awesome 6 -->
+<link rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+      crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+@section Scripts {
+    <script>
+        function updateStatus(isDeleted) {
+            document.getElementById('status').value = isDeleted ? 'Inactive' : 'Active';
+            document.getElementById('isDeleted').value = isDeleted.toString();
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            // Hiển thị toast nếu có lỗi
+            const hasError = '@(ViewBag.ShowErrorModal == true ? "true" : "false")';
+            if (hasError === "true") {
+                const toastEl = document.getElementById('liveToast');
+                if (toastEl) {
+                    const toast = new bootstrap.Toast(toastEl, { delay: 5000 });
+                    toast.show();
+                }
+            }
+
+            // Hiển thị modal nếu cần
+            const needShow = '@((edit != null || (ViewBag.ShowErrorModal == true)) ? "true" : "false")';
+            if (needShow === "true") {
+                const modalEl = document.getElementById('customerModal');
+                if (modalEl) new bootstrap.Modal(modalEl).show();
+            }
+        });
+
+        function closeModal() {
+            window.location.href = '@Url.Action("Manage", "AccountCustomer", new { q = query })';
+        }
+    </script>
+}

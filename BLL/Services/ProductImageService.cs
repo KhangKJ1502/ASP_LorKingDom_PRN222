@@ -10,7 +10,7 @@ namespace BLL.Services
 {
     public class ProductImageService : IProductImageService
     {
-        private const int MAX_SECONDARY = 8;
+        private const int MAX_SECONDARY = 6;
         private readonly IProductImageRepository _repo;
 
         public ProductImageService(IProductImageRepository repo)

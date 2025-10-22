@@ -24,6 +24,7 @@ namespace DAL
             //Nhánh Product 
             services.AddScoped<IProductRepository, ProductRepository>();
             services.AddScoped<IProductImageRepository, ProductImageRepository>();
+  
 
             services.AddScoped<ICategoryRepository, CategoryRepository>();
             services.AddScoped<IAgeRepository, AgeRepository>();
