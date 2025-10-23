@@ -38,6 +38,8 @@ namespace BLL
             services.AddScoped<PromotionValidator>();
 
             services.AddScoped<INotificationService, NotificationService>();
+
+            services.AddScoped<IUserNotificationService, UserNotificationService>();
             services.AddScoped<IChatService, ChatService>();
             return services;
         }

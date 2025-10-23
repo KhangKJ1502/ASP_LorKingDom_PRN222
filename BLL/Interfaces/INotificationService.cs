@@ -3,8 +3,12 @@ using System.Threading.Tasks;
 
 namespace BLL.Interfaces
 {
+    /// <summary>
+    /// Service cho quản trị & worker xử lý thông báo (CRUD, gửi, hủy, dispatch).
+    /// </summary>
     public interface INotificationService
     {
+        // Admin
         Task<PagedResult<NotificationDto>> SearchAsync(NotificationFilterDto f);
         Task<NotificationDto?> GetByIdAsync(int id);
         Task<NotificationDto> CreateAsync(NotificationCreateDto dto);
@@ -12,11 +16,7 @@ namespace BLL.Interfaces
         Task DeleteAsync(int id);
 
         Task CancelAsync(int id);
-        Task SendNowAsync(int id); // cưỡng bức gửi ngay
-
-        // User side
-        Task<PagedResult<UserNotificationDto>> GetMyNotificationsAsync(int userId, bool? isRead, int page, int pageSize);
-        Task MarkReadAsync(int userNotificationId);
+        Task SendNowAsync(int id);
 
         // Worker
         Task<int> DispatchDueAsync();

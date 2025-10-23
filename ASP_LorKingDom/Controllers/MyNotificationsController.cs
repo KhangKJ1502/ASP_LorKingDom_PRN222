@@ -1,54 +1,104 @@
-﻿using BLL.Interfaces;
+﻿using BLL.DTOs;
+using BLL.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace WebUI.Controllers
 {
+    [Authorize]
+    [AutoValidateAntiforgeryToken]
     public class MyNotificationsController : Controller
     {
-        private readonly INotificationService _svc;
+        private readonly IUserNotificationService _svc;
 
-        public MyNotificationsController(INotificationService svc) => _svc = svc;
-
-        /// <summary>
-        /// Hiển thị danh sách thông báo của user hiện tại
-        /// </summary>
-        public async Task<IActionResult> Index(bool? isRead = null, int page = 1, int pageSize = 20)
+        public MyNotificationsController(IUserNotificationService svc)
         {
-            int currentUserId = GetCurrentUserId();
-            var data = await _svc.GetMyNotificationsAsync(currentUserId, isRead, page, pageSize);
-
-            ViewBag.CurrentFilter = isRead;
-            return View("~/Views/MyNotifications/Index.cshtml", data);
+            _svc = svc ?? throw new ArgumentNullException(nameof(svc));
         }
 
-        /// <summary>
-        /// Đánh dấu một thông báo là đã đọc
-        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> Index(bool? isRead = null, int page = 1, int pageSize = 20)
+        {
+            try
+            {
+                if (page < 1) page = 1;
+                if (pageSize < 1 || pageSize > 100) pageSize = 20;
+
+                var currentUserId = GetCurrentUserId();
+                if (currentUserId <= 0)
+                {
+                    TempData["Error"] = "Vui lòng đăng nhập để xem thông báo.";
+                    return RedirectToAction("Login", "Account");
+                }
+
+                var data = await _svc.GetMyNotificationsAsync(currentUserId, isRead, page, pageSize);
+                ViewBag.CurrentFilter = isRead;
+                return View("~/Views/MyNotifications/Index.cshtml", data);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Lỗi khi tải thông báo: {ex.Message}";
+                return View("~/Views/MyNotifications/Index.cshtml",
+                    new PagedResult<UserNotificationDto>
+                    {
+                        Items = Array.Empty<UserNotificationDto>().ToList(),
+                        Total = 0,
+                        Page = page,
+                        PageSize = pageSize
+                    });
+            }
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> MarkRead(int id, bool? returnFilter = null)
         {
             try
             {
-                int currentUserId = GetCurrentUserId();
+                if (id <= 0)
+                {
+                    TempData["Error"] = "ID thông báo không hợp lệ.";
+                    return RedirectToAction(nameof(Index), new { isRead = returnFilter });
+                }
 
-                // Kiểm tra quyền: chỉ user sở hữu mới được đánh dấu
-                var myNotifications = await _svc.GetMyNotificationsAsync(currentUserId, null, 1, 1000);
-                var owned = myNotifications.Items.Any(n => n.UserNotificationId == id);
+                var currentUserId = GetCurrentUserId();
+                if (currentUserId <= 0)
+                {
+                    TempData["Error"] = "Vui lòng đăng nhập.";
+                    return RedirectToAction("Login", "Account");
+                }
 
-                if (!owned)
+                var notification = await _svc.GetUserNotificationByIdAsync(id);
+                if (notification == null)
+                {
+                    TempData["Error"] = "Không tìm thấy thông báo.";
+                    return RedirectToAction(nameof(Index), new { isRead = returnFilter });
+                }
+
+                if (notification.UserId != currentUserId)
                 {
                     TempData["Error"] = "Bạn không có quyền đánh dấu thông báo này.";
+                    return RedirectToAction(nameof(Index), new { isRead = returnFilter });
+                }
+
+                if (notification.IsRead)
+                {
+                    TempData["Info"] = "Thông báo đã được đánh dấu đọc trước đó.";
                     return RedirectToAction(nameof(Index), new { isRead = returnFilter });
                 }
 
                 await _svc.MarkReadAsync(id);
                 TempData["Success"] = "Đã đánh dấu thông báo là đã đọc.";
             }
-            catch (System.Exception ex)
+            catch (UnauthorizedAccessException)
+            {
+                TempData["Error"] = "Bạn không có quyền thực hiện hành động này.";
+            }
+            catch (Exception ex)
             {
                 TempData["Error"] = $"Lỗi: {ex.Message}";
             }
@@ -56,26 +106,26 @@ namespace WebUI.Controllers
             return RedirectToAction(nameof(Index), new { isRead = returnFilter });
         }
 
-        /// <summary>
-        /// Đánh dấu tất cả thông báo chưa đọc là đã đọc
-        /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> MarkAllRead()
         {
             try
             {
-                int currentUserId = GetCurrentUserId();
-                var unread = await _svc.GetMyNotificationsAsync(currentUserId, false, 1, 1000);
-
-                foreach (var notif in unread.Items.Where(n => !n.IsRead))
+                var currentUserId = GetCurrentUserId();
+                if (currentUserId <= 0)
                 {
-                    await _svc.MarkReadAsync(notif.UserNotificationId);
+                    TempData["Error"] = "Vui lòng đăng nhập.";
+                    return RedirectToAction("Login", "Account");
                 }
 
-                TempData["Success"] = $"Đã đánh dấu {unread.Items.Count} thông báo là đã đọc.";
+                var markedCount = await _svc.MarkAllReadAsync(currentUserId);
+
+                TempData["Success"] = markedCount > 0
+                    ? $"Đã đánh dấu {markedCount} thông báo là đã đọc."
+                    : "Không có thông báo chưa đọc.";
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
                 TempData["Error"] = $"Lỗi: {ex.Message}";
             }
@@ -83,19 +133,51 @@ namespace WebUI.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        /// <summary>
-        /// API endpoint để lấy số lượng thông báo chưa đọc (cho badge)
-        /// </summary>
         [HttpGet]
         public async Task<IActionResult> GetUnreadCount()
         {
             try
             {
-                int currentUserId = GetCurrentUserId();
-                var data = await _svc.GetMyNotificationsAsync(currentUserId, false, 1, 1);
-                return Json(new { success = true, count = data.Total });
+                var currentUserId = GetCurrentUserId();
+                if (currentUserId <= 0)
+                    return Json(new { success = false, message = "Chưa đăng nhập" });
+
+                var count = await _svc.GetUnreadCountAsync(currentUserId);
+                return Json(new { success = true, count });
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> CheckNewNotifications(DateTime? lastCheck = null)
+        {
+            try
+            {
+                var currentUserId = GetCurrentUserId();
+                if (currentUserId <= 0)
+                    return Json(new { success = false, hasNew = false });
+
+                var unread = await _svc.GetMyNotificationsAsync(currentUserId, false, 1, 10);
+
+                bool hasNew;
+                DateTime? latest = unread.Items.FirstOrDefault()?.DeliveredAt ?? unread.Items.FirstOrDefault()?.ScheduledAt;
+
+                if (lastCheck.HasValue)
+                {
+                    hasNew = unread.Items.Any(n =>
+                        (n.DeliveredAt ?? n.ScheduledAt) > lastCheck.Value);
+                }
+                else
+                {
+                    hasNew = unread.Total > 0;
+                }
+
+                return Json(new { success = true, hasNew, count = unread.Total, latest });
+            }
+            catch (Exception ex)
             {
                 return Json(new { success = false, message = ex.Message });
             }
@@ -103,8 +185,13 @@ namespace WebUI.Controllers
 
         private int GetCurrentUserId()
         {
-            var claim = User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            return int.TryParse(claim, out var id) ? id : 1;
+            try
+            {
+                var claim = User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrWhiteSpace(claim)) return 0;
+                return int.TryParse(claim, out var id) && id > 0 ? id : 0;
+            }
+            catch { return 0; }
         }
     }
 }
