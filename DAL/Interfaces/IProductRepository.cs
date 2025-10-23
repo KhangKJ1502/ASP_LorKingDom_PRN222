@@ -17,5 +17,7 @@ namespace DAL.Interfaces
         Task<bool> ExistsByNameAsync(string name, int? excludeId = null);
         Task<int> SetIsDeletedByBrandAsync(int brandId, bool isDeleted);
 
+        Task<(List<Product> Items, int Total)> QueryStorefrontPagedAsync(string? keyword, int page, int pageSize);
+
     }
 }
