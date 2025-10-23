@@ -17,7 +17,9 @@ namespace BLL.Services
         public async Task<List<ReviewBlogDto>> GetByBlogIdAsync(int blogPostId, int? currentUserId = null)
         {
             var reviews = await _repo.GetByBlogIdAsync(blogPostId);
-            return reviews.Select(r => MapToDto(r, currentUserId)).ToList();
+            // Lọc bỏ các bình luận bị cấm
+            var activeReviews = reviews.Where(r => !r.IsBlocked).ToList();
+            return activeReviews.Select(r => MapToDto(r, currentUserId)).ToList();
         }
 
         public async Task<List<ReviewBlogDto>> GetAllReviewsAsync()
@@ -60,6 +62,7 @@ namespace BLL.Services
 
             review.Comment = dto.Comment?.Trim() ?? review.Comment;
             review.Rating = dto.Rating;
+            review.IsBlocked = dto.IsBlocked;
 
             return await _repo.UpdateAsync(review);
         }
@@ -96,6 +99,7 @@ namespace BLL.Services
                 AccountId = review.AccountId,
                 Rating = review.Rating,
                 Comment = review.Comment,
+                IsBlocked = review.IsBlocked,
                 CreatedAt = review.CreatedAt,
                 AuthorName = review.Account?.AccountName ?? "Anonymous",
                 AuthorEmail = review.Account?.Email,

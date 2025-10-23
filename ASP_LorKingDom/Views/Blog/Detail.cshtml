@@ -79,63 +79,7 @@
             margin-bottom: 1.5rem;
         }
 
-        .article-share-section {
-            background: #f7fafc;
-            padding: 1.5rem;
-            border-radius: 8px;
-            border-left: 4px solid #667eea;
-        }
 
-        .share-title {
-            font-weight: 600;
-            color: #2d3748;
-            margin-bottom: 1rem;
-        }
-
-        .share-buttons {
-            display: flex;
-            gap: 1rem;
-            flex-wrap: wrap;
-        }
-
-        .share-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.6rem 1.2rem;
-            border: 2px solid #e2e8f0;
-            border-radius: 6px;
-            text-decoration: none;
-            color: #4a5568;
-            font-size: 0.95rem;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            cursor: pointer;
-            background: white;
-        }
-
-        .share-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        .share-facebook:hover {
-            border-color: #3b5998;
-            color: #3b5998;
-            background: #f0f4ff;
-        }
-
-        .share-twitter:hover {
-            border-color: #1da1f2;
-            color: #1da1f2;
-            background: #f0f9ff;
-        }
-
-        .share-copy:hover {
-            border-color: #667eea;
-            color: #667eea;
-            background: #f5f7ff;
-        }
 
         /* Sidebar Widgets */
         .sidebar-widget {
@@ -517,24 +461,6 @@
                     }
                 </div>
 
-                <!-- Share Buttons -->
-                <div class="article-share-section mt-5">
-                    <h5 class="share-title">Chia sẻ bài viết</h5>
-                    <div class="share-buttons">
-                        <a href="https://www.facebook.com/sharer/sharer.php?u=@Uri.EscapeDataString(Context.Request.Scheme)://@(Context.Request.Host)@Context.Request.Path"
-                            target="_blank" class="share-btn share-facebook">
-                            <i class="fab fa-facebook-f"></i> Facebook
-                        </a>
-                        <a href="@($"https://twitter.com/intent/tweet?url={Uri.EscapeDataString(Context.Request.Scheme)}://{Context.Request.Host}{Context.Request.Path}&text={Uri.EscapeDataString(Model?.BlogTitle ?? "Check this blog")}")"
-                            target="_blank" class="share-btn share-twitter">
-                            <i class="fab fa-twitter"></i> Twitter
-                        </a>
-                        <button class="share-btn share-copy" onclick="copyToClipboard(window.location.href)">
-                            <i class="fas fa-link"></i> Sao chép liên kết
-                        </button>
-                    </div>
-                </div>
-
                 <!-- Comments Section -->
                 <div class="comments-section mt-5">
                     <h3 class="comments-title">
@@ -547,7 +473,7 @@
                         <div class="comment-form card mb-4">
                             <div class="card-body">
                                 <h5 class="mb-3">Viết bình luận</h5>
-                                <form id="commentForm" method="post" asp-action="AddReview" asp-controller="Blog" asp-route-id="@Model?.BlogPostId" onsubmit="return handleCommentSubmit(event)">
+                                <form id="commentForm" method="post" action="/Blog/@Model.BlogPostId/Reviews" onsubmit="return handleCommentSubmit(event)">
                                     @Html.AntiForgeryToken()
                                     <div class="mb-3">
                                         <textarea name="comment" id="commentText" class="form-control" rows="3"
@@ -658,24 +584,6 @@
 </div>
 
 <script>
-    function copyToClipboard(text) {
-        navigator.clipboard.writeText(text).then(() => {
-            Swal.fire({
-                icon: 'success',
-                title: 'Thành công',
-                text: 'Liên kết đã được sao chép!',
-                timer: 2000,
-                showConfirmButton: false
-            });
-        }).catch(() => {
-            Swal.fire({
-                icon: 'error',
-                title: 'Lỗi',
-                text: 'Không thể sao chép liên kết'
-            });
-        });
-    }
-
     function handleCommentSubmit(event) {
         event.preventDefault();
         

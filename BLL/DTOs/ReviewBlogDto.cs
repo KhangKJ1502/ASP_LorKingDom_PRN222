@@ -7,6 +7,7 @@ namespace BLL.DTOs
         public int AccountId { get; set; }
         public int Rating { get; set; }
         public string? Comment { get; set; }
+        public bool IsBlocked { get; set; }
         public DateTime CreatedAt { get; set; }
 
         // Display fields

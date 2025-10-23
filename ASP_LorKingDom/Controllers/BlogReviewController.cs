@@ -10,18 +10,24 @@ namespace WebUI.Controllers
         private readonly IReviewBlogService _reviewBlogService;
         private readonly IBlogService _blogService;
         private readonly IReviewBlogReplyService _replyService;
+        private readonly IReviewBlogReactionService _reactionService;
+        private readonly IAccountService _accountService;
 
         public BlogReviewController(
             IReviewBlogService reviewBlogService,
             IBlogService blogService,
-            IReviewBlogReplyService replyService)
+            IReviewBlogReplyService replyService,
+            IReviewBlogReactionService reactionService,
+            IAccountService accountService)
         {
             _reviewBlogService = reviewBlogService;
             _blogService = blogService;
             _replyService = replyService;
+            _reactionService = reactionService;
+            _accountService = accountService;
         }
 
-        [HttpGet("Admin/BlogReview/Manage")]
+        [HttpGet("BlogReview/Manage")]
         public async Task<IActionResult> ManageBlogReview(string? q, string? blog, string? user, int page = 1, int pageSize = 10)
         {
             try
@@ -83,7 +89,7 @@ namespace WebUI.Controllers
             }
         }
 
-        [HttpPost("Admin/BlogReview/Delete/{id}")]
+        [HttpPost("BlogReview/Delete/{id}")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteReview(int id)
         {
@@ -107,7 +113,7 @@ namespace WebUI.Controllers
             return RedirectToAction("ManageBlogReview");
         }
 
-        [HttpGet("Admin/BlogReview/Details/{id}")]
+        [HttpGet("BlogReview/Details/{id}")]
         public async Task<IActionResult> GetReviewDetail(int id)
         {
             try
@@ -146,7 +152,7 @@ namespace WebUI.Controllers
             }
         }
 
-        [HttpPost("Admin/BlogReview/Reply/{reviewId}")]
+        [HttpPost("BlogReview/Reply/{reviewId}")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ReplyToReview(int reviewId, string replyContent)
         {
@@ -184,7 +190,7 @@ namespace WebUI.Controllers
             }
         }
 
-        [HttpPost("Admin/BlogReview/DeleteReply/{replyId}")]
+        [HttpPost("BlogReview/DeleteReply/{replyId}")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteReply(int replyId)
         {
@@ -207,6 +213,155 @@ namespace WebUI.Controllers
                 TempData["Error"] = $"Lỗi: {ex.Message}";
                 return RedirectToAction("ManageBlogReview");
             }
+        }
+
+        [HttpPost("BlogReview/ToggleBlock/{id}")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ToggleBlockReview(int id)
+        {
+            try
+            {
+                var review = await _reviewBlogService.GetByIdAsync(id);
+                if (review == null)
+                {
+                    TempData["Error"] = "Bình luận không tồn tại";
+                    return RedirectToAction("ManageBlogReview");
+                }
+
+                // Đảo ngược IsBlocked
+                review.IsBlocked = !review.IsBlocked;
+                await _reviewBlogService.UpdateAsync(id, new ReviewBlogDto
+                {
+                    BlogPostId = review.BlogPostId,
+                    AccountId = review.AccountId,
+                    Rating = review.Rating,
+                    Comment = review.Comment,
+                    IsBlocked = review.IsBlocked
+                });
+
+                TempData["Success"] = review.IsBlocked ? "Đã cấm bình luận" : "Đã gỡ cấm bình luận";
+                return RedirectToAction("ManageBlogReview", new { blog = review.BlogPostId });
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Lỗi: {ex.Message}";
+                return RedirectToAction("ManageBlogReview");
+            }
+        }
+
+        // ==================== Public Review Actions (cho trang chi tiết blog) ====================
+
+        [HttpGet("Blog/{id}/Reviews")]
+        public async Task<IActionResult> GetBlogComments(int id)
+        {
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                var currentUserId = userId != null ? int.Parse(userId) : (int?)null;
+
+                var reviews = await _reviewBlogService.GetByBlogIdAsync(id, currentUserId);
+                return PartialView("_CommentsList", reviews);
+            }
+            catch (Exception ex)
+            {
+                ViewBag.ErrorMessage = ex.Message;
+                return PartialView("_CommentsList", new List<ReviewBlogDto>());
+            }
+        }
+
+        [HttpPost("Blog/{id}/Reviews")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddReview(int id, ReviewBlogDto dto)
+        {
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (userId == null)
+                    return RedirectToAction("Detail", "Blog", new { id });
+
+                var accountId = int.Parse(userId);
+
+                // Check if user already commented
+                if (!await _reviewBlogService.CanCommentAsync(id, accountId))
+                    return BadRequest("Bạn đã bình luận rồi. Mỗi người chỉ được bình luận 1 lần trên mỗi bài viết.");
+
+                dto.BlogPostId = id;
+                dto.AccountId = accountId;
+                dto.Rating = 5; // Default rating
+
+                var reviewId = await _reviewBlogService.CreateAsync(dto);
+
+                return RedirectToAction("Detail", "Blog", new { id });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpPost("Blog/Review/{reviewId}/React")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ReactToReview(int reviewId, string reactionType)
+        {
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (userId == null)
+                    return RedirectToReferrer();
+
+                var accountId = int.Parse(userId);
+
+                if (reactionType != "like" && reactionType != "dislike")
+                    return BadRequest("Reaction type không hợp lệ");
+
+                var review = await _reviewBlogService.GetByIdAsync(reviewId, accountId);
+                if (review == null)
+                    return BadRequest("Bình luận không tồn tại");
+
+                await _reactionService.AddOrUpdateReactionAsync(reviewId, accountId, reactionType);
+
+                return RedirectToAction("Detail", "Blog", new { id = review.BlogPostId });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpPost("Blog/Review/{reviewId}/Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeletePublicReview(int reviewId)
+        {
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (userId == null)
+                    return BadRequest("Bạn cần đăng nhập");
+
+                var accountId = int.Parse(userId);
+                var review = await _reviewBlogService.GetByIdAsync(reviewId, accountId);
+
+                if (review == null)
+                    return BadRequest("Bình luận không tồn tại");
+
+                // Chỉ chủ sở hữu bình luận hoặc admin mới được xoá
+                var user = await _accountService.GetByIdAsync(accountId);
+                if (review.AccountId != accountId && user?.RoleId != 1 && user?.RoleId != 2)
+                    return BadRequest("Bạn không có quyền xoá bình luận này");
+
+                await _reviewBlogService.DeleteAsync(reviewId);
+
+                return RedirectToAction("Detail", "Blog", new { id = review.BlogPostId });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        private IActionResult RedirectToReferrer()
+        {
+            return Redirect(Request.Headers["Referer"].ToString() ?? "/Blog/Index");
         }
     }
 }

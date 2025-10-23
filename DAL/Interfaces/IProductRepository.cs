@@ -16,6 +16,9 @@ namespace DAL.Interfaces
         Task<bool> ExistsBySkuAsync(string sku);
         Task<bool> ExistsByNameAsync(string name, int? excludeId = null);
         Task<int> SetIsDeletedByBrandAsync(int brandId, bool isDeleted);
+        Task<int> SetIsDeletedByCategoryAsync(int categoryId, bool isDeleted);
+        Task<int> SetIsDeletedByMaterialAsync(int materialId, bool isDeleted);
+        Task<int> SetIsDeletedByOriginAsync(int originId, bool isDeleted);
 
         Task<(List<Product> Items, int Total)> QueryStorefrontPagedAsync(string? keyword, int page, int pageSize);
 

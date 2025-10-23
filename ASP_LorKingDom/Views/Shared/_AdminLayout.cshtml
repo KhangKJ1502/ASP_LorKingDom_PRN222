@@ -431,6 +431,7 @@
 	<script src="https://cdn.jsdelivr.net/npm/dayjs@1/locale/vi.js"></script>
 	<!-- ✅ Section riêng của page -->
 	@RenderSection("Scripts", required: false)
+	@Html.AntiForgeryToken()
 </body>
 
 </html>
