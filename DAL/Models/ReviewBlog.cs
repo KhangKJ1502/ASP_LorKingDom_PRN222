@@ -12,6 +12,8 @@ public partial class ReviewBlog
 
     public string? Comment { get; set; }
 
+    public bool IsBlocked { get; set; }
+
     public DateTime CreatedAt { get; set; }
 
     public virtual Account Account { get; set; } = null!;

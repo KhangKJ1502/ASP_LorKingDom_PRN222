@@ -185,7 +185,8 @@
                             <th style="width: 150px;">Người bình luận</th>
                             <th style="width: 180px;">Bài viết</th>
                             <th style="width: 120px;">Tương tác</th>
-                            <th style="width: 100px;">Đánh giá</th>
+                            <th style="width: 100px;">Phản hồi</th>
+                            <th style="width: 80px;">Cấm</th>
                             <th style="width: 130px;">Ngày bình luận</th>
                             <th style="width: 130px; text-align: center;">Hành động</th>
                         </tr>
@@ -215,7 +216,24 @@
                                         <span><i class="fas fa-thumbs-down"></i> @review.DislikeCount</span>
                                     </td>
                                     <td>
-                                        @review.Rating/5 <i class="fas fa-star" style="color: #ffc107;"></i>
+                                        @if (review.Replies?.Any() == true)
+                                        {
+                                            <span class="badge bg-success"><i class="fas fa-check"></i> @review.Replies.Count</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-warning text-dark"><i class="fas fa-clock"></i> Chưa</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (review.IsBlocked)
+                                        {
+                                            <span class="badge bg-danger"><i class="fas fa-lock"></i> Đã cấm</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary"><i class="fas fa-lock-open"></i> Bình thường</span>
+                                        }
                                     </td>
                                     <td>@review.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
                                     <td style="text-align: center;">
@@ -223,14 +241,16 @@
                                             onclick="viewReviewDetail(@review.ReviewBlogId)" title="Xem">
                                             <i class="fas fa-eye"></i>
                                         </button>
-                                        <form method="post" asp-action="DeleteReview" asp-controller="BlogReview"
-                                            asp-route-id="@review.ReviewBlogId" style="display: inline;"
-                                            onsubmit="return confirm('Bạn có chắc chắn muốn xóa bình luận này?');">
-                                            @Html.AntiForgeryToken()
-                                            <button type="submit" class="btn btn-sm btn-danger" title="Xóa">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </form>
+                                        <button type="button"
+                                            class="btn btn-sm @(review.IsBlocked ? "btn-warning" : "btn-danger")"
+                                            onclick="toggleBlockReview(@review.ReviewBlogId, @review.IsBlocked.ToString().ToLower())"
+                                            title="@(review.IsBlocked ? "Gỡ cấm" : "Cấm")">
+                                            <i class="fa-solid @(review.IsBlocked ? "fa-lock-open" : "fa-lock")"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-danger"
+                                            onclick="deleteReview(@review.ReviewBlogId)" title="Xóa">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
                                     </td>
                                 </tr>
                             }
@@ -238,7 +258,7 @@
                         else
                         {
                             <tr>
-                                <td colspan="8" style="text-align: center; color: #999;">Không có bình luận nào.</td>
+                                <td colspan="9" style="text-align: center; color: #999;">Không có bình luận nào.</td>
                             </tr>
                         }
                     </tbody>
@@ -304,10 +324,101 @@
                 document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = this.checked);
             });
 
+            // Toggle Block Review
+            async function toggleBlockReview(reviewId, currentlyBlocked) {
+                const action = currentlyBlocked ? 'gỡ cấm' : 'cấm';
+                const result = await Swal.fire({
+                    title: `Xác nhận ${action}`,
+                    text: `Bạn có chắc chắn muốn ${action} bình luận này?`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Có, xác nhận',
+                    cancelButtonText: 'Hủy'
+                });
+
+                if (result.isConfirmed) {
+                    try {
+                        const formData = new FormData();
+                        const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+                        if (token) {
+                            formData.append('__RequestVerificationToken', token);
+                        }
+
+                        const response = await fetch(`/BlogReview/ToggleBlock/${reviewId}`, {
+                            method: 'POST',
+                            body: formData
+                        });
+
+                        if (response.ok) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Thành công',
+                                text: currentlyBlocked ? 'Đã gỡ cấm bình luận' : 'Đã cấm bình luận',
+                                timer: 1500,
+                                showConfirmButton: false
+                            }).then(() => {
+                                location.reload();
+                            });
+                        } else {
+                            throw new Error('Lỗi server');
+                        }
+                    } catch (error) {
+                        Swal.fire('Lỗi', 'Không thể cập nhật trạng thái', 'error');
+                    }
+                }
+            }
+
+            // Delete Review
+            async function deleteReview(reviewId) {
+                const result = await Swal.fire({
+                    title: 'Xác nhận xóa',
+                    text: 'Bạn có chắc chắn muốn xóa bình luận này? Hành động này không thể hoàn tác.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Có, xóa',
+                    cancelButtonText: 'Hủy'
+                });
+
+                if (result.isConfirmed) {
+                    try {
+                        const formData = new FormData();
+                        const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+                        if (token) {
+                            formData.append('__RequestVerificationToken', token);
+                        }
+
+                        const response = await fetch(`/BlogReview/Delete/${reviewId}`, {
+                            method: 'POST',
+                            body: formData
+                        });
+
+                        if (response.ok) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Thành công',
+                                text: 'Bình luận đã được xóa',
+                                timer: 1500,
+                                showConfirmButton: false
+                            }).then(() => {
+                                location.reload();
+                            });
+                        } else {
+                            throw new Error('Lỗi server');
+                        }
+                    } catch (error) {
+                        Swal.fire('Lỗi', 'Không thể xóa bình luận', 'error');
+                    }
+                }
+            }
+
             // View Review Detail
             async function viewReviewDetail(reviewId) {
                 try {
-                    const response = await fetch(`/Admin/BlogReview/Details/${reviewId}`);
+                    const response = await fetch(`/BlogReview/Details/${reviewId}`);
                     if (!response.ok) throw new Error('Không thể tải chi tiết bình luận');
 
                     const review = await response.json();
@@ -317,49 +428,96 @@
                         repliesHtml = '<h6 class="mt-3 mb-2"><strong>Phản hồi:</strong></h6>';
                         review.replies.forEach(reply => {
                             repliesHtml += `
-                                <div style="background: white; padding: 0.75rem; margin-bottom: 0.5rem; border-left: 3px solid #667eea; border-radius: 4px;">
-                                    <p class="mb-1"><strong>${reply.authorName}</strong></p>
-                                    <p class="mb-1">${reply.content}</p>
-                                    <small class="text-muted">${reply.createdAt}</small>
-                                </div>
-                            `;
+                                    <div style="background: white; padding: 0.75rem; margin-bottom: 0.5rem; border-left: 3px solid #667eea; border-radius: 4px;">
+                                        <p class="mb-1"><strong>${reply.authorName}</strong></p>
+                                        <p class="mb-1">${reply.content}</p>
+                                        <small class="text-muted">${reply.createdAt}</small>
+                                    </div>
+                                `;
                         });
+                    } else {
+                        repliesHtml = '<div class="alert alert-info">Chưa có phản hồi nào</div>';
                     }
 
                     const content = `
-                        <div class="row g-3">
-                            <div class="col-md-12">
-                                <p><strong>Nội dung:</strong></p>
-                                <div style="background: white; padding: 0.75rem; border: 1px solid #e0e0e0; border-radius: 4px; margin-bottom: 1rem;">
-                                    ${review.content}
+                            <div class="row g-3">
+                                <div class="col-md-12">
+                                    <p><strong>Nội dung:</strong></p>
+                                    <div style="background: white; padding: 0.75rem; border: 1px solid #e0e0e0; border-radius: 4px; margin-bottom: 1rem;">
+                                        ${review.content}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Người bình luận:</strong> ${review.authorName}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Email:</strong> ${review.authorEmail || 'N/A'}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Tương tác:</strong> 👍 ${review.likeCount} | 👎 ${review.dislikeCount}</p>
+                                </div>
+                                <div class="col-md-12">
+                                    <p><strong>Ngày bình luận:</strong> ${review.createdAt}</p>
+                                </div>
+                                <div class="col-md-12">
+                                    <h6><strong>Phản hồi:</strong></h6>
+                                    ${repliesHtml}
+                                    <form id="replyForm" style="margin-top: 1rem;">
+                                        <textarea name="replyContent" class="form-control" rows="2" placeholder="Nhập phản hồi..."></textarea>
+                                        <button type="button" class="btn btn-primary btn-sm mt-2" onclick="submitReply(${reviewId})">
+                                            <i class="fas fa-paper-plane me-1"></i>Gửi phản hồi
+                                        </button>
+                                    </form>
                                 </div>
                             </div>
-                            <div class="col-md-6">
-                                <p><strong>Người bình luận:</strong> ${review.authorName}</p>
-                            </div>
-                            <div class="col-md-6">
-                                <p><strong>Email:</strong> ${review.authorEmail || 'N/A'}</p>
-                            </div>
-                            <div class="col-md-6">
-                                <p><strong>Đánh giá:</strong> ${review.rating}/5 <i class="fas fa-star" style="color: #ffc107;"></i></p>
-                            </div>
-                            <div class="col-md-6">
-                                <p><strong>Tương tác:</strong> 👍 ${review.likeCount} | 👎 ${review.dislikeCount}</p>
-                            </div>
-                            <div class="col-md-12">
-                                <p><strong>Ngày bình luận:</strong> ${review.createdAt}</p>
-                            </div>
-                            <div class="col-md-12">
-                                ${repliesHtml}
-                            </div>
-                        </div>
-                    `;
+                        `;
 
                     document.getElementById('commentDetailContent').innerHTML = content;
                     const modal = new bootstrap.Modal(document.getElementById('commentDetailModal'));
                     modal.show();
                 } catch (error) {
                     Swal.fire('Lỗi', error.message, 'error');
+                }
+            }
+
+            // Submit Reply
+            async function submitReply(reviewId) {
+                const replyContent = document.querySelector('textarea[name="replyContent"]')?.value.trim();
+                if (!replyContent) {
+                    Swal.fire('Thông báo', 'Vui lòng nhập phản hồi', 'warning');
+                    return;
+                }
+
+                try {
+                    const formData = new FormData();
+                    formData.append('replyContent', replyContent);
+
+                    // Thêm CSRF token
+                    const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+                    if (token) {
+                        formData.append('__RequestVerificationToken', token);
+                    }
+
+                    const response = await fetch(`/BlogReview/Reply/${reviewId}`, {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (response.ok) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Thành công',
+                            text: 'Phản hồi đã được gửi',
+                            timer: 1500,
+                            showConfirmButton: false
+                        }).then(() => {
+                            location.reload();
+                        });
+                    } else {
+                        throw new Error('Lỗi server');
+                    }
+                } catch (error) {
+                    Swal.fire('Lỗi', 'Không thể gửi phản hồi', 'error');
                 }
             }
         </script>
