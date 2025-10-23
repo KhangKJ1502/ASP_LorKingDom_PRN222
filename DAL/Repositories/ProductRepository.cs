@@ -2,6 +2,7 @@
 using DAL.Interfaces;
 using DAL.Models;
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -146,5 +147,46 @@ namespace DAL.Repositories
             await _ctx.SaveChangesAsync();
             return items.Count;
         }
+
+        public async Task<(List<Product> Items, int Total)> QueryStorefrontPagedAsync(string? keyword, int page, int pageSize)
+        {
+            if (page <= 0) page = 1;
+            if (pageSize <= 0) pageSize = 16;
+
+            var q = _ctx.Products
+                .AsNoTracking()
+                .Include(p => p.Category)
+                .Include(p => p.Brand)
+                .Include(p => p.ProductImages) // để lấy MainImageUrl
+                .Where(p =>
+                    p.IsDeleted == false &&
+                    p.Quantity > 0 &&
+                    p.ProductStatus == "Available" &&
+                    p.CategoryId != null &&
+                    p.MaterialId != null &&
+                    p.AgeId != null &&
+                    p.SexId != null &&
+                    p.PriceRangeId != null &&
+                    p.BrandId != null &&
+                    p.OriginId != null
+                );
+
+            if (!string.IsNullOrWhiteSpace(keyword))
+            {
+                q = q.Where(p => p.ProductName.Contains(keyword) || p.Sku.Contains(keyword));
+            }
+
+            var total = await q.CountAsync();
+
+            var items = await q
+                .OrderByDescending(p => p.CreatedAt)
+                .ThenByDescending(p => p.ProductId)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return (items, total);
+        }
     }
+
 }

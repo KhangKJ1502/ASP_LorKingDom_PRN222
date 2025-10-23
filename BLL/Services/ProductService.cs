@@ -190,5 +190,19 @@ namespace BLL.Services
             BrandName = x.Brand?.BrandName,
             MainImageUrl = x.ProductImages?.FirstOrDefault(pi => pi.IsMain)?.ImageUrl
         };
+
+        public async Task<PagedResult<ProductDto>> GetStorefrontPagedAsync(string? keyword, int page, int pageSize)
+        {
+            // Gọi xuống repo để lọc + phân trang ngay trong DB (tối ưu)
+            var (items, total) = await _repo.QueryStorefrontPagedAsync(keyword, page, pageSize);
+            return new PagedResult<ProductDto>
+            {
+                Items = items.Select(Map).ToList(),
+                Total = total,
+                Page = page,
+                PageSize = pageSize
+            };
+        }
+
     }
 }

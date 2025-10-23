@@ -9,5 +9,7 @@ namespace BLL.Interfaces
         Task<ProductDto?> GetByIdAsync(int id);
         Task<int> CreateAsync(ProductDto dto);     // dto.Id phải = 0
         Task<bool> UpdateAsync(ProductDto dto);    // dto.Id > 0
+        Task<PagedResult<ProductDto>> GetStorefrontPagedAsync(string? keyword, int page, int pageSize);
+
     }
 }
