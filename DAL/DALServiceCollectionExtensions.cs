@@ -52,6 +52,10 @@ namespace DAL
             services.AddScoped<IRoleRepository, RoleRepository>();
             services.AddSingleton<IChatStoreRepository, InMemoryChatStoreRepository>();
 
+            //Review Product
+            services.AddScoped<IReviewProductRepository, ReviewProductRepository>();
+            services.AddScoped<IReviewProductReplyRepository, ReviewProductReplyRepository>();
+            services.AddScoped<IReviewProductReactionRepository, ReviewProductReactionRepository>();
 
             return services;
         }

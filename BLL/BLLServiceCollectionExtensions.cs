@@ -51,6 +51,11 @@ namespace BLL
             services.AddScoped<IReviewBlogReactionService, ReviewBlogReactionService>();
             services.AddScoped<IReviewBlogReplyService, ReviewBlogReplyService>();
 
+            // Nhánh Review Product
+            services.AddScoped<IReviewProductService, ReviewProductService>();
+            services.AddScoped<IReviewProductReplyService, ReviewProductReplyService>();
+            services.AddScoped<IReviewProductReactionService, ReviewProductReactionService>();
+
             return services;
         }
     }
