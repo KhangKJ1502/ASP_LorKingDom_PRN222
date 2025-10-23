@@ -14,10 +14,11 @@ namespace BLL.Services
     public class OriginService : IOriginService
     {
         private readonly IOriginRepository _repo;
-
-        public OriginService(IOriginRepository repo)
+        private readonly IProductRepository _productRepo;
+        public OriginService(IOriginRepository repo, IProductRepository productRepo)
         {
             _repo = repo;
+            _productRepo = productRepo;
         }
 
         public async Task<List<OriginDto>> GetAllAsync(string? keyword = null)
@@ -71,6 +72,11 @@ namespace BLL.Services
             e.IsDeleted = isDeleted;
 
             await _repo.UpdateAsync(e);
+            if (isDeleted)
+            {
+                await _productRepo.SetIsDeletedByOriginAsync(id, true);
+                // Khi bật lại Origin: KHÔNG tự bật Product con (theo quy ước)
+            }
             return true;
         }
 
