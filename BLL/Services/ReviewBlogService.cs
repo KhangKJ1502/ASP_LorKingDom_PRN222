@@ -104,6 +104,7 @@ namespace BLL.Services
                 AuthorName = review.Account?.AccountName ?? "Anonymous",
                 AuthorEmail = review.Account?.Email,
                 AuthorImage = review.Account?.Image,
+                BlogTitle = review.BlogPost?.BlogTitle,
                 LikeCount = likeCount,
                 DislikeCount = dislikeCount,
                 CurrentUserReactionType = userReactionType,

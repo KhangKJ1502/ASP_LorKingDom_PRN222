@@ -14,11 +14,38 @@ namespace WebUI.Controllers
         }
 
         // GET: /BlogCategory/Manage
-        public async Task<IActionResult> Manage(string? q)
+        public async Task<IActionResult> Manage(string? q, int page = 1, int pageSize = 10)
         {
-            var list = await _service.GetAllAsync();
+            var allCategories = await _service.GetAllAsync();
+
+            // Tìm kiếm theo tên hoặc mô tả
+            if (!string.IsNullOrWhiteSpace(q))
+            {
+                allCategories = allCategories
+                    .Where(c =>
+                        (c.BlogCategoryName ?? "").Contains(q, StringComparison.OrdinalIgnoreCase) ||
+                        (c.Description ?? "").Contains(q, StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+            }
+
+            // Sắp xếp theo ngày cập nhật gần nhất
+            allCategories = allCategories.OrderByDescending(c => c.UpdatedAt ?? c.CreatedAt).ToList();
+
+            // Pagination
+            var totalCount = allCategories.Count;
+            var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+            var pagedCategories = allCategories
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
             ViewBag.Query = q;
-            return View("~/Views/Admin/ManageBlogCategory.cshtml", list);
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.PageSize = pageSize;
+            ViewBag.TotalCount = totalCount;
+
+            return View("~/Views/Admin/ManageBlogCategory.cshtml", pagedCategories);
         }
 
         // POST: /BlogCategory/SaveBlogCategory
@@ -38,36 +65,42 @@ namespace WebUI.Controllers
                         CreatedAt = DateTime.Now
                     };
                     await _service.CreateAsync(dto);
+                    return Ok(new { success = true, message = "Chuyên mục blog đã được tạo thành công!" });
                 }
                 else
                 {
                     // Cập nhật
                     var existing = await _service.GetByIdAsync(id);
                     if (existing == null)
-                        throw new InvalidOperationException("Không tìm thấy chuyên mục blog.");
+                        return BadRequest(new { success = false, message = "Không tìm thấy chuyên mục blog." });
 
                     existing.BlogCategoryName = name;
                     existing.Description = description;
                     await _service.UpdateAsync(id, existing);
+                    return Ok(new { success = true, message = "Chuyên mục blog đã được cập nhật thành công!" });
                 }
-
-                TempData["Success"] = "Lưu chuyên mục blog thành công!";
-                return RedirectToAction(nameof(Manage));
             }
             catch (Exception ex)
             {
-                var list = await _service.GetAllAsync();
-                ViewBag.ErrorMessage = ex.Message;
-                ViewBag.ShowErrorModal = true;
+                return BadRequest(new { success = false, message = "Đã xảy ra lỗi: " + ex.Message });
+            }
+        }
 
-                if (id != 0)
-                {
-                    var dto = await _service.GetByIdAsync(id)
-                              ?? new BlogCategoryDto { BlogCategoryId = id, BlogCategoryName = name, Description = description };
-                    ViewBag.EditBlogCategory = dto;
-                }
+        // GET: /BlogCategory/GetById/{id}
+        [HttpGet("BlogCategory/GetById/{id}")]
+        public async Task<IActionResult> GetById(int id)
+        {
+            try
+            {
+                var category = await _service.GetByIdAsync(id);
+                if (category == null)
+                    return NotFound();
 
-                return View("~/Views/Admin/ManageBlogCategory.cshtml", list);
+                return Json(category);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
             }
         }
 
@@ -76,10 +109,7 @@ namespace WebUI.Controllers
         {
             var dto = await _service.GetByIdAsync(id);
             if (dto == null)
-            {
-                TempData["Error"] = "Không tìm thấy chuyên mục blog.";
                 return RedirectToAction(nameof(Manage));
-            }
 
             var list = await _service.GetAllAsync();
             ViewBag.EditBlogCategory = dto;
@@ -95,15 +125,14 @@ namespace WebUI.Controllers
             {
                 var success = await _service.SoftDeleteAsync(id);
                 if (!success)
-                    throw new InvalidOperationException("Không thể xóa chuyên mục blog.");
+                    return BadRequest(new { success = false, message = "Không thể xóa chuyên mục blog." });
 
-                TempData["Success"] = "Xóa chuyên mục blog thành công!";
+                return Ok(new { success = true, message = "Chuyên mục blog đã được xóa thành công!" });
             }
             catch (Exception ex)
             {
-                TempData["Error"] = ex.Message;
+                return BadRequest(new { success = false, message = "Đã xảy ra lỗi: " + ex.Message });
             }
-            return RedirectToAction(nameof(Manage));
         }
     }
 }

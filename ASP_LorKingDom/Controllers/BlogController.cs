@@ -88,12 +88,66 @@ namespace WebUI.Controllers
         }
 
         [HttpGet("Blog/Manage")]
-        public async Task<IActionResult> ManageBlog(string? q)
+        public async Task<IActionResult> ManageBlog(string? q, string? category, string? status, bool? featured, int page = 1, int pageSize = 10)
         {
-            var blogs = await _blogService.GetAllAsync(q);
-            ViewBag.Query = q;
+            var blogs = await _blogService.GetAllAsync(null); // Lấy tất cả, không filter ở tầng service
 
-            return View("~/Views/Admin/ManageBlog.cshtml", blogs);
+            // Tìm kiếm theo tiêu đề hoặc tác giả
+            if (!string.IsNullOrWhiteSpace(q))
+            {
+                blogs = blogs
+                    .Where(b => (b.BlogTitle?.Contains(q, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                                (b.AuthorName?.Contains(q, StringComparison.OrdinalIgnoreCase) ?? false))
+                    .ToList();
+            }
+
+            // Lọc theo chuyên mục
+            if (!string.IsNullOrWhiteSpace(category))
+            {
+                blogs = blogs
+                    .Where(b => b.CategoryNames?.Contains(category, StringComparer.OrdinalIgnoreCase) ?? false)
+                    .ToList();
+            }
+
+            // Lọc theo trạng thái
+            if (!string.IsNullOrWhiteSpace(status))
+            {
+                bool isPublished = status == "published";
+                blogs = blogs.Where(b => b.IsPublished == isPublished).ToList();
+            }
+
+            // Lọc theo nổi bật
+            if (featured.HasValue)
+            {
+                blogs = blogs.Where(b => b.IsFeatured == featured.Value).ToList();
+            }
+
+            // Sắp xếp
+            blogs = blogs.OrderByDescending(b => b.CreatedAt).ToList();
+
+            // Pagination
+            var totalCount = blogs.Count;
+            var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+            var pagedBlogs = blogs
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            // Load danh sách chuyên mục cho dropdown
+            var categories = await _categoryService.GetAllAsync();
+            var categoryNames = categories.Select(c => c.BlogCategoryName).Distinct().ToList();
+
+            ViewBag.Query = q;
+            ViewBag.CategoryFilter = category;
+            ViewBag.StatusFilter = status;
+            ViewBag.FeaturedFilter = featured;
+            ViewBag.Categories = categoryNames;
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.PageSize = pageSize;
+            ViewBag.TotalCount = totalCount;
+
+            return View("~/Views/Admin/ManageBlog.cshtml", pagedBlogs);
         }
 
         [HttpGet("Blog/GetDetail/{id}")]

@@ -3,37 +3,16 @@
     ViewData["Title"] = "Quản lý bài viết - ToyLand Admin";
     Layout = "_AdminLayout";
     var q = (string?)ViewBag.Query ?? "";
+    var categoryFilter = (string?)ViewBag.CategoryFilter ?? "";
+    var statusFilter = (string?)ViewBag.StatusFilter ?? "";
+    var featuredFilter = (bool?)ViewBag.FeaturedFilter;
+    var currentPage = (int?)ViewBag.CurrentPage ?? 1;
+    var totalPages = (int?)ViewBag.TotalPages ?? 1;
+    var categories = (List<string>?)ViewBag.Categories ?? new List<string>();
 }
 
 <style>
     /* Giữ nguyên CSS từ trước */
-    .search-box .form-control {
-        border: 1px solid #000 !important;
-        box-shadow: none !important;
-    }
-
-    .search-box .btn {
-        border: 1px solid #000 !important;
-        border-left: none !important;
-    }
-
-    .toast-top-right {
-        top: 120px !important;
-        right: 24px !important;
-    }
-
-    #liveToast.toast {
-        min-width: 520px;
-        padding: 1rem 1.25rem;
-        border-radius: 12px;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
-    }
-
-    #liveToast .toast-body {
-        font-size: 1.1rem;
-        font-weight: 600;
-    }
-
     .deleted-row {
         opacity: 0.6;
         background: #f8f9fa;
@@ -151,30 +130,43 @@
         </div>
 
         <div class="card-body">
-            <!-- Tìm kiếm -->
+            <!-- Tìm kiếm và Lọc -->
             <form class="mb-4" method="get" asp-action="ManageBlog" asp-controller="Blog">
-                <div class="input-group search-box">
-                    <input type="text" name="q" value="@q" class="form-control" placeholder="Tìm kiếm bài viết...">
-                    <button class="btn btn-outline-secondary" type="submit">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                    </button>
+                <div class="row g-2 mb-3">
+                    <div class="col-md-4">
+                        <input type="text" name="q" value="@q" class="form-control"
+                            placeholder="Tìm theo tiêu đề hoặc tác giả...">
+                    </div>
+                    <div class="col-md-2">
+                        <select name="category" class="form-control">
+                            <option value="">Tất cả chuyên mục</option>
+                            @foreach (var cat in categories)
+                            {
+                                <option value="@cat" selected="@(categoryFilter == cat)">@cat</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <select name="status" class="form-control">
+                            <option value="">Tất cả trạng thái</option>
+                            <option value="published" selected="@(statusFilter == "published")">Xuất bản</option>
+                            <option value="draft" selected="@(statusFilter == "draft")">Nháp</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <select name="featured" class="form-control">
+                            <option value="">Tất cả</option>
+                            <option value="true" selected="@(featuredFilter == true)">Nổi bật</option>
+                            <option value="false" selected="@(featuredFilter == false)">Không nổi bật</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn btn-primary w-100" type="submit">
+                            <i class="fa-solid fa-magnifying-glass"></i> Tìm kiếm
+                        </button>
+                    </div>
                 </div>
             </form>
-
-            @if (TempData["Error"] is string e)
-            {
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    @e
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            }
-            @if (TempData["Success"] is string s)
-            {
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    @s
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            }
 
             <!-- Table -->
             <div class="table-responsive">
@@ -188,6 +180,7 @@
                             <th>Tiêu đề</th>
                             <th style="width: 120px;">Tác giả</th>
                             <th style="width: 150px;">Chuyên mục</th>
+                            <th style="width: 80px;">Nổi bật</th>
                             <th style="width: 100px;">Trạng thái</th>
                             <th style="width: 130px;">Ngày cập nhật</th>
                             <th style="width: 100px;">Ngày tạo</th>
@@ -206,11 +199,11 @@
                                     <td>
                                         <div class="thumbnail-cell">
                                             <img src="@(blog.BlogThumbnail ?? "https://via.placeholder.com/70x60?text=No+Image")"
-                                                 class="table-thumbnail" alt="@blog.BlogTitle">
+                                                class="table-thumbnail" alt="@blog.BlogTitle">
                                         </div>
                                     </td>
                                     <td>
-                                        <h6 class="blog-title cursor-pointer" onclick="viewBlogDetail(@blog.BlogPostId)">
+                                        <h6 class="blog-title cursor-pointer" onclick="viewBlogDetail(@blog.BlogPostId)" title="@blog.BlogTitle">
                                             @blog.BlogTitle
                                         </h6>
                                     </td>
@@ -219,6 +212,16 @@
                                         @foreach (var cat in blog.CategoryNames)
                                         {
                                             <span class="category-badge">@cat</span>
+                                        }
+                                    </td>
+                                    <td style="text-align: center;">
+                                        @if (blog.IsFeatured)
+                                        {
+                                            <span class="badge bg-warning"><i class="fas fa-star"></i> Có</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">Không</span>
                                         }
                                     </td>
                                     <td>
@@ -238,13 +241,15 @@
                                     <td><span class="date-text">@(blog.UpdatedAt?.ToString("dd/MM/yyyy HH:mm") ?? blog.CreatedAt.ToString("dd/MM/yyyy HH:mm"))</span></td>
                                     <td><span class="date-text">@blog.CreatedAt.ToString("dd/MM/yyyy HH:mm")</span></td>
                                     <td style="text-align: center;">
-                                        <button type="button" class="btn btn-sm btn-info" onclick="viewBlogDetail(@blog.BlogPostId)" title="Xem">
+                                        <button type="button" class="btn btn-sm btn-info"
+                                            onclick="viewBlogDetail(@blog.BlogPostId)" title="Xem">
                                             <i class="fas fa-eye"></i>
                                         </button>
                                         <a href="/Blog/Edit/@blog.BlogPostId" class="btn btn-sm btn-warning" title="Sửa">
                                             <i class="fas fa-edit"></i>
                                         </a>
-                                        <button type="button" class="btn btn-sm btn-danger" onclick="confirmDeleteBlog(@blog.BlogPostId)" title="Xóa">
+                                        <button type="button" class="btn btn-sm btn-danger"
+                                            onclick="confirmDeleteBlog(@blog.BlogPostId)" title="Xóa">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </td>
@@ -254,7 +259,7 @@
                         else
                         {
                             <tr>
-                                <td colspan="8" class="text-center text-muted">Không có bài viết nào.</td>
+                                <td colspan="10" class="text-center text-muted">Không có bài viết nào.</td>
                             </tr>
                         }
                     </tbody>
@@ -264,20 +269,28 @@
             <!-- Pagination -->
             <nav class="mt-4" aria-label="Blog pagination">
                 <ul class="pagination justify-content-center">
-                    <li class="page-item disabled">
-                        <span class="page-link"><i class="fas fa-chevron-left me-1"></i>Trước</span>
+                    <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                        <a class="page-link"
+                            href="@Url.Action("ManageBlog", "Blog", new { q, category = categoryFilter, status = statusFilter, featured = featuredFilter, page = currentPage - 1 })">
+                            <i class="fas fa-chevron-left me-1"></i>Trước
+                        </a>
                     </li>
-                    <li class="page-item active">
-                        <span class="page-link">1</span>
-                    </li>
-                    <li class="page-item">
-                        <a class="page-link" href="#">2</a>
-                    </li>
-                    <li class="page-item">
-                        <a class="page-link" href="#">3</a>
-                    </li>
-                    <li class="page-item">
-                        <a class="page-link" href="#">Sau <i class="fas fa-chevron-right ms-1"></i></a>
+
+                    @for (int i = 1; i <= totalPages; i++)
+                    {
+                        <li class="page-item @(i == currentPage ? "active" : "")">
+                            <a class="page-link"
+                                href="@Url.Action("ManageBlog", "Blog", new { q, category = categoryFilter, status = statusFilter, featured = featuredFilter, page = i })">
+                                @i
+                            </a>
+                        </li>
+                    }
+
+                    <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                        <a class="page-link"
+                            href="@Url.Action("ManageBlog", "Blog", new { q, category = categoryFilter, status = statusFilter, featured = featuredFilter, page = currentPage + 1 })">
+                            Sau <i class="fas fa-chevron-right ms-1"></i>
+                        </a>
                     </li>
                 </ul>
             </nav>
@@ -288,7 +301,7 @@
 <!-- Modal View Detail -->
 <div class="modal fade" id="blogDetailModal" tabindex="-1" aria-labelledby="blogDetailLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content">
+        <div class="modal-content" id="blogModal">
             <div class="modal-header">
                 <h5 class="modal-title" id="blogDetailLabel">
                     <i class="fa-solid fa-blog me-2"></i>Chi tiết bài viết
@@ -307,7 +320,8 @@
 
 <!-- Toast lỗi -->
 <div class="toast-container position-fixed p-3 toast-top-right" style="z-index: 2080;">
-    <div id="liveToast" class="toast align-items-center text-bg-danger border-0" role="alert" aria-live="assertive" aria-atomic="true">
+    <div id="liveToast" class="toast align-items-center text-bg-danger border-0" role="alert" aria-live="assertive"
+        aria-atomic="true">
         <div class="d-flex">
             <div class="toast-body fs-5 fw-semibold">
                 <i class="fa-solid fa-circle-exclamation me-2"></i>
@@ -319,7 +333,8 @@
 </div>
 
 @section Scripts {
-    <script>        
+    <script>
+        dayjs.locale('vi');
 
         // Select All
         document.getElementById('selectAll')?.addEventListener('change', function () {
@@ -333,38 +348,42 @@
                 if (!response.ok) throw new Error('Không thể tải chi tiết bài viết');
 
                 const blog = await response.json();
+                const updatedAtFormatted = blog.updatedAt ? dayjs(blog.updatedAt).format('DD/MM/YYYY HH:mm') : dayjs(blog.createdAt).format('DD/MM/YYYY HH:mm');
+                const createdAtFormatted = dayjs(blog.createdAt).format('DD/MM/YYYY HH:mm');
+
                 const content = `
-                    <div class="row g-3">
-                        <div class="col-md-12">
-                            <img src="${blog.blogThumbnail || 'https://upload.wikimedia.org/wikipedia/commons/d/d1/Image_not_available.png'}"
-                                 class="img-fluid rounded border" style="max-height: 300px; width: 100%; object-fit: cover;">
+                        <div class="row g-3">
+                            <div class="col-md-12">
+                                <img src="${blog.blogThumbnail || 'https://upload.wikimedia.org/wikipedia/commons/d/d1/Image_not_available.png'}"
+                                     class="img-fluid rounded border" style="max-height: 300px; width: 100%; object-fit: cover;">
+                            </div>
+                            <div class="col-md-12">
+                                <h5><strong>Tiêu đề:</strong> ${blog.blogTitle}</h5>
+                            </div>
+                            <div class="col-md-12">
+                                <p><strong>Tác giả:</strong> ${blog.authorName}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Ngày cập nhật:</strong> ${updatedAtFormatted}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Ngày tạo:</strong> ${createdAtFormatted}</p>
+                            </div>
+                            <div class="col-md-12">
+                                <p class="mb-2"><strong>Chuyên mục:</strong> ${(blog.categoryNames || []).join(', ')}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Trạng thái:</strong> ${blog.isPublished ? '<span class="badge bg-success"><i class="fas fa-check-circle"></i> Xuất bản</span>' : '<span class="badge bg-secondary"><i class="fas fa-file"></i> Nháp</span>'}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Nổi bật:</strong> ${blog.isFeatured ? '<span class="badge bg-warning"><i class="fas fa-star"></i> Có</span>' : '<span class="badge bg-secondary">Không</span>'}</p>
+                            </div>
+                            <div class="col-md-12">
+                                <p><strong>Mô tả:</strong></p>
+                                <p class="text-muted">${blog.blogContent || 'Không có mô tả'}</p>
+                            </div>
                         </div>
-                        <div class="col-md-12">
-                            <h5><strong>Tiêu đề:</strong> ${blog.blogTitle}</h5>
-                        </div>
-                        <div class="col-md-12">
-                            <p><strong>Tác giả:</strong> ${blog.authorName}</p>
-                        </div>
-                        <div class="col-md-6">
-                            <p><strong>Ngày cập nhật:</strong> ${dayjs(blog.updatedAt).format('DD/MM/YYYY HH:mm')}</p>
-                        </div>
-                        <div class="col-md-6">
-                            <p><strong>Ngày tạo:</strong> ${dayjs(blog.createdAt).format('DD/MM/YYYY HH:mm')}</p>
-                        </div>
-                        <div class="col-md-12">
-                            <p class="mb-2"><strong>Mô tả:</strong> ${blog.blogContent}</p>
-                        </div>
-                        <div class="col-md-12">
-                            <p><strong>Chuyên mục:</strong> ${(blog.categoryNames || []).join(', ')}</p>
-                        </div>
-                        <div class="col-md-12">
-                            <p><strong>Trạng thái:</strong> ${blog.isPublished ? '<span class="badge bg-success">Xuất bản</span>' : '<span class="badge bg-secondary">Nháp</span>'}</p>
-                        </div>
-                        <div class="col-md-12">
-                            <p><strong>Nổi bật:</strong> ${blog.isFeatured ? '<span class="badge bg-warning"><i class="fas fa-star"></i> Có</span>' : '<span class="badge bg-secondary">Không</span>'}</p>
-                         </div>
-                    </div>
-                `;
+                    `;
                 document.getElementById('blogDetailContent').innerHTML = content;
                 const modal = new bootstrap.Modal(document.getElementById('blogDetailModal'));
                 modal.show();
@@ -399,10 +418,7 @@
 
                 const response = await fetch(`/Blog/Delete/${blogId}`, {
                     method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-CSRF-TOKEN': document.querySelector('input[name="__RequestVerificationToken"]')?.value
-                    }
+                    body: formData
                 });
 
                 if (response.ok) {
@@ -416,17 +432,5 @@
                 Swal.fire('Lỗi', error.message, 'error');
             }
         }
-
-        // Show Toast Error
-        document.addEventListener('DOMContentLoaded', function () {
-            const hasError = '@(ViewBag.ShowErrorModal == true ? "true" : "false")';
-            if (hasError === "true") {
-                const toastEl = document.getElementById('liveToast');
-                if (toastEl) {
-                    const toast = new bootstrap.Toast(toastEl, { delay: 5000 });
-                    toast.show();
-                }
-            }
-        });
     </script>
 }

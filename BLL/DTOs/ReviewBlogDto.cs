@@ -14,6 +14,7 @@ namespace BLL.DTOs
         public string? AuthorName { get; set; }
         public string? AuthorEmail { get; set; }
         public string? AuthorImage { get; set; }
+        public string? BlogTitle { get; set; }
         public int LikeCount { get; set; }
         public int DislikeCount { get; set; }
         public bool? CurrentUserReactionType { get; set; } // null = no reaction, true = like, false = dislike
