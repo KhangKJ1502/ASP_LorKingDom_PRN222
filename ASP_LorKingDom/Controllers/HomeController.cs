@@ -18,27 +18,46 @@ namespace ASP_LorKingDom.Controllers
 
 
 
-        public async Task<IActionResult> Index(string? q)
+        public async Task<IActionResult> Index(string? q, int page = 1, int pageSize = 16)
         {
+            if (page <= 0) page = 1;
+            if (pageSize <= 0) pageSize = 16;
+
             var all = await _productSvc.GetAllAsync(q);
 
-            var products = all
-                .Where(p => p.IsDeleted == false
-                            && p.StockQuantity > 0
-                            && p.ProductStatus == "Available"
-                            && p.CategoryId != null
-                            && p.MaterialId != null
-                            && p.AgeId != null
-                            && p.SexId != null
-                            && p.PriceRangeId != null
-                            && p.BrandId != null
-                            && p.OriginId != null)
-                .OrderByDescending(p => p.CreatedAt ?? DateTime.MinValue)
-                .Take(12)
+            var filtered = all.Where(p =>
+                !p.IsDeleted &&
+                p.StockQuantity > 0 &&
+                p.ProductStatus == "Available" &&
+                p.CategoryId != null &&
+                p.MaterialId != null &&
+                p.AgeId != null &&
+                p.SexId != null &&
+                p.PriceRangeId != null &&
+                p.BrandId != null &&
+                p.OriginId != null
+            );
+
+            var total = filtered.Count();
+
+            var items = filtered
+                .OrderByDescending(p => p.CreatedAt)   
+                .ThenByDescending(p => p.Id)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .ToList();
 
-            return View(products);
+            var model = new BLL.DTOs.PagedResult<BLL.DTOs.ProductDto>
+            {
+                Items = items,
+                Total = total,
+                Page = page,
+                PageSize = pageSize
+            };
+
+            return View(model);
         }
+
 
         public IActionResult Privacy()
         {
