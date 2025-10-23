@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace DAL.Models;
+﻿namespace DAL.Models;
 
 public partial class Voucher
 {
@@ -9,7 +6,7 @@ public partial class Voucher
 
     public int VoucherTypeId { get; set; }
 
-    public int CreateBy { get; set; }
+    public int? CreateBy { get; set; }
 
     public string VoucherCode { get; set; } = null!;
 
@@ -29,7 +26,13 @@ public partial class Voucher
 
     public string Status { get; set; } = null!;
 
-    public DateTime CreateAt { get; set; }
+    public DateTime CreatedAt { get; set; }
 
-    public DateTime? UpdateAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
+
+    public virtual Account? CreateByNavigation { get; set; }
+
+    public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
+
+    public virtual VoucherType VoucherType { get; set; } = null!;
 }

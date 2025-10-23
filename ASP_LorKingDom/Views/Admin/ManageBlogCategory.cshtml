@@ -1,0 +1,345 @@
+﻿@model IEnumerable<BLL.DTOs.BlogCategoryDto>
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Quản Lí Chuyên Mục Blog";
+    var q = (string?)ViewBag.Query ?? "";
+    var currentPage = (int?)ViewBag.CurrentPage ?? 1;
+    var totalPages = (int?)ViewBag.TotalPages ?? 1;
+}
+
+<style>
+    .deleted-row {
+        opacity: 0.6;
+        background: #f8f9fa;
+    }
+
+    #editModal .modal-content {
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    }
+
+    #editModal .modal-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 16px 16px 0 0;
+        padding: 1.5rem;
+        border: none;
+    }
+
+    #editModal .modal-title {
+        font-weight: 600;
+        font-size: 1.25rem;
+    }
+
+    #editModal .btn-close {
+        filter: brightness(0) invert(1);
+        opacity: 0.8;
+    }
+
+    #editModal .modal-body {
+        padding: 2rem;
+        background-color: #f8f9fa;
+    }
+</style>
+
+<div class="container-fluid px-5">
+    <h1 class="mt-4">Quản Lí Chuyên Mục Blog</h1>
+
+    <!-- Form thêm mới -->
+    <form class="mt-4" id="addCategoryForm" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="id" value="0" />
+
+        <div class="d-flex gap-3 justify-content-start align-items-end">
+            <div class="col-md-3 p-0">
+                <label class="form-label">Tên Chuyên Mục</label>
+                <input type="text" name="name" class="form-control border" placeholder="Tên chuyên mục" required />
+            </div>
+            <div class="col-md-3 p-0">
+                <label class="form-label">Mô tả</label>
+                <input type="text" name="description" class="form-control border"
+                    placeholder="Mô tả chuyên mục (tùy chọn)" />
+            </div>
+            <div class="col-md-2 p-0">
+                <button class="btn btn-primary w-100" type="submit">Thêm Chuyên Mục</button>
+            </div>
+        </div>
+    </form>
+
+    <div class="card mb-4 mt-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <div><i class="fa-solid fa-table me-1"></i> Danh Sách Chuyên Mục Blog</div>
+        </div>
+
+        <div class="card-body">
+            <!-- Tìm kiếm và Lọc -->
+            <form class="mb-4" method="get" asp-action="Manage" asp-controller="BlogCategory">
+                <div class="row g-2 mb-3">
+                    <div class="col-md-8">
+                        <input type="text" name="q" value="@q" class="form-control"
+                            placeholder="Tìm theo tên chuyên mục hoặc mô tả...">
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn btn-primary w-100" type="submit">
+                            <i class="fa-solid fa-magnifying-glass"></i> Tìm kiếm
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>ID</th>
+                            <th>Tên Chuyên Mục</th>
+                            <th>Mô tả</th>
+                            <th style="width: 130px;">Ngày Cập nhật</th>
+                            <th style="width: 130px;">Ngày Tạo</th>
+                            <th style="width: 130px; text-align: center;">Hành Động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model?.Any() == true)
+                        {
+                            foreach (var x in Model)
+                            {
+                                <tr>
+                                    <td>@x.BlogCategoryId</td>
+                                    <td>@x.BlogCategoryName</td>
+                                    <td>@(x.Description ?? "-")</td>
+                                    <td>@(x.UpdatedAt?.ToString("dd/MM/yyyy HH:mm") ?? x.CreatedAt.ToString("dd/MM/yyyy HH:mm"))
+                                    </td>
+                                    <td>@x.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td style="text-align: center;">
+                                        <button type="button" class="btn btn-sm btn-warning"
+                                            onclick="editBlogCategory(@x.BlogCategoryId)" title="Cập nhật">
+                                            <i class="fa-solid fa-pen-to-square"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-danger"
+                                            onclick="confirmDelete(@x.BlogCategoryId)" title="Xóa">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="6" class="text-center text-muted">Không có dữ liệu.</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <nav class="mt-4" aria-label="Category pagination">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                        <a class="page-link"
+                            href="@Url.Action("Manage", "BlogCategory", new { q, page = currentPage - 1 })">
+                            <i class="fas fa-chevron-left me-1"></i>Trước
+                        </a>
+                    </li>
+
+                    @for (int i = 1; i <= totalPages; i++)
+                    {
+                        <li class="page-item @(i == currentPage ? "active" : "")">
+                            <a class="page-link" href="@Url.Action("Manage", "BlogCategory", new { q, page = i })">
+                                @i
+                            </a>
+                        </li>
+                    }
+
+                    <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                        <a class="page-link"
+                            href="@Url.Action("Manage", "BlogCategory", new { q, page = currentPage + 1 })">
+                            Sau <i class="fas fa-chevron-right ms-1"></i>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Edit BlogCategory -->
+<div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editModalLabel">
+                    <i class="fa-solid fa-pen-to-square me-2"></i>Cập nhật Chuyên Mục Blog
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <form method="post" id="editForm">
+                @Html.AntiForgeryToken()
+                <div class="modal-body">
+                    <input type="hidden" name="id" id="categoryId" value="0" />
+
+                    <div class="mb-3">
+                        <label class="form-label">Tên Chuyên Mục</label>
+                        <input type="text" class="form-control" id="categoryName" name="name" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Mô tả</label>
+                        <input type="text" class="form-control" id="categoryDescription" name="description"
+                            placeholder="Mô tả chuyên mục (tùy chọn)" />
+                    </div>
+
+                    <div class="mb-2 text-muted small">
+                        <i class="fa-regular fa-clock me-1"></i>
+                        Ngày tạo: <span id="createdAtDisplay">—</span>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Add Category Form Submit
+        document.getElementById('addCategoryForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+
+            try {
+                const response = await fetch('@Url.Action("SaveBlogCategory", "BlogCategory")', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    Swal.fire('Thành công', data.message, 'success').then(() => {
+                        location.reload();
+                    });
+                } else {
+                    Swal.fire('Lỗi', data.message, 'error');
+                }
+            } catch (error) {
+                Swal.fire('Lỗi', 'Đã xảy ra lỗi khi thêm chuyên mục', 'error');
+            }
+        });
+
+        // Edit Form Submit (Modal)
+        document.getElementById('editForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+
+            try {
+                const response = await fetch('@Url.Action("SaveBlogCategory", "BlogCategory")', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    Swal.fire('Thành công', data.message, 'success').then(() => {
+                        location.reload();
+                    });
+                } else {
+                    Swal.fire('Lỗi', data.message, 'error');
+                }
+            } catch (error) {
+                Swal.fire('Lỗi', 'Đã xảy ra lỗi khi cập nhật chuyên mục', 'error');
+            }
+        });
+
+        // Edit BlogCategory
+        async function editBlogCategory(id) {
+            try {
+                const response = await fetch(`/BlogCategory/GetById/${id}`);
+                if (!response.ok) throw new Error('Không thể tải dữ liệu chuyên mục');
+
+                const category = await response.json();
+                document.getElementById('categoryId').value = category.blogCategoryId;
+                document.getElementById('categoryName').value = category.blogCategoryName;
+                document.getElementById('categoryDescription').value = category.description || '';
+                document.getElementById('createdAtDisplay').textContent =
+                    new Date(category.createdAt).toLocaleDateString('vi-VN', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+
+                const modal = new bootstrap.Modal(document.getElementById('editModal'));
+                modal.show();
+            } catch (error) {
+                Swal.fire('Lỗi', error.message, 'error');
+            }
+        }
+
+        // Confirm Delete
+        function confirmDelete(id) {
+            Swal.fire({
+                title: 'Xác nhận xóa?',
+                text: 'Bạn có chắc chắn muốn xóa chuyên mục blog này? Hành động này không thể hoàn tác.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Xóa',
+                cancelButtonText: 'Hủy'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    deleteBlogCategory(id);
+                }
+            });
+        }
+
+        // Delete BlogCategory
+        async function deleteBlogCategory(id) {
+            try {
+                const formData = new FormData();
+                formData.append('id', id);
+                formData.append('__RequestVerificationToken', document.querySelector('input[name="__RequestVerificationToken"]')?.value);
+
+                const response = await fetch(`/BlogCategory/Delete/${id}`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    Swal.fire('Thành công', data.message, 'success').then(() => {
+                        location.reload();
+                    });
+                } else {
+                    Swal.fire('Lỗi', data.message, 'error');
+                }
+            } catch (error) {
+                Swal.fire('Lỗi', error.message, 'error');
+            }
+        }
+    </script>
+}
+
+@section Styles {
+
+    <style>
+        .deleted-row {
+            opacity: 0.6;
+            background: #f8f9fa;
+        }
+    </style>
+}

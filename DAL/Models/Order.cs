@@ -1,13 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace DAL.Models;
+﻿namespace DAL.Models;
 
 public partial class Order
 {
     public int OrderId { get; set; }
 
     public int AccountId { get; set; }
+
+    public int? VoucherId { get; set; }
 
     public int StatusId { get; set; }
 
@@ -52,6 +51,8 @@ public partial class Order
     public virtual ICollection<PaymentHistory> PaymentHistories { get; set; } = new List<PaymentHistory>();
 
     public virtual StatusOrder Status { get; set; } = null!;
+
+    public virtual Voucher? Voucher { get; set; }
 
     public virtual ICollection<WalletTransaction> WalletTransactions { get; set; } = new List<WalletTransaction>();
 }

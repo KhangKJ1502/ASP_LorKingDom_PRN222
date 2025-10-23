@@ -1,140 +1,436 @@
-﻿@{
+﻿@model List<BLL.DTOs.BlogPostDto>
+@{
     ViewData["Title"] = "Quản lý bài viết - ToyLand Admin";
+    Layout = "_AdminLayout";
+    var q = (string?)ViewBag.Query ?? "";
+    var categoryFilter = (string?)ViewBag.CategoryFilter ?? "";
+    var statusFilter = (string?)ViewBag.StatusFilter ?? "";
+    var featuredFilter = (bool?)ViewBag.FeaturedFilter;
+    var currentPage = (int?)ViewBag.CurrentPage ?? 1;
+    var totalPages = (int?)ViewBag.TotalPages ?? 1;
+    var categories = (List<string>?)ViewBag.Categories ?? new List<string>();
 }
 
-<div class="admin-container">
-    <!-- Admin Header -->
-    <div class="admin-header">
-        <div class="header-content">
-            <h1 class="admin-title">Quản lý bài viết</h1>
-            <p class="admin-subtitle">Quản lý tất cả bài viết blog của ToyLand</p>
-        </div>
-        <a href="/admin/blogs/create" class="btn btn-primary btn-add-new">
-            <i class="fas fa-plus"></i> Thêm bài viết mới
-        </a>
-    </div>
+<style>
+    /* Giữ nguyên CSS từ trước */
+    .deleted-row {
+        opacity: 0.6;
+        background: #f8f9fa;
+    }
 
-    <!-- Filters Section -->
-    <div class="filters-section">
-        <form method="get" action="/admin/blogs" class="filters-form">
-            <div class="filter-group">
-                <label for="searchTitle" class="filter-label">Tìm kiếm theo tiêu đề</label>
-                <input type="text" id="searchTitle" name="search" class="form-control filter-input"
-                       placeholder="Nhập tiêu đề bài viết..." value="">
-            </div>
+    #blogModal .modal-content {
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    }
 
-            <div class="filter-group">
-                <label for="categoryFilter" class="filter-label">Chuyên mục</label>
-                <select id="categoryFilter" name="category" class="form-control filter-select">
-                    <option value="">Tất cả chuyên mục</option>
-                    <option value="1" selected>Đồ chơi trẻ em</option>
-                    <option value="2">Mô hình LEGO</option>
-                    <option value="3">Xe điều khiển</option>
-                </select>
-            </div>
+    #blogModal .modal-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 16px 16px 0 0;
+        padding: 1.5rem;
+        border: none;
+    }
 
-            <div class="filter-group">
-                <label for="statusFilter" class="filter-label">Trạng thái</label>
-                <select id="statusFilter" name="status" class="form-control filter-select">
-                    <option value="">Tất cả trạng thái</option>
-                    <option value="published" selected>Đã xuất bản</option>
-                    <option value="draft">Bản nháp</option>
-                </select>
-            </div>
+    #blogModal .modal-title {
+        font-weight: 600;
+        font-size: 1.25rem;
+    }
 
-            <button type="submit" class="btn btn-filter">
-                <i class="fas fa-filter"></i> Lọc
-            </button>
-            <a href="/admin/blogs" class="btn btn-reset">
-                <i class="fas fa-redo"></i> Đặt lại
+    #blogModal .btn-close {
+        filter: brightness(0) invert(1);
+        opacity: 0.8;
+    }
+
+    #blogModal .modal-body {
+        padding: 2rem;
+        background-color: #f8f9fa;
+    }
+
+    .thumbnail-cell {
+        width: 70px;
+        height: 70px;
+        border-radius: 8px;
+        overflow: hidden;
+        background-color: #f8f9fa;
+    }
+
+    .table-thumbnail {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .blog-title {
+        font-weight: 600;
+        margin: 0;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        font-size: 0.95rem;
+    }
+
+    .author-name {
+        font-size: 0.9rem;
+        color: #6b7280;
+    }
+
+    .date-text {
+        font-size: 0.9rem;
+        color: #6b7280;
+    }
+
+    .category-badge {
+        display: inline-block;
+        background-color: #f3f4f6;
+        color: #1f2937;
+        padding: 0.35rem 0.75rem;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        margin-right: 0.25rem;
+    }
+
+    .cursor-pointer {
+        cursor: pointer;
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.4rem 0.75rem;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .status-published {
+        background-color: #d4edda;
+        color: #155724;
+    }
+
+    .status-draft {
+        background-color: #e2e3e5;
+        color: #383d41;
+    }
+</style>
+
+<div class="container-fluid px-5">
+    <h1 class="mt-4">Quản Lý Bài Viết</h1>
+
+    <div class="card mb-4 mt-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <div><i class="fa-solid fa-blog me-2"></i>Danh Sách Bài Viết</div>
+            <a href="/Blog/Create" class="btn btn-primary py-2">
+                <i class="fas fa-plus me-2"></i>Thêm Bài Viết Mới
             </a>
-        </form>
-    </div>
+        </div>
 
-    <!-- Data Table -->
-    <div class="table-section">
-        <div class="table-responsive">
-            <table class="admin-table">
-                <thead>
-                    <tr>
-                        <th><input type="checkbox" id="selectAll" class="form-check-input"></th>
-                        <th>Ảnh</th>
-                        <th>Tiêu đề</th>
-                        <th>Tác giả</th>
-                        <th>Chuyên mục</th>
-                        <th>Trạng thái</th>
-                        <th>Ngày tạo</th>
-                        <th>Hành động</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @for (int i = 1; i <= 5; i++)
-                    {
+        <div class="card-body">
+            <!-- Tìm kiếm và Lọc -->
+            <form class="mb-4" method="get" asp-action="ManageBlog" asp-controller="Blog">
+                <div class="row g-2 mb-3">
+                    <div class="col-md-4">
+                        <input type="text" name="q" value="@q" class="form-control"
+                            placeholder="Tìm theo tiêu đề hoặc tác giả...">
+                    </div>
+                    <div class="col-md-2">
+                        <select name="category" class="form-control">
+                            <option value="">Tất cả chuyên mục</option>
+                            @foreach (var cat in categories)
+                            {
+                                <option value="@cat" selected="@(categoryFilter == cat)">@cat</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <select name="status" class="form-control">
+                            <option value="">Tất cả trạng thái</option>
+                            <option value="published" selected="@(statusFilter == "published")">Xuất bản</option>
+                            <option value="draft" selected="@(statusFilter == "draft")">Nháp</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <select name="featured" class="form-control">
+                            <option value="">Tất cả</option>
+                            <option value="true" selected="@(featuredFilter == true)">Nổi bật</option>
+                            <option value="false" selected="@(featuredFilter == false)">Không nổi bật</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn btn-primary w-100" type="submit">
+                            <i class="fa-solid fa-magnifying-glass"></i> Tìm kiếm
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Table -->
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped table-hover">
+                    <thead class="table-dark">
                         <tr>
-                            <td><input type="checkbox" class="form-check-input row-checkbox"></td>
-                            <td>
-                                <img src="https://via.placeholder.com/80x60?text=Blog+@i" class="table-thumbnail" />
-                            </td>
-                            <td><h5 class="blog-title">Bài viết mẫu số @i</h5></td>
-                            <td>Admin ToyLand</td>
-                            <td><span class="category-badge">Đồ chơi trẻ em</span></td>
-                            <td>
-                                @if (i % 2 == 0)
-                                {
-                                    <span class="status-badge status-published">
-                                        <i class="fas fa-check-circle"></i> Đã xuất bản
-                                    </span>
-                                }
-                                else
-                                {
-                                    <span class="status-badge status-draft">
-                                        <i class="fas fa-file-alt"></i> Bản nháp
-                                    </span>
-                                }
-                            </td>
-                            <td>@DateTime.Now.AddDays(-i).ToString("dd/MM/yyyy")</td>
-                            <td>
-                                <div class="action-buttons">
-                                    <a href="/blog/sample-@i" class="action-btn view-btn" title="Xem">
-                                        <i class="fas fa-eye"></i>
-                                    </a>
-                                    <a href="/admin/blogs/edit/@i" class="action-btn edit-btn" title="Sửa">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                    <button class="action-btn delete-btn" onclick="deleteBlog(@i)" title="Xóa">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </div>
-                            </td>
+                            <th style="width: 40px;">
+                                <input type="checkbox" id="selectAll" class="form-check-input">
+                            </th>
+                            <th style="width: 80px;">Ảnh</th>
+                            <th>Tiêu đề</th>
+                            <th style="width: 120px;">Tác giả</th>
+                            <th style="width: 150px;">Chuyên mục</th>
+                            <th style="width: 80px;">Nổi bật</th>
+                            <th style="width: 100px;">Trạng thái</th>
+                            <th style="width: 130px;">Ngày cập nhật</th>
+                            <th style="width: 100px;">Ngày tạo</th>
+                            <th style="width: 130px; text-align: center;">Hành động</th>
                         </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model?.Any() == true)
+                        {
+                            @foreach (var blog in Model)
+                            {
+                                <tr>
+                                    <td style="text-align: center;">
+                                        <input type="checkbox" class="form-check-input row-checkbox">
+                                    </td>
+                                    <td>
+                                        <div class="thumbnail-cell">
+                                            <img src="@(blog.BlogThumbnail ?? "https://via.placeholder.com/70x60?text=No+Image")"
+                                                class="table-thumbnail" alt="@blog.BlogTitle">
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <h6 class="blog-title cursor-pointer" onclick="viewBlogDetail(@blog.BlogPostId)" title="@blog.BlogTitle">
+                                            @blog.BlogTitle
+                                        </h6>
+                                    </td>
+                                    <td><span class="author-name">@blog.AuthorName</span></td>
+                                    <td>
+                                        @foreach (var cat in blog.CategoryNames)
+                                        {
+                                            <span class="category-badge">@cat</span>
+                                        }
+                                    </td>
+                                    <td style="text-align: center;">
+                                        @if (blog.IsFeatured)
+                                        {
+                                            <span class="badge bg-warning"><i class="fas fa-star"></i> Có</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">Không</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (blog.IsPublished)
+                                        {
+                                            <span class="status-badge status-published">
+                                                <i class="fas fa-check-circle"></i> Xuất bản
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="status-badge status-draft">
+                                                <i class="fas fa-file"></i> Nháp
+                                            </span>
+                                        }
+                                    </td>
+                                    <td><span class="date-text">@(blog.UpdatedAt?.ToString("dd/MM/yyyy HH:mm") ?? blog.CreatedAt.ToString("dd/MM/yyyy HH:mm"))</span></td>
+                                    <td><span class="date-text">@blog.CreatedAt.ToString("dd/MM/yyyy HH:mm")</span></td>
+                                    <td style="text-align: center;">
+                                        <button type="button" class="btn btn-sm btn-info"
+                                            onclick="viewBlogDetail(@blog.BlogPostId)" title="Xem">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <a href="/Blog/Edit/@blog.BlogPostId" class="btn btn-sm btn-warning" title="Sửa">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-sm btn-danger"
+                                            onclick="confirmDeleteBlog(@blog.BlogPostId)" title="Xóa">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="10" class="text-center text-muted">Không có bài viết nào.</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <nav class="mt-4" aria-label="Blog pagination">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                        <a class="page-link"
+                            href="@Url.Action("ManageBlog", "Blog", new { q, category = categoryFilter, status = statusFilter, featured = featuredFilter, page = currentPage - 1 })">
+                            <i class="fas fa-chevron-left me-1"></i>Trước
+                        </a>
+                    </li>
+
+                    @for (int i = 1; i <= totalPages; i++)
+                    {
+                        <li class="page-item @(i == currentPage ? "active" : "")">
+                            <a class="page-link"
+                                href="@Url.Action("ManageBlog", "Blog", new { q, category = categoryFilter, status = statusFilter, featured = featuredFilter, page = i })">
+                                @i
+                            </a>
+                        </li>
                     }
-                </tbody>
-            </table>
+
+                    <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                        <a class="page-link"
+                            href="@Url.Action("ManageBlog", "Blog", new { q, category = categoryFilter, status = statusFilter, featured = featuredFilter, page = currentPage + 1 })">
+                            Sau <i class="fas fa-chevron-right ms-1"></i>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
         </div>
     </div>
-
-    <!-- Pagination -->
-    <nav class="pagination-section" aria-label="Admin pagination">
-        <ul class="pagination justify-content-center">
-            <li class="page-item disabled"><span class="page-link"><i class="fas fa-chevron-left"></i> Trước</span></li>
-            <li class="page-item active"><span class="page-link">1</span></li>
-            <li class="page-item"><a class="page-link" href="#">2</a></li>
-            <li class="page-item"><a class="page-link" href="#">3</a></li>
-            <li class="page-item"><a class="page-link" href="#">Sau <i class="fas fa-chevron-right"></i></a></li>
-        </ul>
-    </nav>
 </div>
 
-<script>
-    // Select All Checkbox
-    document.getElementById('selectAll').addEventListener('change', function () {
-        document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = this.checked);
-    });
+<!-- Modal View Detail -->
+<div class="modal fade" id="blogDetailModal" tabindex="-1" aria-labelledby="blogDetailLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content" id="blogModal">
+            <div class="modal-header">
+                <h5 class="modal-title" id="blogDetailLabel">
+                    <i class="fa-solid fa-blog me-2"></i>Chi tiết bài viết
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="blogDetailContent">
+                <!-- Content sẽ được load bằng JS -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
 
-    // Delete Blog (demo only)
-    function deleteBlog(id) {
-        if (confirm(`Xóa bài viết #${id}?`)) {
-            alert(`Đã xóa bài viết #${id} (mock demo)`);
+<!-- Toast lỗi -->
+<div class="toast-container position-fixed p-3 toast-top-right" style="z-index: 2080;">
+    <div id="liveToast" class="toast align-items-center text-bg-danger border-0" role="alert" aria-live="assertive"
+        aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body fs-5 fw-semibold">
+                <i class="fa-solid fa-circle-exclamation me-2"></i>
+                @ViewBag.ErrorMessage
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        dayjs.locale('vi');
+
+        // Select All
+        document.getElementById('selectAll')?.addEventListener('change', function () {
+            document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = this.checked);
+        });
+
+        // View Blog Detail
+        async function viewBlogDetail(blogId) {
+            try {
+                const response = await fetch(`/Blog/GetDetail/${blogId}`);
+                if (!response.ok) throw new Error('Không thể tải chi tiết bài viết');
+
+                const blog = await response.json();
+                const updatedAtFormatted = blog.updatedAt ? dayjs(blog.updatedAt).format('DD/MM/YYYY HH:mm') : dayjs(blog.createdAt).format('DD/MM/YYYY HH:mm');
+                const createdAtFormatted = dayjs(blog.createdAt).format('DD/MM/YYYY HH:mm');
+
+                const content = `
+                        <div class="row g-3">
+                            <div class="col-md-12">
+                                <img src="${blog.blogThumbnail || 'https://upload.wikimedia.org/wikipedia/commons/d/d1/Image_not_available.png'}"
+                                     class="img-fluid rounded border" style="max-height: 300px; width: 100%; object-fit: cover;">
+                            </div>
+                            <div class="col-md-12">
+                                <h5><strong>Tiêu đề:</strong> ${blog.blogTitle}</h5>
+                            </div>
+                            <div class="col-md-12">
+                                <p><strong>Tác giả:</strong> ${blog.authorName}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Ngày cập nhật:</strong> ${updatedAtFormatted}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Ngày tạo:</strong> ${createdAtFormatted}</p>
+                            </div>
+                            <div class="col-md-12">
+                                <p class="mb-2"><strong>Chuyên mục:</strong> ${(blog.categoryNames || []).join(', ')}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Trạng thái:</strong> ${blog.isPublished ? '<span class="badge bg-success"><i class="fas fa-check-circle"></i> Xuất bản</span>' : '<span class="badge bg-secondary"><i class="fas fa-file"></i> Nháp</span>'}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Nổi bật:</strong> ${blog.isFeatured ? '<span class="badge bg-warning"><i class="fas fa-star"></i> Có</span>' : '<span class="badge bg-secondary">Không</span>'}</p>
+                            </div>
+                            <div class="col-md-12">
+                                <p><strong>Mô tả:</strong></p>
+                                <p class="text-muted">${blog.blogContent || 'Không có mô tả'}</p>
+                            </div>
+                        </div>
+                    `;
+                document.getElementById('blogDetailContent').innerHTML = content;
+                const modal = new bootstrap.Modal(document.getElementById('blogDetailModal'));
+                modal.show();
+            } catch (error) {
+                Swal.fire('Lỗi', error.message, 'error');
+            }
         }
-    }
-</script>
+
+        // Confirm Delete Blog
+        function confirmDeleteBlog(blogId) {
+            Swal.fire({
+                title: 'Xác nhận xóa?',
+                text: 'Bạn có chắc chắn muốn xóa bài viết này? Hành động này không thể hoàn tác.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Xóa',
+                cancelButtonText: 'Hủy'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    deleteBlog(blogId);
+                }
+            });
+        }
+
+        // Delete Blog
+        async function deleteBlog(blogId) {
+            try {
+                const formData = new FormData();
+                formData.append('id', blogId);
+
+                const response = await fetch(`/Blog/Delete/${blogId}`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.ok) {
+                    Swal.fire('Thành công', 'Bài viết đã được xóa!', 'success').then(() => {
+                        location.reload();
+                    });
+                } else {
+                    throw new Error('Không thể xóa bài viết');
+                }
+            } catch (error) {
+                Swal.fire('Lỗi', error.message, 'error');
+            }
+        }
+    </script>
+}

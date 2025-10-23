@@ -25,7 +25,7 @@ namespace BLL.Validators
                 throw new ArgumentException("Giá không được vượt quá 99,999,999.99 VNĐ.");
 
             if (dto.StockQuantity < 0) throw new ArgumentException("Số lượng không hợp lệ.");
-
+            if (dto.StockQuantity >= 99999) throw new ArgumentException("Số lượng không vượt quá 99.999.");
             // ✅ Validate bằng code tiếng Anh để khớp DB
             if (dto.ProductStatus is not ("Available" or "OutOfStock" or "Discontinued"))
                 throw new ArgumentException("Trạng thái không hợp lệ.");

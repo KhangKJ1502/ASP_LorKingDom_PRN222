@@ -38,17 +38,12 @@ namespace WebUI.Controllers
             try
             {
                 AuthValidator.ValidateLogin(email, password);
-                // Kiểm tra thông tin đăng nhập qua BLL
                 var user = await _accountService.AuthenticateAsync(email, password);
                 if (user == null)
-                {
-                    TempData["Error"] = "Email hoặc mật khẩu không đúng.";
-                    return RedirectToAction("Login", "Auth", new { returnUrl });
-                }
+                    return BadRequest(new { success = false, message = "Email hoặc mật khẩu không đúng." });
 
                 var roleName = await _roleService.GetRoleNameByIdAsync(user.RoleId);
 
-                // Tạo Claims cho người dùng
                 var claims = new List<Claim>
                 {
                     new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
@@ -59,27 +54,27 @@ namespace WebUI.Controllers
                 var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
                 var principal = new ClaimsPrincipal(identity);
 
-                // Đăng nhập và tạo cookie
                 await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal,
                     new AuthenticationProperties
                     {
-                        IsPersistent = rememberMe, // Cookie tồn tại lâu dài nếu ghi nhớ
+                        IsPersistent = rememberMe,
                         ExpiresUtc = rememberMe ? DateTimeOffset.UtcNow.AddDays(7) : null
                     });
 
-                TempData["Success"] = "Đăng nhập thành công! Chào mừng bạn trở lại.";
-                // Chuyển hướng về trang gốc hoặc returnUrl
-                return Redirect(returnUrl ?? "/");
+                return Ok(new
+                {
+                    success = true,
+                    message = "Đăng nhập thành công! Chào mừng bạn trở lại.",
+                    redirectUrl = returnUrl ?? "/"
+                });
             }
             catch (ArgumentException ex)
             {
-                TempData["Error"] = ex.Message;
-                return RedirectToAction("Login", "Auth", new { returnUrl });
+                return BadRequest(new { success = false, message = ex.Message });
             }
-            catch (Exception ex) // Lỗi bất ngờ khác
+            catch
             {
-                TempData["Error"] = "Đã xảy ra lỗi không mong muốn. Vui lòng thử lại.";
-                return RedirectToAction("Login", "Auth", new { returnUrl });
+                return BadRequest(new { success = false, message = "Đã xảy ra lỗi khi đăng nhập." });
             }
         }
 
@@ -102,34 +97,35 @@ namespace WebUI.Controllers
         public async Task<IActionResult> Signup(string email, string password, string confirmPassword)
         {
             if (password != confirmPassword)
-            {
-                TempData["Error"] = "Mật khẩu xác nhận không khớp.";
-                return RedirectToAction("Signup");
-            }
+                return BadRequest(new { success = false, message = "Mật khẩu xác nhận không khớp." });
 
-            // Kiểm tra email đã tồn tại
             if (await _accountService.ExistsByEmailAsync(email))
-            {
-                TempData["Error"] = "Email đã được sử dụng.";
-                return RedirectToAction("Signup");
-            }
+                return BadRequest(new { success = false, message = "Email đã được sử dụng." });
 
-            // Gửi OTP
             try
             {
                 await _emailOtpService.SendOtpAsync(email);
-                TempData["Email"] = email;
-                TempData["Password"] = password;
-                return RedirectToAction("VerifyOtp");
+                // Store in session instead of TempData for AJAX
+                HttpContext.Session.SetString("SignupEmail", email);
+                HttpContext.Session.SetString("SignupPassword", password);
+
+                return Ok(new
+                {
+                    success = true,
+                    message = "OTP đã được gửi. Vui lòng kiểm tra email của bạn.",
+                    redirectUrl = "/Auth/VerifyOtp"
+                });
             }
             catch (InvalidOperationException ex)
             {
-                TempData["Error"] = ex.Message;
-                return RedirectToAction("Signup");
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+            catch
+            {
+                return BadRequest(new { success = false, message = "Đã xảy ra lỗi khi gửi OTP." });
             }
         }
 
-        // ...existing code...
 
         [HttpGet]
         public IActionResult ForgotPassword()
@@ -142,41 +138,30 @@ namespace WebUI.Controllers
         public async Task<IActionResult> ForgotPassword(string email)
         {
             if (string.IsNullOrWhiteSpace(email))
-            {
-                TempData["Error"] = "Vui lòng nhập email.";
-                return RedirectToAction("ForgotPassword");
-            }
+                return BadRequest(new { success = false, message = "Vui lòng nhập email." });
 
-            // Kiểm tra email tồn tại
             if (!await _accountService.ExistsByEmailAsync(email))
-            {
-                TempData["Error"] = "Email không tồn tại trong hệ thống.";
-                return RedirectToAction("ForgotPassword");
-            }
+                return BadRequest(new { success = false, message = "Email không tồn tại trong hệ thống." });
 
             try
             {
-                // Tạo mật khẩu mới ngẫu nhiên (8 ký tự)
                 var newPassword = GenerateRandomPassword(8);
-
-                // Reset mật khẩu trong DB
                 var success = await _accountService.ResetPasswordAsync(email, newPassword);
-                if (!success)
-                {
-                    TempData["Error"] = "Không thể đặt lại mật khẩu. Vui lòng thử lại.";
-                    return RedirectToAction("ForgotPassword");
-                }
 
-                // Gửi email
+                if (!success)
+                    return BadRequest(new { success = false, message = "Không thể đặt lại mật khẩu. Vui lòng thử lại." });
+
                 await _emailOtpService.SendPasswordResetEmailAsync(email, newPassword);
 
-                TempData["Success"] = "Mật khẩu mới đã được gửi qua email. Vui lòng kiểm tra hộp thư.";
-                return RedirectToAction("Login");
+                return Ok(new
+                {
+                    success = true,
+                    message = "Mật khẩu mới đã được gửi qua email. Vui lòng kiểm tra hộp thư."
+                });
             }
-            catch (Exception ex)
+            catch
             {
-                TempData["Error"] = "Đã xảy ra lỗi: " + ex.Message;
-                return RedirectToAction("ForgotPassword");
+                return BadRequest(new { success = false, message = "Đã xảy ra lỗi khi đặt lại mật khẩu." });
             }
         }
 
@@ -188,12 +173,10 @@ namespace WebUI.Controllers
             return new string(Enumerable.Repeat(chars, length).Select(s => s[random.Next(s.Length)]).ToArray());
         }
 
-        // ...existing code...
-
         [HttpGet]
         public IActionResult VerifyOtp()
         {
-            var email = TempData["Email"] as string;
+            var email = HttpContext.Session.GetString("SignupEmail");
             if (string.IsNullOrEmpty(email))
                 return RedirectToAction("Signup");
 
@@ -208,56 +191,62 @@ namespace WebUI.Controllers
             string? otpCode,
             string Otp1, string Otp2, string Otp3, string Otp4, string Otp5, string Otp6)
         {
-            // Ghép OTP nếu client chưa gửi otpCode
             if (string.IsNullOrWhiteSpace(otpCode))
             {
-                otpCode = string.Concat(Otp1, Otp2, Otp3, Otp4, Otp5, Otp6)?.Trim();
+                otpCode = string.Concat(Otp1 ?? "", Otp2 ?? "", Otp3 ?? "", Otp4 ?? "", Otp5 ?? "", Otp6 ?? "")?.Trim();
             }
 
-            // ✅ 1. Lấy lại password tạm lưu trong TempData
-            var password = TempData["Password"] as string;
+            var password = HttpContext.Session.GetString("SignupPassword");
             if (string.IsNullOrEmpty(password))
-            {
-                TempData["Error"] = "Phiên đăng ký đã hết hạn. Vui lòng đăng ký lại.";
-                return RedirectToAction("Signup");
-            }
+                return BadRequest(new { success = false, message = "Phiên đăng ký đã hết hạn. Vui lòng đăng ký lại." });
 
-            // ✅ 2. Xác minh OTP
-            if (await _emailOtpService.VerifyOtpAsync(email, otpCode))
-            {
-                // Tạo tài khoản (hash password, lưu vào DB)
-                var account = new AccountDto
-                {
-                    RoleId = 4, // Khách hàng
-                    Email = email,
-                    Password = BCrypt.Net.BCrypt.HashPassword(password),
-                    AccountName = email.Split('@')[0],
-                    Status = "Active",
-                    CreatedAt = DateTime.Now,
-                    Provider = "LOCAL"
-                };
-                try
-                {
-                    await _accountService.CreateAsync(account);
-                    await _emailOtpService.SendWelcomeEmailAsync(email, account.AccountName);
-                }
-                catch (Exception ex)
-                {
-                    ModelState.AddModelError("", "Đã xảy ra lỗi khi tạo tài khoản: " + ex.Message);
-                    ViewBag.Email = email;
-                    TempData.Keep("Password");
-                    return View();
-                }
+            if (string.IsNullOrEmpty(otpCode))
+                return BadRequest(new { success = false, message = "Vui lòng nhập OTP." });
 
-                TempData["Success"] = "Đăng ký thành công! Hãy đăng nhập để tiếp tục.";
-                return RedirectToAction("Login", "Auth");
-            }
-            else
+            try
             {
-                ModelState.AddModelError("", "OTP không hợp lệ hoặc đã hết hạn.");
-                ViewBag.Email = email;
-                TempData.Keep("Password");
-                return View();
+                if (await _emailOtpService.VerifyOtpAsync(email, otpCode))
+                {
+                    var account = new AccountDto
+                    {
+                        RoleId = 4,
+                        Email = email,
+                        Password = password,
+                        AccountName = email.Split('@')[0],
+                        Status = "Active",
+                        CreatedAt = DateTime.Now,
+                        Provider = "LOCAL"
+                    };
+
+                    try
+                    {
+                        await _accountService.CreateAsync(account);
+                        await _emailOtpService.SendWelcomeEmailAsync(email, account.AccountName);
+
+                        // Clear session
+                        HttpContext.Session.Remove("SignupEmail");
+                        HttpContext.Session.Remove("SignupPassword");
+
+                        return Ok(new
+                        {
+                            success = true,
+                            message = "Đăng ký thành công! Vui lòng đăng nhập để tiếp tục.",
+                            redirectUrl = "/Auth/Login"
+                        });
+                    }
+                    catch
+                    {
+                        return BadRequest(new { success = false, message = "Đã xảy ra lỗi khi tạo tài khoản." });
+                    }
+                }
+                else
+                {
+                    return BadRequest(new { success = false, message = "OTP không hợp lệ hoặc đã hết hạn." });
+                }
+            }
+            catch
+            {
+                return BadRequest(new { success = false, message = "Đã xảy ra lỗi khi xác minh OTP." });
             }
         }
 
@@ -268,14 +257,20 @@ namespace WebUI.Controllers
             try
             {
                 await _emailOtpService.SendOtpAsync(email);
-                TempData["Message"] = "OTP đã được gửi lại.";
+                return Ok(new
+                {
+                    success = true,
+                    message = "OTP đã được gửi lại. Vui lòng kiểm tra email của bạn."
+                });
             }
             catch (InvalidOperationException ex)
             {
-                TempData["Error"] = ex.Message;
+                return BadRequest(new { success = false, message = ex.Message });
             }
-            TempData["Email"] = email;
-            return RedirectToAction("VerifyOtp");
+            catch
+            {
+                return BadRequest(new { success = false, message = "Đã xảy ra lỗi khi gửi lại OTP." });
+            }
         }
     }
 }

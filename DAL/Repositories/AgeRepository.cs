@@ -25,5 +25,9 @@ namespace DAL.Repositories
                 .OrderBy(x => x.AgeRange)
                 .ToListAsync();
         }
+        public async Task<Age?> GetByIdAsync(int id)
+        {
+            return await _context.Ages.FirstOrDefaultAsync(a => a.AgeId == id);
+        }
     }
 }

@@ -1,0 +1,301 @@
+﻿@model BLL.DTOs.BlogPostDto
+@{
+    ViewData["Title"] = "Chỉnh sửa bài viết - ToyLand Admin";
+    Layout = "_AdminLayout";
+    var categories = ViewBag.Categories as List<BLL.DTOs.BlogCategoryDto>;
+}
+
+@section Styles {
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet" />
+    <style>
+        .editor-container {
+            height: 350px;
+            background-color: white;
+            margin-bottom: 4.0rem;
+        }
+
+        .ql-editor {
+            max-width: 100%;
+            overflow-wrap: break-word;
+            word-break: break-word;
+            white-space: pre-wrap;
+        }
+
+        #editor {
+            height: 100%;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-control,
+        .form-select {
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.15);
+        }
+
+        .btn-submit {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            color: white;
+        }
+
+        .btn-cancel {
+            border: 2px solid #6c757d;
+            color: #6c757d;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-cancel:hover {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .thumbnail-preview {
+            max-width: 200px;
+            max-height: 150px;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+
+        .ql-toolbar {
+            border-radius: 8px 8px 0 0 !important;
+            border: 1px solid #dee2e6 !important;
+        }
+
+        .ql-container {
+            border-radius: 0 0 8px 8px !important;
+            border: 1px solid #dee2e6 !important;
+        }
+    </style>
+}
+
+<div class="container-fluid px-5">
+    <h1 class="mt-4">Chỉnh Sửa Bài Viết</h1>
+
+    <div class="card mb-4 mt-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <div><i class="fa-solid fa-pen-to-square me-2"></i>Biểu mẫu chỉnh sửa bài viết</div>
+        </div>
+
+        <div class="card-body">
+            <form method="post" asp-action="Edit" asp-controller="Blog" enctype="multipart/form-data">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@Model.BlogPostId" />
+
+                <div class="row g-3 px-3">
+                    <!-- Tiêu đề -->
+                    <div class="col-md-12">
+                        <label class="form-label">Tiêu đề <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control border" name="BlogTitle" value="@Model.BlogTitle"
+                            placeholder="Nhập tiêu đề bài viết" required>
+                    </div>
+
+                    <!-- Chuyên mục -->
+                    <div class="col-md-12">
+                        <label class="form-label">Chuyên mục <span class="text-danger">*</span></label>
+                        <select class="form-select" name="categoryIds" multiple required size="5">
+                            @if (categories?.Any() == true)
+                            {
+                                @foreach (var cat in categories)
+                                {
+                                    var isSelected = Model.CategoryIds.Contains(cat.BlogCategoryId);
+                                    <option value="@cat.BlogCategoryId" selected="@(isSelected ? "selected" : null)">
+
+                                        @cat.BlogCategoryName
+                                    </option>
+                                }
+                            }
+                        </select>
+                        <small class="form-text text-muted d-block mt-2">Chọn một hoặc nhiều chuyên mục (Ctrl+Click trên
+                            Windows, Cmd+Click trên Mac)</small>
+                    </div>
+
+                    <div class="col-md-12">
+                        <div class="d-flex justify-content-between">
+                            <!-- Ảnh đại diện -->
+                            <div class="col-md-5 p-0">
+                                <label class="form-label">Ảnh đại diện</label>
+                                <input type="file" class="form-control border" name="thumbnail" accept="image/*"
+                                    id="thumbnailInput">
+                                <small class="form-text text-muted d-block mt-2">Để trống để giữ ảnh hiện tại</small>
+                                @if (!string.IsNullOrEmpty(Model.BlogThumbnail))
+                                {
+                                    <div class="mt-4">
+                                        <p class="text-muted">Ảnh hiện tại:</p>
+                                        <img src="@Model.BlogThumbnail" alt="@Model.BlogTitle"
+                                            class="img-fluid rounded thumbnail-preview">
+                                    </div>
+                                }
+                            </div>
+                            <!-- Trạng thái -->
+                            <div class="col-md-3 p-0">
+                                <label class="form-label">Trạng thái</label>
+                                <select class="form-select" name="IsPublished">
+                                    <option value="false" selected="@(Model.IsPublished == false ? "selected" : null)">
+                                        Bản nháp</option>
+                                    <option value="true" selected="@(Model.IsPublished == true ? "selected" : null)">
+                                        Xuất bản</option>
+                                </select>
+                            </div>
+                            <!-- Nổi bật -->
+                            <div class="col-md-3 p-0">
+                                <label class="form-label">Nổi bật</label>
+                                <div class="input-group-text gap-2">
+                                    <input type="checkbox" class="form-check-input border m-0" id="isFeatured"
+                                        asp-for="IsFeatured" />
+                                    <label class="form-check-label" for="isFeatured">
+                                        Đánh dấu bài viết nổi bật
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Nội dung -->
+                    <div class="col-md-12">
+                        <label class="form-label">Nội dung <span class="text-danger">*</span></label>
+                        <div class="editor-container">
+                            <div id="editor"></div>
+                        </div>
+                        <input type="hidden" name="BlogContent" id="blogContent">
+                    </div>
+
+                    <!-- Buttons -->
+                    <div class="col-md-12 mt-0">
+                        <a href="/Blog/Manage" class="btn btn-cancel">Hủy</a>
+                        <button type="submit" class="btn btn-primary btn-submit">
+                            <i class="fas fa-save me-2"></i>Lưu thay đổi
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        // Initialize Quill với nội dung hiện tại
+        const quill = new Quill('#editor', {
+            theme: 'snow',
+            modules: {
+                toolbar: [
+                    ['bold', 'italic', 'underline', 'strike'],
+                    [{ 'header': [1, 2, 3, false] }],
+                    [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                    ['link', 'image'],
+                    ['clean']
+                ]
+            },
+            placeholder: 'Nhập nội dung bài viết...'
+        });
+
+        // Set nội dung ban đầu từ server
+        @if (!string.IsNullOrEmpty(Model.BlogContent))
+            {
+                <text>
+                    quill.root.innerHTML = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.BlogContent));
+                </text>
+        }
+
+            // Preview ảnh khi chọn file
+            document.getElementById('thumbnailInput')?.addEventListener('change', function (e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function (event) {
+                        const preview = document.querySelector('.thumbnail-preview');
+                        if (preview) {
+                            preview.src = event.target.result;
+                        } else {
+                            const img = document.createElement('img');
+                            img.src = event.target.result;
+                            img.className = 'img-fluid rounded thumbnail-preview';
+                            e.target.parentElement.appendChild(img);
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+        // Trước khi submit: lấy nội dung HTML từ Quill
+        document.querySelector('form')?.addEventListener('submit', function (e) {
+            const content = quill.root.innerHTML;
+            document.getElementById('blogContent').value = content;
+
+            if (!content.trim() || content === '<p><br></p>') {
+                e.preventDefault();
+                Swal.fire('Lỗi', 'Nội dung không được để trống', 'error');
+                return false;
+            }
+
+            // Kiểm tra featured checkbox
+            const isFeatured = document.getElementById('isFeatured').checked;
+            const blogId = document.querySelector('input[name="id"]').value;
+            const originalIsFeatured = @(Model.IsFeatured.ToString().ToLower());
+
+            // Nếu muốn featured và chưa featured trước đây, gửi AJAX request để kiểm tra giới hạn
+            if (isFeatured && !originalIsFeatured) {
+                e.preventDefault();
+                submitFormWithFeaturedCheck(this, blogId);
+            }
+        });
+
+        // ✅ Hàm gửi form với kiểm tra featured blogs
+        function submitFormWithFeaturedCheck(form, blogId) {
+            const formData = new FormData(form);
+
+            fetch(form.action, {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Thành công',
+                            text: data.message,
+                            confirmButtonText: 'OK'
+                        }).then(() => {
+                            window.location.href = '/Blog/Manage';
+                        });
+                    } else {
+                        // Hiển thị lỗi nếu không thể thêm featured
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Lỗi',
+                            text: data.message,
+                            confirmButtonText: 'Đóng'
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    Swal.fire('Lỗi', 'Có lỗi xảy ra khi gửi dữ liệu', 'error');
+                });
+        }
+    </script>
+}

@@ -23,6 +23,10 @@ namespace BLL
             // Nhánh Role
             services.AddScoped<IRoleService, RoleService>();
 
+            // Nhánh Blog
+            services.AddScoped<IBlogService, BlogService>();
+            services.AddScoped<IBlogCategoryService, BlogCategoryService>();
+
             //Nhánh Product
             services.AddScoped<IProductService, ProductService>();
             services.AddScoped<IProductImageService, ProductImageService>();
@@ -41,6 +45,12 @@ namespace BLL
 
             services.AddScoped<IUserNotificationService, UserNotificationService>();
             services.AddScoped<IChatService, ChatService>();
+
+            // Nhánh ReviewBlog
+            services.AddScoped<IReviewBlogService, ReviewBlogService>();
+            services.AddScoped<IReviewBlogReactionService, ReviewBlogReactionService>();
+            services.AddScoped<IReviewBlogReplyService, ReviewBlogReplyService>();
+
             return services;
         }
     }

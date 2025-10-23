@@ -1,185 +1,683 @@
-﻿@{
-    ViewData["Title"] = "Khám phá bộ LEGO mới nhất 2025 - ToyLand Blog";
+﻿@model BLL.DTOs.BlogPostDto
+@{
+    ViewData["Title"] = $"{Model?.BlogTitle} - ToyLand Blog";
+    var relatedBlogs = ViewBag.RelatedBlogs as List<BLL.DTOs.BlogPostDto>;
 }
 
 @section Styles {
     <link rel="stylesheet" href="~/css/blog-detail.css" asp-append-version="true" />
+    <style>
+        .blog-detail-container {
+            padding: 2rem 0;
+        }
+
+        .blog-detail-article {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .article-header {
+            margin-bottom: 2rem;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 1.5rem;
+        }
+
+        .article-category {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .article-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #2d3748;
+            margin: 1rem 0;
+        }
+
+        .article-meta {
+            display: flex;
+            gap: 2rem;
+            flex-wrap: wrap;
+            color: #718096;
+            font-size: 0.95rem;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .article-featured-image {
+            margin: 2rem 0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .article-featured-image img {
+            max-height: 500px;
+            object-fit: cover;
+            width: 100%;
+        }
+
+        .article-content {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #4a5568;
+            margin: 2rem 0;
+        }
+
+        .article-content p {
+            margin-bottom: 1.5rem;
+        }
+
+
+
+        /* Sidebar Widgets */
+        .sidebar-widget {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            margin-bottom: 2rem;
+        }
+
+        .widget-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        /* Related Posts Widget */
+        .related-posts-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .related-post-item {
+            display: flex;
+            gap: 1rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            background: #f7fafc;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+
+        .related-post-item:hover {
+            background: #edf2f7;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+        }
+
+        .related-post-item img {
+            width: 100px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 6px;
+            flex-shrink: 0;
+        }
+
+        .related-post-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .related-post-title {
+            font-weight: 600;
+            color: #2d3748;
+            text-decoration: none;
+            font-size: 0.95rem;
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .related-post-title:hover {
+            color: #667eea;
+        }
+
+        .related-post-category {
+            display: inline-block;
+            background: #edf2f7;
+            color: #667eea;
+            padding: 0.2rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            width: fit-content;
+        }
+
+        /* Categories Widget */
+        .categories-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .category-item {
+            margin-bottom: 0.8rem;
+        }
+
+        .category-item a {
+            display: block;
+            padding: 0.8rem 1rem;
+            background: #f7fafc;
+            color: #2d3748;
+            text-decoration: none;
+            border-radius: 6px;
+            border-left: 3px solid #667eea;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .category-item a:hover {
+            background: #edf2f7;
+            padding-left: 1.3rem;
+            color: #667eea;
+        }
+
+        /* Recent Posts Widget */
+        .recent-posts-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .recent-post-item {
+            padding: 0.8rem 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .recent-post-item:last-child {
+            border-bottom: none;
+        }
+
+        .recent-post-item a {
+            color: #2d3748;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.95rem;
+            display: block;
+            margin-bottom: 0.3rem;
+            transition: color 0.3s ease;
+        }
+
+        .recent-post-item a:hover {
+            color: #667eea;
+        }
+
+        .recent-post-date {
+            display: block;
+            color: #a0aec0;
+            font-size: 0.85rem;
+        }
+
+        /* Comments Section */
+        .comments-section {
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 2px solid #e2e8f0;
+        }
+
+        .comments-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 2rem;
+        }
+
+        .comment-form {
+            background: #f7fafc;
+            border: 1px solid #e2e8f0;
+        }
+
+        .comment-form textarea {
+            border: 1px solid #cbd5e0;
+            border-radius: 6px;
+            resize: vertical;
+        }
+
+        .comment-form textarea:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .comments-list {
+            margin-top: 2rem;
+        }
+
+        .comment-item {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .comment-item:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .comment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.8rem;
+            font-size: 0.9rem;
+        }
+
+        .comment-author {
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .comment-date {
+            color: #a0aec0;
+            font-size: 0.85rem;
+        }
+
+        .comment-content {
+            color: #4a5568;
+            line-height: 1.6;
+            margin-bottom: 0.8rem;
+            font-size: 0.95rem;
+        }
+
+        .comment-actions {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .reaction-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.4rem 0.6rem;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            color: #718096;
+            transition: all 0.2s ease;
+        }
+
+        .reaction-btn:hover {
+            border-color: #667eea;
+            color: #667eea;
+            background: #f5f7ff;
+        }
+
+        .reaction-btn.active {
+            background: #667eea;
+            border-color: #667eea;
+            color: white;
+        }
+
+        .reaction-count {
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .replies-section {
+            margin-top: 1.2rem;
+            padding-top: 1rem;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .reply-item {
+            background: #f7fafc;
+            border-left: 3px solid #cbd5e0;
+            padding: 0.8rem;
+            margin-bottom: 0.6rem;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .reply-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.4rem;
+            gap: 0.5rem;
+        }
+
+        .reply-author {
+            font-weight: 600;
+            color: #2d3748;
+            font-size: 0.9rem;
+        }
+
+        .reply-admin-badge {
+            display: inline-block;
+            background: #48bb78;
+            color: white;
+            padding: 0.1rem 0.4rem;
+            border-radius: 3px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .reply-date {
+            color: #a0aec0;
+            font-size: 0.8rem;
+            white-space: nowrap;
+        }
+
+        .reply-content {
+            color: #4a5568;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #718096;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #e2e8f0;
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+    </style>
 }
+
+<style>
+    @@keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+</style>
 
 <div class="blog-detail-container">
     <!-- Breadcrumb Navigation -->
     <nav class="breadcrumb-nav mb-4" aria-label="breadcrumb">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="/">Trang chủ</a></li>
-            <li class="breadcrumb-item"><a href="/blog">Blog</a></li>
-            <li class="breadcrumb-item active">Khám phá bộ LEGO mới nhất 2025</li>
+            <li class="breadcrumb-item"><a href="/Blog/Index">Blog</a></li>
+            <li class="breadcrumb-item active">@Model?.BlogTitle</li>
         </ol>
     </nav>
 
-    <div class="row">
+    <div class="row g-4">
         <!-- Main Content Area -->
         <div class="col-lg-8">
             <article class="blog-detail-article">
                 <header class="article-header">
-                    <span class="article-category">Đồ chơi sáng tạo</span>
-                    <h1 class="article-title">Khám phá bộ LEGO mới nhất năm 2025</h1>
+                    @if (Model?.CategoryNames?.Any() == true)
+                    {
+                        <span class="article-category">@Model.CategoryNames.First()</span>
+                    }
+                    <h1 class="article-title">@Model?.BlogTitle</h1>
                     <div class="article-meta">
                         <span class="meta-item">
-                            <i class="fas fa-user"></i> Admin ToyLand
+                            <i class="fas fa-user"></i> @Model?.AuthorName
                         </span>
                         <span class="meta-item">
-                            <i class="fas fa-calendar"></i> 19/10/2025
+                            <i class="fas fa-calendar"></i> @Model?.CreatedAt.ToString("dd/MM/yyyy HH:mm")
                         </span>
                     </div>
                 </header>
 
                 <!-- Featured Image -->
-                <div class="article-featured-image mb-4">
-                    <img src="https://via.placeholder.com/800x400?text=LEGO+2025+Collection"
-                         alt="LEGO 2025 Collection" class="img-fluid rounded">
-                </div>
+                @if (!string.IsNullOrEmpty(Model?.BlogThumbnail))
+                {
+                    <div class="article-featured-image mb-4">
+                        <img src="@Model.BlogThumbnail" alt="@Model.BlogTitle" class="img-fluid">
+                    </div>
+                }
 
                 <!-- Article Content -->
                 <div class="article-content">
-                    <p>
-                        Bộ sưu tập LEGO năm 2025 mang đến những trải nghiệm lắp ráp sáng tạo vượt trội 
-                        với các mẫu mô hình thành phố, xe cộ, và robot hoàn toàn mới. 
-                        Thiết kế tinh tế, màu sắc bắt mắt và chất liệu an toàn sẽ khiến cả trẻ em lẫn người lớn đều say mê.
-                    </p>
-                    <p>
-                        Các bộ LEGO mới này không chỉ giúp phát triển tư duy logic mà còn khơi gợi trí tưởng tượng không giới hạn. 
-                        Hãy cùng ToyLand khám phá những thiết kế nổi bật và độc quyền trong năm nay!
-                    </p>
-                </div>
-
-                <!-- Share Buttons -->
-                <div class="article-share-section mt-5">
-                    <h5 class="share-title">Chia sẻ bài viết</h5>
-                    <div class="share-buttons">
-                        <a href="#" class="share-btn share-facebook">
-                            <i class="fab fa-facebook-f"></i> Facebook
-                        </a>
-                        <a href="#" class="share-btn share-twitter">
-                            <i class="fab fa-twitter"></i> Twitter
-                        </a>
-                        <button class="share-btn share-copy" onclick="copyToClipboard(window.location.href)">
-                            <i class="fas fa-link"></i> Sao chép liên kết
-                        </button>
-                    </div>
+                    @if (!string.IsNullOrEmpty(Model?.BlogContent))
+                    {
+                        @Html.Raw(Model.BlogContent)
+                    }
                 </div>
 
                 <!-- Comments Section -->
-                <section class="comments-section mt-5">
-                    <h3 class="comments-title">Bình luận (3)</h3>
+                <div class="comments-section mt-5">
+                    <h3 class="comments-title">
+                        <i class="fas fa-comments me-2"></i>Bình luận (@((ViewBag.Comments as List<BLL.DTOs.ReviewBlogDto>)?.Count ?? 0))
+                    </h3>
 
-                    <div class="comments-list">
-                        @for (int i = 1; i <= 3; i++)
-                        {
-                            <div class="comment-item">
-                                <div class="comment-header d-flex align-items-center">
-                                    <img src="https://via.placeholder.com/60?text=U@i" class="rounded-circle me-3" />
-                                    <div>
-                                        <h5 class="comment-author-name">Người dùng @i</h5>
-                                        <span class="comment-date">@DateTime.Now.AddDays(-i).ToString("dd/MM/yyyy HH:mm")</span>
+                    <!-- Add Comment Form -->
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <div class="comment-form card mb-4">
+                            <div class="card-body">
+                                <h5 class="mb-3">Viết bình luận</h5>
+                                <form id="commentForm" method="post" action="/Blog/@Model.BlogPostId/Reviews" onsubmit="return handleCommentSubmit(event)">
+                                    @Html.AntiForgeryToken()
+                                    <div class="mb-3">
+                                        <textarea name="comment" id="commentText" class="form-control" rows="3"
+                                            placeholder="Bình luận của bạn..." required></textarea>
                                     </div>
-                                </div>
-                                <div class="comment-content mt-2">
-                                    <p>Bộ LEGO này trông thật tuyệt! Mình rất thích cách phối màu năm nay.</p>
-                                </div>
-                                <div class="comment-actions">
-                                    <button class="comment-action-btn like-btn">
-                                        <i class="fas fa-thumbs-up"></i> <span class="like-count">@i</span>
+                                    <button type="submit" class="btn btn-primary btn-sm">
+                                        <i class="fas fa-paper-plane me-2"></i>Gửi
                                     </button>
-                                    <button class="comment-action-btn dislike-btn">
-                                        <i class="fas fa-thumbs-down"></i> <span class="dislike-count">0</span>
-                                    </button>
-                                </div>
+                                </form>
                             </div>
-                        }
-                    </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-info mb-4">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <a href="/Auth/Login">Đăng nhập</a> để viết bình luận
+                        </div>
+                    }
 
-                    <!-- Comment Form -->
-                    <div class="comment-form-section mt-4">
-                        <h4 class="form-title">Gửi bình luận</h4>
-                        <form>
-                            <div class="form-group mb-3">
-                                <textarea class="form-control comment-textarea"
-                                          placeholder="Nhập bình luận của bạn..."
-                                          rows="4"></textarea>
-                            </div>
-                            <button type="button" class="btn btn-primary btn-submit-comment">
-                                <i class="fas fa-paper-plane"></i> Gửi bình luận
-                            </button>
-                        </form>
+                    <!-- Comments List -->
+                    <div id="commentsList" class="comments-list">
+                        @await Html.PartialAsync("_CommentsList", ViewBag.Comments as List<BLL.DTOs.ReviewBlogDto> ?? new List<BLL.DTOs.ReviewBlogDto>())
                     </div>
-                </section>
+                </div>
             </article>
         </div>
 
         <!-- Sidebar -->
         <aside class="col-lg-4">
             <!-- Related Posts -->
-            <div class="sidebar-widget related-posts-widget">
-                <h5 class="widget-title">Bài viết liên quan</h5>
-                <ul class="related-posts-list">
-                    @for (int i = 1; i <= 3; i++)
-                    {
-                        <li class="related-post-item">
-                            <img src="https://via.placeholder.com/120x80?text=Related+@i" class="img-fluid rounded me-2" />
-                            <div class="related-post-info">
-                                <a href="/blog/related-@i" class="related-post-title">Bài viết LEGO liên quan @i</a>
-                                <span class="related-post-category">Đồ chơi</span>
-                            </div>
-                        </li>
-                    }
-                </ul>
-            </div>
+            @if (relatedBlogs?.Any() == true)
+            {
+                <div class="sidebar-widget related-posts-widget">
+                    <h5 class="widget-title">
+                        <i class="fas fa-link me-2"></i>Bài viết liên quan
+                    </h5>
+                    <ul class="related-posts-list">
+                        @foreach (var relatedBlog in relatedBlogs)
+                        {
+                            <li class="related-post-item">
+                                <img src="@(relatedBlog.BlogThumbnail ?? "https://via.placeholder.com/120x80?text=Related")"
+                                    alt="@relatedBlog.BlogTitle" />
+                                <div class="related-post-info">
+                                    <a href="/Blog/Detail/@relatedBlog.BlogPostId" class="related-post-title">
+                                        @relatedBlog.BlogTitle
+                                    </a>
+                                    @if (relatedBlog.CategoryNames?.Any() == true)
+                                    {
+                                        <span class="related-post-category">@relatedBlog.CategoryNames.First()</span>
+                                    }
+                                </div>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            }
 
             <!-- Categories -->
-            <div class="sidebar-widget categories-widget mt-4">
-                <h5 class="widget-title">Chuyên mục</h5>
-                <ul class="categories-list">
-                    <li class="category-item"><a href="#">Đồ chơi trẻ em (5)</a></li>
-                    <li class="category-item"><a href="#">Xe điều khiển (3)</a></li>
-                    <li class="category-item"><a href="#">Mô hình LEGO (7)</a></li>
-                </ul>
-            </div>
+            @if (Model?.CategoryNames?.Any() == true)
+            {
+                <div class="sidebar-widget categories-widget">
+                    <h5 class="widget-title">
+                        <i class="fas fa-folder me-2"></i>Chuyên mục
+                    </h5>
+                    <ul class="categories-list">
+                        @foreach (var cat in Model.CategoryNames)
+                        {
+                            <li class="category-item">
+                                <a href="/Blog/Index?q=&category=@Uri.EscapeDataString(cat)">
+                                    <i class="fas fa-angle-right me-2"></i>@cat
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            }
 
             <!-- Recent Posts -->
-            <div class="sidebar-widget recent-posts-widget mt-4">
-                <h5 class="widget-title">Bài viết gần đây</h5>
-                <ul class="recent-posts-list">
-                    @for (int i = 1; i <= 3; i++)
-                    {
-                        <li class="recent-post-item">
-                            <img src="https://via.placeholder.com/80x80?text=Post+@i" class="img-fluid rounded me-2" />
-                            <div class="recent-post-info">
-                                <a href="/blog/recent-@i">Bài viết gần đây @i</a>
-                                <span class="recent-post-date">@DateTime.Now.AddDays(-i).ToString("dd/MM/yyyy")</span>
-                            </div>
-                        </li>
-                    }
-                </ul>
-            </div>
+            @{
+                var allBlogs = new List<BLL.DTOs.BlogPostDto>();
+                if (ViewBag.RelatedBlogs is List<BLL.DTOs.BlogPostDto> related)
+                {
+                    allBlogs.AddRange(related);
+                }
+            }
+            @if (allBlogs.Any())
+            {
+                <div class="sidebar-widget recent-posts-widget">
+                    <h5 class="widget-title">
+                        <i class="fas fa-clock me-2"></i>Bài viết gần đây
+                    </h5>
+                    <ul class="recent-posts-list">
+                        @foreach (var recentBlog in allBlogs.OrderByDescending(b => b.CreatedAt).Take(5))
+                        {
+                            <li class="recent-post-item">
+                                <a href="/Blog/Detail/@recentBlog.BlogPostId">@recentBlog.BlogTitle</a>
+                                <span class="recent-post-date">
+                                    <i class="fas fa-calendar-alt me-1"></i>@recentBlog.CreatedAt.ToString("dd/MM/yyyy")
+                                </span>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            }
         </aside>
     </div>
 </div>
 
 <script>
-    function copyToClipboard(text) {
-        navigator.clipboard.writeText(text).then(() => {
-            alert('Liên kết đã được sao chép!');
-        }).catch(() => {
-            alert('Không thể sao chép liên kết');
+    function handleCommentSubmit(event) {
+        event.preventDefault();
+        
+        const form = event.target;
+        const comment = document.getElementById('commentText').value.trim();
+        
+        if (!comment) {
+            Swal.fire('Lỗi', 'Bình luận không được để trống', 'error');
+            return false;
+        }
+
+        // Show loading
+        Swal.fire({
+            title: 'Đang gửi...',
+            allowOutsideClick: false,
+            didOpen: async (modal) => {
+                Swal.showLoading();
+                try {
+                    const formData = new FormData(form);
+                    const response = await fetch(form.action, {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (response.redirected) {
+                        // Thành công - page sẽ redirect
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Thành công',
+                            text: 'Bình luận của bạn đã được đăng!',
+                            timer: 1500,
+                            showConfirmButton: false
+                        }).then(() => {
+                            window.location = response.url;
+                        });
+                    } else {
+                        // Lỗi từ server
+                        const text = await response.text();
+                        if (text.includes('bình luận rồi')) {
+                            Swal.fire('Thông báo', 'Bạn đã bình luận rồi trên bài viết này', 'warning');
+                        } else {
+                            Swal.fire('Lỗi', 'Có lỗi xảy ra khi gửi bình luận', 'error');
+                        }
+                    }
+                } catch (error) {
+                    Swal.fire('Lỗi', 'Có lỗi kết nối', 'error');
+                    console.error(error);
+                }
+            }
         });
+        
+        return false;
     }
 
-    // Like/Dislike demo
-    document.querySelectorAll('.comment-action-btn').forEach(btn => {
-        btn.addEventListener('click', function () {
-            const active = this.classList.contains('active');
-            this.classList.toggle('active');
-            console.log(this.textContent.trim() + (active ? ' removed' : ' added'));
-        });
-    });
+    function handleReaction(event) {
+        event.preventDefault();
+
+        // Check if user is logged in
+        @if (User.Identity?.IsAuthenticated == false)
+        {
+            @:Swal.fire({
+            @:    icon: 'warning',
+            @:    title: 'Yêu cầu đăng nhập',
+            @:    text: 'Bạn cần đăng nhập để thực hiện chức năng này',
+            @:    confirmButtonText: 'Đăng nhập'
+            @:}).then((result) => {
+            @:    if (result.isConfirmed) {
+            @:        window.location.href = '/Auth/Login?returnUrl=' + encodeURIComponent(window.location.href);
+            @:    }
+            @:});
+            @:return false;
+        }
+        
+        const form = event.target;
+        const reviewId = form.querySelector('input[name="reviewId"]')?.value || 
+                        form.action.match(/\/(\d+)\/React/)?.[1];
+
+        fetch(form.action, {
+            method: 'POST',
+            body: new FormData(form)
+        })
+            .then(response => {
+                if (response.redirected) {
+                    // Reload page silently
+                    location.reload();
+                } else {
+                    throw new Error('Failed');
+                }
+            })
+            .catch(error => {
+                Swal.fire('Lỗi', 'Không thể cập nhật reaction', 'error');
+                console.error(error);
+            });
+
+        return false;
+    }
 </script>

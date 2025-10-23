@@ -1,0 +1,15 @@
+@model List<BLL.DTOs.ReviewBlogDto>
+
+@if (Model?.Any() == true)
+{
+    @foreach (var comment in Model)
+    {
+        @await Html.PartialAsync("_CommentItem", comment)
+    }
+}
+else
+{
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle me-2"></i>Chưa có bình luận nào. Hãy là người đầu tiên bình luận!
+    </div>
+}

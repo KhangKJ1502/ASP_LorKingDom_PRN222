@@ -4,8 +4,6 @@ using DAL.Models;
 using DAL.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using DAL.Models;
 namespace DAL
 {
     public static class DALServiceCollectionExtensions
@@ -20,6 +18,10 @@ namespace DAL
             // Nhánh Authentication
             services.AddScoped<IAccountRepository, AccountRepository>();
             services.AddScoped<IEmailOtpRepository, EmailOtpRepository>();
+
+            // Nhánh Blog
+            services.AddScoped<IBlogRepository, BlogRepository>();
+            services.AddScoped<IBlogCategoryRepository, BlogCategoryRepository>();
 
             //Nhánh Product 
             services.AddScoped<IProductRepository, ProductRepository>();
@@ -40,7 +42,11 @@ namespace DAL
             services.AddScoped<INotificationRepository, NotificationRepository>();
             services.AddScoped<IUserNotificationRepository, UserNotificationRepository>();
             services.AddScoped<INotificationLogRepository, NotificationLogRepository>();
-            // ✳️ Thêm dòng này:
+
+            //ReviewBlog
+            services.AddScoped<IReviewBlogRepository, ReviewBlogRepository>();
+            services.AddScoped<IReviewBlogReactionRepository, ReviewBlogReactionRepository>();
+            services.AddScoped<IReviewBlogReplyRepository, ReviewBlogReplyRepository>();
 
             services.AddScoped<IAccountRepository, AccountRepository>();
             services.AddScoped<IRoleRepository, RoleRepository>();

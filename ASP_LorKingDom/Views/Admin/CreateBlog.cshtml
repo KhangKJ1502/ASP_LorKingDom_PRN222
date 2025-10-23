@@ -1,0 +1,211 @@
+﻿@model BLL.DTOs.BlogPostDto
+@{
+    ViewData["Title"] = "Tạo bài viết mới - ToyLand Admin";
+    Layout = "_AdminLayout";
+    var categories = ViewBag.Categories as List<BLL.DTOs.BlogCategoryDto>;
+}
+
+@section Styles {
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet" />
+    <style>
+        .editor-container {
+            height: 350px;
+            background-color: white;
+            margin-bottom: 4.0rem;
+        }
+
+        .ql-editor {
+            max-width: 100%;
+            overflow-wrap: break-word;
+            word-break: break-word;
+            white-space: pre-wrap;
+        }
+
+        #editor {
+            height: 100%;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 0.5rem;
+        }
+    </style>
+}
+
+<div class="container-fluid px-5">
+    <h1 class="mt-4">Tạo Bài Viết Mới</h1>
+
+    <div class="card mb-4 mt-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <div><i class="fa-solid fa-pen-to-square me-2"></i>Biểu mẫu tạo bài viết</div>
+        </div>
+
+        <div class="card-body">
+            <form method="post" asp-action="Create" asp-controller="Blog" enctype="multipart/form-data">
+                @Html.AntiForgeryToken()
+
+                <div class="row g-3 px-3">
+                    <!-- Tiêu đề -->
+                    <div class="col-md-12">
+                        <label class="form-label">Tiêu đề <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control border" name="BlogTitle"
+                            placeholder="Nhập tiêu đề bài viết" required>
+                    </div>
+
+                    <!-- Chuyên mục -->
+                    <div class="col-md-12">
+                        <label class="form-label">Chuyên mục <span class="text-danger">*</span></label>
+                        <select class="form-select" name="categoryIds" multiple required>
+                            @if (categories?.Any() == true)
+                            {
+                                @foreach (var cat in categories)
+                                {
+                                    <option value="@cat.BlogCategoryId">@cat.BlogCategoryName</option>
+                                }
+                            }
+                        </select>
+                        <small class="form-text text-muted">Chọn một hoặc nhiều chuyên mục (Ctrl+Click)</small>
+                    </div>
+
+                    <div class="col-md-12">
+                        <div class="d-flex justify-content-between">
+                            <!-- Ảnh đại diện -->
+                            <div class="col-md-5 p-0">
+                                <label class="form-label">Ảnh đại diện</label>
+                                <input type="file" class="form-control border" name="thumbnail" accept="image/*">
+                            </div>
+
+                            <!-- Trạng thái -->
+                            <div class="col-md-3 p-0">
+                                <label class="form-label">Trạng thái</label>
+                                <select class="form-select" name="IsPublished">
+                                    <option value="false">Bản nháp</option>
+                                    <option value="true">Xuất bản</option>
+                                </select>
+                            </div>
+
+                            <!-- Nổi bật -->
+                            <div class="col-md-3 p-0">
+                                <label class="form-label">Nổi bật</label>
+                                <div class="input-group-text gap-2">
+                                    <input class="form-check-input m-0 border" type="checkbox" asp-for="IsFeatured"
+                                        id="isFeatured">
+                                    <label class="form-check-label" for="isFeatured">
+                                        Đánh dấu bài viết nổi bật
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Nội dung -->
+                    <div class="col-md-12">
+                        <label class="form-label">Nội dung <span class="text-danger">*</span></label>
+                        <div class="editor-container">
+                            <div id="editor"></div>
+                        </div>
+                        <input type="hidden" name="BlogContent" id="blogContent">
+                    </div>
+
+                    <!-- Buttons -->
+                    <div class="col-md-12 mt-0">
+                        <a href="/Blog/Manage" class="btn btn-secondary">Hủy</a>
+                        <button type="submit" class="btn btn-primary">Tạo bài viết</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ✅ Xóa phần HTML toast -->
+@section Scripts {
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    <script>
+        // Initialize Quill
+        const quill = new Quill('#editor', {
+            theme: 'snow',
+            modules: {
+                toolbar: [
+                    ['bold', 'italic', 'underline', 'strike'],
+                    [{ 'header': [1, 2, 3, false] }],
+                    [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                    ['link', 'image'],
+                    ['clean']
+                ]
+            },
+            placeholder: 'Nhập nội dung bài viết...'
+        });
+
+        // Trước khi submit: lấy nội dung HTML từ Quill
+        document.querySelector('form')?.addEventListener('submit', function (e) {
+            const content = quill.root.innerHTML;
+            document.getElementById('blogContent').value = content;
+
+            if (!content.trim() || content === '<p><br></p>') {
+                e.preventDefault();
+                Swal.fire('Lỗi', 'Nội dung không được để trống', 'error');
+                return false;
+            }
+
+            // Kiểm tra featured checkbox
+            const isFeatured = document.getElementById('isFeatured').checked;
+
+            // Nếu muốn featured, gửi AJAX request để kiểm tra giới hạn
+            if (isFeatured) {
+                e.preventDefault();
+                submitFormWithFeaturedCheck(this);
+            }
+        });
+
+        // ✅ Hàm gửi form với kiểm tra featured blogs
+        function submitFormWithFeaturedCheck(form) {
+            const formData = new FormData(form);
+
+            fetch(form.action, {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Thành công',
+                            text: data.message,
+                            confirmButtonText: 'OK'
+                        }).then(() => {
+                            window.location.href = '/Blog/Manage';
+                        });
+                    } else {
+                        // Hiển thị lỗi nếu không thể thêm featured
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Lỗi',
+                            text: data.message,
+                            confirmButtonText: 'Đóng'
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    Swal.fire('Lỗi', 'Có lỗi xảy ra khi gửi dữ liệu', 'error');
+                });
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const hasError = '@(ViewBag.ShowErrorModal == true ? "true" : "false")';
+            const errorMessage = '@Html.Raw(ViewBag.ErrorMessage)';
+
+            if (hasError === "true" && errorMessage) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi',
+                    text: errorMessage,
+                    confirmButtonText: 'Đóng'
+                });
+            }
+        });
+    </script>
+}

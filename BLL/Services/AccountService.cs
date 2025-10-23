@@ -3,6 +3,7 @@ using BLL.Interfaces;
 using BLL.Validators;
 using DAL.Interfaces;
 using DAL.Models;
+using System.Security.Claims;
 
 namespace BLL.Services
 {
@@ -85,13 +86,14 @@ namespace BLL.Services
             var entity = new Account
             {
                 RoleId = dto.RoleId,
-                AccountName = dto.AccountName?.Trim(),
-                PhoneNumber = normPhone,
-                Email = normEmail,
+
+                AccountName = dto.AccountName,
+                PhoneNumber = dto.PhoneNumber,
+                Email = dto.Email.Trim().ToLower(),
                 Image = dto.Image,
-                Password = BCrypt.Net.BCrypt.HashPassword(dto.Password),
-                IsDeleted = false,
-                Status = AccountConstants.StatusActive,
+                Password = BCrypt.Net.BCrypt.HashPassword(dto.Password.Trim()),
+                IsDeleted = dto.IsDeleted,
+                Status = string.IsNullOrWhiteSpace(dto.Status) ? "Active" : dto.Status,
                 CreatedAt = DateTime.Now,
                 UpdatedAt = DateTime.Now,
                 Provider = AccountConstants.ProviderLocal
@@ -274,6 +276,19 @@ namespace BLL.Services
                 ? AccountConstants.AllowedStatuses.First(x => x.Equals(s, StringComparison.OrdinalIgnoreCase))
                 : AccountConstants.StatusActive;
         }
+
+        public async Task<AccountDto?> GetCurrentUserAsync(ClaimsPrincipal user)
+        {
+            if (user == null) return null;
+
+            var userIdClaim = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(userIdClaim, out var userId))
+                return null;
+
+            return await GetByIdAsync(userId);
+        }
+
+        // ===== Helpers =====
 
         private static bool IsBcryptHash(string s) =>
             !string.IsNullOrWhiteSpace(s) && s.Length == 60 &&

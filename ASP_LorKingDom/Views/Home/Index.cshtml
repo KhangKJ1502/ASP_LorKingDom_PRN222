@@ -1,8 +1,16 @@
-﻿@{
-	ViewData["Title"] = "ToyLand - Toy Wonderland";
-}
+﻿@model BLL.DTOs.PagedResult<BLL.DTOs.ProductDto>
 @using System.Linq
-@model IEnumerable<BLL.DTOs.ProductDto>
+
+@{
+	ViewData["Title"] = "ToyLand - Toy Wonderland";
+
+	var q = Context.Request.Query["q"].ToString();
+	int page = Model.Page, pageSize = Model.PageSize, total = Model.Total;
+	int totalPages = (int)Math.Ceiling(total / (double)pageSize);
+
+	// 1 instance Random cho cả view (tránh trùng lặp seed)
+	var rnd = new System.Random(12345);
+}
 
 <!-- Hero Section -->
 <section class="hero-section">
@@ -121,7 +129,6 @@
 	</div>
 </section>
 
-
 <!-- Promotion Banner -->
 <section class="promotion-section">
 	<div class="container">
@@ -139,115 +146,7 @@
 	</div>
 </section>
 
-<!-- Featured Products -->
-@* <section class="products-section"> *@
-@*     <div class="container"> *@
-@*         <div class="section-header"> *@
-@*             <h2 class="section-title">Featured Products</h2> *@
-@*             <p class="section-subtitle">Handpicked toys loved by children</p> *@
-@*         </div> *@
-
-@*         <div class="products-grid"> *@
-@*             <div class="product-card"> *@
-@*                 <div class="product-image"> *@
-@*                     <img src="~/images/products/product-1.jpg" alt="Product 1"> *@
-@*                     <button class="product-wishlist"> *@
-@*                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"> *@
-@*                             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path> *@
-@*                         </svg> *@
-@*                     </button> *@
-@*                     <span class="product-badge">New</span> *@
-@*                 </div> *@
-@*                 <div class="product-info"> *@
-@*                     <h3 class="product-name">LEGO City Police Station</h3> *@
-@*                     <div class="product-rating"> *@
-@*                         <div class="stars">★★★★★</div> *@
-@*                         <span>(128)</span> *@
-@*                     </div> *@
-@*                     <div class="product-price"> *@
-@*                         <span class="price-current">$89.99</span> *@
-@*                         <span class="price-original">$119.99</span> *@
-@*                     </div> *@
-@*                     <button class="btn btn-primary btn-block">Add to Cart</button> *@
-@*                 </div> *@
-@*             </div> *@
-
-@*             <!-- More product cards... --> *@
-@*             <div class="product-card"> *@
-@*                 <div class="product-image"> *@
-@*                     <img src="~/images/products/product-2.jpg" alt="Product 2"> *@
-@*                     <button class="product-wishlist"> *@
-@*                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"> *@
-@*                             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path> *@
-@*                         </svg> *@
-@*                     </button> *@
-@*                     <span class="product-badge badge-sale">-30%</span> *@
-@*                 </div> *@
-@*                 <div class="product-info"> *@
-@*                     <h3 class="product-name">Barbie Dreamhouse</h3> *@
-@*                     <div class="product-rating"> *@
-@*                         <div class="stars">★★★★★</div> *@
-@*                         <span>(256)</span> *@
-@*                     </div> *@
-@*                     <div class="product-price"> *@
-@*                         <span class="price-current">$149.99</span> *@
-@*                         <span class="price-original">$199.99</span> *@
-@*                     </div> *@
-@*                     <button class="btn btn-primary btn-block">Add to Cart</button> *@
-@*                 </div> *@
-@*             </div> *@
-
-@*             <div class="product-card"> *@
-@*                 <div class="product-image"> *@
-@*                     <img src="~/images/products/product-3.jpg" alt="Product 3"> *@
-@*                     <button class="product-wishlist"> *@
-@*                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"> *@
-@*                             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path> *@
-@*                         </svg> *@
-@*                     </button> *@
-@*                 </div> *@
-@*                 <div class="product-info"> *@
-@*                     <h3 class="product-name">Hot Wheels Track Set</h3> *@
-@*                     <div class="product-rating"> *@
-@*                         <div class="stars">★★★★☆</div> *@
-@*                         <span>(89)</span> *@
-@*                     </div> *@
-@*                     <div class="product-price"> *@
-@*                         <span class="price-current">$39.99</span> *@
-@*                     </div> *@
-@*                     <button class="btn btn-primary btn-block">Add to Cart</button> *@
-@*                 </div> *@
-@*             </div> *@
-
-@*             <div class="product-card"> *@
-@*                 <div class="product-image"> *@
-@*                     <img src="~/images/products/product-4.jpg" alt="Product 4"> *@
-@*                     <button class="product-wishlist"> *@
-@*                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"> *@
-@*                             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path> *@
-@*                         </svg> *@
-@*                     </button> *@
-@*                     <span class="product-badge badge-hot">Hot</span> *@
-@*                 </div> *@
-@*                 <div class="product-info"> *@
-@*                     <h3 class="product-name">Educational STEM Kit</h3> *@
-@*                     <div class="product-rating"> *@
-@*                         <div class="stars">★★★★★</div> *@
-@*                         <span>(342)</span> *@
-@*                     </div> *@
-@*                     <div class="product-price"> *@
-@*                         <span class="price-current">$59.99</span> *@
-@*                     </div> *@
-@*                     <button class="btn btn-primary btn-block">Add to Cart</button> *@
-@*                 </div> *@
-@*             </div> *@
-@*         </div> *@
-@*     </div> *@
-@* </section> *@
-
-@* --- Featured Products --- *@
-
-
+<!-- Products -->
 <section class="products-section">
 	<div class="container">
 		<div class="section-header">
@@ -255,9 +154,9 @@
 			<p class="section-subtitle">Handpicked toys loved by children</p>
 		</div>
 
-		@if (Model != null && Model.Any())
+		@if (Model?.Items != null && Model.Items.Any())
 		{
-			@foreach (var row in Model.Chunk(4))
+			@foreach (var row in Model.Items.Chunk(4))
 			{
 				<div class="product-row d-grid" style="grid-template-columns: repeat(4, minmax(0,1fr)); gap:24px; margin-bottom:24px;">
 					@foreach (var p in row)
@@ -273,7 +172,6 @@
 									</svg>
 								</button>
 
-								@* Badge nếu muốn hiển thị sản phẩm hot/new/sale *@
 								@if (p.Price < 50)
 								{
 									<span class="product-badge badge-hot">Hot</span>
@@ -287,10 +185,10 @@
 							<div class="product-info">
 								<h3 class="product-name" title="@p.ProductName">@p.ProductName</h3>
 
-								@* ⭐⭐ Hiển thị sao đánh giá giả lập (4-5 sao ngẫu nhiên) *@
 								<div class="product-rating">
 									@{
-										int stars = new Random().Next(4, 6); // 4 hoặc 5 sao
+										int stars = rnd.Next(4, 6); // 4 hoặc 5 sao
+										int reviews = rnd.Next(50, 500);
 									}
 									<div class="stars">
 										@for (int i = 0; i < stars; i++)
@@ -302,10 +200,9 @@
 											<span>☆</span>
 										}
 									</div>
-									<span>(@(new Random().Next(50, 500)))</span>
+									<span>(@reviews)</span>
 								</div>
 
-								@* 💰 Hiển thị giá *@
 								<div class="product-price">
 									<span class="price-current">@p.Price.ToString("C")</span>
 									@if (p.Price > 100)
@@ -314,11 +211,8 @@
 									}
 								</div>
 
-								@* 🛒 Nút Add to Cart *@
 								<form method="post" asp-action="AddToCart" asp-controller="Cart" asp-route-id="@p.Id">
-									<button type="submit" class="btn btn-primary btn-block">
-										Add to Cart
-									</button>
+									<button type="submit" class="btn btn-primary btn-block">Add to Cart</button>
 								</form>
 							</div>
 						</div>
@@ -333,6 +227,39 @@
 	</div>
 </section>
 
+@if (totalPages > 1)
+{
+	<nav aria-label="pagination" class="mt-4">
+		<ul class="pagination justify-content-center">
+			<li class="page-item @(page <= 1 ? "disabled" : "")">
+				<a class="page-link"
+				   asp-action="Index"
+				   asp-route-page="@(page - 1)"
+				   asp-route-q="@q"
+				   asp-route-pageSize="@pageSize">&laquo;</a>
+			</li>
+
+			@for (int i = Math.Max(1, page - 2); i <= Math.Min(totalPages, page + 2); i++)
+			{
+				<li class="page-item @(i == page ? "active" : "")">
+					<a class="page-link"
+					   asp-action="Index"
+					   asp-route-page="@i"
+					   asp-route-q="@q"
+					   asp-route-pageSize="@pageSize">@i</a>
+				</li>
+			}
+
+			<li class="page-item @(page >= totalPages ? "disabled" : "")">
+				<a class="page-link"
+				   asp-action="Index"
+				   asp-route-page="@(page + 1)"
+				   asp-route-q="@q"
+				   asp-route-pageSize="@pageSize">&raquo;</a>
+			</li>
+		</ul>
+	</nav>
+}
 
 <!-- Newsletter Section -->
 <section class="newsletter-section">
@@ -356,6 +283,7 @@
 	</div>
 </section>
 
+<!-- Pagination -->
 @section Scripts {
 	<script src="~/js/home.js"></script>
 }

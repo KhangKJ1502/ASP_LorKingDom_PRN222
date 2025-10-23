@@ -1,4 +1,5 @@
 ﻿using BLL.DTOs;
+using System.Security.Claims;
 
 namespace BLL.Interfaces
 {
@@ -24,5 +25,7 @@ namespace BLL.Interfaces
 
         Task<AccountDto?> AuthenticateAsync(string email, string password);
         Task<bool> ResetPasswordAsync(string email, string newPassword);
+        Task<AccountDto?> GetCurrentUserAsync(ClaimsPrincipal user);
+
     }
 }

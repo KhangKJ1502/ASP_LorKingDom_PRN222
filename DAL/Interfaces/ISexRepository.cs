@@ -10,5 +10,6 @@ namespace DAL.Interfaces
     public interface ISexRepository
     {
         Task<List<Sex>> GetActiveAsync();
+        Task<Sex?> GetByIdAsync(int id);
     }
 }

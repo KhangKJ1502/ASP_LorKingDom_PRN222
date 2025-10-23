@@ -21,36 +21,15 @@
         </div>
 
         <!-- TempData / ModelState -->
-        @if (TempData["Error"] != null)
-        {
-            <div class="alert alert-danger text-center mb-3">@TempData["Error"]</div>
-        }
-        @if (TempData["Message"] != null)
-        {
-            <div class="alert alert-info text-center mb-3">@TempData["Message"]</div>
-        }
-        @if (TempData["Success"] != null)
-        {
-            <div class="alert alert-success text-center mb-3">@TempData["Success"]</div>
-        }
-        @if (!ViewData.ModelState.IsValid)
-        {
-            <div class="alert alert-danger text-center mb-3">
-                @foreach (var e in ViewData.ModelState.Values.SelectMany(v => v.Errors))
-                {
-                    <div>@e.ErrorMessage</div>
-                }
-            </div>
-        }
-
         <!-- Form VERIFY -->
-        <form asp-action="VerifyOtp" asp-controller="Auth" method="post" class="otp-form">
+        <form id="verifyOtpForm" class="otp-form">
             @Html.AntiForgeryToken()
-            <input type="hidden" name="Email" value="@ViewBag.Email" />
+            <input type="hidden" name="email" value="@ViewBag.Email" />
             <input type="hidden" name="otpCode" id="otpCode" />
 
             <div class="otp-input-group d-flex justify-content-between mb-4">
-                <input type="text" maxlength="1" class="otp-input form-control text-center" name="Otp1" autocomplete="one-time-code" required />
+                <input type="text" maxlength="1" class="otp-input form-control text-center" name="Otp1"
+                    autocomplete="one-time-code" required />
                 <input type="text" maxlength="1" class="otp-input form-control text-center" name="Otp2" required />
                 <input type="text" maxlength="1" class="otp-input form-control text-center" name="Otp3" required />
                 <input type="text" maxlength="1" class="otp-input form-control text-center" name="Otp4" required />
@@ -62,7 +41,8 @@
         </form>
 
         <!-- Form RESEND (tách riêng, POST + antiforgery) -->
-        <form id="resendForm" asp-action="ResendOtp" asp-controller="Auth" method="post" class="text-center" asp-antiforgery="true">
+        <form id="resendForm" class="text-center">
+            @Html.AntiForgeryToken()
             <input type="hidden" name="email" value="@ViewBag.Email" />
             <button type="submit" id="resendBtn" class="btn btn-link p-0" disabled>
                 Gửi lại mã sau <span id="countdown">30</span>s
@@ -72,5 +52,146 @@
 </div>
 
 @section Scripts {
-    <script src="~/js/verify-otp.js"></script>
+    <script>
+        // OTP Input Navigation
+        const otpInputs = document.querySelectorAll('.otp-input');
+        otpInputs.forEach((input, index) => {
+            input.addEventListener('input', (e) => {
+                if (e.target.value.length === 1 && index < otpInputs.length - 1) {
+                    otpInputs[index + 1].focus();
+                }
+            });
+
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace' && e.target.value === '' && index > 0) {
+                    otpInputs[index - 1].focus();
+                }
+            });
+        });
+
+        // Verify OTP Form
+        document.getElementById('verifyOtpForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+            const otpCode = Array.from(document.querySelectorAll('.otp-input'))
+                .map(input => input.value)
+                .join('');
+
+            formData.set('otpCode', otpCode);
+
+            try {
+                const response = await fetch('@Url.Action("VerifyOtp", "Auth")', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Thành công',
+                        text: data.message,
+                        confirmButtonColor: '#28a745',
+                        allowOutsideClick: false
+                    }).then(() => {
+                        window.location.href = data.redirectUrl;
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Xác minh OTP thất bại',
+                        text: data.message,
+                        confirmButtonColor: '#f97316',
+                        timer: 5000
+                    });
+                }
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi',
+                    text: 'Đã xảy ra lỗi khi xác minh OTP',
+                    confirmButtonColor: '#f97316'
+                });
+            }
+        });
+
+        // Resend OTP Form
+        document.getElementById('resendForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+
+            try {
+                const response = await fetch('@Url.Action("ResendOtp", "Auth")', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Thành công',
+                        text: data.message,
+                        confirmButtonColor: '#28a745',
+                        timer: 3000
+                    });
+
+                    // Reset countdown
+                    let countdown = 30;
+                    document.getElementById('resendBtn').disabled = true;
+                    document.getElementById('countdown').textContent = countdown;
+
+                    const interval = setInterval(() => {
+                        countdown--;
+                        document.getElementById('countdown').textContent = countdown;
+
+                        if (countdown === 0) {
+                            clearInterval(interval);
+                            document.getElementById('resendBtn').disabled = false;
+                            document.getElementById('countdown').textContent = '30';
+                        }
+                    }, 1000);
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Lỗi',
+                        text: data.message,
+                        confirmButtonColor: '#f97316',
+                        timer: 5000
+                    });
+                }
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi',
+                    text: 'Đã xảy ra lỗi khi gửi lại OTP',
+                    confirmButtonColor: '#f97316'
+                });
+            }
+        });
+
+        // Countdown timer on load
+        document.addEventListener('DOMContentLoaded', function () {
+            let countdown = 30;
+            const resendBtn = document.getElementById('resendBtn');
+            const countdownSpan = document.getElementById('countdown');
+
+            resendBtn.disabled = true;
+
+            const interval = setInterval(() => {
+                countdown--;
+                countdownSpan.textContent = countdown;
+
+                if (countdown === 0) {
+                    clearInterval(interval);
+                    resendBtn.disabled = false;
+                    countdownSpan.textContent = '30';
+                }
+            }, 1000);
+        });
+    </script>
 }

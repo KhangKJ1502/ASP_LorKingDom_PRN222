@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace DAL.Models;
+﻿namespace DAL.Models;
 
 public partial class ReviewBlog
 {
@@ -14,6 +11,8 @@ public partial class ReviewBlog
     public int Rating { get; set; }
 
     public string? Comment { get; set; }
+
+    public bool IsBlocked { get; set; }
 
     public DateTime CreatedAt { get; set; }
 

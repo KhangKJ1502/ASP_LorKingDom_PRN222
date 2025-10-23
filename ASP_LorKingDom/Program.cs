@@ -26,6 +26,14 @@ builder.Services.AddDAL(conn);
 builder.Services.AddBLL();
 builder.Services.AddControllersWithViews();
 
+// Thêm Session (bắt buộc cho SignupEmail, SignupPassword)
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+
 //ChatHUb
 builder.Services.AddControllersWithViews();
 builder.Services.AddSignalR();
@@ -49,6 +57,8 @@ builder.Services.AddScoped<IProductService, ProductService>(); // Nếu có IPro
 var app = builder.Build();
 
 // 4) Pipeline mặc định
+app.UseSession(); // Thêm Session middleware
+
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
