@@ -17,10 +17,7 @@ namespace WebUI.BackgroundServices
         private readonly ILogger<NotificationWorkerService> _logger;
         private readonly IServiceProvider _serviceProvider;
 
-        // Interval cơ sở (có thể chuyển sang IOptions để cấu hình qua appsettings)
         private readonly TimeSpan _interval = TimeSpan.FromMinutes(1);
-
-        // Gate chống overlap
         private readonly SemaphoreSlim _gate = new(1, 1);
 
         public NotificationWorkerService(
@@ -35,20 +32,9 @@ namespace WebUI.BackgroundServices
         {
             _logger.LogInformation("NotificationWorkerService starting.");
 
-            // Jitter nhẹ khi khởi động để tránh đồng bộ nhịp giữa nhiều instance
             var startupJitterMs = Random.Shared.Next(0, 5000);
-            try
-            {
-                await Task.Delay(startupJitterMs, stoppingToken);
-            }
-            catch (OperationCanceledException)
-            {
-                // app đang dừng, thoát sớm
-                return;
-            }
-
-            // Nếu muốn chạy 1 lần ngay khi start (bỏ comment):
-            // await SafeProcessOnceAsync(stoppingToken);
+            try { await Task.Delay(startupJitterMs, stoppingToken); }
+            catch (OperationCanceledException) { return; }
 
             var timer = new PeriodicTimer(_interval);
             try
@@ -58,10 +44,7 @@ namespace WebUI.BackgroundServices
                     await SafeProcessOnceAsync(stoppingToken);
                 }
             }
-            catch (OperationCanceledException)
-            {
-                // bình thường khi app shutdown
-            }
+            catch (OperationCanceledException) { /* normal on shutdown */ }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "NotificationWorkerService crashed unexpectedly.");
@@ -75,7 +58,6 @@ namespace WebUI.BackgroundServices
 
         private async Task SafeProcessOnceAsync(CancellationToken ct)
         {
-            // Tránh overlap: nếu gate đang bị giữ, bỏ qua nhịp này
             if (!await _gate.WaitAsync(0, ct))
             {
                 _logger.LogWarning("Previous notification dispatch is still running; skipping this tick.");
@@ -83,18 +65,9 @@ namespace WebUI.BackgroundServices
             }
 
             var sw = Stopwatch.StartNew();
-            try
-            {
-                await ProcessDueNotificationsAsync(ct);
-            }
-            catch (OperationCanceledException)
-            {
-                // tôn trọng hủy, không log error
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error occurred while processing due notifications.");
-            }
+            try { await ProcessDueNotificationsAsync(ct); }
+            catch (OperationCanceledException) { }
+            catch (Exception ex) { _logger.LogError(ex, "Error occurred while processing due notifications."); }
             finally
             {
                 sw.Stop();

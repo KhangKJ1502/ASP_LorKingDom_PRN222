@@ -1,5 +1,6 @@
 ﻿using BLL.DTOs;
 using BLL.Interfaces;
+using BLL.Validators;
 using DAL.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -7,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 namespace WebUI.Controllers
 {
     [AutoValidateAntiforgeryToken]
+    [RequestSizeLimit(5 * 1024 * 1024)] // 5MB
     public class AccountStaffController : Controller
     {
         private readonly IAccountService _accountService;
@@ -18,26 +20,18 @@ namespace WebUI.Controllers
             _roleRepository = roleRepo;
         }
 
+        // ===== MANAGE =====
         [HttpGet]
         public async Task<IActionResult> Manage(string? q)
         {
             await LoadRolesAsync();
-            var all = await _accountService.GetAllStaffForAdminAsync();
-
-            if (!string.IsNullOrWhiteSpace(q))
-            {
-                var kw = q.Trim().ToLowerInvariant();
-                all = all.Where(c =>
-                    (c.AccountName?.ToLower().Contains(kw) ?? false) ||
-                    (c.Email?.ToLower().Contains(kw) ?? false) ||
-                    (c.PhoneNumber?.Contains(kw) ?? false)
-                ).ToList();
-            }
-
+            var items = await _accountService.GetAllStaffForAdminAsync();
+            items = Filter(items, q);
             ViewBag.Query = q;
-            return View("~/Views/Admin/ManageAccountStaff.cshtml", all.OrderByDescending(c => c.CreatedAt).ToList());
+            return View("~/Views/Admin/ManageAccountStaff.cshtml", items.OrderByDescending(c => c.CreatedAt).ToList());
         }
 
+        // ===== CREATE =====
         [HttpPost("account-staff/create")]
         public async Task<IActionResult> CreateStaff(
             [FromForm] AccountDto model,
@@ -48,52 +42,52 @@ namespace WebUI.Controllers
             try
             {
                 await LoadRolesAsync();
+                var v = AccountValidator.ValidateCreateStaff(
+                    model.AccountName, model.Email, model.PhoneNumber, model.RoleId, model.Password, ConfirmPassword ?? "");
 
-                // Validate
-                if (string.IsNullOrWhiteSpace(model.AccountName))
-                    ModelState.AddModelError(nameof(model.AccountName), "Tên nhân viên bắt buộc.");
-                if (string.IsNullOrWhiteSpace(model.Email))
-                    ModelState.AddModelError(nameof(model.Email), "Email bắt buộc.");
-                if (!model.RoleId.HasValue || model.RoleId.Value <= 0)
-                    ModelState.AddModelError(nameof(model.RoleId), "Vui lòng chọn vai trò.");
-                if (string.IsNullOrWhiteSpace(model.Password))
-                    ModelState.AddModelError(nameof(model.Password), "Mật khẩu bắt buộc.");
-                else if (model.Password.Length < 6)
-                    ModelState.AddModelError(nameof(model.Password), "Mật khẩu tối thiểu 6 ký tự.");
-                if (!string.Equals(model.Password, ConfirmPassword, StringComparison.Ordinal))
-                    ModelState.AddModelError("ConfirmPassword", "Xác nhận mật khẩu không khớp.");
+                if (!v.IsValid) AddModelErrors(v.Errors);
 
-                // Email/Phone unique
-                if (!string.IsNullOrWhiteSpace(model.Email) && await _accountService.ExistsByEmailAsync(model.Email))
+                if (model.RoleId.HasValue && model.RoleId.Value > 0)
+                {
+                    var role = await _roleRepository.GetByIdAsync(model.RoleId.Value);
+                    if (role == null) ModelState.AddModelError(nameof(model.RoleId), "Vai trò không tồn tại.");
+                }
+
+                if (!string.IsNullOrWhiteSpace(model.Email) &&
+                    await _accountService.ExistsByEmailAsync(model.Email))
                     ModelState.AddModelError(nameof(model.Email), "Email đã tồn tại.");
                 if (!string.IsNullOrWhiteSpace(model.PhoneNumber) &&
                     await _accountService.ExistsByPhoneNumberAsync(model.PhoneNumber))
                     ModelState.AddModelError(nameof(model.PhoneNumber), "Số điện thoại đã tồn tại.");
 
+                if (AvatarFile is { Length: > 0 })
+                {
+                    var imgV = AccountValidator.ValidateImageFile(AvatarFile.Length, AvatarFile.ContentType);
+                    if (!imgV.IsValid) AddModelErrors(imgV.Errors);
+                }
+
                 if (!ModelState.IsValid)
                 {
                     ViewBag.ShowErrorModal = true;
-                    ViewBag.ErrorMessage = string.Join("; ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
+                    ViewBag.ErrorMessage = FirstModelStateError();
                     return await ReloadManagePage(q, model);
                 }
 
-                // Defaults
                 model.Id = 0;
                 model.Status = model.IsDeleted ? "Inactive" : "Active";
                 model.CreatedAt = DateTime.Now;
                 model.UpdatedAt = null;
 
-                // Ảnh
                 if (AvatarFile is { Length: > 0 })
                 {
-                    var (ok, msg) = await SaveAvatarAsync(AvatarFile);
+                    var (ok, pathOrErr) = await TrySaveAvatarAsync(AvatarFile);
                     if (!ok)
                     {
                         ViewBag.ShowErrorModal = true;
-                        ViewBag.ErrorMessage = msg;
+                        ViewBag.ErrorMessage = pathOrErr;
                         return await ReloadManagePage(q, model);
                     }
-                    model.Image = msg;
+                    model.Image = pathOrErr;
                 }
 
                 var newId = await _accountService.CreateAsync(model);
@@ -108,6 +102,7 @@ namespace WebUI.Controllers
             }
         }
 
+        // ===== UPDATE =====
         [HttpPost("account-staff/update")]
         public async Task<IActionResult> UpdateStaff(
             [FromForm] int Id,
@@ -117,8 +112,8 @@ namespace WebUI.Controllers
             [FromForm] string Email,
             [FromForm] string Status,
             [FromForm] bool IsDeleted,
-            [FromForm] string? NewPassword,           // ← MẬT KHẨU MỚI (optional)
-            [FromForm] string? ConfirmNewPassword,    // ← XÁC NHẬN (optional)
+            [FromForm] string? NewPassword,
+            [FromForm] string? ConfirmNewPassword,
             [FromForm] string? q,
             [FromForm] string? ExistingImage,
             [FromForm] bool RemoveImage = false,
@@ -133,32 +128,32 @@ namespace WebUI.Controllers
                     TempData["Error"] = "Thiếu Id nhân viên.";
                     return RedirectToAction(nameof(Manage), new { q });
                 }
-                if (string.IsNullOrWhiteSpace(AccountName))
-                    ModelState.AddModelError(nameof(AccountName), "Tên nhân viên bắt buộc.");
-                if (!RoleId.HasValue || RoleId.Value <= 0)
-                    ModelState.AddModelError(nameof(RoleId), "Vui lòng chọn vai trò.");
 
-                // Validate password nếu có nhập
-                if (!string.IsNullOrWhiteSpace(NewPassword))
+                var v = AccountValidator.ValidateUpdateStaff(
+                    AccountName, Email, PhoneNumber, RoleId, Status, NewPassword ?? "", ConfirmNewPassword ?? "");
+                if (!v.IsValid) AddModelErrors(v.Errors);
+
+                if (RoleId.HasValue && RoleId.Value > 0)
                 {
-                    if (NewPassword.Length < 6)
-                        ModelState.AddModelError(nameof(NewPassword), "Mật khẩu tối thiểu 6 ký tự.");
-                    if (!string.Equals(NewPassword, ConfirmNewPassword, StringComparison.Ordinal))
-                        ModelState.AddModelError(nameof(ConfirmNewPassword), "Xác nhận mật khẩu không khớp.");
+                    var role = await _roleRepository.GetByIdAsync(RoleId.Value);
+                    if (role == null) ModelState.AddModelError(nameof(RoleId), "Vai trò không tồn tại.");
                 }
 
-                // Unique phone
                 if (!string.IsNullOrWhiteSpace(PhoneNumber) &&
                     await _accountService.ExistsByPhoneNumberAsync(PhoneNumber, Id))
                     ModelState.AddModelError(nameof(PhoneNumber), "Số điện thoại đã tồn tại.");
 
+                if (AvatarFile is { Length: > 0 })
+                {
+                    var imgV = AccountValidator.ValidateImageFile(AvatarFile.Length, AvatarFile.ContentType);
+                    if (!imgV.IsValid) AddModelErrors(imgV.Errors);
+                }
+
                 if (!ModelState.IsValid)
                 {
                     ViewBag.ShowErrorModal = true;
-                    ViewBag.ErrorMessage = string.Join("; ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
-
-                    // Tạo model để prefill lại
-                    var tempModel = new AccountDto
+                    ViewBag.ErrorMessage = FirstModelStateError();
+                    var temp = new AccountDto
                     {
                         Id = Id,
                         AccountName = AccountName,
@@ -169,8 +164,8 @@ namespace WebUI.Controllers
                         IsDeleted = IsDeleted,
                         Image = ExistingImage
                     };
-                    ViewBag.EditStaff = tempModel;
-                    return await ReloadManagePage(q, tempModel);
+                    ViewBag.EditStaff = temp;
+                    return await ReloadManagePage(q, temp);
                 }
 
                 var existing = await _accountService.GetByIdAsync(Id);
@@ -180,54 +175,37 @@ namespace WebUI.Controllers
                     return RedirectToAction(nameof(Manage), new { q });
                 }
 
-                // Update fields
-                existing.AccountName = AccountName;
+                existing.AccountName = AccountName?.Trim();
                 existing.PhoneNumber = PhoneNumber;
                 existing.RoleId = RoleId;
                 existing.IsDeleted = IsDeleted;
                 existing.Status = IsDeleted ? "Inactive" : Status;
                 existing.UpdatedAt = DateTime.Now;
 
-                // ✅ CHỈ update password nếu có nhập mới
                 if (!string.IsNullOrWhiteSpace(NewPassword))
-                {
-                    existing.Password = NewPassword; // Service sẽ hash lại
-                }
+                    existing.Password = NewPassword; // Service sẽ hash khi UpdateAsync
 
-                // Avatar
                 if (AvatarFile is { Length: > 0 })
                 {
-                    var (ok, msg) = await SaveAvatarAsync(AvatarFile);
+                    var (ok, pathOrErr) = await TrySaveAvatarAsync(AvatarFile);
                     if (!ok)
                     {
                         ViewBag.ShowErrorModal = true;
-                        ViewBag.ErrorMessage = msg;
-                        var tempModel = new AccountDto
-                        {
-                            Id = Id,
-                            AccountName = AccountName,
-                            PhoneNumber = PhoneNumber,
-                            RoleId = RoleId,
-                            Email = Email,
-                            Status = Status,
-                            IsDeleted = IsDeleted,
-                            Image = ExistingImage
-                        };
-                        ViewBag.EditStaff = tempModel;
-                        return await ReloadManagePage(q, tempModel);
+                        ViewBag.ErrorMessage = pathOrErr;
+                        ViewBag.EditStaff = existing;
+                        return await ReloadManagePage(q, existing);
                     }
-                    if (!string.IsNullOrEmpty(existing.Image)) DeleteOldAvatar(existing.Image);
-                    existing.Image = msg;
+                    DeleteOldAvatar(existing.Image);
+                    existing.Image = pathOrErr;
                 }
                 else if (RemoveImage)
                 {
-                    if (!string.IsNullOrEmpty(existing.Image)) DeleteOldAvatar(existing.Image);
+                    DeleteOldAvatar(existing.Image);
                     existing.Image = null;
                 }
 
                 var success = await _accountService.UpdateAsync(existing.Id, existing);
                 TempData["Success"] = success ? "Cập nhật nhân viên thành công!" : "Cập nhật thất bại!";
-
                 return RedirectToAction(nameof(Manage), new { q });
             }
             catch (DbUpdateConcurrencyException)
@@ -237,12 +215,12 @@ namespace WebUI.Controllers
             }
             catch (Exception ex)
             {
-                ViewBag.ShowErrorModal = true;
-                ViewBag.ErrorMessage = $"Lỗi: {ex.Message}";
+                TempData["Error"] = $"Lỗi: {ex.Message}";
                 return RedirectToAction(nameof(Manage), new { q });
             }
         }
 
+        // ===== DELETE / RESTORE =====
         [HttpPost]
         public async Task<IActionResult> DeleteStaff(int id, string? q)
         {
@@ -254,7 +232,6 @@ namespace WebUI.Controllers
                     TempData["Error"] = "Không tìm thấy nhân viên!";
                     return RedirectToAction(nameof(Manage), new { q });
                 }
-
                 staff.IsDeleted = true;
                 staff.Status = "Inactive";
                 staff.UpdatedAt = DateTime.Now;
@@ -296,24 +273,25 @@ namespace WebUI.Controllers
         }
 
         // ===== Helpers =====
+        private static List<AccountDto> Filter(List<AccountDto> all, string? q)
+        {
+            if (string.IsNullOrWhiteSpace(q)) return all;
+            var kw = q.Trim().ToLowerInvariant();
+            return all.Where(c =>
+                (c.AccountName?.ToLower().Contains(kw) ?? false) ||
+                (c.Email?.ToLower().Contains(kw) ?? false) ||
+                (c.PhoneNumber?.Contains(kw) ?? false)).ToList();
+        }
+
         private async Task<IActionResult> ReloadManagePage(string? q, AccountDto? editModel = null)
         {
             await LoadRolesAsync();
             var all = await _accountService.GetAllStaffForAdminAsync();
-
-            if (!string.IsNullOrWhiteSpace(q))
-            {
-                var kw = q.Trim().ToLowerInvariant();
-                all = all.Where(c =>
-                    (c.AccountName?.ToLower().Contains(kw) ?? false) ||
-                    (c.Email?.ToLower().Contains(kw) ?? false) ||
-                    (c.PhoneNumber?.Contains(kw) ?? false)
-                ).ToList();
-            }
+            all = Filter(all, q);
 
             if (editModel != null) ViewBag.EditStaff = editModel;
-
             ViewBag.Query = q;
+
             return View("~/Views/Admin/ManageAccountStaff.cshtml", all.OrderByDescending(c => c.CreatedAt).ToList());
         }
 
@@ -325,14 +303,14 @@ namespace WebUI.Controllers
 
         private static string GetWebRoot() => Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
 
-        private async Task<(bool ok, string msg)> SaveAvatarAsync(IFormFile file)
+        private async Task<(bool ok, string msg)> TrySaveAvatarAsync(IFormFile file)
         {
             var okTypes = new[] { "image/png", "image/jpeg", "image/jpg", "image/webp", "image/gif" };
             const long MAX = 2 * 1024 * 1024;
 
             if (!okTypes.Contains(file.ContentType.ToLower())) return (false, "Định dạng ảnh không hợp lệ. Hỗ trợ PNG/JPG/WebP/GIF.");
-            if (file.Length > MAX) return (false, "Kích thước ảnh tối đa 2MB.");
             if (file.Length == 0) return (false, "File ảnh rỗng.");
+            if (file.Length > MAX) return (false, "Kích thước ảnh tối đa 2MB.");
 
             try
             {
@@ -341,7 +319,8 @@ namespace WebUI.Controllers
 
                 var ext = Path.GetExtension(file.FileName).ToLower();
                 var name = $"{Guid.NewGuid():N}{ext}";
-                using var stream = System.IO.File.Create(Path.Combine(uploads, name));
+
+                await using var stream = System.IO.File.Create(Path.Combine(uploads, name));
                 await file.CopyToAsync(stream);
 
                 return (true, $"/uploads/staff/{name}");
@@ -352,16 +331,28 @@ namespace WebUI.Controllers
             }
         }
 
-        private void DeleteOldAvatar(string imagePath)
+        private void DeleteOldAvatar(string? imagePath)
         {
             if (string.IsNullOrWhiteSpace(imagePath)) return;
             try
             {
                 var fileName = Path.GetFileName(imagePath);
+                if (fileName.Contains("..") || Path.IsPathRooted(fileName)) return;
+
                 var fullPath = Path.Combine(GetWebRoot(), "uploads", "staff", fileName);
                 if (System.IO.File.Exists(fullPath)) System.IO.File.Delete(fullPath);
             }
             catch { /* ignore */ }
+        }
+
+        private void AddModelErrors(IEnumerable<string> errors)
+        {
+            foreach (var e in errors) ModelState.AddModelError(string.Empty, e);
+        }
+
+        private string FirstModelStateError()
+        {
+            return string.Join("; ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).Distinct());
         }
     }
 }

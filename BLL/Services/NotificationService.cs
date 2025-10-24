@@ -9,6 +9,9 @@ using System.Threading.Tasks;
 
 namespace BLL.Services
 {
+    /// <summary>
+    /// Service xử lý nghiệp vụ quản trị & worker cho thông báo.
+    /// </summary>
     public class NotificationService : INotificationService
     {
         private readonly INotificationRepository _notificationRepo;
@@ -16,6 +19,14 @@ namespace BLL.Services
         private readonly INotificationLogRepository _logRepo;
         private readonly IAccountRepository _accountRepo;
         private readonly IRoleRepository _roleRepo;
+
+        private static class LogResults
+        {
+            public const string Success = "Success";
+            public const string Failed = "Failed";
+            public const string Canceled = "Canceled";
+            public const string Skipped = "Skipped";
+        }
 
         public NotificationService(
             INotificationRepository notificationRepo,
@@ -63,20 +74,29 @@ namespace BLL.Services
             {
                 Title = dto.Title.Trim(),
                 Message = dto.Message.Trim(),
-                Type = dto.Type, // Đã normalize từ Controller
-                TargetType = dto.TargetType, // Đã normalize từ Controller
+                Type = dto.Type,
+                TargetType = dto.TargetType,
                 TargetRoleId = dto.TargetRoleId,
                 TargetUserId = dto.TargetUserId,
-                ConditionJson = dto.ConditionJson,
-                ScheduledAt = dto.ScheduledAt, // Đã convert UTC từ Controller
-                ExpireAt = dto.ExpireAt, // Đã convert UTC từ Controller
-                CreatedBy = 10,
+                ConditionJson = dto.ConditionJson?.Trim(),
+                ScheduledAt = dto.ScheduledAt,
+                ExpireAt = dto.ExpireAt,
+                CreatedBy = dto.CreatedBy,
                 CreatedAt = DateTime.UtcNow,
                 IsSent = false,
                 IsCanceled = false
             };
 
             var created = await _notificationRepo.CreateAsync(entity);
+
+            await _logRepo.AddAsync(new NotificationLog
+            {
+                NotificationId = created.NotificationId,
+                Result = LogResults.Success,
+                Details = $"Thông báo mới được tạo: {created.Title}",
+                SentAt = DateTime.UtcNow
+            });
+
             return MapToDto(created);
         }
 
@@ -88,29 +108,45 @@ namespace BLL.Services
             if (entity.IsSent) throw new InvalidOperationException("Không thể sửa thông báo đã gửi");
             if (entity.IsCanceled) throw new InvalidOperationException("Không thể sửa thông báo đã hủy");
 
-            // Nếu đổi title thì kiểm tra trùng
-            if (!string.Equals(entity.Title, dto.Title.Trim(), StringComparison.Ordinal))
-            {
-                var duplicated = await _notificationRepo.ExistsByTitleAsync(dto.Title.Trim(), dto.NotificationId);
-                if (duplicated) throw new InvalidOperationException($"Tiêu đề '{dto.Title}' đã tồn tại");
-            }
+            await ValidateUpdateAsync(dto, entity);
 
             entity.Title = dto.Title.Trim();
             entity.Message = dto.Message.Trim();
-            entity.Type = dto.Type; // Đã normalize từ Controller
-            entity.ScheduledAt = dto.ScheduledAt; // Đã convert UTC từ Controller
-            entity.ExpireAt = dto.ExpireAt; // Đã convert UTC từ Controller
+            entity.Type = dto.Type;
+            entity.TargetType = dto.TargetType;
+            entity.TargetRoleId = dto.TargetRoleId;
+            entity.TargetUserId = dto.TargetUserId;
+            entity.ConditionJson = dto.ConditionJson?.Trim();
+            entity.ScheduledAt = dto.ScheduledAt;
+            entity.ExpireAt = dto.ExpireAt;
 
             await _notificationRepo.UpdateAsync(entity);
+
+            await _logRepo.AddAsync(new NotificationLog
+            {
+                NotificationId = dto.NotificationId,
+                Result = LogResults.Success,
+                Details = $"Thông báo được cập nhật: {dto.Title}",
+                SentAt = DateTime.UtcNow
+            });
         }
 
         public async Task DeleteAsync(int id)
         {
             var entity = await _notificationRepo.GetByIdAsync(id)
                          ?? throw new KeyNotFoundException($"Không tìm thấy thông báo ID {id}");
+
             if (entity.IsSent) throw new InvalidOperationException("Không thể xóa thông báo đã gửi");
 
             await _notificationRepo.DeleteAsync(id);
+
+            await _logRepo.AddAsync(new NotificationLog
+            {
+                NotificationId = id,
+                Result = LogResults.Success,
+                Details = $"Thông báo bị xóa: {entity.Title}",
+                SentAt = DateTime.UtcNow
+            });
         }
 
         public async Task CancelAsync(int id)
@@ -126,7 +162,7 @@ namespace BLL.Services
             await _logRepo.AddAsync(new NotificationLog
             {
                 NotificationId = id,
-                Result = "Canceled",
+                Result = LogResults.Canceled,
                 Details = "Thông báo bị hủy bởi admin",
                 SentAt = DateTime.UtcNow
             });
@@ -136,50 +172,11 @@ namespace BLL.Services
         {
             var notif = await _notificationRepo.GetByIdAsync(id)
                         ?? throw new KeyNotFoundException($"Không tìm thấy thông báo ID {id}");
+
             if (notif.IsCanceled) throw new InvalidOperationException("Thông báo đã bị hủy");
             if (notif.IsSent) throw new InvalidOperationException("Thông báo đã gửi trước đó");
 
             await DispatchOneAsync(notif, DateTime.UtcNow);
-        }
-
-        // =================== User ===================
-
-        public async Task<PagedResult<UserNotificationDto>> GetMyNotificationsAsync(int userId, bool? isRead, int page, int pageSize)
-        {
-            var (items, total) = await _userNotificationRepo.GetByUserAsync(userId, isRead, page, pageSize);
-
-            var dtos = items.Select(x => new UserNotificationDto
-            {
-                UserNotificationId = x.UserNotificationId,
-                NotificationId = x.NotificationId,
-                UserId = x.UserId,
-                IsRead = x.IsRead,
-                ReadAt = x.ReadAt,
-                DeliveredAt = x.DeliveredAt,
-                Title = x.Notification?.Title ?? "",
-                Message = x.Notification?.Message ?? "",
-                Type = x.Notification?.Type ?? "General",
-                ScheduledAt = x.Notification?.ScheduledAt ?? DateTime.MinValue
-            }).ToList();
-
-            return new PagedResult<UserNotificationDto>
-            {
-                Items = dtos,
-                Total = total,
-                Page = page,
-                PageSize = pageSize
-            };
-        }
-
-        public async Task MarkReadAsync(int userNotificationId)
-        {
-            await _userNotificationRepo.MarkReadAsync(userNotificationId, DateTime.UtcNow);
-        }
-
-        public async Task<int> GetUnreadCountAsync(int userId)
-        {
-            var (_, total) = await _userNotificationRepo.GetByUserAsync(userId, isRead: false, page: 1, pageSize: 1);
-            return total;
         }
 
         // =================== Worker ===================
@@ -192,119 +189,152 @@ namespace BLL.Services
 
             foreach (var notif in due)
             {
-                var ok = await DispatchOneAsync(notif, now);
-                if (ok) success++;
+                try
+                {
+                    var ok = await DispatchOneAsync(notif, now);
+                    if (ok) success++;
+                }
+                catch (Exception ex)
+                {
+                    await _logRepo.AddAsync(new NotificationLog
+                    {
+                        NotificationId = notif.NotificationId,
+                        Result = LogResults.Failed,
+                        Details = $"Lỗi khi xử lý: {ex.Message}",
+                        SentAt = now
+                    });
+                }
             }
             return success;
         }
 
         // =================== Private helpers ===================
 
-        private NotificationDto MapToDto(Notification e)
+        private static NotificationDto MapToDto(Notification e) => new()
         {
-            return new NotificationDto
-            {
-                NotificationId = e.NotificationId,
-                TargetRoleId = e.TargetRoleId,
-                TargetUserId = e.TargetUserId,
-                CreatedBy = e.CreatedBy,
-                ConditionJson = e.ConditionJson,
-                Title = e.Title,
-                Message = e.Message,
-                Type = e.Type,
-                TargetType = e.TargetType,
-                ScheduledAt = e.ScheduledAt,
-                SentAt = e.SentAt,
-                ExpireAt = e.ExpireAt,
-                IsSent = e.IsSent,
-                IsCanceled = e.IsCanceled,
-                CreatedAt = e.CreatedAt,
-                // Navigation properties
-                TargetRoleName = e.TargetRole?.RoleName,
-                TargetUserEmail = e.TargetUser?.Email,
-                CreatedByEmail = e.CreatedByNavigation?.Email
-            };
-        }
+            NotificationId = e.NotificationId,
+            TargetRoleId = e.TargetRoleId,
+            TargetUserId = e.TargetUserId,
+            CreatedBy = e.CreatedBy,
+            ConditionJson = e.ConditionJson,
+            Title = e.Title,
+            Message = e.Message,
+            Type = e.Type,
+            TargetType = e.TargetType,
+            ScheduledAt = e.ScheduledAt,
+            SentAt = e.SentAt,
+            ExpireAt = e.ExpireAt,
+            IsSent = e.IsSent,
+            IsCanceled = e.IsCanceled,
+            CreatedAt = e.CreatedAt,
+            TargetRoleName = e.TargetRole?.RoleName,
+            TargetUserEmail = e.TargetUser?.Email,
+            CreatedByEmail = e.CreatedByNavigation?.Email
+        };
 
         private async Task ValidateCreateAsync(NotificationCreateDto dto)
         {
             if (string.IsNullOrWhiteSpace(dto.Title))
-                throw new InvalidOperationException("Title không được rỗng");
-
+                throw new InvalidOperationException("Tiêu đề không được rỗng");
+            if (dto.Title.Length > 200)
+                throw new InvalidOperationException("Tiêu đề không được vượt quá 200 ký tự");
             if (string.IsNullOrWhiteSpace(dto.Message))
-                throw new InvalidOperationException("Message không được rỗng");
+                throw new InvalidOperationException("Nội dung không được rỗng");
+            if (dto.Message.Length > 1000)
+                throw new InvalidOperationException("Nội dung không được vượt quá 1000 ký tự");
 
             if (await _notificationRepo.ExistsByTitleAsync(dto.Title.Trim()))
                 throw new InvalidOperationException($"Tiêu đề '{dto.Title}' đã tồn tại");
 
-            // Validate Type (đã normalize từ Controller)
             if (!IsValidType(dto.Type))
                 throw new InvalidOperationException($"Type '{dto.Type}' không hợp lệ. Phải là: General, Order, Promotion, System");
-
-            // Validate TargetType (đã normalize từ Controller)
             if (!IsValidTargetType(dto.TargetType))
                 throw new InvalidOperationException($"TargetType '{dto.TargetType}' không hợp lệ. Phải là: All, SingleUser, ByRole, ByCondition");
 
-            switch (dto.TargetType)
-            {
-                case "SingleUser":
-                    if (!dto.TargetUserId.HasValue)
-                        throw new InvalidOperationException("Phải chỉ định TargetUserId khi TargetType = SingleUser");
+            await ValidateTargetType(dto.TargetType, dto.TargetRoleId, dto.TargetUserId, dto.ConditionJson);
 
-                    var user = await _accountRepo.GetByIdAsync(dto.TargetUserId.Value);
-                    if (user == null)
-                        throw new InvalidOperationException($"User ID {dto.TargetUserId.Value} không tồn tại");
-                    break;
-
-                case "ByRole":
-                    if (!dto.TargetRoleId.HasValue)
-                        throw new InvalidOperationException("Phải chỉ định TargetRoleId khi TargetType = ByRole");
-
-                    var role = await _roleRepo.GetByIdAsync(dto.TargetRoleId.Value);
-                    if (role == null)
-                        throw new InvalidOperationException($"Role ID {dto.TargetRoleId.Value} không tồn tại");
-                    break;
-
-                case "ByCondition":
-                    if (string.IsNullOrWhiteSpace(dto.ConditionJson))
-                        throw new InvalidOperationException("Phải chỉ định ConditionJson khi TargetType = ByCondition");
-                    break;
-
-                case "All":
-                    // Không cần validate gì thêm
-                    break;
-            }
-
-            var now = DateTime.UtcNow.AddMinutes(-5);
-            if (dto.ScheduledAt < now)
+            var minAllowedTime = DateTime.UtcNow.AddMinutes(-1);
+            if (dto.ScheduledAt < minAllowedTime)
                 throw new InvalidOperationException("Thời gian gửi không được ở quá khứ");
 
             if (dto.ExpireAt.HasValue && dto.ExpireAt.Value <= dto.ScheduledAt)
-                throw new InvalidOperationException("ExpireAt phải sau ScheduledAt");
+                throw new InvalidOperationException("Thời gian hết hạn phải sau thời gian hiển thị");
         }
 
-        private static bool IsValidType(string type)
+        private async Task ValidateUpdateAsync(NotificationUpdateDto dto, Notification existingEntity)
         {
-            return type is "General" or "Order" or "Promotion" or "System";
+            if (dto.Title.Length > 200)
+                throw new InvalidOperationException("Tiêu đề không được vượt quá 200 ký tự");
+            if (dto.Message.Length > 1000)
+                throw new InvalidOperationException("Nội dung không được vượt quá 1000 ký tự");
+
+            if (!string.Equals(existingEntity.Title, dto.Title.Trim(), StringComparison.Ordinal))
+            {
+                var duplicated = await _notificationRepo.ExistsByTitleAsync(dto.Title.Trim(), dto.NotificationId);
+                if (duplicated)
+                    throw new InvalidOperationException($"Tiêu đề '{dto.Title}' đã tồn tại");
+            }
+
+            if (!IsValidType(dto.Type))
+                throw new InvalidOperationException($"Type '{dto.Type}' không hợp lệ");
+            if (!IsValidTargetType(dto.TargetType))
+                throw new InvalidOperationException($"TargetType '{dto.TargetType}' không hợp lệ");
+
+            await ValidateTargetType(dto.TargetType, dto.TargetRoleId, dto.TargetUserId, dto.ConditionJson);
+
+            var minAllowedTime = DateTime.UtcNow.AddMinutes(-1);
+            if (dto.ScheduledAt < minAllowedTime)
+                throw new InvalidOperationException("Thời gian gửi không được ở quá khứ");
+
+            if (dto.ExpireAt.HasValue && dto.ExpireAt.Value <= dto.ScheduledAt)
+                throw new InvalidOperationException("Thời gian hết hạn phải sau thời gian hiển thị");
         }
 
-        private static bool IsValidTargetType(string targetType)
+        private async Task ValidateTargetType(string targetType, int? targetRoleId, int? targetUserId, string? conditionJson)
         {
-            return targetType is "All" or "SingleUser" or "ByRole" or "ByCondition";
+            switch (targetType)
+            {
+                case "SingleUser":
+                    if (!targetUserId.HasValue || targetUserId.Value <= 0)
+                        throw new InvalidOperationException("Phải chỉ định TargetUserId hợp lệ khi TargetType = SingleUser");
+                    var user = await _accountRepo.GetByIdAsync(targetUserId.Value)
+                               ?? throw new InvalidOperationException($"User ID {targetUserId.Value} không tồn tại");
+                    break;
+
+                case "ByRole":
+                    if (!targetRoleId.HasValue || targetRoleId.Value <= 0)
+                        throw new InvalidOperationException("Phải chỉ định TargetRoleId hợp lệ khi TargetType = ByRole");
+                    var role = await _roleRepo.GetByIdAsync(targetRoleId.Value)
+                               ?? throw new InvalidOperationException($"Role ID {targetRoleId.Value} không tồn tại");
+                    break;
+
+                case "ByCondition":
+                    // TODO: validate conditionJson khi implement filter
+                    _ = conditionJson;
+                    break;
+
+                case "All":
+                    break;
+            }
         }
+
+        private static bool IsValidType(string type) =>
+            type is "General" or "Order" or "Promotion" or "System";
+
+        private static bool IsValidTargetType(string targetType) =>
+            targetType is "All" or "SingleUser" or "ByRole" or "ByCondition";
 
         private async Task<bool> DispatchOneAsync(Notification notif, DateTime nowUtc)
         {
             try
             {
-                // Bỏ qua nếu đã hết hạn
                 if (notif.ExpireAt.HasValue && notif.ExpireAt.Value <= nowUtc)
                 {
                     await _logRepo.AddAsync(new NotificationLog
                     {
                         NotificationId = notif.NotificationId,
                         SentTo = GetSentToDescription(notif),
-                        Result = "Skipped",
+                        Result = LogResults.Skipped,
                         Details = "Hết hạn trước khi gửi",
                         SentAt = nowUtc
                     });
@@ -320,7 +350,7 @@ namespace BLL.Services
                     {
                         NotificationId = notif.NotificationId,
                         SentTo = GetSentToDescription(notif),
-                        Result = "Skipped",
+                        Result = LogResults.Skipped,
                         Details = "Không có người nhận",
                         SentAt = nowUtc
                     });
@@ -328,7 +358,6 @@ namespace BLL.Services
                     return true;
                 }
 
-                // Tạo bản ghi UserNotifications
                 var userNotifs = recipients.Select(uid => new UserNotification
                 {
                     NotificationId = notif.NotificationId,
@@ -339,14 +368,13 @@ namespace BLL.Services
 
                 await _userNotificationRepo.CreateRangeAsync(userNotifs);
 
-                // Mark sent & log
                 await _notificationRepo.MarkSentAsync(notif.NotificationId, nowUtc);
 
                 await _logRepo.AddAsync(new NotificationLog
                 {
                     NotificationId = notif.NotificationId,
                     SentTo = GetSentToDescription(notif),
-                    Result = "Success",
+                    Result = LogResults.Success,
                     Details = $"Đã phát tới {recipients.Count} người nhận",
                     SentAt = nowUtc
                 });
@@ -359,7 +387,7 @@ namespace BLL.Services
                 {
                     NotificationId = notif.NotificationId,
                     SentTo = GetSentToDescription(notif),
-                    Result = "Failed",
+                    Result = LogResults.Failed,
                     Details = ex.Message,
                     SentAt = nowUtc
                 });
@@ -370,6 +398,7 @@ namespace BLL.Services
         private async Task<List<int>> BuildRecipientsAsync(Notification notif)
         {
             var list = new List<int>();
+
             switch (notif.TargetType)
             {
                 case "All":
@@ -395,16 +424,16 @@ namespace BLL.Services
                     }
                 case "ByCondition":
                     {
-                        // TODO: parse ConditionJson để lọc người dùng theo điều kiện
+                        // TODO: parse ConditionJson & filter nâng cao
                         break;
                     }
             }
+
             return list.Distinct().ToList();
         }
 
-        private string GetSentToDescription(Notification notif)
-        {
-            return notif.TargetType switch
+        private static string GetSentToDescription(Notification notif) =>
+            notif.TargetType switch
             {
                 "All" => "Tất cả người dùng",
                 "SingleUser" => notif.TargetUser?.Email ?? $"UserID={notif.TargetUserId}",
@@ -412,6 +441,5 @@ namespace BLL.Services
                 "ByCondition" => "Theo điều kiện",
                 _ => "N/A"
             };
-        }
     }
 }

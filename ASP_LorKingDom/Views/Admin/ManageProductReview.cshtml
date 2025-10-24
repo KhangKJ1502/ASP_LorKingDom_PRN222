@@ -1,0 +1,650 @@
+﻿@model List<BLL.DTOs.ReviewProductDto>
+@{
+    ViewData["Title"] = "Quản lý đánh giá sản phẩm - ToyLand Admin";
+    Layout = "_AdminLayout";
+    var q = (string?)ViewBag.Query ?? "";
+    var productFilter = (string?)ViewBag.ProductFilter ?? "";
+    var deleteStatusFilter = (string?)ViewBag.DeleteStatusFilter ?? "";
+    var replyStatusFilter = (string?)ViewBag.ReplyStatusFilter ?? "";
+    var currentPage = (int?)ViewBag.CurrentPage ?? 1;
+    var totalPages = (int?)ViewBag.TotalPages ?? 1;
+    var showDeleted = (bool?)ViewBag.ShowDeleted ?? false;
+}
+
+<style>
+    .deleted-row {
+        opacity: 0.6;
+        background: #f8f9fa;
+    }
+
+    #reviewDetailModal .modal-content {
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    }
+
+    #reviewDetailModal .modal-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 16px 16px 0 0;
+        padding: 1.5rem;
+        border: none;
+    }
+
+    #reviewDetailModal .modal-title {
+        font-weight: 600;
+        font-size: 1.25rem;
+    }
+
+    #reviewDetailModal .modal-body {
+        padding: 2rem;
+        background-color: #f8f9fa;
+    }
+
+    .review-content {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        max-height: 3em;
+        font-size: 0.95rem;
+    }
+
+    .author-badge {
+        display: inline-block;
+        background: #e7f3ff;
+        color: #0066cc;
+        padding: 0.35rem 0.75rem;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .reaction-stats {
+        display: flex;
+        gap: 1rem;
+        font-size: 0.9rem;
+        color: #6b7280;
+    }
+
+        .reaction-stats i {
+            color: #667eea;
+            margin-right: 0.3rem;
+        }
+
+    .date-text {
+        font-size: 0.9rem;
+        color: #6b7280;
+    }
+
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.4rem 0.75rem;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .product-title-ellipsis {
+        max-width: 200px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        display: inline-block;
+        color: #333;
+    }
+
+    .rating-stars {
+        color: #f4c150;
+    }
+
+    .nav-tabs .nav-link {
+        border-radius: 8px;
+        margin-right: 5px;
+    }
+
+        .nav-tabs .nav-link.active {
+            background-color: #667eea;
+            color: white;
+        }
+</style>
+
+<div class="container-fluid px-5">
+    <h1 class="mt-4">Quản Lý Đánh Giá Sản Phẩm</h1>
+
+    <div class="card mb-4 mt-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <div><i class="fa-solid fa-star me-2"></i>Danh Sách Đánh Giá</div>
+        </div>
+
+        <div class="card-body">
+            <!-- Tabs for Active Reviews and Recycle Bin -->
+            <ul class="nav nav-tabs mb-4">
+                <li class="nav-item">
+                    <a class="nav-link @(showDeleted ? "" : "active")" href="@Url.Action("ManageProductReview", new { q, product = productFilter, deleteStatus = deleteStatusFilter, replyStatus = replyStatusFilter, page = 1, showDeleted = false })">
+                        Đánh Giá Hoạt Động
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(showDeleted ? "active" : "")" href="@Url.Action("ManageProductReview", new { q, product = productFilter, deleteStatus = "deleted", replyStatus = replyStatusFilter, page = 1, showDeleted = true })">
+                        Thùng Rác
+                    </a>
+                </li>
+            </ul>
+
+            <!-- Tìm kiếm và Lọc -->
+            <form class="mb-4" method="get" asp-action="ManageProductReview" asp-controller="ReviewProduct">
+                <input type="hidden" name="showDeleted" value="@showDeleted.ToString().ToLower()" />
+                <div class="row g-2">
+                    <div class="col-md-3">
+                        <input type="text" name="q" value="@q" class="form-control"
+                               placeholder="Tìm theo người đánh giá, sản phẩm hoặc nội dung...">
+                    </div>
+                    <div class="col-md-2">
+                        <select name="product" class="form-control">
+                            <option value="">Tất cả sản phẩm</option>
+                            @foreach (var product in ViewBag.Products)
+                            {
+                                <option value="@product.Id" selected="@(productFilter == product.Id.ToString())">@product.ProductName</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <select name="deleteStatus" class="form-control">
+                            <option value="">Tất cả trạng thái</option>
+                            <option value="undeleted" selected="@(deleteStatusFilter == "undeleted")">Chưa xóa</option>
+                            <option value="deleted" selected="@(deleteStatusFilter == "deleted")">Đã xóa</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <select name="replyStatus" class="form-control">
+                            <option value="">Tất cả phản hồi</option>
+                            <option value="replied" selected="@(replyStatusFilter == "replied")">Đã hồi</option>
+                            <option value="unreplied" selected="@(replyStatusFilter == "unreplied")">Chưa hồi</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn btn-primary w-100" type="submit">
+                            <i class="fa-solid fa-magnifying-glass"></i> Tìm kiếm
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Bảng Dữ Liệu -->
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th style="width: 40px;">
+                                <input type="checkbox" id="selectAll" class="form-check-input">
+                            </th>
+                            <th>Nội dung đánh giá</th>
+                            <th style="width: 150px;">Người đánh giá</th>
+                            <th style="width: 180px;">Sản phẩm</th>
+                            <th style="width: 120px;">Điểm</th>
+                            <th style="width: 120px;">Tương tác</th>
+                            <th style="width: 100px;">Phản hồi</th>
+                            <th style="width: 80px;">Trạng thái</th>
+                            <th style="width: 130px;">Ngày đánh giá</th>
+                            <th style="width: 130px; text-align: center;">Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model?.Any() == true)
+                        {
+                            @foreach (var review in Model)
+                            {
+                                <tr class="@(review.IsDeleted ? "deleted-row" : "")" data-review-id="@review.ReviewProductId">
+                                    <td><input type="checkbox" class="form-check-input row-checkbox"></td>
+                                    <td>
+                                        <p class="review-content mb-0">@review.Comment</p>
+                                    </td>
+                                    <td>
+                                        <span class="author-badge">@review.AuthorName</span>
+                                    </td>
+                                    <td>
+                                        <span class="product-title-ellipsis" title="@review.ProductName">@review.ProductName</span>
+                                    </td>
+                                    <td>
+                                        <span class="rating-stars">
+                                            @for (int i = 1; i <= 5; i++)
+                                            {
+                                                if (i <= review.Rating)
+                                                {
+                                                    <i class="fas fa-star"></i>
+                                                }
+                                                else
+                                                {
+                                                    <i class="far fa-star"></i>
+                                                }
+                                            }
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="me-2"><i class="fas fa-thumbs-up"></i> @review.LikeCount</span>
+                                        <span><i class="fas fa-thumbs-down"></i> @review.DislikeCount</span>
+                                    </td>
+                                    <td>
+                                        @if (review.Replies?.Any() == true)
+                                        {
+                                            <span class="badge bg-success"><i class="fas fa-check"></i> @review.Replies.Count</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-warning text-dark"><i class="fas fa-clock"></i> Chưa</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (review.IsDeleted)
+                                        {
+                                            <span class="badge bg-danger"><i class="fas fa-trash"></i> Đã xóa</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary"><i class="fas fa-check"></i> Bình thường</span>
+                                        }
+                                    </td>
+                                    <td>@review.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td style="text-align: center;">
+                                        <button type="button" class="btn btn-sm btn-info"
+                                                onclick="viewReviewDetail(@review.ReviewProductId)" title="Xem">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-primary"
+                                                onclick="editReview(@review.ReviewProductId)" title="Sửa">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        @if (review.IsDeleted)
+                                        {
+                                            <button type="button" class="btn btn-sm btn-success"
+                                                    onclick="restoreReview(@review.ReviewProductId)" title="Khôi phục">
+                                                <i class="fas fa-undo"></i>
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <button type="button" class="btn btn-sm btn-danger"
+                                                    onclick="deleteReview(@review.ReviewProductId)" title="Xóa">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="10" style="text-align: center; color: #999;">
+                                    @(showDeleted ? "Thùng rác trống." : "Không có đánh giá nào.")
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <nav class="mt-4" aria-label="Product review pagination">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                        <a class="page-link"
+                           href="@Url.Action("ManageProductReview", "ReviewProduct", new { q, product = productFilter, deleteStatus = deleteStatusFilter, replyStatus = replyStatusFilter, page = currentPage - 1, showDeleted })">
+                            <i class="fas fa-chevron-left me-1"></i>Trước
+                        </a>
+                    </li>
+                    @for (int i = 1; i <= totalPages; i++)
+                    {
+                        <li class="page-item @(i == currentPage ? "active" : "")">
+                            <a class="page-link"
+                               href="@Url.Action("ManageProductReview", "ReviewProduct", new { q, product = productFilter, deleteStatus = deleteStatusFilter, replyStatus = replyStatusFilter, page = i, showDeleted })">
+                                @i
+                            </a>
+                        </li>
+                    }
+                    <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                        <a class="page-link"
+                           href="@Url.Action("ManageProductReview", "ReviewProduct", new { q, product = productFilter, deleteStatus = deleteStatusFilter, replyStatus = replyStatusFilter, page = currentPage + 1, showDeleted })">
+                            Sau <i class="fas fa-chevron-right ms-1"></i>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Modal Chi Tiết Đánh Giá -->
+    <div class="modal fade" id="reviewDetailModal" tabindex="-1" aria-labelledby="reviewDetailLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content" id="reviewDetailModal">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="reviewDetailLabel">
+                        <i class="fa-solid fa-star me-2"></i>Chi tiết đánh giá
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="reviewDetailContent">
+                    <!-- Content sẽ được load bằng JS -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Chỉnh Sửa Đánh Giá -->
+    <div class="modal fade" id="editReviewModal" tabindex="-1" aria-labelledby="editReviewLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editReviewLabel">
+                        <i class="fas fa-edit me-2"></i>Chỉnh sửa đánh giá
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editReviewForm" method="post">
+                        <input type="hidden" name="ReviewProductId" id="editReviewId" />
+                        <div class="mb-3">
+                            <label class="form-label">Xác minh mua hàng</label>
+                            <select name="IsVerifiedPurchase" class="form-control">
+                                <option value="true">Đã xác minh</option>
+                                <option value="false">Chưa xác minh</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Trạng thái</label>
+                            <select name="IsDeleted" class="form-control">
+                                <option value="false">Bình thường</option>
+                                <option value="true">Đã xóa</option>
+                            </select>
+                        </div>
+                        <button type="button" class="btn btn-primary" onclick="submitEditReview()">Lưu</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Select All
+        document.getElementById('selectAll')?.addEventListener('change', function () {
+            document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = this.checked);
+        });
+
+        // View Review Detail
+        async function viewReviewDetail(reviewId) {
+            try {
+                const response = await fetch(`/ReviewProduct/Details/${reviewId}`);
+                if (!response.ok) throw new Error('Không thể tải chi tiết đánh giá');
+
+                const review = await response.json();
+                let repliesHtml = '';
+                if (review.replies && review.replies.length > 0) {
+                    repliesHtml = review.replies.map(reply => `
+                                <div style="background: white; padding: 0.75rem; margin-bottom: 0.5rem; border-left: 3px solid #667eea; border-radius: 4px;">
+                                    <p class="mb-1"><strong>${reply.authorName}</strong></p>
+                                    <p class="mb-1">${reply.content}</p>
+                                    <small class="text-muted">${reply.createdAt}</small>
+                                </div>
+                            `).join('');
+                } else {
+                    repliesHtml = '<div class="alert alert-info">Chưa có phản hồi nào</div>';
+                }
+
+                let imagesHtml = '';
+                if (review.imageUrls && review.imageUrls.length > 0) {
+                    imagesHtml = review.imageUrls.map(url => `
+                                <img src="${url}" alt="Review Image" style="max-width: 100px; margin-right: 10px;" />
+                            `).join('');
+                } else {
+                    imagesHtml = '<p>Không có hình ảnh</p>';
+                }
+
+                const content = `
+                            <div class="row g-3">
+                                <div class="col-md-12">
+                                    <p><strong>Sản phẩm:</strong> <a href="/Product/Detail/${review.productId}" target="_blank" class="text-decoration-none">${review.productName}</a></p>
+                                </div>
+                                <div class="col-md-12">
+                                    <p><strong>Nội dung:</strong></p>
+                                    <div style="background: white; padding: 0.75rem; border: 1px solid #e0e0e0; border-radius: 4px; margin-bottom: 1rem;">
+                                        ${review.content || 'Không có nội dung'}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Người đánh giá:</strong> ${review.authorName}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Email:</strong> ${review.authorEmail || 'N/A'}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Điểm:</strong> ${review.rating} <i class="fas fa-star rating-stars"></i></p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Tương tác:</strong> 👍 ${review.likeCount} | 👎 ${review.dislikeCount}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Xác minh mua hàng:</strong> ${review.isVerifiedPurchase ? 'Đã xác minh' : 'Chưa xác minh'}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Trạng thái:</strong> ${review.isDeleted
+                        ? '<span class="badge bg-danger"><i class="fas fa-trash"></i> Đã xóa</span>'
+                        : '<span class="badge bg-secondary"><i class="fas fa-check"></i> Bình thường</span>'}</p>
+                                </div>
+                                <div class="col-md-12">
+                                    <p><strong>Ngày đánh giá:</strong> ${review.createdAt}</p>
+                                </div>
+                                <div class="col-md-12">
+                                    <p><strong>Hình ảnh:</strong></p>
+                                    ${imagesHtml}
+                                </div>
+                                <div class="col-md-12">
+                                    <h6 class="mb-2"><strong>Phản hồi:</strong></h6>
+                                    ${repliesHtml}
+                                    <form id="replyForm" style="margin-top: 1rem;">
+                                        <textarea name="replyContent" class="form-control" rows="2" placeholder="Nhập phản hồi..."></textarea>
+                                        <button type="button" class="btn btn-primary btn-sm mt-2" onclick="submitReply(${review.reviewId})">
+                                            <i class="fas fa-paper-plane me-1"></i>Gửi phản hồi
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        `;
+
+                document.getElementById('reviewDetailContent').innerHTML = content;
+                const modal = new bootstrap.Modal(document.getElementById('reviewDetailModal'));
+                modal.show();
+            } catch (error) {
+                Swal.fire('Lỗi', error.message, 'error');
+            }
+        }
+
+        // Edit Review
+        async function editReview(reviewId) {
+            try {
+                const response = await fetch(`/ReviewProduct/Details/${reviewId}`);
+                if (!response.ok) throw new Error('Không thể tải chi tiết đánh giá');
+
+                const review = await response.json();
+                document.getElementById('editReviewId').value = reviewId;
+                document.querySelector('#editReviewForm select[name="IsVerifiedPurchase"]').value = review.isVerifiedPurchase ? 'true' : 'false';
+                document.querySelector('#editReviewForm select[name="IsDeleted"]').value = review.isDeleted ? 'true' : 'false';
+
+                const modal = new bootstrap.Modal(document.getElementById('editReviewModal'));
+                modal.show();
+            } catch (error) {
+                Swal.fire('Lỗi', error.message, 'error');
+            }
+        }
+
+        // Submit Edit Review
+        async function submitEditReview() {
+            const form = document.getElementById('editReviewForm');
+            const formData = new FormData(form);
+            const reviewId = document.getElementById('editReviewId').value;
+
+            try {
+                const response = await fetch(`/ReviewProduct/Edit/${reviewId}`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.ok) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Thành công',
+                        text: 'Đã cập nhật đánh giá',
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => {
+                        location.reload();
+                    });
+                } else {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Lỗi server');
+                }
+            } catch (error) {
+                Swal.fire('Lỗi', error.message, 'error');
+            }
+        }
+
+        // Delete Review (Soft Delete)
+        async function deleteReview(reviewId) {
+            const result = await Swal.fire({
+                title: 'Xác nhận xóa',
+                text: 'Đánh giá sẽ được chuyển vào thùng rác. Bạn có chắc chắn muốn tiếp tục?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Có, chuyển vào thùng rác',
+                cancelButtonText: 'Hủy'
+            });
+
+            if (result.isConfirmed) {
+                try {
+                    const formData = new FormData();
+                    const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+                    if (token) {
+                        formData.append('__RequestVerificationToken', token);
+                    }
+
+                    const response = await fetch(`/ReviewProduct/Delete/${reviewId}`, {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (response.ok) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Thành công',
+                            text: 'Đánh giá đã được chuyển vào thùng rác',
+                            timer: 1500,
+                            showConfirmButton: false
+                        }).then(() => {
+                            location.reload();
+                        });
+                    } else {
+                        const error = await response.json();
+                        throw new Error(error.error || 'Lỗi server');
+                    }
+                } catch (error) {
+                    Swal.fire('Lỗi', 'Không thể chuyển đánh giá vào thùng rác', 'error');
+                }
+            }
+        }
+
+        // Restore Review
+        async function restoreReview(reviewId) {
+            const result = await Swal.fire({
+                title: 'Xác nhận khôi phục',
+                text: 'Bạn có chắc chắn muốn khôi phục đánh giá này?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#28a745',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Có, khôi phục',
+                cancelButtonText: 'Hủy'
+            });
+
+            if (result.isConfirmed) {
+                try {
+                    const formData = new FormData();
+                    const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+                    if (token) {
+                        formData.append('__RequestVerificationToken', token);
+                    }
+
+                    const response = await fetch(`/ReviewProduct/Restore/${reviewId}`, {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (response.ok) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Thành công',
+                            text: 'Đánh giá đã được khôi phục',
+                            timer: 1500,
+                            showConfirmButton: false
+                        }).then(() => {
+                            location.reload();
+                        });
+                    } else {
+                        const error = await response.json();
+                        throw new Error(error.error || 'Lỗi server');
+                    }
+                } catch (error) {
+                    Swal.fire('Lỗi', 'Không thể khôi phục đánh giá', 'error');
+                }
+            }
+        }
+
+        // Submit Reply
+        async function submitReply(reviewId) {
+            const replyContent = document.querySelector('textarea[name="replyContent"]')?.value.trim();
+            if (!replyContent) {
+                Swal.fire('Thông báo', 'Vui lòng nhập phản hồi', 'warning');
+                return;
+            }
+
+            try {
+                const formData = new FormData();
+                formData.append('replyContent', replyContent);
+                const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+                if (token) {
+                    formData.append('__RequestVerificationToken', token);
+                }
+
+                const response = await fetch(`/ReviewProduct/Reply/${reviewId}`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.ok) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Thành công',
+                        text: 'Phản hồi đã được gửi',
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => {
+                        location.reload();
+                    });
+                } else {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Lỗi server');
+                }
+            } catch (error) {
+                Swal.fire('Lỗi', 'Không thể gửi phản hồi', 'error');
+            }
+        }
+    </script>
+}

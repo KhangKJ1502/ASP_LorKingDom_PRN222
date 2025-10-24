@@ -1,4 +1,5 @@
 ﻿using DAL.Models;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -13,8 +14,17 @@ namespace DAL.Interfaces
 
         Task<UserNotification?> GetByIdAsync(int userNotificationId);
 
-        Task MarkReadAsync(int userNotificationId, System.DateTime readAtUtc);
+        // NEW: lấy 1 bản ghi kèm kiểm tra thuộc về user
+        Task<UserNotification?> GetByIdForUserAsync(int userNotificationId, int userId);
 
-        Task MarkDeliveredAsync(int userNotificationId, System.DateTime deliveredAtUtc);
+        Task MarkReadAsync(int userNotificationId, DateTime readAtUtc);
+
+        Task MarkDeliveredAsync(int userNotificationId, DateTime deliveredAtUtc);
+
+        // NEW: batch cập nhật tất cả chưa đọc -> đã đọc
+        Task<int> MarkAllReadAsync(int userId, DateTime readAtUtc);
+
+        // NEW: đếm nhanh số chưa đọc
+        Task<int> GetUnreadCountAsync(int userId);
     }
 }
