@@ -56,6 +56,10 @@ namespace BLL
             services.AddScoped<IReviewProductReplyService, ReviewProductReplyService>();
             services.AddScoped<IReviewProductReactionService, ReviewProductReactionService>();
 
+            // Nhánh Voucher
+            services.AddScoped<IVoucherService, VoucherService>();
+            services.AddScoped<IVoucherTypeService, VoucherTypeService>();
+
             return services;
         }
     }

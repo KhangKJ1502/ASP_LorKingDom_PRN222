@@ -57,6 +57,10 @@ namespace DAL
             services.AddScoped<IReviewProductReplyRepository, ReviewProductReplyRepository>();
             services.AddScoped<IReviewProductReactionRepository, ReviewProductReactionRepository>();
 
+            // Nhánh Voucher
+            services.AddScoped<IVoucherRepository, VoucherRepository>();
+            services.AddScoped<IVoucherTypeRepository, VoucherTypeRepository>();
+
             return services;
         }
     }
