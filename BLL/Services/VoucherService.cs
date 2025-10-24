@@ -21,8 +21,10 @@ namespace BLL.Services
         public async Task<List<VoucherDto>> GetAllVouchersAsync(bool includeDeleted = false)
         {
             var vouchers = await _repo.GetAllAsync();
-            vouchers = vouchers.Where(v => includeDeleted || v.Status != "Deleted").ToList();
-            return vouchers.Select(v => MapToDto(v)).ToList();
+            return vouchers
+                .Where(v => v.Status != "Deleted")
+                .Select(MapToDto)
+                .ToList();
         }
 
         public async Task<VoucherDto?> GetByIdAsync(int voucherId)
@@ -63,8 +65,8 @@ namespace BLL.Services
 
         public async Task<bool> UpdateAsync(int id, VoucherDto dto)
         {
-            var existingVoucher = await _repo.GetByIdAsync(id);
-            if (existingVoucher == null || existingVoucher.Status == "Deleted")
+            var existing = await _repo.GetByIdAsync(id);
+            if (existing == null || existing.Status == "Deleted")
                 return false;
 
             if (await _repo.VoucherCodeExistsAsync(dto.VoucherCode, id))
@@ -74,42 +76,25 @@ namespace BLL.Services
             if (dto.DiscountValue <= 0)
                 throw new ArgumentException("Discount value must be positive.");
 
-            existingVoucher.VoucherTypeId = dto.VoucherTypeId;
-            existingVoucher.CreateBy = dto.CreateBy;
-            existingVoucher.VoucherCode = dto.VoucherCode.Trim();
-            existingVoucher.DiscountValue = dto.DiscountValue;
-            existingVoucher.MaxDiscountAmount = dto.MaxDiscountAmount;
-            existingVoucher.MinOrderAmount = dto.MinOrderAmount;
-            existingVoucher.UsageLimitPerUser = dto.UsageLimitPerUser;
-            existingVoucher.IsStackable = dto.IsStackable;
-            existingVoucher.StartDate = dto.StartDate;
-            existingVoucher.EndDate = dto.EndDate;
-            existingVoucher.Status = dto.Status ?? "Active";
-            existingVoucher.UpdatedAt = DateTime.Now;
+            existing.VoucherTypeId = dto.VoucherTypeId;
+            existing.CreateBy = dto.CreateBy;
+            existing.VoucherCode = dto.VoucherCode.Trim();
+            existing.DiscountValue = dto.DiscountValue;
+            existing.MaxDiscountAmount = dto.MaxDiscountAmount;
+            existing.MinOrderAmount = dto.MinOrderAmount;
+            existing.UsageLimitPerUser = dto.UsageLimitPerUser;
+            existing.IsStackable = dto.IsStackable;
+            existing.StartDate = dto.StartDate;
+            existing.EndDate = dto.EndDate;
+            existing.Status = dto.Status ?? "Active";
+            existing.UpdatedAt = DateTime.Now;
 
-            return await _repo.UpdateAsync(existingVoucher);
+            return await _repo.UpdateAsync(existing);
         }
 
         public async Task<bool> DeleteAsync(int id)
         {
-            var voucher = await _repo.GetByIdAsync(id);
-            if (voucher == null || voucher.Status == "Deleted")
-                return false;
-
-            voucher.Status = "Deleted";
-            voucher.UpdatedAt = DateTime.Now;
-            return await _repo.UpdateAsync(voucher);
-        }
-
-        public async Task<bool> RestoreAsync(int id)
-        {
-            var voucher = await _repo.GetByIdAsync(id);
-            if (voucher == null || voucher.Status != "Deleted")
-                return false;
-
-            voucher.Status = "Active";
-            voucher.UpdatedAt = DateTime.Now;
-            return await _repo.UpdateAsync(voucher);
+            return await _repo.DeleteAsync(id); // XÓA CỨNG
         }
 
         private VoucherDto MapToDto(Voucher voucher)

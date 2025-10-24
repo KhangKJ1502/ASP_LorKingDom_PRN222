@@ -42,11 +42,10 @@ namespace DAL.Repositories
 
         public async Task<bool> UpdateAsync(Voucher voucher)
         {
-            var existingVoucher = await _context.Vouchers.FindAsync(voucher.VoucherId);
-            if (existingVoucher == null)
-                return false;
+            var existing = await _context.Vouchers.FindAsync(voucher.VoucherId);
+            if (existing == null) return false;
 
-            _context.Entry(existingVoucher).CurrentValues.SetValues(voucher);
+            _context.Entry(existing).CurrentValues.SetValues(voucher);
             await _context.SaveChangesAsync();
             return true;
         }
@@ -57,6 +56,16 @@ namespace DAL.Repositories
             if (excludeVoucherId.HasValue)
                 query = query.Where(v => v.VoucherId != excludeVoucherId.Value);
             return await query.AnyAsync();
+        }
+
+        public async Task<bool> DeleteAsync(int voucherId)
+        {
+            var voucher = await _context.Vouchers.FindAsync(voucherId);
+            if (voucher == null) return false;
+
+            _context.Vouchers.Remove(voucher);
+            await _context.SaveChangesAsync();
+            return true;
         }
     }
 }

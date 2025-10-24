@@ -11,5 +11,6 @@ namespace DAL.Interfaces
         Task<int> CreateAsync(Voucher voucher);
         Task<bool> UpdateAsync(Voucher voucher);
         Task<bool> VoucherCodeExistsAsync(string voucherCode, int? excludeVoucherId = null);
+        Task<bool> DeleteAsync(int voucherId); 
     }
 }

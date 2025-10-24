@@ -11,6 +11,5 @@ namespace BLL.Interfaces
         Task<int> CreateAsync(VoucherDto dto);
         Task<bool> UpdateAsync(int id, VoucherDto dto);
         Task<bool> DeleteAsync(int id);
-        Task<bool> RestoreAsync(int id);
     }
 }
