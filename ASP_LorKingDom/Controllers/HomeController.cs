@@ -58,6 +58,15 @@ namespace ASP_LorKingDom.Controllers
             return View(model);
         }
 
+        public async Task<IActionResult> ProductDetails(int id)
+        {
+            var dto = await _productSvc.GetByIdAsync(id);
+            if (dto == null) return NotFound();
+
+
+            return View(dto);
+        }
+
 
         public IActionResult Privacy()
         {

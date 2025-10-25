@@ -1,305 +1,381 @@
 ﻿@model List<BLL.DTOs.BlogPostDto>
 @{
-    ViewData["Title"] = "Blog - ToyLand";
+	ViewData["Title"] = "Blog - ToyLand";
 }
 
 @section Styles {
-    <link rel="stylesheet" href="~/css/blog.css" asp-append-version="true" />
+	<link rel="stylesheet" href="~/css/blog.css" asp-append-version="true" />
 }
 
 <div class="blog-container">
-    <!-- Featured Post Section -->
-    @{
-        var featuredBlogs = (List<BLL.DTOs.BlogPostDto>?)ViewBag.FeaturedBlogs ?? new List<BLL.DTOs.BlogPostDto>();
-    }
+	<!-- Featured Post Section -->
+	@{
+		var featuredBlogs = (List<BLL.DTOs.BlogPostDto>?)ViewBag.FeaturedBlogs ?? new List<BLL.DTOs.BlogPostDto>();
+	}
 
-    @if (featuredBlogs.Any())
-    {
-        <section class="featured-post-section mb-5">
-            <h2 class="featured-section-title">Nổi bật nhất</h2>
-            @if (featuredBlogs.Count == 1)
-            {
-                <!-- Single Featured Blog - Full Width -->
-                <div class="featured-post-card">
-                    <div class="featured-post-image">
-                        <img src="@(featuredBlogs[0].BlogThumbnail ?? "https://via.placeholder.com/800x400?text=Featured+Blog")"
-                            alt="@featuredBlogs[0].BlogTitle" class="img-fluid">
-                    </div>
-                    <div class="featured-post-content">
-                        @if (featuredBlogs[0].CategoryNames?.Any() == true)
-                        {
-                            <div class="category-badges">
-                                @foreach (var category in featuredBlogs[0].CategoryNames)
-                                {
-                                    <span class="badge bg-primary">@category</span>
-                                }
-                            </div>
-                        }
-                        <h1 class="featured-post-title">@featuredBlogs[0].BlogTitle</h1>
-                        <p class="featured-post-overview">
-                            @Html.Raw(System.Text.RegularExpressions.Regex.Replace(
-                            featuredBlogs[0].BlogContent, "<[^>]*>", ""))
-                </p>
-                <div class="featured-post-meta">
-                    <span class="meta-item">
-                                <i class="fas fa-user"></i>@featuredBlogs[0].AuthorName
-                    </span>
-                    <span class="meta-item">
-                        <i class="fas fa-calendar"></i> @featuredBlogs[0].CreatedAt.ToString("dd/MM/yyyy")
-                    </span>
-                </div>
-                <a href="/Blog/Detail/@featuredBlogs[0].BlogPostId" class="btn btn-primary btn-read-more">
-                    Đọc tiếp <i class="fas fa-arrow-right ms-2"></i>
-                </a>
-            </div>
-        </div>
-                }
-            else
-            {
-                <!-- Multiple Featured Blogs - 2 Column Layout (60/40) -->
-                <div class="featured-post-grid-2col">
-                    <!-- Left Column (60%) - Main Featured -->
-                    <div class="featured-post-main">
-                        <div class="featured-post-card featured-vertical">
-                            <div class="featured-post-image">
-                                <img src="@(featuredBlogs[0].BlogThumbnail ?? "https://via.placeholder.com/800x400?text=Featured+Blog")"
-                                    alt="@featuredBlogs[0].BlogTitle" class="img-fluid">
-                            </div>
-                            <div class="featured-post-content">
-                                @if (featuredBlogs[0].CategoryNames?.Any() == true)
-                                {
-                                    <div class="category-badges">
-                                        @foreach (var category in featuredBlogs[0].CategoryNames)
-                                        {
-                                            <span class="badge bg-primary">@category</span>
-                                        }
-                                    </div>
-                                }
-                                <h2 class="featured-post-title">@featuredBlogs[0].BlogTitle</h2>
-                                <p class="featured-post-overview">
-                                    @Html.Raw(System.Text.RegularExpressions.Regex.Replace(
-                                    featuredBlogs[0].BlogContent, "<[^>]*>", "").Substring(0, Math.Min(150,
-                                    System.Text.RegularExpressions.Regex.Replace(featuredBlogs[0].BlogContent, "<[^>]*>",
-                                    "").Length)) + "...")
-                        </p>
-                        <div class="featured-post-meta">
-                            <span class="meta-item">
-                                        <i class="fas fa-user"></i><span style="color: #196DB4">@featuredBlogs[0].AuthorName</span>
-                            </span>
-                            <span class="meta-item">
-                                <i class="fas fa-calendar"></i> @featuredBlogs[0].CreatedAt.ToString("dd/MM/yyyy")
-                            </span>
-                        </div>
-                        <a href="/Blog/Detail/@featuredBlogs[0].BlogPostId"
-                            class="btn btn-sm btn-primary btn-read-more">
-                            Đọc tiếp <i class="fas fa-arrow-right ms-1"></i>
-                        </a>
-                    </div>
-                </div>
-            </div>
+	@if (featuredBlogs.Any())
+	{
+		<section class="featured-post-section mb-5">
+			<h2 class="featured-section-title">Nổi bật nhất</h2>
+			@if (featuredBlogs.Count == 1)
+			{
+				<!-- Single Featured Blog - Full Width -->
+				<div class="featured-post-card">
+					<div class="featured-post-image">
+						<img src="@(featuredBlogs[0].BlogThumbnail ?? "https://via.placeholder.com/800x400?text=Featured+Blog")"
+							 alt="@featuredBlogs[0].BlogTitle" class="img-fluid">
+					</div>
+					<div class="featured-post-content">
+						@if (featuredBlogs[0].CategoryNames?.Any() == true)
+						{
+							<div class="category-badges">
+								@foreach (var category in featuredBlogs[0].CategoryNames)
+								{
+									<span class="badge bg-primary">@category</span>
+								}
+							</div>
+						}
+						<h1 class="featured-post-title">@featuredBlogs[0].BlogTitle</h1>
+						<p class="featured-post-overview">
+							@Html.Raw(System.Text.RegularExpressions.Regex.Replace(
+													featuredBlogs[0].BlogContent, "<[^>]*>", ""))
+						</p>
+						<div class="featured-post-meta">
+							<span class="meta-item">
+								<i class="fas fa-user"></i>@featuredBlogs[0].AuthorName
+							</span>
+							<span class="meta-item">
+								<i class="fas fa-calendar"></i> @featuredBlogs[0].CreatedAt.ToString("dd/MM/yyyy")
+							</span>
+						</div>
+						<a href="/Blog/Detail/@featuredBlogs[0].BlogPostId" class="btn btn-primary btn-read-more">
+							Đọc tiếp <i class="fas fa-arrow-right ms-2"></i>
+						</a>
+					</div>
+				</div>
+			}
+			else
+			{
+				<!-- Multiple Featured Blogs - 2 Column Layout (60/40) -->
+				<div class="featured-post-grid-2col">
+					<!-- Left Column (60%) - Main Featured -->
+					<div class="featured-post-main">
+						<div class="featured-post-card featured-vertical">
+							<div class="featured-post-image">
+								<img src="@(featuredBlogs[0].BlogThumbnail ?? "https://via.placeholder.com/800x400?text=Featured+Blog")"
+									 alt="@featuredBlogs[0].BlogTitle" class="img-fluid">
+							</div>
+							<div class="featured-post-content">
+								@if (featuredBlogs[0].CategoryNames?.Any() == true)
+								{
+									<div class="category-badges">
+										@foreach (var category in featuredBlogs[0].CategoryNames)
+										{
+											<span class="badge bg-primary">@category</span>
+										}
+									</div>
+								}
+								<h2 class="featured-post-title">@featuredBlogs[0].BlogTitle</h2>
+								<p class="featured-post-overview">
+									@Html.Raw(System.Text.RegularExpressions.Regex.Replace(
+																		featuredBlogs[0].BlogContent, "<[^>]*>", "").Substring(0, Math.Min(150,
+																		System.Text.RegularExpressions.Regex.Replace(featuredBlogs[0].BlogContent, "<[^>]*>",
+																		"").Length)) + "...")
+								</p>
+								<div class="featured-post-meta">
+									<span class="meta-item">
+										<i class="fas fa-user"></i><span style="color: #196DB4">@featuredBlogs[0].AuthorName</span>
+									</span>
+									<span class="meta-item">
+										<i class="fas fa-calendar"></i> @featuredBlogs[0].CreatedAt.ToString("dd/MM/yyyy")
+									</span>
+								</div>
+								<a href="/Blog/Detail/@featuredBlogs[0].BlogPostId"
+								   class="btn btn-sm btn-primary btn-read-more">
+									Đọc tiếp <i class="fas fa-arrow-right ms-1"></i>
+								</a>
+							</div>
+						</div>
+					</div>
 
-            <!-- Right Column (40%) - Secondary Featured (3 rows) -->
-            <div class="h-100 gap-4 d-flex flex-column">
-                @for (int i = 1; i < featuredBlogs.Count; i++)
-                        {
-                            <div class="featured-post-row rounded border">
-                                <div class="featured-post-row-image">
-                                    <img src="@(featuredBlogs[i].BlogThumbnail ?? "https://via.placeholder.com/300x200?text=Featured")"
-                                        alt="@featuredBlogs[i].BlogTitle" class="img-fluid">
-                                </div>
-                                <div class="featured-post-row-content">
-                                    @if (featuredBlogs[i].CategoryNames?.Any() == true)
-                                    {
-                                        <div class="category-badges">
-                                            @foreach (var category in featuredBlogs[i].CategoryNames.Take(1))
-                                            {
-                                                <span class="badge bg-info">@category</span>
-                                            }
-                                        </div>
-                                    }
-                                    <h3 class="featured-post-row-title">@featuredBlogs[i].BlogTitle</h3>
-                                    <div class="featured-post-row-meta">
-                                        <span class="meta-item">
-                                            <i class="fas fa-calendar"></i> @featuredBlogs[i].CreatedAt.ToString("dd/MM/yyyy")
-                                        </span>
-                                    </div>
-                                    <a href="/Blog/Detail/@featuredBlogs[i].BlogPostId" class="featured-post-row-link">
-                                        Đọc tiếp <i class="fas fa-arrow-right ms-1"></i>
-                                    </a>
-                                </div>
-                            </div>
-                        }
-                    </div>
-                </div>
-            }
-        </section>
-    }
+					<!-- Right Column (40%) - Secondary Featured (3 rows) -->
+					<div class="h-100 gap-4 d-flex flex-column">
+						@for (int i = 1; i < featuredBlogs.Count; i++)
+						{
+							<div class="featured-post-row rounded border">
+								<div class="featured-post-row-image">
+									<img src="@(featuredBlogs[i].BlogThumbnail ?? "https://via.placeholder.com/300x200?text=Featured")"
+										 alt="@featuredBlogs[i].BlogTitle" class="img-fluid">
+								</div>
+								<div class="featured-post-row-content">
+									@if (featuredBlogs[i].CategoryNames?.Any() == true)
+									{
+										<div class="category-badges">
+											@foreach (var category in featuredBlogs[i].CategoryNames.Take(1))
+											{
+												<span class="badge bg-info">@category</span>
+											}
+										</div>
+									}
+									<h3 class="featured-post-row-title">@featuredBlogs[i].BlogTitle</h3>
+									<div class="featured-post-row-meta">
+										<span class="meta-item">
+											<i class="fas fa-calendar"></i> @featuredBlogs[i].CreatedAt.ToString("dd/MM/yyyy")
+										</span>
+									</div>
+									<a href="/Blog/Detail/@featuredBlogs[i].BlogPostId" class="featured-post-row-link">
+										Đọc tiếp <i class="fas fa-arrow-right ms-1"></i>
+									</a>
+								</div>
+							</div>
+						}
+					</div>
+				</div>
+			}
+		</section>
+	}
 
-    <!-- Recent Posts Section with Sidebar - 2 Column Layout -->
-    <div class="row">
-        <!-- Main Content Area (8 columns) - Recent Posts -->
-        <div class="col-lg-8">
-            <section class="recent-posts-main-section mb-5">
-                <h2 class="section-title">Bài viết mới nhất</h2>
-                @{
-                    var recentBlogs = (List<BLL.DTOs.BlogPostDto>?)ViewBag.RecentBlogs ?? new List<BLL.DTOs.BlogPostDto>();
-                }
+	<!-- Recent Posts Section with Sidebar - 2 Column Layout -->
+	<div class="row">
+		<!-- Main Content Area (8 columns) - Recent Posts -->
+		<div class="col-lg-8">
+			<section class="recent-posts-main-section mb-5">
+				<h2 class="section-title">Bài viết mới nhất</h2>
+				@{
+					var recentBlogs = (List<BLL.DTOs.BlogPostDto>?)ViewBag.RecentBlogs ?? new List<BLL.DTOs.BlogPostDto>();
+				}
 
-                @if (recentBlogs.Any())
-                {
-                    <div class="recent-posts-rows">
-                        @foreach (var blog in recentBlogs)
-                        {
-                            <article class="recent-post-full-row">
-                                <div class="recent-post-row-image">
-                                    <img src="@(blog.BlogThumbnail ?? "https://via.placeholder.com/300x200?text=Blog")"
-                                         alt="@blog.BlogTitle" class="img-fluid">
-                                </div>
-                                <div class="recent-post-row-content">
-                                    @if (blog.CategoryNames?.Any() == true)
-                                    {
-                                        <div class="category-badges">
-                                            @foreach (var category in blog.CategoryNames.Take(2))
-                                            {
-                                                <span class="blog-category-badge">@category</span>
-                                            }
-                                            @if (blog.CategoryNames.Count > 2)
-                                            {
-                                                <span class="blog-category-badge">+@(blog.CategoryNames.Count - 2)</span>
-                                            }
-                                        </div>
-                                    }
-                                    <h3 class="recent-post-row-title">@blog.BlogTitle</h3>
-                                    @{
-                                        var plainText = System.Text.RegularExpressions.Regex.Replace(
-                                        blog.BlogContent, "<[^>]*>", "");
-                                        var truncated = plainText.Length > 200 ? plainText.Substring(0, 200) + "..." : plainText;
-                                    }
-                                    <p class="recent-post-row-excerpt">@truncated</p>
-                                    <div class="recent-post-row-meta">
-                                        <span class="meta-item">
-                                            <i class="fas fa-user"></i><span style="color: #196DB4">@blog.AuthorName</span>
-                                        </span>
-                                        <span class="meta-item">
-                                            <i class="fas fa-calendar"></i> @blog.CreatedAt.ToString("dd/MM/yyyy")
-                                        </span>
-                                    </div>
-                                    <a href="/Blog/Detail/@blog.BlogPostId" class="recent-post-row-link">
-                                        Đọc tiếp <i class="fas fa-arrow-right ms-1"></i>
-                                    </a>
-                                </div>
-                            </article>
-                        }
-                    </div>
+				@if (recentBlogs.Any())
+				{
+					<div class="recent-posts-rows">
+						@foreach (var blog in recentBlogs)
+						{
+							<article class="recent-post-full-row">
+								<div class="recent-post-row-image">
+									<img src="@(blog.BlogThumbnail ?? "https://via.placeholder.com/300x200?text=Blog")"
+										 alt="@blog.BlogTitle" class="img-fluid">
+								</div>
+								<div class="recent-post-row-content">
+									@if (blog.CategoryNames?.Any() == true)
+									{
+										<div class="category-badges">
+											@foreach (var category in blog.CategoryNames.Take(2))
+											{
+												<span class="blog-category-badge">@category</span>
+											}
+											@if (blog.CategoryNames.Count > 2)
+											{
+												<span class="blog-category-badge">+@(blog.CategoryNames.Count - 2)</span>
+											}
+										</div>
+									}
+									<h3 class="recent-post-row-title">@blog.BlogTitle</h3>
+									@{
+										var plainText = System.Text.RegularExpressions.Regex.Replace(
+										blog.BlogContent, "<[^>]*>", "");
+										var truncated = plainText.Length > 200 ? plainText.Substring(0, 200) + "..." : plainText;
+									}
+									<p class="recent-post-row-excerpt">@truncated</p>
+									<div class="recent-post-row-meta">
+										<span class="meta-item">
+											<i class="fas fa-user"></i><span style="color: #196DB4">@blog.AuthorName</span>
+										</span>
+										<span class="meta-item">
+											<i class="fas fa-calendar"></i> @blog.CreatedAt.ToString("dd/MM/yyyy")
+										</span>
+									</div>
+									<a href="/Blog/Detail/@blog.BlogPostId" class="recent-post-row-link">
+										Đọc tiếp <i class="fas fa-arrow-right ms-1"></i>
+									</a>
+								</div>
+							</article>
+						}
+					</div>
 
-                    <!-- Pagination -->
-                    @if ((int?)ViewBag.TotalPages > 1)
-                    {
-                        <nav class="pagination-section mt-5" aria-label="Blog pagination">
-                            <ul class="pagination justify-content-center">
-                                <li class="page-item @((int?)ViewBag.CurrentPage <= 1 ? "disabled" : "")">
-                                    <a class="page-link" href="?page=@((int?)ViewBag.CurrentPage - 1)">
-                                        <i class="fas fa-chevron-left"></i> Trang trước
-                                    </a>
-                                </li>
+					<!-- Pagination -->
+					@if ((int?)ViewBag.TotalPages > 1)
+					{
+						<nav class="pagination-section mt-5" aria-label="Blog pagination">
+							<ul class="pagination justify-content-center">
+								<li class="page-item @((int?)ViewBag.CurrentPage <= 1 ? "disabled" : "")">
+									<a class="page-link" href="?page=@((int?)ViewBag.CurrentPage - 1)">
+										<i class="fas fa-chevron-left"></i> Trang trước
+									</a>
+								</li>
 
-                                @for (int i = 1; i <= (int?)ViewBag.TotalPages; i++)
-                                {
-                                    <li class="page-item @(i == (int?)ViewBag.CurrentPage ? "active" : "")">
-                                        <a class="page-link" href="?page=@i">@i</a>
-                                    </li>
-                                }
+								@for (int i = 1; i <= (int?)ViewBag.TotalPages; i++)
+								{
+									<li class="page-item @(i == (int?)ViewBag.CurrentPage ? "active" : "")">
+										<a class="page-link" href="?page=@i">@i</a>
+									</li>
+								}
 
-                                <li class="page-item @((int?)ViewBag.CurrentPage >= (int?)ViewBag.TotalPages ? "disabled" : "")">
-                                    <a class="page-link" href="?page=@((int?)ViewBag.CurrentPage + 1)">
-                                        Trang sau <i class="fas fa-chevron-right"></i>
-                                    </a>
-                                </li>
-                            </ul>
-                        </nav>
-                    }
-                }
-                else
-                {
-                    <div class="alert alert-info">
-                        <i class="fas fa-info-circle me-2"></i> Không có bài viết gần đây nào.
-                    </div>
-                }
-            </section>
-        </div>
+								<li class="page-item @((int?)ViewBag.CurrentPage >= (int?)ViewBag.TotalPages ? "disabled" : "")">
+									<a class="page-link" href="?page=@((int?)ViewBag.CurrentPage + 1)">
+										Trang sau <i class="fas fa-chevron-right"></i>
+									</a>
+								</li>
+							</ul>
+						</nav>
+					}
+				}
+				else
+				{
+					<div class="alert alert-info">
+						<i class="fas fa-info-circle me-2"></i> Không có bài viết gần đây nào.
+					</div>
+				}
+			</section>
+		</div>
 
-        <!-- Sidebar (4 columns) -->
-        <aside class="col-lg-4">
-            <!-- Search Bar -->
-            <div class="sidebar-widget search-widget">
-                <h5 class="widget-title">Tìm kiếm bài viết</h5>
-                <form method="get" action="/Blog/Index" class="search-form">
-                    <div class="input-group">
-                        <input type="text" name="q" class="form-control search-input" placeholder="Nhập từ khóa..."
-                            value="@(string.IsNullOrEmpty((string?)ViewBag.Query) ? "" : ViewBag.Query)">
-                        <button class="btn btn-primary" type="submit">
-                            <i class="fas fa-search"></i>
-                        </button>
-                    </div>
-                </form>
-            </div>
+		<!-- Sidebar (4 columns) -->
+		<aside class="col-lg-4">
+			<!-- Search Bar -->
+			<div class="sidebar-widget search-widget">
+				<h5 class="widget-title">Tìm kiếm bài viết</h5>
+				<form method="get" action="/Blog/Index" class="search-form">
+					<div class="input-group">
+						<input type="text" name="q" class="form-control search-input" placeholder="Nhập từ khóa..."
+							   value="@(string.IsNullOrEmpty((string?)ViewBag.Query) ? "" : ViewBag.Query)">
+						<button class="btn btn-primary" type="submit">
+							<i class="fas fa-search"></i>
+						</button>
+					</div>
+				</form>
+			</div>
 
-            <!-- Categories Widget -->
-            <div class="sidebar-widget categories-widget">
-                <h5 class="widget-title">Chuyên mục</h5>
-                <ul class="categories-list">
-                    @{
-                        var allBlogsForCategories = ((List<BLL.DTOs.BlogPostDto>?)ViewBag.FeaturedBlogs ?? new
-                        List<BLL.DTOs.BlogPostDto>())
-                        .Concat((List<BLL.DTOs.BlogPostDto>?)ViewBag.RecentBlogs ?? new List<BLL.DTOs.BlogPostDto>())
-                        .ToList();
-                    }
-                    @if (allBlogsForCategories.Any() == true)
-                    {
-                        var categories = allBlogsForCategories
-                        .Where(b => b.CategoryNames != null)
-                        .SelectMany(b => b.CategoryNames)
-                        .Distinct()
-                        .ToList();
+			<!-- Categories Widget -->
+			<div class="sidebar-widget categories-widget">
+				<h5 class="widget-title">Chuyên mục</h5>
+				<ul class="categories-list">
+					@{
+						var allBlogsForCategories = ((List<BLL.DTOs.BlogPostDto>?)ViewBag.FeaturedBlogs ?? new
+						List<BLL.DTOs.BlogPostDto>())
+						.Concat((List<BLL.DTOs.BlogPostDto>?)ViewBag.RecentBlogs ?? new List<BLL.DTOs.BlogPostDto>())
+						.ToList();
+					}
+					@if (allBlogsForCategories.Any() == true)
+					{
+						var categories = allBlogsForCategories
+						.Where(b => b.CategoryNames != null)
+						.SelectMany(b => b.CategoryNames)
+						.Distinct()
+						.ToList();
 
-                        @if (categories.Any())
-                        {
-                            @foreach (var cat in categories.Take(5))
-                            {
-                                var count = allBlogsForCategories.Count(b => b.CategoryNames.Contains(cat));
-                                <li class="category-item">
-                                    <a href="?q=&category=@Uri.EscapeDataString(cat)" class="category-link">
-                                        @cat <span class="category-count">(@count)</span>
-                                    </a>
-                                </li>
-                            }
-                        }
-                    }
-                </ul>
-            </div>
+						@if (categories.Any())
+						{
+							@foreach (var cat in categories.Take(5))
+							{
+								var count = allBlogsForCategories.Count(b => b.CategoryNames.Contains(cat));
+								<li class="category-item">
+									<a href="?q=&category=@Uri.EscapeDataString(cat)" class="category-link">
+										@cat <span class="category-count">(@count)</span>
+									</a>
+								</li>
+							}
+						}
+					}
+				</ul>
+			</div>
 
-            <!-- Recent Posts Widget -->
-            <div class="sidebar-widget recent-posts-widget">
-                <h5 class="widget-title">Bài viết gần đây</h5>
-                <ul class="recent-posts-list">
-                    @if (allBlogsForCategories.Any() == true)
-                    {
-                        @foreach (var blog in allBlogsForCategories.OrderByDescending(b => b.CreatedAt).Take(3))
-                        {
-                            <li class="recent-post-item">
-                                <div class="recent-post-thumbnail">
-                                    <img src="@(blog.BlogThumbnail ?? "https://via.placeholder.com/80x80?text=Blog")"
-                                        alt="@blog.BlogTitle" class="img-fluid">
-                                </div>
-                                <div class="recent-post-info">
-                                    <a href="/Blog/Detail/@blog.BlogPostId" class="recent-post-title">@blog.BlogTitle</a>
-                                    <span class="recent-post-date">@blog.CreatedAt.ToString("dd/MM/yyyy")</span>
-                                </div>
-                            </li>
-                        }
-                    }
-                </ul>
-            </div>
-        </aside>
-    </div>
+			<!-- Recent Posts Widget -->
+			<div class="sidebar-widget recent-posts-widget">
+				<h5 class="widget-title">Bài viết gần đây</h5>
+				<ul class="recent-posts-list">
+					@if (allBlogsForCategories.Any() == true)
+					{
+						@foreach (var blog in allBlogsForCategories.OrderByDescending(b => b.CreatedAt).Take(3))
+						{
+							<li class="recent-post-item">
+								<div class="recent-post-thumbnail">
+									<img src="@(blog.BlogThumbnail ?? "https://via.placeholder.com/80x80?text=Blog")"
+										 alt="@blog.BlogTitle" class="img-fluid">
+								</div>
+								<div class="recent-post-info">
+									<a href="/Blog/Detail/@blog.BlogPostId" class="recent-post-title">@blog.BlogTitle</a>
+									<span class="recent-post-date">@blog.CreatedAt.ToString("dd/MM/yyyy")</span>
+								</div>
+							</li>
+						}
+					}
+				</ul>
+			</div>
+		</aside>
+	</div>
 </div>
+@section Scripts {
+	@* script sẵn có của bạn *@
+	<script src="~/js/home.js"></script>
+
+	<script>
+		// ===== Config URL & CSRF =====
+		const WL_URLS = {
+		  toggle: '@Url.Action("Toggle", "Wishlist")',
+		  heartSet: '@Url.Action("HeartSet", "Wishlist")'
+		};
+		function __afToken(){
+		  return document.querySelector("#__afForm input[name='__RequestVerificationToken']")?.value || "";
+		}
+
+		// ===== Module WL siêu gọn dùng cho trang list =====
+		window.WL = window.WL || {};
+		WL.toggle = async function(productId, btn){
+		  // optimistic UI
+		  btn?.classList.toggle('active');
+
+		  const res = await fetch(WL_URLS.toggle, {
+			method: "POST",
+			headers: {
+			  "Content-Type": "application/json",
+			  "RequestVerificationToken": __afToken()
+			},
+			body: JSON.stringify({ productId })
+		  }).catch(()=>null);
+
+		  if(!res) return;
+		  const data = await res.json().catch(()=>({}));
+
+		  // đồng bộ lại nếu server nói khác
+		  if(btn){
+			if(data.isLiked) btn.classList.add('active');
+			else btn.classList.remove('active');
+		  }
+
+		  // cập nhật badge tổng (nếu có ở header)
+		  const badge = document.getElementById('wl-badge');
+		  if (badge && typeof data.count === 'number') {
+			badge.textContent = data.count;
+			badge.classList.toggle('d-none', data.count === 0);
+		  }
+		};
+
+		// ===== Khởi tạo tim đã "đỏ" khi trang load lần đầu =====
+		(async function initHearts(){
+		  try{
+			const res = await fetch(WL_URLS.heartSet, { headers:{ "X-Requested-With":"XMLHttpRequest" }});
+			const set = await res.json(); // ví dụ: [1,2,5]
+			document.querySelectorAll(".wishlist-heart[data-heart]").forEach(el=>{
+			  const pid = parseInt(el.getAttribute("data-heart"),10);
+			  if(set.includes(pid)) el.classList.add('active');
+			});
+		  }catch{}
+		})();
+	</script>
+
+	<script>
+		document.addEventListener('click', function (e) {
+		  const card = e.target.closest('.js-card');
+		  if (!card) return;
+		  if (e.target.closest('a, button, input, select, textarea, label')) return;
+		  const url = card.dataset.url;
+		  if (url) window.location.href = url;
+		});
+		document.addEventListener('keydown', function (e) {
+		  if (e.key !== 'Enter') return;
+		  const card = e.target.closest('.js-card');
+		  if (!card) return;
+		  const url = card.dataset.url;
+		  if (url) window.location.href = url;
+		});
+	</script>
+}

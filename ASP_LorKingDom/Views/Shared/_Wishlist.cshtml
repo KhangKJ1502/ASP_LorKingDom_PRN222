@@ -1,189 +1,161 @@
-﻿@* Giao diện wishlist – chỉ HTML/CSS, không cần model *@
+﻿@* Offcanvas Wishlist - không dùng model *@
+@* Anti-forgery để JS lấy token *@
+<form id="__afForm" class="d-none">
+	@Html.AntiForgeryToken()
+</form>
+
 <link rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
-      crossorigin="anonymous" referrerpolicy="no-referrer">
+	  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+	  crossorigin="anonymous" referrerpolicy="no-referrer">
 <link rel="stylesheet" href="~/css/wishlist.css" asp-append-version="true" />
 
-<div class="offcanvas offcanvas-end wishlist-canvas" tabindex="-1" style="width:800px"
-     id="wishlistOffcanvas" aria-labelledby="wishlistTitle">
-    <div class="offcanvas-header align-items-center">
-        <h5 id="wishlistTitle" class="m-0 d-flex align-items-center gap-2">
-            <i class="fa-solid fa-heart text-danger"></i>
-            <span>Danh sách yêu thích (<span id="wl-count">2</span> sản phẩm)</span>
-        </h5>
-        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-    </div>
+<div class="offcanvas offcanvas-end wishlist-canvas"
+	 id="wishlistOffcanvas" tabindex="-1" style="width:800px"
+	 aria-labelledby="wishlistTitle"
+	 data-url-list="@Url.Action("List", "Wishlist")"
+	 data-url-remove="@Url.Action("Remove", "Wishlist")"
+	 data-url-clear="@Url.Action("Clear", "Wishlist")"
+	 data-url-toggle="@Url.Action("Toggle", "Wishlist")"
+	 data-url-heartset="@Url.Action("HeartSet", "Wishlist")">
 
-    <!-- Thanh tìm kiếm (ĐÚNG VỊ TRÍ: bên trong offcanvas) -->
-    <div class="wishlist-search px-3 pb-2">
-        <div class="input-group">
-            <span class="input-group-text bg-white border-end-0">
-                <i class="fa-solid fa-magnifying-glass text-secondary"></i>
-            </span>
-            <input type="text" id="wl-search" class="form-control border-start-0"
-                   placeholder="Tìm sản phẩm trong danh sách yêu thích...">
-        </div>
-    </div>
+	<div class="offcanvas-header align-items-center">
+		<h5 id="wishlistTitle" class="m-0 d-flex align-items-center gap-2">
+			<i class="fa-solid fa-heart text-danger"></i>
+			<span>Danh sách yêu thích (<span id="wl-count">0</span> sản phẩm)</span>
+		</h5>
+		<button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+	</div>
 
-    <div class="offcanvas-body d-flex flex-column pt-2">
-        <div id="wl-list" class="flex-grow-1 overflow-auto">
+	<!-- Thanh tìm kiếm -->
+	<div class="wishlist-search px-3 pb-2">
+		<div class="input-group">
+			<span class="input-group-text bg-white border-end-0">
+				<i class="fa-solid fa-magnifying-glass text-secondary"></i>
+			</span>
+			<input type="text" id="wl-search" class="form-control border-start-0"
+				   placeholder="Tìm sản phẩm trong danh sách yêu thích...">
+		</div>
+	</div>
 
-            <!-- ITEM 1 -->
-            <div class="wl-card" data-id="1">
-                <div class="wl-row">
-                    <img class="wl-thumb" src="/lego-creator-set-colorful-building-blocks.jpg" alt="Bộ Lego Creator 3-in-1" />
-                    <div class="wl-info">
-                        <h6 class="wl-name">Bộ Lego Creator 3-in-1</h6>
+	<div class="offcanvas-body d-flex flex-column pt-2">
+		<!-- Server sẽ render partial vào đây -->
+		<div id="wl-list" class="flex-grow-1 overflow-auto"></div>
 
-                        <div class="d-flex align-items-center gap-2 mb-2">
-                            <span class="wl-price">1.299.000 đ</span>
-                            <span class="wl-price-old">1.599.000 đ</span>
-                        </div>
-
-                        <span class="wl-badge in-stock mb-2 d-inline-block">Còn hàng</span>
-
-                        <!-- Hàng action -->
-                        <div class="wl-actions">
-                            <button class="wl-add btn-cart" data-id="1">
-                                <i class="fa-solid fa-cart-shopping me-2"></i> Thêm vào giỏ
-                            </button>
-                            <!-- SỬA ĐÚNG data-id = 1 -->
-                            <button class="wl-trash" title="Xóa" data-id="1">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ITEM 2 -->
-            <div class="wl-card" data-id="2">
-                <div class="wl-row">
-                    <img class="wl-thumb" src="/placeholder.svg?height=80&width=80" alt="Đàn piano điện tử trẻ em" />
-                    <div class="wl-info">
-                        <h6 class="wl-name">Đàn piano điện tử trẻ em</h6>
-
-                        <div class="d-flex align-items-center gap-2 mb-2">
-                            <span class="wl-price">1.899.000 đ</span>
-                            <span class="wl-price-old">2.299.000 đ</span>
-                        </div>
-
-                        <span class="wl-badge in-stock mb-2 d-inline-block">Còn hàng</span>
-
-                        <!-- Hàng action -->
-                        <div class="wl-actions">
-                            <button class="wl-add btn-cart" data-id="2">
-                                <i class="fa-solid fa-cart-shopping me-2"></i> Thêm vào giỏ
-                            </button>
-                            <button class="wl-trash" title="Xóa" data-id="2">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-
-        <!-- Footer actions -->
-        <div class="wl-footer">
-            <button class="btn btn-cart w-100 py-3 mb-2" id="wl-add-all">
-                <i class="fa-solid fa-cart-shopping me-2"></i> Thêm tất cả vào giỏ hàng
-            </button>
-            <button class="btn btn-outline-danger w-100" id="wl-clear-all">
-                <i class="fa-solid fa-trash-can me-2"></i> Xóa tất cả
-            </button>
-        </div>
-    </div>
+		<!-- Footer actions -->
+		<div class="wl-footer mt-3">
+			<button class="btn btn-cart w-100 py-3 mb-2" id="wl-add-all">
+				<i class="fa-solid fa-cart-shopping me-2"></i> Thêm tất cả vào giỏ hàng
+			</button>
+			<button class="btn btn-outline-danger w-100" id="wl-clear-all">
+				<i class="fa-solid fa-trash-can me-2"></i> Xóa tất cả
+			</button>
+		</div>
+	</div>
 </div>
 
 @section Scripts {
-    <script>
-        // --------- Helpers ----------
-        const vnNorm = s => (s || '')
-          .toString()
-          .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // bỏ dấu
-          .toLowerCase().trim();
+	<script>
+		(function () {
+		  // ====== Lấy URL action từ data-* ======
+		  const root = document.getElementById('wishlistOffcanvas');
+		  const urlList   = root.dataset.urlList;       // GET  : /Wishlist/List?q=
+		  const urlRemove = root.dataset.urlRemove;     // DELETE: /Wishlist/Remove (body {productId})
+		  const urlClear  = root.dataset.urlClear;      // DELETE: /Wishlist/Clear
+		  const urlToggle = root.dataset.urlToggle;     // POST  : /Wishlist/Toggle (dùng khi muốn toggle tim)
+		  const urlHeart  = root.dataset.urlHeartset;   // GET  : /Wishlist/HeartSet (nếu cần đồng bộ tim ngoài grid)
 
-        function updateWlState(){
-          const list = document.getElementById('wl-list');
-          // chỉ đếm item đang hiển thị (sau khi lọc)
-          const n = list.querySelectorAll('.wl-card:not([style*="display: none"])').length;
-          document.getElementById('wl-count').textContent = n;
-          document.getElementById('wl-add-all')?.toggleAttribute('disabled', n===0);
-          document.getElementById('wl-clear-all')?.toggleAttribute('disabled', n===0);
-          const badge = document.getElementById('wl-badge'); // nếu có badge tổng ở header site
-          if (badge){ badge.textContent = n; badge.classList.toggle('d-none', n===0); }
-        }
+		  // ====== DOM ======
+		  const wlListEl   = document.getElementById('wl-list');
+		  const searchEl   = document.getElementById('wl-search');
+		  const countEl    = document.getElementById('wl-count');
+		  const addAllEl   = document.getElementById('wl-add-all');
+		  const clearAllEl = document.getElementById('wl-clear-all');
 
-        // --------- Init ----------
-        updateWlState();
+		  // ====== Helpers ======
+		  const afToken = () => document.querySelector("#__afForm input[name='__RequestVerificationToken']")?.value || "";
 
-        // --------- Search ----------
-        document.getElementById('wl-search')?.addEventListener('input', function () {
-          const q = vnNorm(this.value);
-          const list = document.getElementById('wl-list');
-          const cards = list.querySelectorAll('.wl-card');
-          let visible = 0;
+		  function updateCountFromDom() {
+			const n = wlListEl.querySelectorAll('.wl-card').length;
+			if (countEl) countEl.textContent = n;
+			addAllEl?.toggleAttribute('disabled', n === 0);
+			clearAllEl?.toggleAttribute('disabled', n === 0);
+			const badge = document.getElementById('wl-badge'); // nếu có badge tổng ở header
+			if (badge) { badge.textContent = n; badge.classList.toggle('d-none', n === 0); }
+		  }
 
-          cards.forEach(card => {
-            const name = vnNorm(card.querySelector('.wl-name')?.textContent);
-            const show = !q || name.includes(q);
-            card.style.display = show ? '' : 'none';
-            if (show) visible++;
-          });
+		  async function loadList(q = "") {
+			const url = q ? `${urlList}?q=${encodeURIComponent(q)}` : urlList;
+			const res = await fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" }});
+			const html = await res.text();
+			wlListEl.innerHTML = html;
+			updateCountFromDom();
+			wireRowEvents();
+		  }
 
-          // trạng thái rỗng
-          const oldEmpty = document.getElementById('wl-empty');
-          if (visible === 0) {
-            if (!oldEmpty) {
-              const empty = document.createElement('div');
-              empty.id = 'wl-empty';
-              empty.className = 'wl-empty text-center text-muted p-4';
-              empty.innerHTML = '<i class="fa-regular fa-face-frown me-2"></i>Không tìm thấy sản phẩm phù hợp.';
-              list.appendChild(empty);
-            }
-          } else {
-            oldEmpty?.remove();
-          }
+		  async function removeOne(productId) {
+			const res = await fetch(urlRemove, {
+			  method: "DELETE",
+			  headers: {
+				"Content-Type": "application/json",
+				"RequestVerificationToken": afToken()
+			  },
+			  body: JSON.stringify({ productId: Number(productId) })
+			});
+			// server trả { isLiked:false, count }
+			await res.json().catch(()=>({}));
+			await loadList(searchEl?.value || "");
 
-          updateWlState();
-        });
+			// Nếu trên trang có icon tim ngoài grid, đồng bộ nó:
+			const heart = document.querySelector(`[data-heart='${productId}']`);
+			if (heart) heart.classList.remove("active");
+		  }
 
-        // --------- Click trong danh sách ----------
-        document.getElementById('wl-list')?.addEventListener('click', function(e){
-          const addBtn = e.target.closest('.wl-add');
-          const delBtn = e.target.closest('.wl-trash');
+		  async function clearAll() {
+			await fetch(urlClear, {
+			  method: "DELETE",
+			  headers: { "RequestVerificationToken": afToken() }
+			});
+			await loadList();
+		  }
 
-          if(addBtn){
-            addBtn.disabled = true;
-            addBtn.innerHTML = '<i class="fa-solid fa-check me-2"></i> Đã thêm';
-            setTimeout(()=>{ addBtn.disabled=false; addBtn.innerHTML = '<i class="fa-solid fa-cart-shopping me-2"></i> Thêm vào giỏ'; }, 1200);
-          }
+		  function wireRowEvents() {
+			// Nút "Thêm vào giỏ" trong danh sách
+			wlListEl.querySelectorAll('.wl-add').forEach(btn => {
+			  btn.addEventListener('click', () => {
+				// TODO: Gọi CartController/Add theo hệ thống của bạn
+				btn.disabled = true;
+				const old = btn.innerHTML;
+				btn.innerHTML = '<i class="fa-solid fa-check me-2"></i> Đã thêm';
+				setTimeout(()=>{ btn.disabled=false; btn.innerHTML = old; }, 1000);
+			  });
+			});
 
-          if(delBtn){
-            const id = delBtn.dataset.id;
-            const card = this.querySelector('.wl-card[data-id="'+id+'"]');
-            card?.remove();
-            // nếu có màn empty thì xoá
-            document.getElementById('wl-empty')?.remove();
-            updateWlState();
-          }
-        });
+			// Nút xóa 1 sản phẩm
+			wlListEl.querySelectorAll('.wl-trash').forEach(btn => {
+			  btn.addEventListener('click', () => removeOne(btn.dataset.id));
+			});
+		  }
 
-        // --------- Thêm tất cả (demo) ----------
-        document.getElementById('wl-add-all')?.addEventListener('click', function(){
-          this.disabled = true;
-          this.innerHTML = '<i class="fa-solid fa-check me-2"></i> Đã thêm tất cả';
-          setTimeout(()=>{ this.disabled = false; this.innerHTML = '<i class="fa-solid fa-cart-shopping me-2"></i> Thêm tất cả vào giỏ hàng'; }, 1200);
-        });
+		  // ====== Search server-side (debounce) ======
+		  let deb = null;
+		  searchEl?.addEventListener('input', function(){
+			clearTimeout(deb);
+			deb = setTimeout(() => loadList(this.value), 300);
+		  });
 
-        // --------- Xóa tất cả ----------
-        document.getElementById('wl-clear-all')?.addEventListener('click', function(){
-          const list = document.getElementById('wl-list');
-          list.querySelectorAll('.wl-card').forEach(el => el.remove());
-          document.getElementById('wl-empty')?.remove();
-          updateWlState();
-        });
-    </script>
+		  // ====== Footer actions ======
+		  addAllEl?.addEventListener('click', function(){
+			// TODO: Gọi add-many vào Cart nếu có
+			this.disabled = true;
+			const old = this.innerHTML;
+			this.innerHTML = '<i class="fa-solid fa-check me-2"></i> Đã thêm tất cả';
+			setTimeout(()=>{ this.disabled = false; this.innerHTML = old; }, 1000);
+		  });
+
+		  clearAllEl?.addEventListener('click', clearAll);
+
+		  // ====== Khởi tạo: load danh sách khi DOM sẵn sàng ======
+		  document.addEventListener('DOMContentLoaded', () => loadList());
+		})();
+	</script>
 }
