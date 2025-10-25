@@ -194,6 +194,23 @@ namespace DAL.Repositories
 
             return (items, total);
         }
+        public async Task<int> SetIsDeletedBySuperCategoryAsync(int superCategoryId, bool isDeleted)
+        {
+            // Dựa trên quan hệ: Product.Category.SuperCategoryId == superCategoryId
+            var items = await _ctx.Products
+                .Where(p => p.Category != null && p.Category.SuperCategoryId == superCategoryId)
+                .ToListAsync();
+
+            foreach (var p in items)
+            {
+                p.IsDeleted = isDeleted;
+                if (isDeleted)
+                    p.ProductStatus = "Discontinued";
+            }
+
+            await _ctx.SaveChangesAsync();
+            return items.Count;
+        }
     }
 
 }

@@ -86,10 +86,13 @@
                         </svg>
                         Wishlist
                     </button>
-                    <button class="profile-tab rounded-lg px-4 py-3 flex items-center justify-center gap-2 text-sm font-medium transition-all" data-tab="addresses">
+                    <button class="profile-tab rounded-lg px-4 py-3 flex items-center justify-center gap-2 text-sm font-medium transition-all"
+                            data-tab="addresses">
                         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                         </svg>
                         Addresses
                     </button>
@@ -102,10 +105,13 @@
                     </button>
                 </div>
 
-                <!-- Tab Content -->
-                <div id="profile-content">
-                    <!-- Content will be loaded by JavaScript -->
-                </div>
+                <!-- Tab Content (để trống – AJAX sẽ nhúng partial vào đây) -->
+                <div id="profile-content"></div>
+
+                <!-- Anti-forgery token để gửi kèm các POST AJAX -->
+                <form id="__afForm" style="display:none;">
+                    @Html.AntiForgeryToken()
+                </form>
             </div>
         </div>
     </div>
@@ -113,4 +119,5 @@
 
 @section Scripts {
     <script src="~/js/profile.js"></script>
+    <script src="~/js/addresses.js"></script>
 }

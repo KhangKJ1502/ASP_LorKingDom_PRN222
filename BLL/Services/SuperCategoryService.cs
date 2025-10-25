@@ -13,13 +13,14 @@ namespace BLL.Services
     public class SuperCategoryService : ISuperCategoryService
     {
         private readonly ISuperCategoryRepository _repo;
-        private readonly ICategoryRepository _categoryRepo; // ➕ dùng để cascade
+        private readonly ICategoryRepository _categoryRepo;
+        private readonly IProductRepository _productRepo;
 
-        // ➕ Sửa constructor: nhận thêm ICategoryRepository qua DI
-        public SuperCategoryService(ISuperCategoryRepository repo, ICategoryRepository categoryRepo)
+        public SuperCategoryService(ISuperCategoryRepository repo, ICategoryRepository categoryRepo, IProductRepository productRepo)
         {
             _repo = repo;
             _categoryRepo = categoryRepo;
+            _productRepo = productRepo;
         }
 
         public async Task<List<SuperCategoryDto>> GetAllAsync(string? keyword = null)
@@ -74,12 +75,11 @@ namespace BLL.Services
 
             await _repo.UpdateAsync(e);
 
-            // ➕ Cascade: nếu SuperCategory bị ẩn → ẩn tất cả Category con
             if (isDeleted)
             {
                 await _categoryRepo.SetIsDeletedBySuperCategoryAsync(id, true);
+                await _productRepo.SetIsDeletedBySuperCategoryAsync(id, true);
             }
-            // Theo yêu cầu: khi bật lại SuperCategory, KHÔNG tự bật lại Category con.
 
             return true;
         }

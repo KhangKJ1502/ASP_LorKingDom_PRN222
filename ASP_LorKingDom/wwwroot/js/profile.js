@@ -66,9 +66,7 @@ function renderTabContent(tab) {
         case "wishlist":
             content.innerHTML = renderWishlistTab()
             break
-        case "addresses":
-            content.innerHTML = renderAddressesTab()
-            break
+        
         case "settings":
             content.innerHTML = renderSettingsTab()
             attachSettingsListeners()
@@ -282,34 +280,7 @@ function renderWishlistTab() {
     `
 }
 
-function renderAddressesTab() {
-    return `
-        <div class="border-2 border-orange-100 rounded-xl bg-white">
-            <div class="p-6">
-                <h3 class="text-gradient text-xl font-bold mb-4">Saved Addresses</h3>
-                <div class="space-y-4">
-                    <div class="p-4 rounded-xl bg-orange-50/50 border-2 border-orange-200">
-                        <div class="flex justify-between items-start mb-2">
-                            <span class="bg-gradient-warm text-white px-3 py-1 rounded-full text-sm">Default</span>
-                            <button class="p-2 hover:bg-orange-100 rounded-lg transition-colors">
-                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-                                </svg>
-                            </button>
-                        </div>
-                        <h4 class="font-semibold">Home Address</h4>
-                        <p class="text-gray-600">123 Main Street, Apt 4B</p>
-                        <p class="text-gray-600">New York, NY 10001</p>
-                        <p class="text-gray-600">United States</p>
-                    </div>
-                    <button class="w-full border-2 border-orange-200 hover:bg-orange-50 bg-transparent py-3 rounded-xl transition-all">
-                        Add New Address
-                    </button>
-                </div>
-            </div>
-        </div>
-    `
-}
+
 
 function renderSettingsTab() {
     return `
@@ -400,41 +371,45 @@ function renderSettingsTab() {
 }
 
 function attachSettingsListeners() {
-    const editBtn = document.getElementById("edit-profile-btn")
-    const inputs = ["input-name", "input-email", "input-phone", "input-dob"]
+    const editBtn = document.getElementById("edit-profile-btn");
+    const inputs = ["input-name", "input-email", "input-phone", "input-dob"];
 
     editBtn.addEventListener("click", () => {
-        isEditing = !isEditing
-        const btnText = document.getElementById("edit-btn-text")
+        isEditing = !isEditing;
+        const btnText = document.getElementById("edit-btn-text");
 
         inputs.forEach((id) => {
-            const input = document.getElementById(id)
-            input.disabled = !isEditing
-        })
+            const input = document.getElementById(id);
+            input.disabled = !isEditing;
+        });
 
-        btnText.textContent = isEditing ? "Save" : "Edit"
-
-        if (!isEditing) {
-            alert("Profile updated successfully!")
-        }
-    })
+        btnText.textContent = isEditing ? "Save" : "Edit";
+        if (!isEditing) alert("Profile updated successfully!");
+    });
 }
 
 // Initialize
 document.addEventListener("DOMContentLoaded", () => {
-    // Tab switching
-    const tabs = document.querySelectorAll(".profile-tab")
-    tabs.forEach((tab) => {
-        tab.addEventListener("click", function () {
-            // Remove active class from all tabs
-            tabs.forEach((t) => t.classList.remove("active"))
-            // Add active class to clicked tab
-            this.classList.add("active")
-            // Render content
-            renderTabContent(this.dataset.tab)
-        })
-    })
+    const tabs = document.querySelectorAll(".profile-tab");
 
-    // Render initial content
-    renderTabContent("overview")
-})
+    tabs.forEach((tabBtn) => {
+        tabBtn.addEventListener("click", function () {
+            const tab = this.dataset.tab;
+
+            // Active state
+            tabs.forEach((t) => t.classList.remove("active"));
+            this.classList.add("active");
+
+            // ❗️Addresses: để addresses.js xử lý (AJAX). Không gọi renderTabContent
+            if (tab === "addresses") {
+                return; // addresses.js đã lắng nghe click .profile-tab và sẽ load partial + list
+            }
+
+            // Các tab còn lại render như cũ
+            renderTabContent(tab);
+        });
+    });
+
+    // Tab mặc định
+    renderTabContent("overview");
+});
