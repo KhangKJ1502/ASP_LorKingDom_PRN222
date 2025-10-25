@@ -205,10 +205,10 @@
 
 								<div class="product-price">
 									<span class="price-current">@p.Price.ToString("C")</span>
-									@if (p.Price > 100)
-									{
-										<span class="price-original">@((p.Price * 1.2m).ToString("C"))</span>
-									}
+									@* @if (p.Price > 100) *@
+									@* { *@
+									@* 	<span class="price-original">@((p.Price * 1.2m).ToString("C"))</span> *@
+									@* } *@
 								</div>
 
 								<form method="post" asp-action="AddToCart" asp-controller="Cart" asp-route-id="@p.Id">
