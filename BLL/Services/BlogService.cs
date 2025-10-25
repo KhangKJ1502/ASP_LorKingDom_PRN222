@@ -167,8 +167,8 @@ namespace BLL.Services
             CreatedAt = blog.CreatedAt,
             UpdatedAt = blog.UpdatedAt,
             AuthorName = blog.Account?.Email ?? "Unknown",
-            CategoryIds = blog.BlogCategories?.Select(bc => bc.BlogCategoryId).ToList() ?? new List<int>(),
-            CategoryNames = blog.BlogCategories?.Select(bc => bc.BlogCategoryName).ToList() ?? new List<string>()
+            CategoryIds = blog.BlogCategories?.Where(bc => !bc.IsDeleted).Select(bc => bc.BlogCategoryId).ToList() ?? new List<int>(),
+            CategoryNames = blog.BlogCategories?.Where(bc => !bc.IsDeleted).Select(bc => bc.BlogCategoryName).ToList() ?? new List<string>()
         };
     }
 }

@@ -3,41 +3,13 @@
     ViewData["Title"] = "Quản lý bình luận - ToyLand Admin";
     Layout = "_AdminLayout";
     var q = (string?)ViewBag.Query ?? "";
-    var blogFilter = (string?)ViewBag.BlogFilter ?? "";
-    var userFilter = (string?)ViewBag.UserFilter ?? "";
+    var blockStatusFilter = (string?)ViewBag.BlockStatusFilter ?? "";
+    var replyStatusFilter = (string?)ViewBag.ReplyStatusFilter ?? "";
     var currentPage = (int?)ViewBag.CurrentPage ?? 1;
     var totalPages = (int?)ViewBag.TotalPages ?? 1;
-    var blogs = (List<BLL.DTOs.BlogPostDto>?)ViewBag.Blogs ?? new List<BLL.DTOs.BlogPostDto>();
 }
 
 <style>
-    .search-box .form-control {
-        border: 1px solid #000 !important;
-        box-shadow: none !important;
-    }
-
-    .search-box .btn {
-        border: 1px solid #000 !important;
-        border-left: none !important;
-    }
-
-    .toast-top-right {
-        top: 120px !important;
-        right: 24px !important;
-    }
-
-    #liveToast.toast {
-        min-width: 520px;
-        padding: 1rem 1.25rem;
-        border-radius: 12px;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
-    }
-
-    #liveToast .toast-body {
-        font-size: 1.1rem;
-        font-weight: 600;
-    }
-
     .deleted-row {
         opacity: 0.6;
         background: #f8f9fa;
@@ -117,6 +89,15 @@
         font-size: 0.8rem;
         font-weight: 600;
     }
+
+    .blog-title-ellipsis {
+        max-width: 200px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        display: inline-block;
+        color: #333;
+    }
 </style>
 
 <div class="container-fluid px-5">
@@ -130,25 +111,25 @@
         <div class="card-body">
             <!-- Tìm kiếm và Lọc -->
             <form class="mb-4" method="get" asp-action="ManageBlogReview" asp-controller="BlogReview">
-                <div class="row g-2 mb-3">
-                    <div class="col-md-4">
-                        <input type="text" name="q" value="@q" class="form-control"
-                            placeholder="Tìm kiếm nội dung bình luận...">
-                    </div>
+                <div class="row g-2">
                     <div class="col-md-3">
-                        <select name="blog" class="form-control">
-                            <option value="">Tất cả bài viết</option>
-                            @foreach (var blog in blogs)
-                            {
-                                <option value="@blog.BlogPostId" selected="@(blogFilter == blog.BlogPostId.ToString())">
-                                    @blog.BlogTitle
-                                </option>
-                            }
+                        <input type="text" name="q" value="@q" class="form-control"
+                            placeholder="Tìm theo người bình luận hoặc nội dung...">
+                    </div>
+                    <div class="col-md-2">
+                        <select name="blockStatus" class="form-control">
+                            <option value="">Tất cả trạng thái</option>
+                            <option value="unblocked" selected="@(blockStatusFilter == "unblocked")">Bình thường
+                            </option>
+                            <option value="blocked" selected="@(blockStatusFilter == "blocked")">Đã cấm</option>
                         </select>
                     </div>
-                    <div class="col-md-3">
-                        <input type="text" name="user" value="@userFilter" class="form-control"
-                            placeholder="Tìm kiếm người bình luận...">
+                    <div class="col-md-2">
+                        <select name="replyStatus" class="form-control">
+                            <option value="">Tất cả phản hồi</option>
+                            <option value="replied" selected="@(replyStatusFilter == "replied")">Đã hồi</option>
+                            <option value="unreplied" selected="@(replyStatusFilter == "unreplied")">Chưa hồi</option>
+                        </select>
                     </div>
                     <div class="col-md-2">
                         <button class="btn btn-primary w-100" type="submit">
@@ -157,21 +138,6 @@
                     </div>
                 </div>
             </form>
-
-            @if (TempData["Error"] is string e)
-            {
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    @e
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            }
-            @if (TempData["Success"] is string s)
-            {
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    @s
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            }
 
             <!-- Bảng Dữ Liệu -->
             <div class="table-responsive">
@@ -207,9 +173,7 @@
                                         </div>
                                     </td>
                                     <td>
-                                        <a href="/Blog/Detail/@review.BlogPostId" class="blog-link" target="_blank">
-                                            Xem bài viết <i class="fas fa-external-link-alt"></i>
-                                        </a>
+                                        <span class="blog-title-ellipsis" title="@review.BlogTitle">@review.BlogTitle</span>
                                     </td>
                                     <td>
                                         <span class="me-2"><i class="fas fa-thumbs-up"></i> @review.LikeCount</span>
@@ -270,7 +234,7 @@
                 <ul class="pagination justify-content-center">
                     <li class="page-item @(currentPage == 1 ? "disabled" : "")">
                         <a class="page-link"
-                            href="@Url.Action("ManageBlogReview", "BlogReview", new { q, blog = blogFilter, user = userFilter, page = currentPage - 1 })">
+                            href="@Url.Action("ManageBlogReview", "BlogReview", new { q, blockStatus = blockStatusFilter, replyStatus = replyStatusFilter, page = currentPage - 1 })">
                             <i class="fas fa-chevron-left me-1"></i>Trước
                         </a>
                     </li>
@@ -279,7 +243,7 @@
                     {
                         <li class="page-item @(i == currentPage ? "active" : "")">
                             <a class="page-link"
-                                href="@Url.Action("ManageBlogReview", "BlogReview", new { q, blog = blogFilter, user = userFilter, page = i })">
+                                href="@Url.Action("ManageBlogReview", "BlogReview", new { q, blockStatus = blockStatusFilter, replyStatus = replyStatusFilter, page = i })">
                                 @i
                             </a>
                         </li>
@@ -287,7 +251,7 @@
 
                     <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
                         <a class="page-link"
-                            href="@Url.Action("ManageBlogReview", "BlogReview", new { q, blog = blogFilter, user = userFilter, page = currentPage + 1 })">
+                            href="@Url.Action("ManageBlogReview", "BlogReview", new { q, blockStatus = blockStatusFilter, replyStatus = replyStatusFilter, page = currentPage + 1 })">
                             Sau <i class="fas fa-chevron-right ms-1"></i>
                         </a>
                     </li>
@@ -425,52 +389,59 @@
                     let repliesHtml = '';
 
                     if (review.replies && review.replies.length > 0) {
-                        repliesHtml = '<h6 class="mt-3 mb-2"><strong>Phản hồi:</strong></h6>';
                         review.replies.forEach(reply => {
-                            repliesHtml += `
-                                    <div style="background: white; padding: 0.75rem; margin-bottom: 0.5rem; border-left: 3px solid #667eea; border-radius: 4px;">
-                                        <p class="mb-1"><strong>${reply.authorName}</strong></p>
-                                        <p class="mb-1">${reply.content}</p>
-                                        <small class="text-muted">${reply.createdAt}</small>
-                                    </div>
-                                `;
+                            repliesHtml = `
+                                            <div style="background: white; padding: 0.75rem; margin-bottom: 0.5rem; border-left: 3px solid #667eea; border-radius: 4px;">
+                                                <p class="mb-1"><strong>${reply.authorName}</strong></p>
+                                                <p class="mb-1">${reply.content}</p>
+                                                <small class="text-muted">${reply.createdAt}</small>
+                                            </div>
+                                        `;
                         });
                     } else {
                         repliesHtml = '<div class="alert alert-info">Chưa có phản hồi nào</div>';
                     }
 
                     const content = `
-                            <div class="row g-3">
-                                <div class="col-md-12">
-                                    <p><strong>Nội dung:</strong></p>
-                                    <div style="background: white; padding: 0.75rem; border: 1px solid #e0e0e0; border-radius: 4px; margin-bottom: 1rem;">
-                                        ${review.content}
+                                    <div class="row g-3">
+                                        <div class="col-md-12">
+                                            <p><strong>Bài viết:</strong> <a href="/Blog/Detail/${review.reviewId}" target="_blank" class="text-decoration-none">${review.blogTitle}</a></p>
+                                        </div>
+                                        <div class="col-md-12">
+                                            <p><strong>Nội dung:</strong></p>
+                                            <div style="background: white; padding: 0.75rem; border: 1px solid #e0e0e0; border-radius: 4px; margin-bottom: 1rem;">
+                                                ${review.content}
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <p><strong>Người bình luận:</strong> ${review.authorName}</p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <p><strong>Email:</strong> ${review.authorEmail || 'N/A'}</p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <p><strong>Tương tác:</strong> 👍 ${review.likeCount} | 👎 ${review.dislikeCount}</p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <p><strong>Trạng thái:</strong> ${review.isBlocked
+                            ? '<span class="badge bg-danger"><i class="fas fa-lock"></i> Đã cấm</span>'
+                            : '<span class="badge bg-secondary"><i class="fas fa-lock-open"></i> Bình thường</span>'}</p>
+                                        </div>
+                                        <div class="col-md-12">
+                                            <p><strong>Ngày bình luận:</strong> ${review.createdAt}</p>
+                                        </div>
+                                        <div class="col-md-12">
+                                            <h6 class="mb-2"><strong>Phản hồi:</strong></h6>
+                                            ${repliesHtml}
+                                            <form id="replyForm" style="margin-top: 1rem;">
+                                                <textarea name="replyContent" class="form-control" rows="2" placeholder="Nhập phản hồi..."></textarea>
+                                                <button type="button" class="btn btn-primary btn-sm mt-2" onclick="submitReply(${reviewId})">
+                                                    <i class="fas fa-paper-plane me-1"></i>Gửi phản hồi
+                                                </button>
+                                            </form>
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <p><strong>Người bình luận:</strong> ${review.authorName}</p>
-                                </div>
-                                <div class="col-md-6">
-                                    <p><strong>Email:</strong> ${review.authorEmail || 'N/A'}</p>
-                                </div>
-                                <div class="col-md-6">
-                                    <p><strong>Tương tác:</strong> 👍 ${review.likeCount} | 👎 ${review.dislikeCount}</p>
-                                </div>
-                                <div class="col-md-12">
-                                    <p><strong>Ngày bình luận:</strong> ${review.createdAt}</p>
-                                </div>
-                                <div class="col-md-12">
-                                    <h6><strong>Phản hồi:</strong></h6>
-                                    ${repliesHtml}
-                                    <form id="replyForm" style="margin-top: 1rem;">
-                                        <textarea name="replyContent" class="form-control" rows="2" placeholder="Nhập phản hồi..."></textarea>
-                                        <button type="button" class="btn btn-primary btn-sm mt-2" onclick="submitReply(${reviewId})">
-                                            <i class="fas fa-paper-plane me-1"></i>Gửi phản hồi
-                                        </button>
-                                    </form>
-                                </div>
-                            </div>
-                        `;
+                                `;
 
                     document.getElementById('commentDetailContent').innerHTML = content;
                     const modal = new bootstrap.Modal(document.getElementById('commentDetailModal'));

@@ -52,6 +52,14 @@ namespace DAL
             services.AddScoped<IRoleRepository, RoleRepository>();
             services.AddSingleton<IChatStoreRepository, InMemoryChatStoreRepository>();
 
+            //Review Product
+            services.AddScoped<IReviewProductRepository, ReviewProductRepository>();
+            services.AddScoped<IReviewProductReplyRepository, ReviewProductReplyRepository>();
+            services.AddScoped<IReviewProductReactionRepository, ReviewProductReactionRepository>();
+
+            // Nhánh Voucher
+            services.AddScoped<IVoucherRepository, VoucherRepository>();
+            services.AddScoped<IVoucherTypeRepository, VoucherTypeRepository>();
 
             return services;
         }

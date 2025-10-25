@@ -1,28 +1,38 @@
 ﻿using BLL.DTOs;
 using BLL.Interfaces;
-using Microsoft.AspNetCore.Authorization;
+using DAL.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using System;
-using System.Globalization;
+using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace WebUI.Controllers
 {
     // [Authorize(Roles = "Admin")]
+    [AutoValidateAntiforgeryToken]
     public class NotificationController : Controller
     {
         private readonly INotificationService _svc;
-        public NotificationController(INotificationService svc) => _svc = svc;
+        private readonly IRoleRepository _roleRepo;
+
+        public NotificationController(INotificationService svc, IRoleRepository roleRepository)
+        {
+            _svc = svc;
+            _roleRepo = roleRepository;
+        }
 
         public IActionResult Index() => RedirectToAction(nameof(Manage));
 
-        // GET: /Notification/Manage
+        [HttpGet]
         public async Task<IActionResult> Manage([FromQuery] NotificationFilterDto f)
         {
             f = NormalizeFilter(f);
             var list = await _svc.SearchAsync(f);
             ViewBag.Filter = f;
+
+            var roles = await _roleRepo.GetAllAsync();
+            ViewBag.Roles = roles;
 
             if (TempData["EditNotificationId"] is int nid && nid > 0)
             {
@@ -47,14 +57,32 @@ namespace WebUI.Controllers
             return RedirectToAction(nameof(Manage), NormalizeFilter(f));
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetRoles()
+        {
+            try
+            {
+                var roles = await _roleRepo.GetAllAsync();
+                return Json(roles.Select(r => new { id = r.RoleId, name = r.RoleName }));
+            }
+            catch
+            {
+                return Json(new { error = "Không thể tải danh sách vai trò" });
+            }
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SaveNotification(NotificationSaveDto dto, [FromQuery] NotificationFilterDto f)
         {
             f = NormalizeFilter(f);
+
             try
             {
-                // Convert local → UTC
+                var basicValidationError = ValidateBasicInput(dto);
+                if (!string.IsNullOrEmpty(basicValidationError))
+                    throw new InvalidOperationException(basicValidationError);
+
                 dto.ScheduledAt = ToUtcFromLocal(dto.ScheduledAt);
                 if (dto.ExpireAt.HasValue)
                     dto.ExpireAt = ToUtcFromLocal(dto.ExpireAt.Value);
@@ -62,19 +90,11 @@ namespace WebUI.Controllers
                 if (dto.CreatedBy <= 0)
                     dto.CreatedBy = GetCurrentUserId();
 
-                // Chuẩn hoá Type/TargetType về schema BLL/DB
                 dto.Type = NormalizeTypeForService(dto.Type);
                 dto.TargetType = NormalizeTargetTypeForService(dto.TargetType);
 
-                var err = ValidateNotification(dto.Title, dto.Message, dto.Type, dto.TargetType,
-                    dto.TargetRoleId, dto.TargetUserId, dto.ScheduledAt, dto.ExpireAt);
-
-                if (!string.IsNullOrEmpty(err))
-                    throw new InvalidOperationException(err);
-
                 if (dto.NotificationId.HasValue && dto.NotificationId.Value > 0)
                 {
-                    // Update
                     await _svc.UpdateAsync(new NotificationUpdateDto
                     {
                         NotificationId = dto.NotificationId.Value,
@@ -94,7 +114,6 @@ namespace WebUI.Controllers
                 }
                 else
                 {
-                    // Create
                     await _svc.CreateAsync(new NotificationCreateDto
                     {
                         CreatedBy = dto.CreatedBy,
@@ -108,6 +127,7 @@ namespace WebUI.Controllers
                         ScheduledAt = dto.ScheduledAt,
                         ExpireAt = dto.ExpireAt
                     });
+
                     TempData["Success"] = "✅ Thêm thông báo mới thành công.";
                 }
 
@@ -115,35 +135,7 @@ namespace WebUI.Controllers
             }
             catch (Exception ex)
             {
-                // Hiển thị lỗi trong modal
-                ViewBag.ShowErrorModal = true;
-                ViewBag.ErrorMessage = ex.Message;
-
-                var list = await _svc.SearchAsync(f);
-                ViewBag.Filter = f;
-
-                // Fill lại form edit
-                ViewBag.EditNotification = dto.NotificationId.HasValue
-                    ? new NotificationDto
-                    {
-                        NotificationId = dto.NotificationId.Value,
-                        CreatedBy = dto.CreatedBy,
-                        Title = dto.Title,
-                        Message = dto.Message,
-                        Type = dto.Type,
-                        TargetType = dto.TargetType,
-                        TargetRoleId = dto.TargetRoleId,
-                        TargetUserId = dto.TargetUserId,
-                        ConditionJson = dto.ConditionJson,
-                        ScheduledAt = dto.ScheduledAt,
-                        ExpireAt = dto.ExpireAt,
-                        IsSent = false,
-                        IsCanceled = false,
-                        CreatedAt = DateTime.UtcNow
-                    }
-                    : null;
-
-                return View("~/Views/Admin/ManageNotification.cshtml", list);
+                return await HandleSaveError(ex, dto, f);
             }
         }
 
@@ -195,7 +187,8 @@ namespace WebUI.Controllers
             return RedirectToAction(nameof(Manage), NormalizeFilter(f));
         }
 
-        // =============== Helpers ===============
+        // =============== Private Helpers ===============
+
         private int GetCurrentUserId()
         {
             var claim = User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -210,67 +203,74 @@ namespace WebUI.Controllers
             return f;
         }
 
-        private static string ValidateNotification(
-            string title, string message, string type, string targetType,
-            int? targetRoleId, int? targetUserId, DateTime scheduledUtc, DateTime? expireUtc)
+        private static string ValidateBasicInput(NotificationSaveDto dto)
         {
-            if (string.IsNullOrWhiteSpace(title)) return "Tiêu đề là bắt buộc.";
-            if (string.IsNullOrWhiteSpace(message)) return "Nội dung là bắt buộc.";
-            if (string.IsNullOrWhiteSpace(type)) return "Type là bắt buộc.";
-            if (string.IsNullOrWhiteSpace(targetType)) return "TargetType là bắt buộc.";
+            if (string.IsNullOrWhiteSpace(dto.Title)) return "Tiêu đề là bắt buộc.";
+            if (string.IsNullOrWhiteSpace(dto.Message)) return "Nội dung là bắt buộc.";
+            if (dto.ExpireAt.HasValue && dto.ExpireAt.Value <= dto.ScheduledAt)
+                return "Thời gian hết hạn phải sau thời gian hiển thị.";
+            return string.Empty;
+        }
 
-            // targetType đã normalize: All / ByRole / SingleUser / ByCondition
-            switch (targetType)
+        private async Task<IActionResult> HandleSaveError(Exception ex, NotificationSaveDto dto, NotificationFilterDto f)
+        {
+            ViewBag.ShowErrorModal = true;
+            ViewBag.ErrorMessage = ex.Message;
+
+            var list = await _svc.SearchAsync(f);
+            ViewBag.Filter = f;
+
+            var roles = await _roleRepo.GetAllAsync();
+            ViewBag.Roles = roles;
+
+            if (dto.NotificationId.HasValue && dto.NotificationId.Value > 0)
             {
-                case "All":
-                    if (targetRoleId.HasValue || targetUserId.HasValue)
-                        return "Không đặt TargetRoleId/TargetUserId khi TargetType = All.";
-                    break;
-                case "ByRole":
-                    if (!targetRoleId.HasValue)
-                        return "TargetRoleId là bắt buộc khi TargetType = ByRole.";
-                    break;
-                case "SingleUser":
-                    if (!targetUserId.HasValue)
-                        return "TargetUserId là bắt buộc khi TargetType = SingleUser.";
-                    break;
-                case "ByCondition":
-                    // Cho phép null ConditionJson ở Controller; Service sẽ validate kỹ hơn nếu cần
-                    break;
-                default:
-                    return "TargetType không hợp lệ.";
+                ViewBag.EditNotification = new NotificationDto
+                {
+                    NotificationId = dto.NotificationId.Value,
+                    CreatedBy = dto.CreatedBy,
+                    Title = dto.Title,
+                    Message = dto.Message,
+                    Type = dto.Type,
+                    TargetType = dto.TargetType,
+                    TargetRoleId = dto.TargetRoleId,
+                    TargetUserId = dto.TargetUserId,
+                    ConditionJson = dto.ConditionJson,
+                    ScheduledAt = dto.ScheduledAt,
+                    ExpireAt = dto.ExpireAt,
+                    IsSent = false,
+                    IsCanceled = false,
+                    CreatedAt = DateTime.UtcNow
+                };
+            }
+            else
+            {
+                ViewBag.EditNotification = null;
             }
 
-            if (expireUtc.HasValue && expireUtc.Value <= scheduledUtc)
-                return "ExpireAt phải lớn hơn ScheduledAt.";
-
-            return string.Empty;
+            return View("~/Views/Admin/ManageNotification.cshtml", list);
         }
 
         private static DateTime ToUtcFromLocal(DateTime local)
         {
-            // Nếu DateTime.Kind chưa là Local, ép về Local rồi ToUniversalTime
+            if (local.Kind == DateTimeKind.Utc) return local;
             var localSpecified = DateTime.SpecifyKind(local, DateTimeKind.Local);
             return localSpecified.ToUniversalTime();
         }
 
-        private static string NormalizeTypeForService(string? type)
-        {
-            var t = (type ?? "").Trim().ToLowerInvariant();
-            return t switch
+        private static string NormalizeTypeForService(string? type) =>
+            (type ?? "").Trim().ToLowerInvariant() switch
             {
-                "general" or "info" => "General",
+                "info" => "General",
+                "general" => "General",
                 "order" => "Order",
-                "promotion" or "promo" => "Promotion",
-                "system" => "System",
+                "promo" or "promotion" => "Promotion",
+                "warning" or "error" or "system" => "System",
                 _ => "General"
             };
-        }
 
-        private static string NormalizeTargetTypeForService(string? targetType)
-        {
-            var t = (targetType ?? "").Trim().ToLowerInvariant();
-            return t switch
+        private static string NormalizeTargetTypeForService(string? targetType) =>
+            (targetType ?? "").Trim().ToLowerInvariant() switch
             {
                 "all" => "All",
                 "role" or "byrole" => "ByRole",
@@ -278,6 +278,5 @@ namespace WebUI.Controllers
                 "condition" or "bycondition" => "ByCondition",
                 _ => "All"
             };
-        }
     }
 }

@@ -31,16 +31,18 @@
             margin-bottom: 0.5rem;
         }
 
-        .form-control, .form-select {
+        .form-control,
+        .form-select {
             border: 1px solid #dee2e6;
             border-radius: 8px;
             transition: all 0.3s ease;
         }
 
-            .form-control:focus, .form-select:focus {
-                border-color: #667eea;
-                box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.15);
-            }
+        .form-control:focus,
+        .form-select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.15);
+        }
 
         .btn-submit {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -49,11 +51,11 @@
             transition: all 0.3s ease;
         }
 
-            .btn-submit:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-                color: white;
-            }
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            color: white;
+        }
 
         .btn-cancel {
             border: 2px solid #6c757d;
@@ -62,33 +64,16 @@
             transition: all 0.3s ease;
         }
 
-            .btn-cancel:hover {
-                background-color: #6c757d;
-                color: white;
-            }
+        .btn-cancel:hover {
+            background-color: #6c757d;
+            color: white;
+        }
 
         .thumbnail-preview {
             max-width: 200px;
             max-height: 150px;
             border-radius: 8px;
             margin-top: 10px;
-        }
-
-        .toast-top-right {
-            top: 120px !important;
-            right: 24px !important;
-        }
-
-        #liveToast.toast {
-            min-width: 520px;
-            padding: 1rem 1.25rem;
-            border-radius: 12px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
-        }
-
-        #liveToast .toast-body {
-            font-size: 1.1rem;
-            font-weight: 600;
         }
 
         .ql-toolbar {
@@ -112,14 +97,6 @@
         </div>
 
         <div class="card-body">
-            @if (TempData["Error"] is string e)
-            {
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    @e
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            }
-
             <form method="post" asp-action="Edit" asp-controller="Blog" enctype="multipart/form-data">
                 @Html.AntiForgeryToken()
                 <input type="hidden" name="id" value="@Model.BlogPostId" />
@@ -128,7 +105,8 @@
                     <!-- Tiêu đề -->
                     <div class="col-md-12">
                         <label class="form-label">Tiêu đề <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control border" name="BlogTitle" value="@Model.BlogTitle" placeholder="Nhập tiêu đề bài viết" required>
+                        <input type="text" class="form-control border" name="BlogTitle" value="@Model.BlogTitle"
+                            placeholder="Nhập tiêu đề bài viết" required>
                     </div>
 
                     <!-- Chuyên mục -->
@@ -147,7 +125,8 @@
                                 }
                             }
                         </select>
-                        <small class="form-text text-muted d-block mt-2">Chọn một hoặc nhiều chuyên mục (Ctrl+Click trên Windows, Cmd+Click trên Mac)</small>
+                        <small class="form-text text-muted d-block mt-2">Chọn một hoặc nhiều chuyên mục (Ctrl+Click trên
+                            Windows, Cmd+Click trên Mac)</small>
                     </div>
 
                     <div class="col-md-12">
@@ -155,13 +134,15 @@
                             <!-- Ảnh đại diện -->
                             <div class="col-md-5 p-0">
                                 <label class="form-label">Ảnh đại diện</label>
-                                <input type="file" class="form-control border" name="thumbnail" accept="image/*" id="thumbnailInput">
+                                <input type="file" class="form-control border" name="thumbnail" accept="image/*"
+                                    id="thumbnailInput">
                                 <small class="form-text text-muted d-block mt-2">Để trống để giữ ảnh hiện tại</small>
                                 @if (!string.IsNullOrEmpty(Model.BlogThumbnail))
                                 {
                                     <div class="mt-4">
                                         <p class="text-muted">Ảnh hiện tại:</p>
-                                        <img src="@Model.BlogThumbnail" alt="@Model.BlogTitle" class="img-fluid rounded thumbnail-preview">
+                                        <img src="@Model.BlogThumbnail" alt="@Model.BlogTitle"
+                                            class="img-fluid rounded thumbnail-preview">
                                     </div>
                                 }
                             </div>
@@ -169,8 +150,10 @@
                             <div class="col-md-3 p-0">
                                 <label class="form-label">Trạng thái</label>
                                 <select class="form-select" name="IsPublished">
-                                    <option value="false" selected="@(Model.IsPublished == false ? "selected" : null)">Bản nháp</option>
-                                    <option value="true" selected="@(Model.IsPublished == true ? "selected" : null)">Xuất bản</option>
+                                    <option value="false" selected="@(Model.IsPublished == false ? "selected" : null)">
+                                        Bản nháp</option>
+                                    <option value="true" selected="@(Model.IsPublished == true ? "selected" : null)">
+                                        Xuất bản</option>
                                 </select>
                             </div>
                             <!-- Nổi bật -->
@@ -178,15 +161,15 @@
                                 <label class="form-label">Nổi bật</label>
                                 <div class="input-group-text gap-2">
                                     <input type="checkbox" class="form-check-input border m-0" id="isFeatured"
-                                           asp-for="IsFeatured" />
+                                        asp-for="IsFeatured" />
                                     <label class="form-check-label" for="isFeatured">
                                         Đánh dấu bài viết nổi bật
                                     </label>
                                 </div>
                             </div>
                         </div>
-                        
-                    </div>                
+
+                    </div>
 
                     <!-- Nội dung -->
                     <div class="col-md-12">
@@ -206,19 +189,6 @@
                     </div>
                 </div>
             </form>
-        </div>
-    </div>
-</div>
-
-<!-- Toast lỗi -->
-<div class="toast-container position-fixed p-3 toast-top-right" style="z-index: 2080;">
-    <div id="liveToast" class="toast align-items-center text-bg-danger border-0" role="alert">
-        <div class="d-flex">
-            <div class="toast-body fs-5 fw-semibold">
-                <i class="fa-solid fa-circle-exclamation me-2"></i>
-                @ViewBag.ErrorMessage
-            </div>
-            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
         </div>
     </div>
 </div>
@@ -244,31 +214,31 @@
 
         // Set nội dung ban đầu từ server
         @if (!string.IsNullOrEmpty(Model.BlogContent))
-        {
-            <text>
-                        quill.root.innerHTML = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.BlogContent));
-            </text>
+            {
+                <text>
+                    quill.root.innerHTML = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.BlogContent));
+                </text>
         }
 
-        // Preview ảnh khi chọn file
-        document.getElementById('thumbnailInput')?.addEventListener('change', function (e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function (event) {
-                    const preview = document.querySelector('.thumbnail-preview');
-                    if (preview) {
-                        preview.src = event.target.result;
-                    } else {
-                        const img = document.createElement('img');
-                        img.src = event.target.result;
-                        img.className = 'img-fluid rounded thumbnail-preview';
-                        e.target.parentElement.appendChild(img);
-                    }
-                };
-                reader.readAsDataURL(file);
-            }
-        });
+            // Preview ảnh khi chọn file
+            document.getElementById('thumbnailInput')?.addEventListener('change', function (e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function (event) {
+                        const preview = document.querySelector('.thumbnail-preview');
+                        if (preview) {
+                            preview.src = event.target.result;
+                        } else {
+                            const img = document.createElement('img');
+                            img.src = event.target.result;
+                            img.className = 'img-fluid rounded thumbnail-preview';
+                            e.target.parentElement.appendChild(img);
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
 
         // Trước khi submit: lấy nội dung HTML từ Quill
         document.querySelector('form')?.addEventListener('submit', function (e) {
@@ -296,50 +266,36 @@
         // ✅ Hàm gửi form với kiểm tra featured blogs
         function submitFormWithFeaturedCheck(form, blogId) {
             const formData = new FormData(form);
-            
+
             fetch(form.action, {
                 method: 'POST',
                 body: formData
             })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Thành công',
-                        text: data.message,
-                        confirmButtonText: 'OK'
-                    }).then(() => {
-                        window.location.href = '/Blog/Manage';
-                    });
-                } else {
-                    // Hiển thị lỗi nếu không thể thêm featured
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Lỗi',
-                        text: data.message,
-                        confirmButtonText: 'Đóng'
-                    });
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                Swal.fire('Lỗi', 'Có lỗi xảy ra khi gửi dữ liệu', 'error');
-            });
-        }
-
-        // Show Toast Error
-        document.addEventListener('DOMContentLoaded', function () {
-            const hasError = '@(ViewBag.ShowErrorModal == true ? "true" : "false")';
-            if (hasError === "true") {
-                const errorMessage = '@Html.Raw(ViewBag.ErrorMessage)';
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Lỗi',
-                    text: errorMessage,
-                    confirmButtonText: 'Đóng'
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Thành công',
+                            text: data.message,
+                            confirmButtonText: 'OK'
+                        }).then(() => {
+                            window.location.href = '/Blog/Manage';
+                        });
+                    } else {
+                        // Hiển thị lỗi nếu không thể thêm featured
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Lỗi',
+                            text: data.message,
+                            confirmButtonText: 'Đóng'
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    Swal.fire('Lỗi', 'Có lỗi xảy ra khi gửi dữ liệu', 'error');
                 });
-            }
-        });
+        }
     </script>
 }

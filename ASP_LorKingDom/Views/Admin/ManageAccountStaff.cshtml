@@ -9,7 +9,88 @@
     var roles = ViewBag.Roles as IEnumerable<dynamic> ?? Enumerable.Empty<dynamic>();
 }
 
-<!-- ======= PAGE HEADER & LIST ======= -->
+<style>
+    .search-box .form-control {
+        border: 1px solid #000 !important;
+        box-shadow: none !important
+    }
+
+    .search-box .btn {
+        border: 1px solid #000 !important;
+        border-left: none !important
+    }
+
+    .deleted-row {
+        opacity: .6;
+        background: #f8f9fa
+    }
+
+    .modal-header-gradient {
+        background: linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+        color: #fff;
+        border-radius: 16px 16px 0 0;
+        padding: 1.25rem;
+        border: none
+    }
+
+    .avatar-preview {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        border: 3px solid #667eea;
+        box-shadow: 0 4px 12px rgba(0,0,0,.1);
+        object-fit: cover
+    }
+
+    .avatar-placeholder, .avatar-placeholder-small {
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-weight: 700;
+        background: linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+        box-shadow: 0 4px 12px rgba(0,0,0,.1)
+    }
+
+    .avatar-placeholder {
+        width: 100px;
+        height: 100px;
+        font-size: 2.5rem;
+        border: 3px solid #667eea
+    }
+
+    .staff-avatar {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid #e9ecef
+    }
+
+    .avatar-placeholder-small {
+        width: 45px;
+        height: 45px;
+        font-size: 1rem;
+        border: 2px solid #e9ecef
+    }
+
+    .info-box {
+        background: #e7f3ff;
+        border-left: 4px solid #667eea;
+        padding: .5rem .75rem;
+        border-radius: 6px;
+        margin-top: .5rem
+    }
+
+    .toast-top-right {
+        top: 120px !important;
+        right: 24px !important;
+        left: auto !important;
+        bottom: auto !important
+    }
+</style>
+
 <div class="container-fluid px-5">
     <h1 class="mt-4">Quản Lý Nhân Viên</h1>
 
@@ -24,9 +105,7 @@
             <form class="mb-4" method="get" asp-action="Manage" asp-controller="AccountStaff">
                 <div class="input-group search-box">
                     <input type="text" name="q" value="@query" class="form-control" placeholder="Tìm theo tên, email, số điện thoại...">
-                    <button class="btn btn-outline-secondary" type="submit">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                    </button>
+                    <button class="btn btn-outline-secondary" type="submit"><i class="fa-solid fa-magnifying-glass"></i></button>
                 </div>
             </form>
 
@@ -74,26 +153,27 @@
                                 <tr data-staff-id="@staff.Id" class="@(staff.IsDeleted ? "deleted-row" : "")">
                                     <td>@staff.Id</td>
                                     <td style="white-space:nowrap">
-                                        <a class="btn btn-sm btn-warning"
-                                           title="Cập nhật"
-                                           data-bs-toggle="modal" data-bs-target="#editStaffModal"
-                                           onclick="openEditModal(this)"
-                                           data-id="@staff.Id"
-                                           data-name="@staff.AccountName"
-                                           data-email="@staff.Email"
-                                           data-phone="@staff.PhoneNumber"
-                                           data-roleid="@(staff.RoleId?.ToString() ?? "")"
-                                           data-image="@staff.Image"
-                                           data-status="@staff.Status"
-                                           data-isdeleted="@staff.IsDeleted.ToString().ToLower()"
-                                           data-created="@staff.CreatedAt.ToString("s")"
-                                           data-updated="@(staff.UpdatedAt?.ToString("s") ?? "")">
+                                        <button class="btn btn-sm btn-warning"
+                                                title="Cập nhật"
+                                                data-bs-toggle="modal" data-bs-target="#editStaffModal"
+                                                onclick="openEditModal(this)"
+                                                data-id="@staff.Id"
+                                                data-name="@staff.AccountName"
+                                                data-email="@staff.Email"
+                                                data-phone="@staff.PhoneNumber"
+                                                data-roleid="@(staff.RoleId?.ToString() ?? "")"
+                                                data-image="@staff.Image"
+                                                data-status="@staff.Status"
+                                                data-isdeleted="@staff.IsDeleted.ToString().ToLower()"
+                                                data-created="@staff.CreatedAt.ToString("s")"
+                                                data-updated="@(staff.UpdatedAt?.ToString("s") ?? "")">
                                             <i class="fa-solid fa-pen-to-square"></i>
-                                        </a>
+                                        </button>
 
                                         @if (!staff.IsDeleted)
                                         {
                                             <form method="post" asp-action="DeleteStaff" asp-controller="AccountStaff" style="display:inline;">
+                                                @Html.AntiForgeryToken()
                                                 <input type="hidden" name="id" value="@staff.Id" />
                                                 <input type="hidden" name="q" value="@query" />
                                                 <button class="btn btn-sm btn-danger" title="Xoá" type="submit" onclick="return confirm('Bạn có chắc chắn muốn xoá nhân viên này?')">
@@ -104,6 +184,7 @@
                                         else
                                         {
                                             <form method="post" asp-action="RestoreStaff" asp-controller="AccountStaff" style="display:inline;">
+                                                @Html.AntiForgeryToken()
                                                 <input type="hidden" name="id" value="@staff.Id" />
                                                 <input type="hidden" name="q" value="@query" />
                                                 <button class="btn btn-sm btn-success" title="Khôi phục" type="submit">
@@ -115,7 +196,8 @@
                                     <td>
                                         @if (!string.IsNullOrEmpty(staff.Image))
                                         {
-                                            <img src="@staff.Image" alt="Avatar" class="staff-avatar" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-flex';" />
+                                            <img src="@staff.Image" alt="Avatar" class="staff-avatar"
+                                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-flex';" />
                                             <div class="avatar-placeholder-small" style="display:none;">@(staff.AccountName?.Substring(0, 1).ToUpper() ?? "S")</div>
                                         }
                                         else
@@ -134,16 +216,11 @@
                                         }
                                         else
                                         {
-                                            <span class="badge bg-@(
-                                                  staff.Status == "Active" ? "success" :
-                                                  staff.Status == "Inactive" ? "warning" : "secondary"
-)">
-                                    @(
-                                                                        staff.Status == "Active" ? "Hoạt Động" :
-                                                                        staff.Status == "Inactive" ? "Ngưng Hoạt Động" : "Không Xác Định"
-                                                                        )
-                                </span>
-
+                                            var badge = staff.Status == "Active" ? "success" :
+                                            staff.Status == "Inactive" ? "warning" : "secondary";
+                                            var label = staff.Status == "Active" ? "Hoạt Động" :
+                                            staff.Status == "Inactive" ? "Ngưng Hoạt Động" : "Không Xác Định";
+                                            <span class="badge bg-@badge">@label</span>
                                         }
                                     </td>
                                     <td>@staff.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
@@ -161,20 +238,19 @@
     </div>
 </div>
 
-<!-- ======= ADD MODAL (CreateStaff) ======= -->
+<!-- ADD MODAL -->
 <div class="modal fade" id="addStaffModal" tabindex="-1" aria-labelledby="addStaffLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
             <div class="modal-header modal-header-gradient">
                 <h5 id="addStaffLabel" class="modal-title"><i class="fa-solid fa-user-plus me-2"></i>Thêm Nhân Viên Mới</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form method="post" id="addStaffForm" enctype="multipart/form-data" action="@Url.Action("CreateStaff","AccountStaff")">
                 @Html.AntiForgeryToken()
                 <div class="modal-body bg-light-subtle p-4">
                     <input type="hidden" name="q" value="@query" />
 
-                    <!-- Avatar -->
                     <div class="mb-3">
                         <label class="form-label"><i class="fa-solid fa-image me-1"></i>Ảnh nhân viên</label>
                         <div class="d-flex align-items-center gap-3">
@@ -185,7 +261,7 @@
                             <div class="flex-grow-1">
                                 <input class="form-control" type="file" id="add_avatarFile" name="AvatarFile" accept="image/png,image/jpeg,image/jpg,image/webp,image/gif" />
                                 <small class="form-text">Hỗ trợ JPG/PNG/WebP/GIF. Tối đa <strong>2MB</strong>.</small>
-                                <input type="hidden" name="ExistingImage" id="add_existingImage" value="" />
+                                <input type="hidden" name="ExistingImage" id="add_existingImage" />
                                 <input type="hidden" name="RemoveImage" id="add_removeImage" value="false" />
                             </div>
                         </div>
@@ -211,8 +287,7 @@
                                 <option value="">-- Chọn vai trò --</option>
                                 @foreach (var r in roles)
                                 {
-                                    var rid = (int)r.RoleId;
-                                    <option value="@rid">@r.RoleName</option>
+                                    <option value="@((int)r.RoleId)">@r.RoleName</option>
                                 }
                             </select>
                             <small class="form-text"><i class="fa-solid fa-info-circle me-1"></i>Bắt buộc chọn đúng Role cho nhân viên.</small>
@@ -254,13 +329,13 @@
     </div>
 </div>
 
-<!-- ======= EDIT MODAL (UpdateStaff) ======= -->
+<!-- EDIT MODAL -->
 <div class="modal fade" id="editStaffModal" tabindex="-1" aria-labelledby="editStaffLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
             <div class="modal-header modal-header-gradient">
                 <h5 id="editStaffLabel" class="modal-title"><i class="fa-solid fa-user-pen me-2"></i>Cập nhật Thông Tin Nhân Viên</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form method="post" id="editStaffForm" enctype="multipart/form-data" action="@Url.Action("UpdateStaff","AccountStaff")">
                 @Html.AntiForgeryToken()
@@ -268,7 +343,6 @@
                     <input type="hidden" name="Id" id="edit_staffId" value="0" />
                     <input type="hidden" name="q" value="@query" />
 
-                    <!-- Avatar -->
                     <div class="mb-3">
                         <label class="form-label"><i class="fa-solid fa-image me-1"></i>Ảnh nhân viên</label>
                         <div class="d-flex align-items-center gap-3">
@@ -279,7 +353,7 @@
                             <div class="flex-grow-1">
                                 <input class="form-control" type="file" id="edit_avatarFile" name="AvatarFile" accept="image/png,image/jpeg,image/jpg,image/webp,image/gif" />
                                 <small class="form-text">Hỗ trợ JPG/PNG/WebP/GIF. Tối đa <strong>2MB</strong>.</small>
-                                <input type="hidden" name="ExistingImage" id="edit_existingImage" value="" />
+                                <input type="hidden" name="ExistingImage" id="edit_existingImage" />
                                 <input type="hidden" name="RemoveImage" id="edit_removeImage" value="false" />
                             </div>
                         </div>
@@ -305,8 +379,7 @@
                                 <option value="">-- Chọn vai trò --</option>
                                 @foreach (var r in roles)
                                 {
-                                    var rid = (int)r.RoleId;
-                                    <option value="@rid">@r.RoleName</option>
+                                    <option value="@((int)r.RoleId)">@r.RoleName</option>
                                 }
                             </select>
                         </div>
@@ -318,7 +391,6 @@
                             <small class="form-text"><i class="fa-solid fa-lock me-1"></i>Email không thể thay đổi sau khi tạo</small>
                         </div>
 
-                        <!-- ✅ THÊM CÁC TRƯỜNG PASSWORD (OPTIONAL) -->
                         <div class="col-lg-12">
                             <label class="form-label"><i class="fa-solid fa-key me-1"></i>Mật khẩu mới <span class="text-muted">(để trống nếu không đổi)</span></label>
                             <input type="password" class="form-control" name="NewPassword" id="edit_newPassword" placeholder="Nhập mật khẩu mới (nếu muốn đổi)" />
@@ -339,10 +411,8 @@
                                 <input type="radio" class="btn-check" name="edit_statusRadio" id="edit_statusInactive" value="Inactive" onchange="setStatus('edit','Inactive')" autocomplete="off">
                                 <label class="btn btn-outline-danger" for="edit_statusInactive"><i class="fa-solid fa-ban me-1"></i>Vô hiệu</label>
                             </div>
-                        </div>
 
-                        <div class="col-12">
-                            <div class="info-box small text-muted">
+                            <div class="info-box small text-muted mt-3">
                                 <i class="fa-regular fa-clock me-1"></i>
                                 <strong>Ngày tạo:</strong> <span id="edit_createdAt">—</span>
                                 <span class="ms-3"><i class="fa-solid fa-rotate me-1"></i><strong>Cập nhật:</strong> <span id="edit_updatedAt">—</span></span>
@@ -359,7 +429,7 @@
     </div>
 </div>
 
-<!-- ======= TOAST ======= -->
+<!-- TOAST -->
 <div class="toast-container position-fixed p-3 toast-top-right" style="z-index:2080;">
     <div id="liveToast" class="toast align-items-center border-0" role="alert" aria-live="assertive" aria-atomic="true">
         <div class="d-flex">
@@ -367,245 +437,170 @@
                 <i class="fa-solid fa-circle-exclamation me-2"></i>
                 <span id="toastMessage">@ViewBag.ErrorMessage</span>
             </div>
-            <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast" aria-label="Đóng"></button>
+            <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast"></button>
         </div>
     </div>
 </div>
 
-<!-- ======= STYLES ======= -->
-<style>
-    .search-box .form-control {
-        border: 1px solid #000 !important;
-        box-shadow: none !important
-    }
-
-    .search-box .btn {
-        border: 1px solid #000 !important;
-        border-left: none !important
-    }
-
-    .deleted-row {
-        opacity: .6;
-        background: #f8f9fa
-    }
-
-    .modal-header-gradient {
-        background: linear-gradient(135deg,#667eea 0%,#764ba2 100%);
-        color: #fff;
-        border-radius: 16px 16px 0 0;
-        padding: 1.25rem;
-        border: none
-    }
-
-    .avatar-preview {
-        width: 100px;
-        height: 100px;
-        border-radius: 50%;
-        border: 3px solid #667eea;
-        box-shadow: 0 4px 12px rgba(0,0,0,.1);
-        object-fit: cover
-    }
-
-    .avatar-placeholder {
-        width: 100px;
-        height: 100px;
-        border-radius: 50%;
-        background: linear-gradient(135deg,#667eea 0%,#764ba2 100%);
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        color: #fff;
-        font-size: 2.5rem;
-        font-weight: 700;
-        border: 3px solid #667eea;
-        box-shadow: 0 4px 12px rgba(0,0,0,.1)
-    }
-
-    .staff-avatar {
-        width: 45px;
-        height: 45px;
-        border-radius: 50%;
-        object-fit: cover;
-        border: 2px solid #e9ecef
-    }
-
-    .avatar-placeholder-small {
-        width: 45px;
-        height: 45px;
-        border-radius: 50%;
-        background: linear-gradient(135deg,#667eea 0%,#764ba2 100%);
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        color: #fff;
-        font-weight: 600;
-        font-size: 1rem;
-        border: 2px solid #e9ecef
-    }
-
-    .info-box {
-        background: #e7f3ff;
-        border-left: 4px solid #667eea;
-        padding: .5rem .75rem;
-        border-radius: 6px;
-        margin-top: .5rem
-    }
-</style>
-
-<!-- ======= SCRIPTS ======= -->
 @section Scripts {
     <script>
-        function showToast(message, isError = true){
-          const el=document.getElementById('liveToast'); const body=document.getElementById('toastMessage');
-          if(!el||!body) return;
-          body.textContent=message;
-          el.className='toast align-items-center border-0 '+(isError?'text-bg-danger':'text-bg-success');
-          new bootstrap.Toast(el,{delay:5000}).show();
+        // ===== Toast =====
+        function showToast(msg, isError = true){
+          const el = document.getElementById('liveToast');
+          const body = document.getElementById('toastMessage');
+          if(!el || !body) return;
+          body.textContent = msg || '';
+          el.className = 'toast align-items-center border-0 ' + (isError ? 'text-bg-danger' : 'text-bg-success');
+          new bootstrap.Toast(el, { delay: 5000 }).show();
         }
 
-        function setStatus(scope, statusVal){
-          const st = document.getElementById(scope+'_status');
-          if(st) st.value = statusVal || 'Active';
+        // ===== Status radio <-> hidden =====
+        function setStatus(scope, val){
+          const st = document.getElementById(scope + '_status');
+          if(st) st.value = val || 'Active';
         }
 
+        // ===== Avatar helpers =====
         function clearAvatar(scope){
-          const file = document.getElementById(scope+'_avatarFile');
-          const img  = document.getElementById(scope+'_avatarPreview');
-          const ph   = document.getElementById(scope+'_avatarPlaceholder');
-          const rm   = document.getElementById(scope+'_removeImage');
-          if(file) file.value='';
-          if(rm) rm.value='true';
-          if(img){ img.classList.add('d-none'); img.src=''; }
+          const file = document.getElementById(scope + '_avatarFile');
+          const img  = document.getElementById(scope + '_avatarPreview');
+          const ph   = document.getElementById(scope + '_avatarPlaceholder');
+          const rm   = document.getElementById(scope + '_removeImage');
+
+          if(file) file.value = '';
+          if(rm) rm.value = 'true';
+          if(img){ img.classList.add('d-none'); img.src = ''; }
           if(ph){ ph.classList.remove('d-none'); }
         }
 
         function bindAvatarPreview(scope){
-          const file = document.getElementById(scope+'_avatarFile');
-          const img  = document.getElementById(scope+'_avatarPreview');
-          const ph   = document.getElementById(scope+'_avatarPlaceholder');
+          const file = document.getElementById(scope + '_avatarFile');
+          const img  = document.getElementById(scope + '_avatarPreview');
+          const ph   = document.getElementById(scope + '_avatarPlaceholder');
           if(!file) return;
+
           file.addEventListener('change', function(){
-            const f=file.files&&file.files[0]; if(!f) return;
-            const ok=['image/png','image/jpeg','image/jpg','image/webp','image/gif'];
+            const f = file.files && file.files[0]; if(!f) return;
+            const ok = ['image/png','image/jpeg','image/jpg','image/webp','image/gif'];
             if(!ok.includes(f.type)){ showToast('Định dạng không hợp lệ. Vui lòng chọn PNG/JPG/WebP/GIF.', true); file.value=''; return; }
             if(f.size > 2*1024*1024){ showToast('Kích thước ảnh tối đa 2MB.', true); file.value=''; return; }
-            const reader=new FileReader();
-            reader.onload=function(ev){
-              if(img){ img.src=ev.target.result; img.classList.remove('d-none'); }
+            const reader = new FileReader();
+            reader.onload = (ev)=>{
+              if(img){ img.src = ev.target.result; img.classList.remove('d-none'); }
               if(ph) ph.classList.add('d-none');
-              const rm=document.getElementById(scope+'_removeImage'); if(rm) rm.value='false';
+              const rm = document.getElementById(scope + '_removeImage'); if(rm) rm.value='false';
             };
             reader.readAsDataURL(f);
           });
         }
 
+        // ===== Modals =====
         function openAddModal(){
-          const f=document.getElementById('addStaffForm'); if(f) f.reset();
+          const f = document.getElementById('addStaffForm'); if(f) f.reset();
           document.getElementById('add_statusActive').checked = true;
-          setStatus('add','Active');
+          setStatus('add', 'Active');
           clearAvatar('add');
-          const ph=document.getElementById('add_avatarPlaceholder'); if(ph){ ph.textContent='S'; ph.classList.remove('d-none'); }
-          const idel=document.getElementById('add_isDeleted'); if(idel) idel.value='false';
+
+          const ph = document.getElementById('add_avatarPlaceholder');
+          if(ph){ ph.textContent='S'; ph.classList.remove('d-none'); }
+
+          const idel = document.getElementById('add_isDeleted'); if(idel) idel.value = 'false';
         }
 
         function openEditModal(btn){
-          const d=btn.dataset;
+          const d = btn.dataset;
           fillEditModal({
-            id: d.id,
-            name: d.name,
-            phone: d.phone,
-            roleid: d.roleid,
-            email: d.email,
-            image: d.image,
-            status: d.status,
-            isdeleted: (d.isdeleted==='true'),
-            created: d.created,
-            updated: d.updated
+            id: d.id, name: d.name, phone: d.phone, roleid: d.roleid,
+            email: d.email, image: d.image, status: d.status,
+            isdeleted: (d.isdeleted === 'true'), created: d.created, updated: d.updated
           });
         }
 
         function fillEditModal(data){
-          document.getElementById('edit_staffId').value = data.id || '0';
-          document.getElementById('edit_accountName').value = data.name || '';
-          document.getElementById('edit_phoneNumber').value = data.phone || '';
-          const roleSel=document.getElementById('edit_roleId'); if(roleSel) roleSel.value = data.roleid || '';
-          document.getElementById('edit_email').value = data.email || '';
-          document.getElementById('edit_email_hidden').value = data.email || '';
+          const idEl = document.getElementById('edit_staffId');
+          const nameEl = document.getElementById('edit_accountName');
+          const phoneEl = document.getElementById('edit_phoneNumber');
+          const roleSel = document.getElementById('edit_roleId');
+          const emailDis = document.getElementById('edit_email');
+          const emailHid = document.getElementById('edit_email_hidden');
+          const newPw = document.getElementById('edit_newPassword');
+          const confPw = document.getElementById('edit_confirmNewPassword');
+          const isDel = document.getElementById('edit_isDeleted');
+          const statusHid = document.getElementById('edit_status');
 
-          // ✅ RESET password fields khi mở modal
-          document.getElementById('edit_newPassword').value = '';
-          document.getElementById('edit_confirmNewPassword').value = '';
-
-          document.getElementById('edit_isDeleted').value = String(!!data.isdeleted);
+          idEl.value = data.id || '0';
+          nameEl.value = data.name || '';
+          phoneEl.value = data.phone || '';
+          if(roleSel) roleSel.value = data.roleid || '';
+          emailDis.value = data.email || '';
+          emailHid.value = data.email || '';
+          if(newPw) newPw.value = '';
+          if(confPw) confPw.value = '';
+          isDel.value = String(!!data.isdeleted);
 
           const statusVal = data.status || (data.isdeleted ? 'Inactive' : 'Active');
-          document.getElementById('edit_status').value = statusVal;
-          if(statusVal==='Active'){ document.getElementById('edit_statusActive').checked=true; }
-          else { document.getElementById('edit_statusInactive').checked=true; }
+          statusHid.value = statusVal;
+          document.getElementById('edit_statusActive').checked = (statusVal === 'Active');
+          document.getElementById('edit_statusInactive').checked = (statusVal !== 'Active');
 
           document.getElementById('edit_createdAt').textContent = data.created ? new Date(data.created).toLocaleString() : '—';
           document.getElementById('edit_updatedAt').textContent = data.updated ? new Date(data.updated).toLocaleString() : '—';
 
-          const img=document.getElementById('edit_avatarPreview');
-          const ph =document.getElementById('edit_avatarPlaceholder');
-          const ex =document.getElementById('edit_existingImage');
-          const rm =document.getElementById('edit_removeImage');
-          const file=document.getElementById('edit_avatarFile');
-          if(file) file.value=''; if(rm) rm.value='false';
+          const img = document.getElementById('edit_avatarPreview');
+          const ph  = document.getElementById('edit_avatarPlaceholder');
+          const ex  = document.getElementById('edit_existingImage');
+          const rm  = document.getElementById('edit_removeImage');
+          const file= document.getElementById('edit_avatarFile');
+          if(file) file.value = '';
+          if(rm) rm.value = 'false';
+
           if(data.image){
-            if(img){ img.src=data.image; img.classList.remove('d-none'); }
+            if(img){ img.src = data.image; img.classList.remove('d-none'); }
             if(ph) ph.classList.add('d-none');
-            if(ex) ex.value=data.image;
+            if(ex) ex.value = data.image;
           }else{
             if(img){ img.src=''; img.classList.add('d-none'); }
             if(ph){
               ph.classList.remove('d-none');
-              const fc=(data.name||'').trim().charAt(0).toUpperCase()||'S'; ph.textContent=fc;
+              const fc = (data.name || '').trim().charAt(0).toUpperCase() || 'S';
+              ph.textContent = fc;
             }
-            if(ex) ex.value='';
+            if(ex) ex.value = '';
           }
         }
 
+        // ===== DOM Ready =====
         document.addEventListener('DOMContentLoaded', function(){
           bindAvatarPreview('add');
           bindAvatarPreview('edit');
 
-          const addForm=document.getElementById('addStaffForm');
+          const addForm = document.getElementById('addStaffForm');
           if(addForm){
             addForm.addEventListener('submit', function(e){
-              const roleId=document.getElementById('add_roleId').value;
-              const pw=document.getElementById('add_password').value || '';
-              const cpw=document.getElementById('add_confirmPassword').value || '';
+              const roleId = document.getElementById('add_roleId').value;
+              const pw  = document.getElementById('add_password').value || '';
+              const cpw = document.getElementById('add_confirmPassword').value || '';
               if(!roleId){ e.preventDefault(); showToast('Vui lòng chọn vai trò (Role)!', true); return false; }
-              if(pw!==cpw){ e.preventDefault(); showToast('Mật khẩu xác nhận không khớp!', true); return false; }
-              if(pw.length<6){ e.preventDefault(); showToast('Mật khẩu phải có ít nhất 6 ký tự!', true); return false; }
+              if(pw !== cpw){ e.preventDefault(); showToast('Mật khẩu xác nhận không khớp!', true); return false; }
+              if(pw.length < 6){ e.preventDefault(); showToast('Mật khẩu phải có ít nhất 6 ký tự!', true); return false; }
             });
           }
 
-          const editForm=document.getElementById('editStaffForm');
+          const editForm = document.getElementById('editStaffForm');
           if(editForm){
             editForm.addEventListener('submit', function(e){
-              const roleId=document.getElementById('edit_roleId').value;
+              const roleId = document.getElementById('edit_roleId').value;
               if(!roleId){ e.preventDefault(); showToast('Vui lòng chọn vai trò (Role)!', true); return false; }
-
-              // ✅ VALIDATE password nếu có nhập
               const newPw = document.getElementById('edit_newPassword').value || '';
               const confirmPw = document.getElementById('edit_confirmNewPassword').value || '';
               if(newPw || confirmPw){
-                if(newPw !== confirmPw){
-                  e.preventDefault();
-                  showToast('Xác nhận mật khẩu mới không khớp!', true);
-                  return false;
-                }
-                if(newPw.length < 6){
-                  e.preventDefault();
-                  showToast('Mật khẩu mới phải có ít nhất 6 ký tự!', true);
-                  return false;
-                }
+                if(newPw !== confirmPw){ e.preventDefault(); showToast('Xác nhận mật khẩu mới không khớp!', true); return false; }
+                if(newPw.length < 6){ e.preventDefault(); showToast('Mật khẩu mới phải có ít nhất 6 ký tự!', true); return false; }
               }
             });
           }
 
+          // Tự mở Edit modal nếu server yêu cầu
           const needShow = '@((edit != null || (ViewBag.ShowErrorModal == true)) ? "true" : "false")';
           if(needShow === 'true'){
             try{
@@ -627,13 +622,14 @@
             }catch{}
           }
 
-          const hasError='@((ViewBag.ShowErrorModal == true) ? "true" : "false")';
-          if(hasError==='true'){
-            const msg='@ViewBag.ErrorMessage'; if(msg) showToast(msg,true);
-          }
+                 const hasError='@((ViewBag.ShowErrorModal == true) ? "true" : "false")';
+        if(hasError==='true'){
+          const msg = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.ErrorMessage ?? ""));
+          if (msg) showToast(msg, true);
+        }
+
         });
     </script>
 }
 
-<!-- Font Awesome 6 -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />

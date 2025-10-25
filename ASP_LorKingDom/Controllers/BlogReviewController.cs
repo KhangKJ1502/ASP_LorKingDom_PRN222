@@ -28,18 +28,21 @@ namespace WebUI.Controllers
         }
 
         [HttpGet("BlogReview/Manage")]
-        public async Task<IActionResult> ManageBlogReview(string? q, string? blog, string? user, int page = 1, int pageSize = 10)
+        public async Task<IActionResult> ManageBlogReview(string? q, string? blog, string? blockStatus, string? replyStatus, int page = 1, int pageSize = 10)
         {
             try
             {
                 // Get all reviews
                 var allReviews = await _reviewBlogService.GetAllReviewsAsync();
 
-                // Lọc theo search query (nội dung bình luận)
+                // Lọc theo search query (người bình luận, bài viết, nội dung)
                 if (!string.IsNullOrWhiteSpace(q))
                 {
                     allReviews = allReviews
-                        .Where(r => (r.Comment ?? "").Contains(q, StringComparison.OrdinalIgnoreCase))
+                        .Where(r =>
+                            (r.Comment ?? "").Contains(q, StringComparison.OrdinalIgnoreCase) ||
+                            (r.AuthorName ?? "").Contains(q, StringComparison.OrdinalIgnoreCase) ||
+                            (r.BlogTitle ?? "").Contains(q, StringComparison.OrdinalIgnoreCase))
                         .ToList();
                 }
 
@@ -49,11 +52,19 @@ namespace WebUI.Controllers
                     allReviews = allReviews.Where(r => r.BlogPostId == blogId).ToList();
                 }
 
-                // Lọc theo người bình luận
-                if (!string.IsNullOrWhiteSpace(user))
+                // Lọc theo trạng thái cấm
+                if (!string.IsNullOrWhiteSpace(blockStatus))
                 {
+                    bool isBlocked = blockStatus == "blocked";
+                    allReviews = allReviews.Where(r => r.IsBlocked == isBlocked).ToList();
+                }
+
+                // Lọc theo trạng thái phản hồi
+                if (!string.IsNullOrWhiteSpace(replyStatus))
+                {
+                    bool hasReplies = replyStatus == "replied";
                     allReviews = allReviews
-                        .Where(r => (r.AuthorName ?? "").Contains(user, StringComparison.OrdinalIgnoreCase))
+                        .Where(r => (r.Replies?.Count > 0) == hasReplies)
                         .ToList();
                 }
 
@@ -70,7 +81,8 @@ namespace WebUI.Controllers
 
                 ViewBag.Query = q;
                 ViewBag.BlogFilter = blog;
-                ViewBag.UserFilter = user;
+                ViewBag.BlockStatusFilter = blockStatus;
+                ViewBag.ReplyStatusFilter = replyStatus;
                 ViewBag.CurrentPage = page;
                 ViewBag.TotalPages = totalPages;
                 ViewBag.PageSize = pageSize;
@@ -82,9 +94,8 @@ namespace WebUI.Controllers
 
                 return View("~/Views/Admin/ManageBlogReview.cshtml", pagedReviews);
             }
-            catch (Exception ex)
+            catch
             {
-                TempData["Error"] = $"Lỗi: {ex.Message}";
                 return RedirectToAction("Index", "Admin");
             }
         }
@@ -96,11 +107,10 @@ namespace WebUI.Controllers
             try
             {
                 await _reviewBlogService.DeleteAsync(id);
-                TempData["Success"] = "Xóa bình luận thành công!";
             }
-            catch (Exception ex)
+            catch
             {
-                TempData["Error"] = $"Lỗi: {ex.Message}";
+                // Log error if needed
             }
 
             // Get the blog id to redirect back
@@ -132,9 +142,11 @@ namespace WebUI.Controllers
                     rating = review.Rating,
                     authorName = review.AuthorName,
                     authorEmail = review.AuthorEmail,
+                    blogTitle = review.BlogTitle,
                     createdAt = review.CreatedAt.ToString("dd/MM/yyyy HH:mm"),
                     likeCount = review.LikeCount,
                     dislikeCount = review.DislikeCount,
+                    isBlocked = review.IsBlocked,
                     replies = replies?.Select(r => new
                     {
                         replyId = r.ReviewBlogReplyId,
@@ -179,14 +191,11 @@ namespace WebUI.Controllers
                 };
 
                 await _replyService.CreateAsync(dto);
-                TempData["Success"] = "Phản hồi thành công!";
-
                 return RedirectToAction("ManageBlogReview", new { blog = review.BlogPostId });
             }
             catch (Exception ex)
             {
-                TempData["Error"] = $"Lỗi: {ex.Message}";
-                return RedirectToAction("ManageBlogReview");
+                return BadRequest(new { error = ex.Message });
             }
         }
 
@@ -204,13 +213,10 @@ namespace WebUI.Controllers
                 var review = await _reviewBlogService.GetByIdAsync(reviewId);
 
                 await _replyService.DeleteAsync(replyId);
-                TempData["Success"] = "Xóa phản hồi thành công!";
-
                 return RedirectToAction("ManageBlogReview", new { blog = review?.BlogPostId });
             }
-            catch (Exception ex)
+            catch
             {
-                TempData["Error"] = $"Lỗi: {ex.Message}";
                 return RedirectToAction("ManageBlogReview");
             }
         }
@@ -223,10 +229,7 @@ namespace WebUI.Controllers
             {
                 var review = await _reviewBlogService.GetByIdAsync(id);
                 if (review == null)
-                {
-                    TempData["Error"] = "Bình luận không tồn tại";
                     return RedirectToAction("ManageBlogReview");
-                }
 
                 // Đảo ngược IsBlocked
                 review.IsBlocked = !review.IsBlocked;
@@ -239,12 +242,10 @@ namespace WebUI.Controllers
                     IsBlocked = review.IsBlocked
                 });
 
-                TempData["Success"] = review.IsBlocked ? "Đã cấm bình luận" : "Đã gỡ cấm bình luận";
                 return RedirectToAction("ManageBlogReview", new { blog = review.BlogPostId });
             }
-            catch (Exception ex)
+            catch
             {
-                TempData["Error"] = $"Lỗi: {ex.Message}";
                 return RedirectToAction("ManageBlogReview");
             }
         }

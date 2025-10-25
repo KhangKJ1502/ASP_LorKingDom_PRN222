@@ -39,16 +39,16 @@
         background: #f8f9fa;
     }
 
-    /* Custom Modal Styling */
+    /* Modal */
     #notificationModal .modal-content {
         border: none;
         border-radius: 16px;
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+        box-shadow: 0 10px 40px rgba(0,0,0,.15);
     }
 
     #notificationModal .modal-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
+        background: linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+        color: #fff;
         border-radius: 16px 16px 0 0;
         padding: 1.5rem;
         border: none;
@@ -61,7 +61,7 @@
 
     #notificationModal .btn-close {
         filter: brightness(0) invert(1);
-        opacity: 0.8;
+        opacity: .8;
     }
 
         #notificationModal .btn-close:hover {
@@ -76,23 +76,21 @@
     #notificationModal .form-label {
         font-weight: 500;
         color: #495057;
-        margin-bottom: 0.5rem;
-        font-size: 0.9rem;
+        margin-bottom: .5rem;
+        font-size: .9rem;
     }
 
-    #notificationModal .form-control,
-    #notificationModal .form-select {
+    #notificationModal .form-control, #notificationModal .form-select {
         border: 2px solid #e9ecef;
         border-radius: 8px;
-        padding: 0.65rem 0.875rem;
-        transition: all 0.3s ease;
-        background-color: white;
+        padding: .65rem .875rem;
+        transition: .3s ease;
+        background-color: #fff;
     }
 
-        #notificationModal .form-control:focus,
-        #notificationModal .form-select:focus {
+        #notificationModal .form-control:focus, #notificationModal .form-select:focus {
             border-color: #667eea;
-            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.15);
+            box-shadow: 0 0 0 .2rem rgba(102,126,234,.15);
         }
 
     #notificationModal textarea.form-control {
@@ -100,32 +98,28 @@
         min-height: 100px;
     }
 
-    #notificationModal .text-danger {
-        color: #dc3545;
-    }
-
     #notificationModal .modal-footer {
         border-top: 1px solid #e9ecef;
         padding: 1.25rem 2rem;
-        background-color: white;
+        background-color: #fff;
         border-radius: 0 0 16px 16px;
     }
 
     #notificationModal .btn {
-        padding: 0.625rem 1.5rem;
+        padding: .625rem 1.5rem;
         border-radius: 8px;
         font-weight: 500;
-        transition: all 0.3s ease;
+        transition: .3s ease;
     }
 
     #notificationModal .btn-primary {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg,#667eea 0%,#764ba2 100%);
         border: none;
     }
 
         #notificationModal .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 4px 12px rgba(102,126,234,.4);
         }
 
     #notificationModal .btn-outline-secondary {
@@ -135,22 +129,16 @@
 
         #notificationModal .btn-outline-secondary:hover {
             background-color: #6c757d;
-            color: white;
+            color: #fff;
         }
 
-    /* Field Animation */
     .field-animate {
-        animation: slideIn 0.3s ease;
+        animation: slideIn .3s ease;
     }
 
-
-
-    /* Type Badge Styling */
     #notificationModal #type {
         font-weight: 500;
     }
-
- 
 </style>
 
 <div class="container-fluid px-5">
@@ -249,6 +237,7 @@
                                         }
                                         else if (n.TargetRoleId.HasValue)
                                         {
+
                                             <span class="text-muted">(Role @n.TargetRoleId)</span>
                                         }
                                     </td>
@@ -266,10 +255,12 @@
                                         }
                                         else if (n.IsSent)
                                         {
+
                                             <span class="badge bg-success">Đã gửi</span>
                                         }
                                         else
                                         {
+
                                             <span class="badge bg-warning text-dark">Chờ gửi</span>
                                         }
                                     </td>
@@ -285,7 +276,6 @@
                 </table>
             </div>
 
-            <!-- Pagination -->
             @if (Model != null && Model.Total > Model.PageSize)
             {
                 var totalPages = (int)Math.Ceiling((double)Model.Total / Model.PageSize);
@@ -294,7 +284,11 @@
                         @for (int i = 1; i <= totalPages; i++)
                         {
                             <li class="page-item @(i == Model.Page ? "active" : "")">
-                                <a class="page-link" asp-action="Manage" asp-route-page="@i" asp-route-pageSize="@Model.PageSize" asp-route-keyword="@f?.Keyword">@i</a>
+                                <a class="page-link"
+                                   asp-action="Manage"
+                                   asp-route-page="@i"
+                                   asp-route-pageSize="@Model.PageSize"
+                                   asp-route-keyword="@f?.Keyword">@i</a>
                             </li>
                         }
                     </ul>
@@ -324,78 +318,63 @@
 
                     <div class="row g-3">
                         <div class="col-lg-6">
-                            <label class="form-label">
-                                <i class="fa-solid fa-heading me-1"></i>
-                                Tiêu đề <span class="text-danger">*</span>
-                            </label>
+                            <label class="form-label"><i class="fa-solid fa-heading me-1"></i>Tiêu đề <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" name="Title" id="title"
-                                   value="@(edit?.Title ?? "")" placeholder="Nhập tiêu đề thông báo" required />
+                                   value="@(edit?.Title ?? "")" placeholder="Nhập tiêu đề thông báo" required maxlength="200" />
                         </div>
+
                         <div class="col-lg-6">
-                            <label class="form-label">
-                                <i class="fa-solid fa-tag me-1"></i>
-                                Loại <span class="text-danger">*</span>
-                            </label>
+                            <label class="form-label"><i class="fa-solid fa-tag me-1"></i>Loại <span class="text-danger">*</span></label>
                             <select class="form-select" name="Type" id="type" required>
-                                <option value="info" selected="@(edit?.Type == "info" || edit == null ? "selected" : null)">ℹ️ Info</option>
-                                <option value="warning" selected="@(edit?.Type == "warning" ? "selected" : null)">⚠️ Warning</option>
-                                <option value="error" selected="@(edit?.Type == "error" ? "selected" : null)">❌ Error</option>
-                                <option value="promo" selected="@(edit?.Type == "promo" ? "selected" : null)">🎉 Promo</option>
-                                <option value="system" selected="@(edit?.Type == "system" ? "selected" : null)">⚙️ System</option>
+                                <option value="info">ℹ️ Info</option>
+                                <option value="warning">⚠️ Warning</option>
+                                <option value="error">❌ Error</option>
+                                <option value="promo">🎉 Promo</option>
+                                <option value="system">⚙️ System</option>
                             </select>
                         </div>
 
                         <div class="col-12">
-                            <label class="form-label">
-                                <i class="fa-solid fa-message me-1"></i>
-                                Nội dung <span class="text-danger">*</span>
-                            </label>
-                            <textarea class="form-control" name="Message" id="message"
-                                      rows="3" placeholder="Nhập nội dung thông báo..." required>@(edit?.Message ?? "")</textarea>
+                            <label class="form-label"><i class="fa-solid fa-message me-1"></i>Nội dung <span class="text-danger">*</span></label>
+                            <textarea class="form-control" name="Message" id="message" rows="3" placeholder="Nhập nội dung thông báo..." required maxlength="1000">@(edit?.Message ?? "")</textarea>
                         </div>
 
                         <div class="col-lg-4">
-                            <label class="form-label">
-                                <i class="fa-solid fa-bullseye me-1"></i>
-                                Đối tượng <span class="text-danger">*</span>
-                            </label>
+                            <label class="form-label"><i class="fa-solid fa-bullseye me-1"></i>Đối tượng <span class="text-danger">*</span></label>
                             <select class="form-select" name="TargetType" id="targetType" onchange="toggleTargetFields()" required>
-                                <option value="All" selected="@(edit?.TargetType == "All" || edit == null ? "selected" : null)">👥 Tất cả</option>
-                                <option value="Role" selected="@(edit?.TargetType == "Role" ? "selected" : null)">🎭 Theo vai trò</option>
-                                <option value="User" selected="@(edit?.TargetType == "User" ? "selected" : null)">👤 Người dùng cụ thể</option>
-                                <option value="Condition" selected="@(edit?.TargetType == "Condition" ? "selected" : null)">🔍 Theo điều kiện</option>
+                                <option value="All">👥 Tất cả</option>
+                                <option value="Role">🎭 Theo vai trò</option>
+                                <option value="User">👤 Người dùng cụ thể</option>
+                                <option value="Condition">🔍 Theo điều kiện</option>
                             </select>
                         </div>
+
                         <div class="col-lg-4 field-animate" id="targetRoleField" style="display:none">
-                            <label class="form-label">
-                                <i class="fa-solid fa-user-tag me-1"></i>
-                                ID Vai trò
-                            </label>
-                            <input type="number" class="form-control" name="TargetRoleId" id="targetRoleId"
-                                   value="@(edit?.TargetRoleId?.ToString() ?? "")" placeholder="Nhập ID vai trò" />
+                            <label class="form-label"><i class="fa-solid fa-user-tag me-1"></i>Vai trò</label>
+                            <select class="form-select" name="TargetRoleId" id="targetRoleId">
+                                <option value="">-- Chọn vai trò --</option>
+                                @foreach (var r in (IEnumerable<dynamic>)ViewBag.Roles)
+                                {
+                                    var rid = (int)r.RoleId;
+                                    <option value="@rid" data-selected="@(edit?.TargetRoleId == rid ? "true" : "false")">@r.RoleName</option>
+                                }
+                            </select>
                         </div>
+
                         <div class="col-lg-4 field-animate" id="targetUserField" style="display:none">
-                            <label class="form-label">
-                                <i class="fa-solid fa-user me-1"></i>
-                                ID Người dùng
-                            </label>
+                            <label class="form-label"><i class="fa-solid fa-user me-1"></i>ID Người dùng</label>
                             <input type="number" class="form-control" name="TargetUserId" id="targetUserId"
-                                   value="@(edit?.TargetUserId?.ToString() ?? "")" placeholder="Nhập ID người dùng" />
+                                   value="@(edit?.TargetUserId?.ToString() ?? "")" placeholder="Nhập ID người dùng" min="1" />
                         </div>
 
                         <div class="col-lg-6">
-                            <label class="form-label">
-                                <i class="fa-solid fa-clock me-1"></i>
-                                Thời gian hiển thị <span class="text-danger">*</span>
-                            </label>
+                            <label class="form-label"><i class="fa-solid fa-clock me-1"></i>Thời gian hiển thị <span class="text-danger">*</span></label>
                             <input type="datetime-local" class="form-control" name="ScheduledAt" id="scheduledAt"
                                    value="@(edit != null ? edit.ScheduledAt.ToLocalTime().ToString("yyyy-MM-ddTHH:mm") : DateTime.Now.ToString("yyyy-MM-ddTHH:mm"))" required />
                         </div>
+
                         <div class="col-lg-6">
-                            <label class="form-label">
-                                <i class="fa-solid fa-calendar-xmark me-1"></i>
-                                Thời gian hết hạn
-                            </label>
+                            <label class="form-label"><i class="fa-solid fa-calendar-xmark me-1"></i>Thời gian hết hạn</label>
                             <input type="datetime-local" class="form-control" name="ExpireAt" id="expireAt"
                                    value="@(edit?.ExpireAt?.ToLocalTime().ToString("yyyy-MM-ddTHH:mm") ?? "")" />
                         </div>
@@ -404,12 +383,10 @@
 
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" onclick="closeModal()">
-                        <i class="fa-solid fa-xmark me-1"></i>
-                        Hủy
+                        <i class="fa-solid fa-xmark me-1"></i>Hủy
                     </button>
                     <button type="submit" class="btn btn-primary">
-                        <i class="fa-solid fa-floppy-disk me-1"></i>
-                        @(edit != null ? "Lưu thay đổi" : "Thêm mới")
+                        <i class="fa-solid fa-floppy-disk me-1"></i>@(edit != null ? "Lưu thay đổi" : "Thêm mới")
                     </button>
                 </div>
             </form>
@@ -438,16 +415,64 @@
 @section Scripts {
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            // Hiện toast nếu có lỗi
             const hasError = '@(ViewBag.ShowErrorModal == true ? "true" : "false")';
             if (hasError === "true") {
                 const toastEl = document.getElementById('liveToast');
                 if (toastEl) new bootstrap.Toast(toastEl, { delay: 5000 }).show();
             }
 
+            // Auto mở modal nếu Edit hoặc lỗi
             const needShow = '@((edit != null || (ViewBag.ShowErrorModal == true)) ? "true" : "false")';
             if (needShow === "true") {
                 const modalEl = document.getElementById('notificationModal');
                 if (modalEl) new bootstrap.Modal(modalEl).show();
+            }
+
+            // Map Type từ server -> UI
+            const typeSel = document.getElementById('type');
+            if (typeSel) {
+                const serverType = '@(edit?.Type?.ToLowerInvariant() ?? "info")';
+
+                // Map server types to UI values
+                const typeMapping = {
+                    'general': 'info',
+                    'promotion': 'promo',
+                    'system': 'system',
+                    'order': 'info',
+                    'info': 'info',
+                    'warning': 'warning',
+                    'error': 'error',
+                    'promo': 'promo'
+                };
+
+                typeSel.value = typeMapping[serverType] || 'info';
+            }
+
+            // Map TargetType từ server -> UI
+            const targetSel = document.getElementById('targetType');
+            if (targetSel) {
+                const serverTarget = '@(edit?.TargetType ?? "All")';
+
+                const targetMapping = {
+                    'ByRole': 'Role',
+                    'SingleUser': 'User',
+                    'ByCondition': 'Condition',
+                    'All': 'All'
+                };
+
+                targetSel.value = targetMapping[serverTarget] || 'All';
+            }
+
+            // Set selected role if editing
+            const roleSelect = document.getElementById('targetRoleId');
+            if (roleSelect) {
+                const options = roleSelect.querySelectorAll('option');
+                options.forEach(opt => {
+                    if (opt.getAttribute('data-selected') === 'true') {
+                        opt.selected = true;
+                    }
+                });
             }
 
             toggleTargetFields();
@@ -462,6 +487,19 @@
             document.getElementById('scheduledAt').value = '@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")';
             document.getElementById('notificationModalLabel').innerHTML = '<i class="fa-solid fa-bell me-2"></i>Thêm thông báo mới';
 
+            // Reset to defaults
+            const typeSel = document.getElementById('type');
+            if (typeSel) typeSel.value = 'info';
+
+            const targetSel = document.getElementById('targetType');
+            if (targetSel) targetSel.value = 'All';
+
+            const roleSel = document.getElementById('targetRoleId');
+            if (roleSel) roleSel.value = '';
+
+            const userInput = document.getElementById('targetUserId');
+            if (userInput) userInput.value = '';
+
             toggleTargetFields();
         }
 
@@ -473,23 +511,22 @@
             const type = document.getElementById('targetType').value;
             const roleField = document.getElementById('targetRoleField');
             const userField = document.getElementById('targetUserField');
+            const roleSelect = document.getElementById('targetRoleId');
+            const userInput = document.getElementById('targetUserId');
 
-            roleField.style.display = 'none';
-            userField.style.display = 'none';
+            // Hide all fields first
+            if (roleField) roleField.style.display = 'none';
+            if (userField) userField.style.display = 'none';
+            if (roleSelect) roleSelect.required = false;
+            if (userInput) userInput.required = false;
 
-            if (type === "Role") {
-                roleField.style.display = 'block';
-                roleField.classList.add('field-animate');
-                document.getElementById('targetRoleId').required = true;
-                document.getElementById('targetUserId').required = false;
-            } else if (type === "User") {
-                userField.style.display = 'block';
-                userField.classList.add('field-animate');
-                document.getElementById('targetUserId').required = true;
-                document.getElementById('targetRoleId').required = false;
-            } else {
-                document.getElementById('targetRoleId').required = false;
-                document.getElementById('targetUserId').required = false;
+            // Show appropriate field based on selection
+            if (type === 'Role') {
+                if (roleField) roleField.style.display = 'block';
+                if (roleSelect) roleSelect.required = true;
+            } else if (type === 'User') {
+                if (userField) userField.style.display = 'block';
+                if (userInput) userInput.required = true;
             }
         }
     </script>
