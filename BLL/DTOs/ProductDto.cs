@@ -23,9 +23,7 @@ namespace BLL.DTOs
 
         public decimal Price { get; set; }
         public int StockQuantity { get; set; }                // map -> Quantity
-                                                              // BLL/DTOs/ProductDto.cs
         public string ProductStatus { get; set; } = "Available";
-
 
         public string? DescriptionHtml { get; set; }
         public bool IsDeleted { get; set; }
@@ -39,9 +37,17 @@ namespace BLL.DTOs
         public string? MaterialName { get; set; }
         public string? AgeRange { get; set; }
         public string? OriginName { get; set; }
+        public string? PriceRangeName { get; set; }           // 💡 thêm để hiển thị mức giá (0–500k, 500k–1tr,...)
 
-        // Ảnh (Controller upload file -> có URL rồi gán vào đây)
+        // Ảnh
         public string? MainImageUrl { get; set; }             // IsMain = true
-        public List<string> SecondaryImageUrls { get; set; } = new(); // tối đa 8
+        public List<string> SecondaryImageUrls { get; set; } = new();
+
+        // 💡 bổ sung tiện ích hiển thị
+        public bool IsOutOfStock => StockQuantity <= 0;       // tiện cho view check hết hàng
+        public bool IsOnSale { get; set; }                    // có thể set true nếu có khuyến mãi
+
+        public bool IsLiked { get; set; }
     }
+
 }

@@ -172,6 +172,7 @@ namespace BLL.Services
             Id = x.ProductId,
             Sku = x.Sku,
             ProductName = x.ProductName,
+
             CategoryId = x.CategoryId,
             MaterialId = x.MaterialId,
             AgeId = x.AgeId,
@@ -179,6 +180,7 @@ namespace BLL.Services
             PriceRangeId = x.PriceRangeId,
             BrandId = x.BrandId,
             OriginId = x.OriginId,
+
             Price = x.Price,
             StockQuantity = x.Quantity,
             ProductStatus = x.ProductStatus,
@@ -186,9 +188,20 @@ namespace BLL.Services
             IsDeleted = x.IsDeleted,
             CreatedAt = x.CreatedAt,
             UpdatedAt = x.UpdatedAt,
+
             CategoryName = x.Category?.CategoryName,
             BrandName = x.Brand?.BrandName,
-            MainImageUrl = x.ProductImages?.FirstOrDefault(pi => pi.IsMain)?.ImageUrl
+            MaterialName = x.Material?.MaterialName,      // đổi theo field thực tế
+            AgeRange = x.Age?.AgeRange,               // hoặc AgeName
+            SexName = x.Sex?.SexName,
+            OriginName = x.Origin?.OriginName,
+
+            MainImageUrl = x.ProductImages?.FirstOrDefault(pi => pi.IsMain)?.ImageUrl,
+            SecondaryImageUrls = x.ProductImages?
+                              .Where(pi => !pi.IsMain)
+                              .Select(pi => pi.ImageUrl)
+                              .Where(u => !string.IsNullOrWhiteSpace(u))
+                              .ToList() ?? new List<string>()
         };
 
         public async Task<PagedResult<ProductDto>> GetStorefrontPagedAsync(string? keyword, int page, int pageSize)

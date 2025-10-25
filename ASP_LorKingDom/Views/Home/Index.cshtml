@@ -1,289 +1,252 @@
 ﻿@model BLL.DTOs.PagedResult<BLL.DTOs.ProductDto>
 @using System.Linq
-
 @{
-	ViewData["Title"] = "ToyLand - Toy Wonderland";
+    ViewData["Title"] = "ToyLand - Toy Wonderland";
 
-	var q = Context.Request.Query["q"].ToString();
-	int page = Model.Page, pageSize = Model.PageSize, total = Model.Total;
-	int totalPages = (int)Math.Ceiling(total / (double)pageSize);
+    var q = Context.Request.Query["q"].ToString();
+    int page = Model?.Page ?? 1;
+    int pageSize = Model?.PageSize ?? 16;
+    int total = Model?.Total ?? 0;
+    int totalPages = (int)Math.Ceiling(total / (double)Math.Max(1, pageSize));
 
-	// 1 instance Random cho cả view (tránh trùng lặp seed)
-	var rnd = new System.Random(12345);
+    // 1 instance Random cho cả view
+    var rnd = new System.Random(12345);
 }
 
-<!-- Hero Section -->
 <section class="hero-section">
-	<div class="hero-banner">
-		<div class="hero-overlay"></div>
-		<img src="~/images/hero/colorful-toys-and-children-playing.jpg" alt="Discover Amazing Toys World" class="hero-image active" id="heroImage1">
-		<img src="~/images/hero/educational-toys-and-learning-games.jpg" alt="Smart Educational Toys" class="hero-image" id="heroImage2">
-		<img src="~/images/hero/famous-toy-brands-display.jpg" alt="Trusted Global Brands" class="hero-image" id="heroImage3">
+    <div class="hero-banner">
+        <div class="hero-overlay"></div>
+        <img src="~/images/hero/colorful-toys-and-children-playing.jpg" alt="Discover Amazing Toys World" class="hero-image active" id="heroImage1">
+        <img src="~/images/hero/educational-toys-and-learning-games.jpg" alt="Smart Educational Toys" class="hero-image" id="heroImage2">
+        <img src="~/images/hero/famous-toy-brands-display.jpg" alt="Trusted Global Brands" class="hero-image" id="heroImage3">
 
-		<button class="hero-nav-btn hero-prev" onclick="prevSlide()">
-			<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-				<polyline points="15 18 9 12 15 6"></polyline>
-			</svg>
-		</button>
+        <button class="hero-nav-btn hero-prev" onclick="prevSlide()">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        </button>
+        <button class="hero-nav-btn hero-next" onclick="nextSlide()">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </button>
 
-		<button class="hero-nav-btn hero-next" onclick="nextSlide()">
-			<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-				<polyline points="9 18 15 12 9 6"></polyline>
-			</svg>
-		</button>
+        <div class="hero-dots">
+            <button class="hero-dot active" onclick="goToSlide(0)"></button>
+            <button class="hero-dot" onclick="goToSlide(1)"></button>
+            <button class="hero-dot" onclick="goToSlide(2)"></button>
+        </div>
+    </div>
 
-		<div class="hero-dots">
-			<button class="hero-dot active" onclick="goToSlide(0)"></button>
-			<button class="hero-dot" onclick="goToSlide(1)"></button>
-			<button class="hero-dot" onclick="goToSlide(2)"></button>
-		</div>
+    <div class="hero-content">
+        <div class="container">
+            <div class="hero-content-inner">
+                <div class="hero-badges">
+                    <span class="badge badge-primary badge-glow">50% OFF</span>
+                    <span class="badge badge-outline">Best Seller</span>
+                </div>
 
-		<div class="hero-decorations">
-			<div class="hero-decoration hero-decoration-1"></div>
-			<div class="hero-decoration hero-decoration-2"></div>
-		</div>
-	</div>
+                <h1 class="hero-title">Discover Amazing Toys World</h1>
+                <p class="hero-subtitle">Thousands of high-quality products for your beloved children</p>
 
-	<div class="hero-content">
-		<div class="container">
-			<div class="hero-content-inner">
-				<div class="hero-badges">
-					<span class="badge badge-primary badge-glow" id="heroBadge1">50% OFF</span>
-					<span class="badge badge-outline" id="heroBadge2">Best Seller</span>
-					<div class="hero-rating">
-						<div class="stars">
-							<svg class="star" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-								<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-							</svg>
-							<svg class="star" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-								<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-							</svg>
-							<svg class="star" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-								<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-							</svg>
-							<svg class="star" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-								<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-							</svg>
-							<svg class="star" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-								<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-							</svg>
-						</div>
-						<span class="rating-text">(4.9/5 • 12K+ reviews)</span>
-					</div>
-				</div>
-
-				<h1 class="hero-title" id="heroTitle">Discover Amazing Toys World</h1>
-				<p class="hero-subtitle" id="heroSubtitle">Thousands of high-quality products for your beloved children</p>
-
-				<div class="hero-actions">
-					<button class="btn btn-primary btn-lg">
-						<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-							<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-						</svg>
-						<span id="heroCtaText">Shop Now</span>
-					</button>
-					<button class="btn btn-outline btn-lg">
-						<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-							<polygon points="5 3 19 12 5 21 5 3"></polygon>
-						</svg>
-						Watch Demo
-					</button>
-				</div>
-
-				<div class="hero-stats">
-					<div class="stat-item">
-						<div class="stat-value">
-							<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-								<polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
-								<polyline points="17 6 23 6 23 12"></polyline>
-							</svg>
-							<span>10K+</span>
-						</div>
-						<div class="stat-label">Products</div>
-					</div>
-					<div class="stat-item">
-						<div class="stat-value">
-							<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-								<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-								<circle cx="9" cy="7" r="4"></circle>
-								<path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-								<path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-							</svg>
-							<span>50K+</span>
-						</div>
-						<div class="stat-label">Happy Customers</div>
-					</div>
-					<div class="stat-item">
-						<div class="stat-value">
-							<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-								<circle cx="12" cy="8" r="7"></circle>
-								<polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline>
-							</svg>
-							<span>99%</span>
-						</div>
-						<div class="stat-label">Satisfaction</div>
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
+                <div class="hero-actions">
+                    <a class="btn btn-primary btn-lg" href="#featured">Shop Now</a>
+                    <button class="btn btn-outline btn-lg">Watch Demo</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </section>
 
-<!-- Promotion Banner -->
 <section class="promotion-section">
-	<div class="container">
-		<div class="promotion-banner">
-			<div class="promotion-content">
-				<span class="promotion-badge">SPECIAL OFFER</span>
-				<h2 class="promotion-title">Summer Sale - Up to 50% OFF</h2>
-				<p class="promotion-text">Limited time offer on selected toys</p>
-				<button class="btn btn-light btn-lg">Shop Now</button>
-			</div>
-			<div class="promotion-image">
-				<img src="~/images/promotion/summer-sale.jpg" alt="Summer Sale">
-			</div>
-		</div>
-	</div>
+    <div class="container">
+        <div class="promotion-banner">
+            <div class="promotion-content">
+                <span class="promotion-badge">SPECIAL OFFER</span>
+                <h2 class="promotion-title">Summer Sale - Up to 50% OFF</h2>
+                <p class="promotion-text">Limited time offer on selected toys</p>
+                <a class="btn btn-light btn-lg" href="#featured">Shop Now</a>
+            </div>
+            <div class="promotion-image">
+                <img src="~/images/promotion/summer-sale.jpg" alt="Summer Sale">
+            </div>
+        </div>
+    </div>
 </section>
 
-<!-- Products -->
-<section class="products-section">
-	<div class="container">
-		<div class="section-header">
-			<h2 class="section-title">Featured Products</h2>
-			<p class="section-subtitle">Handpicked toys loved by children</p>
-		</div>
+<section id="featured" class="products-section">
+    <div class="container">
+        <div class="section-header">
+            <h2 class="section-title">Featured Products</h2>
+            <p class="section-subtitle">Handpicked toys loved by children</p>
+        </div>
 
-		@if (Model?.Items != null && Model.Items.Any())
-		{
-			@foreach (var row in Model.Items.Chunk(4))
-			{
-				<div class="product-row d-grid" style="grid-template-columns: repeat(4, minmax(0,1fr)); gap:24px; margin-bottom:24px;">
-					@foreach (var p in row)
-					{
-						<div class="product-card">
-							<div class="product-image">
-								<img src="@(string.IsNullOrWhiteSpace(p.MainImageUrl) ? Url.Content("~/images/placeholder.png") : p.MainImageUrl)"
-									 alt="@p.ProductName" loading="lazy" />
-								<button class="product-wishlist" aria-label="Add to wishlist" type="button">
-									<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-										<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78
-                                                 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-									</svg>
-								</button>
+        @if (Model?.Items != null && Model.Items.Any())
+        {
+            @foreach (var row in Model.Items.Chunk(4))
+            {
+                <div class="product-row d-grid" style="grid-template-columns: repeat(4, minmax(0,1fr)); gap:24px; margin-bottom:24px;">
+                    @foreach (var p in row)
+                    {
+                        var url = Url.Action("ProductDetails", "Home", new { id = p.Id });
+                        int stars = rnd.Next(4, 6);
+                        int reviews = rnd.Next(50, 500);
 
-								@if (p.Price < 50)
-								{
-									<span class="product-badge badge-hot">Hot</span>
-								}
-								else if (p.Price > 200)
-								{
-									<span class="product-badge badge-sale">-30%</span>
-								}
-							</div>
+                        <article class="product-card js-card"
+                                 role="link" tabindex="0"
+                                 data-url="@url"
+                                 aria-label="View details for @p.ProductName">
+                            <div class="product-image">
+                                <img src="@(string.IsNullOrWhiteSpace(p.MainImageUrl) ? Url.Content("~/images/placeholder.png") : p.MainImageUrl)"
+                                     alt="@p.ProductName" loading="lazy" />
+                                <form asp-controller="Wishlist"
+                                      asp-action="Toggle"
+                                      asp-route-productId="@p.Id"
+                                      asp-route-returnUrl="@Context.Request.Path + Context.Request.QueryString"
+                                      method="post"
+                                      class="wishlist-form"
+                                      onclick="event.stopPropagation();">
 
-							<div class="product-info">
-								<h3 class="product-name" title="@p.ProductName">@p.ProductName</h3>
+                                    <button type="submit" class="product-wishlist @(p.IsLiked ? "active" : "")" title="Yêu thích">
+                                        <svg width="20" height="20" viewBox="0 0 24 24"
+                                             fill="@(p.IsLiked ? "red" : "none")"
+                                             stroke="currentColor" stroke-width="2">
+                                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06
+                     a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78
+                     1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                                        </svg>
+                                    </button>
+                                </form>
 
-								<div class="product-rating">
-									@{
-										int stars = rnd.Next(4, 6); // 4 hoặc 5 sao
-										int reviews = rnd.Next(50, 500);
-									}
-									<div class="stars">
-										@for (int i = 0; i < stars; i++)
-										{
-											<span>★</span>
-										}
-										@for (int i = stars; i < 5; i++)
-										{
-											<span>☆</span>
-										}
-									</div>
-									<span>(@reviews)</span>
-								</div>
 
-								<div class="product-price">
-									<span class="price-current">@p.Price.ToString("C")</span>
-									@if (p.Price > 100)
-									{
-										<span class="price-original">@((p.Price * 1.2m).ToString("C"))</span>
-									}
-								</div>
+                                @* Ví dụ badge *@
+                                @if (p.Price < 50)
+                                {
+                                    <span class="product-badge badge-hot">Hot</span>
+                                }
+                                else if (p.Price > 200)
+                                {
+                                    <span class="product-badge badge-sale">-30%</span>
+                                }
+                            </div>
 
-								<form method="post" asp-action="AddToCart" asp-controller="Cart" asp-route-id="@p.Id">
-									<button type="submit" class="btn btn-primary btn-block">Add to Cart</button>
-								</form>
-							</div>
-						</div>
-					}
-				</div>
-			}
-		}
-		else
-		{
-			<div class="alert alert-info">No products available.</div>
-		}
-	</div>
+                            <div class="product-info">
+                                <h3 class="product-name" title="@p.ProductName">
+                                    <a href="@url" onclick="event.stopPropagation();">@p.ProductName</a>
+                                </h3>
+
+                                <div class="product-rating">
+                                    <div class="stars">
+                                        @for (int i = 0; i < stars; i++)
+                                        {
+                                            <span>★</span>
+                                        }
+                                        @for (int i = stars; i < 5; i++)
+                                        {
+                                            <span>☆</span>
+                                        }
+                                    </div>
+                                    <span>(@reviews)</span>
+                                </div>
+
+                                <div class="product-price">
+                                    <span class="price-current">@p.Price.ToString("C0")</span>
+                                </div>
+
+                                <form method="post"
+                                      asp-controller="Cart"
+                                      asp-action="AddToCart"
+                                      asp-route-id="@p.Id"
+                                      onsubmit="event.stopPropagation();">
+                                    <button type="submit" class="btn btn-primary btn-block">Add to Cart</button>
+                                </form>
+                            </div>
+                        </article>
+                    }
+                </div>
+            }
+        }
+        else
+        {
+            <div class="alert alert-info">No products available.</div>
+        }
+    </div>
 </section>
 
 @if (totalPages > 1)
 {
-	<nav aria-label="pagination" class="mt-4">
-		<ul class="pagination justify-content-center">
-			<li class="page-item @(page <= 1 ? "disabled" : "")">
-				<a class="page-link"
-				   asp-action="Index"
-				   asp-route-page="@(page - 1)"
-				   asp-route-q="@q"
-				   asp-route-pageSize="@pageSize">&laquo;</a>
-			</li>
+    <nav aria-label="pagination" class="mt-4">
+        <ul class="pagination justify-content-center">
+            <li class="page-item @(page <= 1 ? "disabled" : "")">
+                <a class="page-link"
+                   asp-action="Index"
+                   asp-route-page="@(page - 1)"
+                   asp-route-q="@q"
+                   asp-route-pageSize="@pageSize">&laquo;</a>
+            </li>
 
-			@for (int i = Math.Max(1, page - 2); i <= Math.Min(totalPages, page + 2); i++)
-			{
-				<li class="page-item @(i == page ? "active" : "")">
-					<a class="page-link"
-					   asp-action="Index"
-					   asp-route-page="@i"
-					   asp-route-q="@q"
-					   asp-route-pageSize="@pageSize">@i</a>
-				</li>
-			}
+            @for (int i = Math.Max(1, page - 2); i <= Math.Min(totalPages, page + 2); i++)
+            {
+                <li class="page-item @(i == page ? "active" : "")">
+                    <a class="page-link"
+                       asp-action="Index"
+                       asp-route-page="@i"
+                       asp-route-q="@q"
+                       asp-route-pageSize="@pageSize">@i</a>
+                </li>
+            }
 
-			<li class="page-item @(page >= totalPages ? "disabled" : "")">
-				<a class="page-link"
-				   asp-action="Index"
-				   asp-route-page="@(page + 1)"
-				   asp-route-q="@q"
-				   asp-route-pageSize="@pageSize">&raquo;</a>
-			</li>
-		</ul>
-	</nav>
+            <li class="page-item @(page >= totalPages ? "disabled" : "")">
+                <a class="page-link"
+                   asp-action="Index"
+                   asp-route-page="@(page + 1)"
+                   asp-route-q="@q"
+                   asp-route-pageSize="@pageSize">&raquo;</a>
+            </li>
+        </ul>
+    </nav>
 }
 
-<!-- Newsletter Section -->
 <section class="newsletter-section">
-	<div class="container">
-		<div class="newsletter-content">
-			<div class="newsletter-icon">
-				<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-					<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-					<polyline points="22,6 12,13 2,6"></polyline>
-				</svg>
-			</div>
-			<div class="newsletter-text">
-				<h2 class="newsletter-title">Subscribe to Our Newsletter</h2>
-				<p class="newsletter-subtitle">Get the latest updates on new products and special offers</p>
-			</div>
-			<div class="newsletter-form">
-				<input type="email" class="form-control" placeholder="Enter your email">
-				<button class="btn btn-primary">Subscribe</button>
-			</div>
-		</div>
-	</div>
+    <div class="container">
+        <div class="newsletter-content">
+            <div class="newsletter-icon">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                    <polyline points="22,6 12,13 2,6"></polyline>
+                </svg>
+            </div>
+            <div class="newsletter-text">
+                <h2 class="newsletter-title">Subscribe to Our Newsletter</h2>
+                <p class="newsletter-subtitle">Get the latest updates on new products and special offers</p>
+            </div>
+            <div class="newsletter-form">
+                <input type="email" class="form-control" placeholder="Enter your email">
+                <button class="btn btn-primary">Subscribe</button>
+            </div>
+        </div>
+    </div>
 </section>
 
-<!-- Pagination -->
 @section Scripts {
-	<script src="~/js/home.js"></script>
+    <script src="~/js/home.js"></script>
+
+    <script>
+        // Click vào bất kỳ chỗ trống trên card -> đi tới trang chi tiết
+        document.addEventListener('click', function (e) {
+          const card = e.target.closest('.js-card');
+          if (!card) return;
+
+          // Nếu click đúng vào a/button/input... thì thôi
+          if (e.target.closest('a, button, input, select, textarea, label')) return;
+
+          const url = card.dataset.url;
+          if (url) window.location.href = url;
+        });
+
+        // Hỗ trợ Enter khi focus vào card
+        document.addEventListener('keydown', function (e) {
+          if (e.key !== 'Enter') return;
+          const card = e.target.closest('.js-card');
+          if (!card) return;
+          const url = card.dataset.url;
+          if (url) window.location.href = url;
+        });
+    </script>
 }
