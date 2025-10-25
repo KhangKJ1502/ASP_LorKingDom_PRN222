@@ -25,6 +25,9 @@ var conn = builder.Configuration.GetConnectionString("DefaultConnection")
 builder.Services.AddDAL(conn);
 builder.Services.AddBLL();
 builder.Services.AddControllersWithViews();
+builder.Services.AddScoped<IAddressRepository, AddressRepository>();
+builder.Services.AddScoped<IAddressService, AddressService>();
+
 
 // Thêm Session (bắt buộc cho SignupEmail, SignupPassword)
 builder.Services.AddSession(options =>
