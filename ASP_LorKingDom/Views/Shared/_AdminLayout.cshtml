@@ -25,6 +25,9 @@
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
 		crossorigin="anonymous" referrerpolicy="no-referrer">
 
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+	<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
 	<!-- ✅ Section riêng cho từng page -->
 	@RenderSection("Styles", required: false)
 
@@ -56,7 +59,7 @@
 				<div class="sidebar-body">
 					<ul class="sidebar-body-menu">
 						<li>
-							<a class="active" href="/">
+							<a class="active" asp-controller="Admin" asp-action="Dashboard">
 								<span class="icon home" aria-hidden="true">
 								</span>Dashboard
 							</a>
@@ -94,6 +97,12 @@
 								</li>
 								<li>
 									<a asp-controller="BlogReview" asp-action="ManageBlogReview">Quản Lý Blog Review</a>
+								</li>
+								<li>
+									<a asp-controller="ReviewProduct" asp-action="ManageProductReview">Quản Lý Đánh Giá Sản Phẩm</a>
+								</li>
+								<li>
+									<a asp-controller="Voucher" asp-action="ManageVouchers">Quản Lý Voucher</a>
 								</li>
 							</ul>
 						</li>
@@ -243,14 +252,12 @@
 			<div class="sidebar-footer">
 				<a href="##" class="sidebar-user">
 					<span class="sidebar-user-img">
-						<picture>
-							<source srcset="~/Assets/image/avatar/avatar-illustrated-01.webp" type="image/webp" />
-							<img src="~/Assets/image/avatar/avatar-illustrated-01.png" alt="User name" />
-						</picture>
+						<img src="@(User.FindFirst("Avatar")?.Value ?? "/Assets/image/avatar/avatar-illustrated-01.png")" 
+							 alt="@(User.FindFirst("AccountName")?.Value ?? "User")" />
 					</span>
 					<div class="sidebar-user-info">
-						<span class="sidebar-user__title">Nafisa Sh.</span>
-						<span class="sidebar-user__subtitle">Support manager</span>
+						<span class="sidebar-user__title">@(User.FindFirst("AccountName")?.Value ?? "User")</span>
+						<span class="sidebar-user__subtitle">@(User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "Staff")</span>
 					</div>
 				</a>
 			</div>
@@ -358,27 +365,25 @@
 							<button href="##" class="nav-user-btn dropdown-btn" title="My profile" type="button">
 								<span class="sr-only">My profile</span>
 								<span class="nav-user-img">
-									<picture>
-										<source srcset="./img/avatar/avatar-illustrated-02.webp" type="image/webp" />
-										<img src="./img/avatar/avatar-illustrated-02.png" alt="User name" />
-									</picture>
+									<img src="@(User.FindFirst("Avatar")?.Value ?? "/Assets/image/avatar/avatar-illustrated-02.png")" 
+										 alt="@(User.FindFirst("AccountName")?.Value ?? "User")" />
 								</span>
 							</button>
 							<ul class="users-item-dropdown nav-user-dropdown dropdown">
 								<li>
-									<a href="##">
+									<a href="#" onclick="showProfileModal(); return false;">
 										<i data-feather="user" aria-hidden="true"></i>
 										<span>Profile</span>
 									</a>
 								</li>
 								<li>
-									<a href="##">
+									<a href="@Url.Action("Profile", "Admin")">
 										<i data-feather="settings" aria-hidden="true"></i>
 										<span>Account settings</span>
 									</a>
 								</li>
 								<li>
-									<a class="danger" href="##">
+									<a class="danger" href="#" onclick="confirmLogout(); return false;">
 										<i data-feather="log-out" aria-hidden="true"></i>
 										<span>Log out</span>
 									</a>
@@ -429,9 +434,102 @@
 	<!-- Dayjs -->
 	<script src="https://cdn.jsdelivr.net/npm/dayjs@1/dayjs.min.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/dayjs@1/locale/vi.js"></script>
+	<!-- Profile Modal -->
+	<div class="modal fade" id="profileModal" tabindex="-1" aria-labelledby="profileModalLabel" aria-hidden="true">
+		<div class="modal-dialog modal-dialog-centered">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="profileModalLabel">
+						<i class="fas fa-user-circle me-2"></i>Thông tin tài khoản
+					</h5>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+				</div>
+				<div class="modal-body">
+					<div class="text-center mb-4">
+						<img id="profileAvatar" src="" alt="Avatar" 
+							 style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid #667eea;">
+					</div>
+					<div class="profile-info">
+						<div class="mb-3">
+							<label class="fw-bold text-muted small">Tên tài khoản</label>
+							<p id="profileName" class="mb-0">-</p>
+						</div>
+						<div class="mb-3">
+							<label class="fw-bold text-muted small">Email</label>
+							<p id="profileEmail" class="mb-0">-</p>
+						</div>
+						<div class="mb-3">
+							<label class="fw-bold text-muted small">Số điện thoại</label>
+							<p id="profilePhone" class="mb-0">-</p>
+						</div>
+						<div class="mb-3">
+							<label class="fw-bold text-muted small">Trạng thái</label>
+							<p id="profileStatus" class="mb-0">-</p>
+						</div>
+						<div class="mb-3">
+							<label class="fw-bold text-muted small">Ngày tạo</label>
+							<p id="profileCreatedAt" class="mb-0">-</p>
+						</div>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+					<a href="@Url.Action("Profile", "Admin")" class="btn btn-primary">Chỉnh sửa</a>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Logout Form (hidden) -->
+	<form id="logoutForm" method="post" action="@Url.Action("Logout", "AdminAuth")" style="display: none;">
+		@Html.AntiForgeryToken()
+	</form>
+
 	<!-- ✅ Section riêng của page -->
 	@RenderSection("Scripts", required: false)
 	@Html.AntiForgeryToken()
+
+	<script>
+		// Show Profile Modal
+		async function showProfileModal() {
+			try {
+				const response = await fetch('@Url.Action("GetProfile", "AdminAuth")');
+				if (!response.ok) throw new Error('Không thể tải thông tin');
+
+				const data = await response.json();
+				
+				document.getElementById('profileAvatar').src = data.image || '/Assets/image/avatar/avatar-illustrated-02.png';
+				document.getElementById('profileName').textContent = data.accountName || '-';
+				document.getElementById('profileEmail').textContent = data.email || '-';
+				document.getElementById('profilePhone').textContent = data.phoneNumber || 'Chưa cập nhật';
+				document.getElementById('profileStatus').textContent = data.status || '-';
+				document.getElementById('profileCreatedAt').textContent = data.createdAt || '-';
+
+				const modal = new bootstrap.Modal(document.getElementById('profileModal'));
+				modal.show();
+			} catch (error) {
+				Swal.fire('Lỗi', 'Không thể tải thông tin tài khoản', 'error');
+			}
+		}
+
+		// Confirm Logout
+		function confirmLogout() {
+			Swal.fire({
+				title: 'Xác nhận đăng xuất?',
+				text: 'Bạn có chắc chắn muốn đăng xuất khỏi hệ thống?',
+				icon: 'question',
+				showCancelButton: true,
+				confirmButtonColor: '#dc3545',
+				cancelButtonColor: '#6c757d',
+				confirmButtonText: 'Đăng xuất',
+				cancelButtonText: 'Hủy'
+			}).then((result) => {
+				if (result.isConfirmed) {
+					document.getElementById('logoutForm').submit();
+				}
+			});
+		}
+	</script>
 </body>
 
 </html>

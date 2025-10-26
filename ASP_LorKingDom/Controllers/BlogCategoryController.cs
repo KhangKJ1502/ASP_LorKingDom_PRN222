@@ -1,9 +1,13 @@
 ﻿using BLL.DTOs;
 using BLL.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using WebUI.Filters;
 
 namespace WebUI.Controllers
 {
+    [Authorize(AuthenticationSchemes = "AdminScheme")]
+    [AdminAndStaffOnly] // Chỉ Admin và Staff mới quản lý được blog category
     public class BlogCategoryController : Controller
     {
         private readonly IBlogCategoryService _service;

@@ -1,13 +1,13 @@
 ﻿// Program.cs (ASP.NET Core 8)
 using BLL; // AddBLL()
-using DAL;
-using WebUI.Hubs; // AddDAL()
-using Microsoft.AspNetCore.Authentication.Cookies;
-using WebUI.BackgroundServices; // AddDAL()
-using DAL.Interfaces;
-using DAL.Repositories;
 using BLL.Interfaces;
 using BLL.Services;
+using DAL;
+using DAL.Interfaces;
+using DAL.Repositories;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using WebUI.BackgroundServices; // AddDAL()
+using WebUI.Hubs; // AddDAL()
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,6 +25,9 @@ var conn = builder.Configuration.GetConnectionString("DefaultConnection")
 builder.Services.AddDAL(conn);
 builder.Services.AddBLL();
 builder.Services.AddControllersWithViews();
+builder.Services.AddScoped<IAddressRepository, AddressRepository>();
+builder.Services.AddScoped<IAddressService, AddressService>();
+
 
 // Thêm Session (bắt buộc cho SignupEmail, SignupPassword)
 builder.Services.AddSession(options =>
@@ -38,14 +41,28 @@ builder.Services.AddSession(options =>
 builder.Services.AddControllersWithViews();
 builder.Services.AddSignalR();
 
+// Authentication với 2 scheme: Customer và Admin
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-    .AddCookie(options =>
+    .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
     {
-        options.LoginPath = "/Auth/Login"; // Đường dẫn đến trang đăng nhập
-        options.LogoutPath = "/Auth/Logout"; // Đường dẫn đăng xuất
-        options.AccessDeniedPath = "/Home/Error"; // Trang lỗi khi không có quyền
-        options.ExpireTimeSpan = TimeSpan.FromDays(7); // Cookie hết hạn sau 7 ngày
-        options.SlidingExpiration = true; // Gia hạn cookie nếu hoạt động
+        options.LoginPath = "/Auth/Login"; // Customer login
+        options.LogoutPath = "/Auth/Logout";
+        options.AccessDeniedPath = "/Home/Error";
+        options.Cookie.HttpOnly = true;
+        options.Cookie.IsEssential = true;
+        options.ExpireTimeSpan = TimeSpan.FromDays(7);
+        options.SlidingExpiration = false;
+    })
+    .AddCookie("AdminScheme", options =>
+    {
+        options.LoginPath = "/AdminAuth/Login"; // Admin login
+        options.LogoutPath = "/AdminAuth/Logout";
+        options.AccessDeniedPath = "/AdminAuth/AccessDenied";
+        options.Cookie.HttpOnly = true;
+        options.Cookie.IsEssential = true;
+        options.ExpireTimeSpan = TimeSpan.FromDays(7);
+        options.SlidingExpiration = false;
+        options.Cookie.Name = "AdminAuth"; // Cookie riêng cho admin
     });
 
 // Thêm DI cho Cart và Product (giả định bạn đã có IProductService và ProductService trong BLL; nếu không, bỏ dòng đó)
@@ -53,6 +70,10 @@ builder.Services.AddScoped<ICartRepository, CartRepository>();
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<IProductService, ProductService>(); // Nếu có IProductService
+
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+builder.Logging.SetMinimumLevel(LogLevel.Debug);
 
 var app = builder.Build();
 

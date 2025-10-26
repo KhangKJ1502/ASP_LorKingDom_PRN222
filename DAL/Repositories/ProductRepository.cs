@@ -41,11 +41,18 @@ namespace DAL.Repositories
         public async Task<Product?> GetByIdAsync(int id)
         {
             return await _ctx.Products
+                .AsNoTracking()
                 .Include(p => p.Category)
                 .Include(p => p.Brand)
-                .Include(p => p.ProductImages)                       // ✅ thêm Include ảnh
+                .Include(p => p.Material)
+                .Include(p => p.Age)
+                .Include(p => p.Sex)
+                .Include(p => p.PriceRange)
+                .Include(p => p.Origin)
+                .Include(p => p.ProductImages)
                 .FirstOrDefaultAsync(p => p.ProductId == id);
         }
+
 
         public async Task AddAsync(Product entity)
         {
@@ -186,6 +193,23 @@ namespace DAL.Repositories
                 .ToListAsync();
 
             return (items, total);
+        }
+        public async Task<int> SetIsDeletedBySuperCategoryAsync(int superCategoryId, bool isDeleted)
+        {
+            // Dựa trên quan hệ: Product.Category.SuperCategoryId == superCategoryId
+            var items = await _ctx.Products
+                .Where(p => p.Category != null && p.Category.SuperCategoryId == superCategoryId)
+                .ToListAsync();
+
+            foreach (var p in items)
+            {
+                p.IsDeleted = isDeleted;
+                if (isDeleted)
+                    p.ProductStatus = "Discontinued";
+            }
+
+            await _ctx.SaveChangesAsync();
+            return items.Count;
         }
     }
 

@@ -1,0 +1,287 @@
+﻿@model BLL.DTOs.ProductDto
+@using System.Linq
+@{
+    ViewData["Title"] = (Model?.ProductName ?? "Chi tiết sản phẩm") + " - ToyLand";
+
+    // ==== Chuẩn bị dữ liệu hiển thị an toàn ====
+    var placeholder = Url.Content("~/images/placeholder.png");
+    var mainImage = !string.IsNullOrWhiteSpace(Model?.MainImageUrl) ? Model!.MainImageUrl! : placeholder;
+
+    var thumbs = (Model?.SecondaryImageUrls ?? new List<string>())
+        .Where(u => !string.IsNullOrWhiteSpace(u))
+        .Distinct()
+        .ToList();
+
+    // đảm bảo ảnh chính luôn ở vị trí đầu của thumbnail
+    if (!string.IsNullOrWhiteSpace(mainImage))
+    {
+        if (!thumbs.Any() || !thumbs[0].Equals(mainImage, StringComparison.OrdinalIgnoreCase))
+        {
+            thumbs.Insert(0, mainImage);
+        }
+    }
+
+    var categoryName = Model?.CategoryName ?? "—";
+    var brandName    = Model?.BrandName    ?? "—";
+    var originName   = Model?.OriginName   ?? (Model?.OriginId?.ToString() ?? "—");
+    var sku          = Model?.Sku          ?? "—";
+    var stock        = Model?.StockQuantity ?? 0;
+
+    // Giá gốc/khuyến mại: nếu bạn có field riêng thì gắn vào; hiện tại chưa có -> ẩn phần giảm giá
+    decimal? originalPrice = null; // ví dụ: Model?.OriginalPrice
+}
+<link href="~/css/productDetail.css" rel="stylesheet" asp-append-version="true" />
+
+<main class="container">
+    <!-- Product Detail Section -->
+    <div class="product-grid">
+        <!-- Gallery -->
+        <div class="animate-slide-up">
+            <div class="gallery-main" id="mainGallery">
+                <img src="@mainImage" alt="@Model?.ProductName" id="mainImage" />
+                <button class="gallery-nav prev" type="button" onclick="previousImage()">❮</button>
+                <button class="gallery-nav next" type="button" onclick="nextImage()">❯</button>
+                <div class="gallery-counter">
+                    <span id="imageCounter">1</span> / @thumbs.Count
+                </div>
+            </div>
+
+            <!-- Thumbnails -->
+            <div class="gallery-thumbnails" style="margin-top:1rem;">
+                @{
+                    for (var idx = 0; idx < thumbs.Count; idx++)
+                    {
+                        var t = thumbs[idx];
+                        var isActive = idx == 0 ? "active" : "";
+                        <button class="thumbnail @isActive" type="button" onclick="selectImage(@idx)">
+                            <img src="@t" alt="Thumbnail @(idx+1)" />
+                        </button>
+                    }
+                }
+            </div>
+        </div>
+
+        <!-- Product Info -->
+        <div class="product-info animate-slide-up" style="animation-delay:.1s;">
+            <!-- Header -->
+            <div>
+                <span class="badge">@categoryName</span>
+                <h1 class="product-title">@Model?.ProductName</h1>
+            </div>
+
+            <!-- Rating (giả lập) -->
+            <div class="rating">
+                <div class="stars">
+                    <span class="star">★</span>
+                    <span class="star">★</span>
+                    <span class="star">★</span>
+                    <span class="star">★</span>
+                    <span class="star empty">★</span>
+                </div>
+                <span class="rating-text">4.8</span>
+                <span class="rating-count">(124 đánh giá)</span>
+            </div>
+
+            <!-- Price Section -->
+            <div class="price-section" >
+                <div class="price-display">
+                    <span class="price-current">@((Model?.Price ?? 0m).ToString("n0")) ₫</span>
+
+                    @if (originalPrice.HasValue && originalPrice.Value > (Model?.Price ?? 0m))
+                    {
+                        <span class="price-original">@originalPrice.Value.ToString("n0") ₫</span>
+                        @if (originalPrice.HasValue && originalPrice.Value > (Model?.Price ?? 0m))
+                        {
+                            <span class="price-original">@originalPrice.Value.ToString("n0") ₫</span>
+                            var discount = 100 - (int)Math.Round(((Model?.Price ?? 0m) / originalPrice.Value) * 100, 0);
+                            <span class="discount-badge">-@discount%</span>
+                        }
+
+                     
+                    }
+                </div>
+
+                @if (originalPrice.HasValue && originalPrice.Value > (Model?.Price ?? 0m))
+                {
+                    <div class="price-savings">
+                        Tiết kiệm: @((originalPrice.Value - (Model?.Price ?? 0m)).ToString("n0")) ₫
+                    </div>
+                }
+            </div>
+
+            <!-- Product Details -->
+            <div class="details-box">
+                <div class="detail-row">
+                    <span class="detail-label">Thương hiệu:</span>
+                    <span class="detail-value">@brandName</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Xuất xứ:</span>
+                    <span class="detail-value">@originName</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">SKU:</span>
+                    <span class="detail-value" style="font-family:monospace; font-size:.875rem;">@sku</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Kho hàng:</span>
+                    <span class="detail-value @(stock <= 5 ? "stock-low" : "stock-available")">
+                        @(stock > 0 ? $"{stock} sản phẩm" : "Hết hàng")
+                    </span>
+                </div>
+            </div>
+
+            <!-- Quantity Selector -->
+            <div class="quantity-section">
+                <span class="quantity-label">Số lượng:</span>
+                <div class="quantity-control">
+                    <button class="quantity-btn" type="button" onclick="decreaseQuantity()">−</button>
+                    <input type="number" id="quantity" class="quantity-input" value="1" min="1" max="@Math.Max(stock,1)" @(stock <= 0 ? "disabled" : "") />
+                    <button class="quantity-btn" type="button" onclick="increaseQuantity()">+</button>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <form asp-controller="Cart" asp-action="AddToCart" method="post" class="flex-1">
+                    <input type="hidden" name="id" value="@Model?.Id" />
+                    <input type="hidden" name="qty" id="qtyHidden" value="1" />
+                    <button type="submit" class="btn btn-primary w-full" onclick="syncQtyBeforeSubmit()" @(stock <= 0 ? "disabled" : "")>
+                        🛒 Thêm vào giỏ
+                    </button>
+                </form>
+                <button class="btn btn-secondary" type="button" onclick="toggleFavorite(this)">♡ Yêu thích</button>
+            </div>
+            <!-- Info Banner -->
+            <div class="info-banner">
+                ✓ Giao hàng miễn phí cho đơn hàng trên 500.000đ | ✓ Bảo hành 12 tháng | ✓ Hỗ trợ 24/7
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabs Section -->
+    <div class="tabs">
+        <div class="tab-list">
+            <button class="tab-trigger active" type="button" onclick="switchTab(event, 'description')">Mô tả</button>
+            <button class="tab-trigger" type="button" onclick="switchTab(event, 'features')">Tính năng</button>
+            <button class="tab-trigger" type="button" onclick="switchTab(event, 'specifications')">Thông số</button>
+        </div>
+
+        <!-- Description Tab -->
+        <div id="description" class="tab-content active">
+            <div class="card">
+                @if (!string.IsNullOrWhiteSpace(Model?.DescriptionHtml))
+                {
+                    @Html.Raw(Model.DescriptionHtml)
+                }
+                else
+                {
+                    <p style="font-size:1.125rem; color:var(--foreground); line-height:1.8; margin-bottom:1.5rem;">
+                        Chưa có mô tả cho sản phẩm này.
+                    </p>
+                }
+            </div>
+        </div>
+
+        <!-- Features Tab -->
+        <div id="features" class="tab-content">
+            <div class="card">
+                <div class="features-grid">
+                    <div class="feature-item"><div class="feature-icon">✓</div><div class="feature-text">Thiết kế an toàn cho trẻ</div></div>
+                    <div class="feature-item"><div class="feature-icon">✓</div><div class="feature-text">Vật liệu đạt chuẩn</div></div>
+                    <div class="feature-item"><div class="feature-icon">✓</div><div class="feature-text">Dễ lắp ráp, sáng tạo</div></div>
+                    <div class="feature-item"><div class="feature-icon">✓</div><div class="feature-text">Bảo hành rõ ràng</div></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Specifications Tab -->
+        <div id="specifications" class="tab-content">
+            <div class="card">
+                <table class="specs-table">
+                    <tbody>
+                        <tr><td>Danh mục</td>  <td>@(Model?.CategoryName ?? "—")</td></tr>
+                        <tr><td>Thương hiệu</td><td>@(Model?.BrandName ?? "—")</td></tr>
+                        <tr><td>Độ tuổi</td>   <td>@(Model?.AgeRange ?? "—")</td></tr>
+                        <tr><td>Chất liệu</td> <td>@(Model?.MaterialName ?? "—")</td></tr>
+                        <tr><td>Xuất xứ</td>   <td>@(Model?.OriginName ?? "—")</td></tr>
+                        <tr><td>Trạng thái</td><td>@(Model?.ProductStatus ?? "—")</td></tr>
+                        <tr><td>Mã SKU</td>    <td>@(Model?.Sku ?? "—")</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</main>
+
+@section Scripts {
+<script>
+    // === Gallery ===
+    let currentImageIndex = 0;
+    const thumbs = Array.from(document.querySelectorAll('.thumbnail img'));
+    const totalImages = thumbs.length;
+
+    function setMainByIndex(i) {
+        if (!thumbs.length) return;
+        const main = document.getElementById('mainImage');
+        main.src = thumbs[i].src;
+        const counter = document.getElementById('imageCounter');
+        if (counter) counter.textContent = (i + 1);
+        document.querySelectorAll('.thumbnail').forEach((t, idx) => t.classList.toggle('active', idx === i));
+    }
+    function selectImage(index) { if (!thumbs.length) return; currentImageIndex = index; setMainByIndex(currentImageIndex); }
+    function nextImage() { if (!thumbs.length) return; currentImageIndex = (currentImageIndex + 1) % totalImages; setMainByIndex(currentImageIndex); }
+    function previousImage() { if (!thumbs.length) return; currentImageIndex = (currentImageIndex - 1 + totalImages) % totalImages; setMainByIndex(currentImageIndex); }
+
+    // === Quantity ===
+    function increaseQuantity() {
+        const input = document.getElementById('quantity');
+        if (!input) return;
+        const max = parseInt(input.max || '99');
+        const cur = parseInt(input.value || '1');
+        if (cur < max) input.value = cur + 1;
+    }
+    function decreaseQuantity() {
+        const input = document.getElementById('quantity');
+        if (!input) return;
+        const cur = parseInt(input.value || '1');
+        if (cur > 1) input.value = cur - 1;
+    }
+    function syncQtyBeforeSubmit() {
+        const qty = (document.getElementById('quantity')?.value || '1');
+        const hidden = document.getElementById('qtyHidden');
+        if (hidden) hidden.value = qty;
+    }
+
+    // === Favorite toggle ===
+    function toggleFavorite(button) {
+        if (button.textContent.includes('♡')) {
+            button.textContent = '♥ Yêu thích';
+            button.style.color = '#ec4899';
+        } else {
+            button.textContent = '♡ Yêu thích';
+            button.style.color = 'var(--foreground)';
+        }
+    }
+
+    // === Tabs ===
+    function switchTab(event, tabName) {
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-trigger').forEach(t => t.classList.remove('active'));
+        document.getElementById(tabName)?.classList.add('active');
+        event.target.classList.add('active');
+    }
+    window.switchTab = switchTab; // để dùng trong HTML
+
+    // === Init ===
+    window.addEventListener('DOMContentLoaded', function () {
+        if (thumbs.length > 0) {
+            setMainByIndex(0);
+        } else {
+            // nếu không có ảnh phụ, đảm bảo counter vẫn là 1/1
+            const counter = document.getElementById('imageCounter');
+            if (counter) counter.textContent = '1';
+        }
+    });
+</script>
+}
