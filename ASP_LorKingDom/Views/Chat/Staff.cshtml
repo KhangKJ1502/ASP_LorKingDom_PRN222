@@ -18,8 +18,8 @@
             --bg-card: #ffffff;
             --text-dark: #1f2937;
             --text-light: #6b7280;
-            --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
-            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow: 0 1px 3px 0 rgba(0,0,0,.1);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,.1);
         }
 
         .chat-page-header {
@@ -49,8 +49,7 @@
             height: calc(100vh - 280px);
             min-height: 600px;
         }
-
-        /* Card Styles */
+        /* Cards */
         .chat-card {
             background: var(--bg-card);
             border-radius: 12px;
@@ -81,7 +80,7 @@
 
         .count-badge {
             background: var(--primary);
-            color: white;
+            color: #fff;
             padding: 4px 12px;
             border-radius: 12px;
             font-size: 13px;
@@ -101,22 +100,20 @@
             position: relative;
         }
 
-            .input-wrapper input,
-            .input-wrapper select {
+            .input-wrapper input, .input-wrapper select {
                 width: 100%;
                 padding: 10px 14px 10px 38px;
                 border: 1px solid var(--border);
                 border-radius: 8px;
                 font-size: 14px;
-                transition: all 0.2s;
-                background: white;
+                transition: all .2s;
+                background: #fff;
             }
 
-                .input-wrapper input:focus,
-                .input-wrapper select:focus {
+                .input-wrapper input:focus, .input-wrapper select:focus {
                     outline: none;
                     border-color: var(--primary);
-                    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+                    box-shadow: 0 0 0 3px rgba(99,102,241,.1);
                 }
 
         .input-icon {
@@ -138,7 +135,7 @@
             padding: 16px 20px;
             border-bottom: 1px solid var(--border);
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all .2s;
             display: grid;
             grid-template-columns: auto 1fr auto;
             gap: 12px;
@@ -158,11 +155,11 @@
             width: 48px;
             height: 48px;
             border-radius: 12px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
+            background: linear-gradient(135deg,#667eea,#764ba2);
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
+            color: #fff;
             font-weight: 600;
             font-size: 18px;
             flex-shrink: 0;
@@ -229,7 +226,7 @@
 
         .unread-count {
             background: var(--danger);
-            color: white;
+            color: #fff;
             padding: 2px 8px;
             border-radius: 10px;
             font-size: 11px;
@@ -251,7 +248,7 @@
             font-size: 17px;
             font-weight: 600;
             color: var(--text-dark);
-            margin: 0 0 4px 0;
+            margin: 0 0 4px;
         }
 
         .current-customer p {
@@ -270,12 +267,12 @@
             font-size: 14px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all .2s;
             display: inline-flex;
             align-items: center;
             gap: 8px;
             background: var(--primary);
-            color: white;
+            color: #fff;
         }
 
             .action-btn:hover {
@@ -284,12 +281,11 @@
                 box-shadow: var(--shadow-md);
             }
 
-        /* Messages Area */
         .messages-area {
             flex: 1;
             padding: 24px;
             overflow-y: auto;
-            background: linear-gradient(to bottom, #f9fafb, #ffffff);
+            background: linear-gradient(to bottom,#f9fafb,#ffffff);
         }
 
         .empty-state {
@@ -317,7 +313,7 @@
 
         .empty-state h3 {
             font-size: 18px;
-            margin: 0 0 8px 0;
+            margin: 0 0 8px;
             color: var(--text-dark);
         }
 
@@ -348,24 +344,23 @@
 
         .chat-message.sent .message-content {
             background: var(--primary);
-            color: white;
+            color: #fff;
             border-bottom-right-radius: 4px;
         }
 
         .chat-message.received .message-content {
-            background: white;
+            background: #fff;
             color: var(--text-dark);
             border-bottom-left-radius: 4px;
         }
 
         .message-timestamp {
             font-size: 11px;
-            opacity: 0.7;
+            opacity: .7;
             margin-top: 6px;
             display: block;
         }
 
-        /* Typing Indicator */
         .typing-status {
             padding: 12px 24px;
             min-height: 40px;
@@ -374,13 +369,12 @@
             font-style: italic;
         }
 
-        /* Message Input */
         .message-input-box {
             padding: 20px 24px;
             border-top: 1px solid var(--border);
             display: flex;
             gap: 12px;
-            background: white;
+            background: #fff;
         }
 
             .message-input-box input {
@@ -389,25 +383,25 @@
                 border: 1px solid var(--border);
                 border-radius: 10px;
                 font-size: 14px;
-                transition: all 0.2s;
+                transition: all .2s;
             }
 
                 .message-input-box input:focus {
                     outline: none;
                     border-color: var(--primary);
-                    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+                    box-shadow: 0 0 0 3px rgba(99,102,241,.1);
                 }
 
         .send-btn {
             padding: 12px 24px;
             background: var(--primary);
-            color: white;
+            color: #fff;
             border: none;
             border-radius: 10px;
             font-size: 14px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all .2s;
             display: flex;
             align-items: center;
             gap: 8px;
@@ -424,26 +418,39 @@
             }
 
         /* Scrollbar */
-        .conversation-list::-webkit-scrollbar,
-        .messages-area::-webkit-scrollbar {
+        .conversation-list::-webkit-scrollbar, .messages-area::-webkit-scrollbar {
             width: 8px;
         }
 
-        .conversation-list::-webkit-scrollbar-track,
-        .messages-area::-webkit-scrollbar-track {
+        .conversation-list::-webkit-scrollbar-track, .messages-area::-webkit-scrollbar-track {
             background: transparent;
         }
 
-        .conversation-list::-webkit-scrollbar-thumb,
-        .messages-area::-webkit-scrollbar-thumb {
+        .conversation-list::-webkit-scrollbar-thumb, .messages-area::-webkit-scrollbar-thumb {
             background: #d1d5db;
             border-radius: 4px;
         }
 
-            .conversation-list::-webkit-scrollbar-thumb:hover,
-            .messages-area::-webkit-scrollbar-thumb:hover {
+            .conversation-list::-webkit-scrollbar-thumb:hover, .messages-area::-webkit-scrollbar-thumb:hover {
                 background: #9ca3af;
             }
+
+        /* Notification badge */
+        .notification-badge {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #ef4444;
+            color: #fff;
+            padding: 10px 15px;
+            border-radius: 20px;
+            font-weight: 600;
+            z-index: 10000;
+            box-shadow: 0 4px 12px rgba(239,68,68,.4);
+            animation: slideIn .3s ease-out;
+            cursor: pointer;
+        }
+   
 
         /* Responsive */
         @@media (max-width: 1200px) {
@@ -455,11 +462,14 @@
     </style>
 }
 
+<!-- Notification badge -->
+<div class="notification-badge" id="notificationBadge" style="display:none;">
+    <span id="unreadCount">0</span> tin nhắn mới
+</div>
+
 <!-- Page Header -->
 <div class="chat-page-header">
-    <h2 class="chat-page-title">
-        💬 Quản lý Chat
-    </h2>
+    <h2 class="chat-page-title">💬 Quản lý Chat</h2>
 </div>
 
 <!-- Chat Container -->
@@ -467,9 +477,7 @@
     <!-- LEFT: Conversation List -->
     <div class="chat-card">
         <div class="chat-card-header">
-            <div class="chat-card-title">
-                📥 Danh sách hội thoại
-            </div>
+            <div class="chat-card-title">📥 Danh sách hội thoại</div>
             <div class="count-badge" id="totalConv">0</div>
         </div>
 
@@ -503,9 +511,7 @@
                 <h3 id="chatTitle">Chưa chọn hội thoại</h3>
                 <p id="chatStatus">Vui lòng chọn một hội thoại để bắt đầu</p>
             </div>
-            <button id="openBtn" class="action-btn" style="display:none">
-                🚪 Join Room
-            </button>
+            <button id="openBtn" class="action-btn" style="display:none">🚪 Join Room</button>
         </div>
 
         <div id="chatBody" class="messages-area">
@@ -520,9 +526,7 @@
 
         <div class="message-input-box">
             <input id="txt" type="text" placeholder="Nhập tin nhắn của bạn..." autocomplete="off" />
-            <button id="sendBtn" class="send-btn">
-                📤 Gửi
-            </button>
+            <button id="sendBtn" class="send-btn">📤 Gửi</button>
         </div>
     </div>
 </div>
@@ -530,45 +534,50 @@
 @section Scripts {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
     <script>
+        // ------- Constants -------
         const STAFF_ID = "@userId";
         const STAFF_NAME = "@name";
         const HUB = `/chatHub?userId=${encodeURIComponent(STAFF_ID)}&isStaff=true&name=${encodeURIComponent(STAFF_NAME)}`;
 
-        const conn = new signalR.HubConnectionBuilder().withUrl(HUB).build();
+        // ------- State / Connection -------
+        const conn = new signalR.HubConnectionBuilder()
+            .withUrl(HUB)
+            .withAutomaticReconnect({ nextRetryDelayInMilliseconds: ctx => Math.min(1000 * (ctx.previousRetryCount + 1), 10000) })
+            .build();
+
+        // Tinh chỉnh client keepalive/timeout
+        conn.serverTimeoutInMilliseconds = 60000;     // 60s
+        conn.keepAliveIntervalInMilliseconds = 20000; // 20s
+
         const convMap = new Map();
         let currentConv = null;
 
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
+        let isOnChatPage = true;
+        let lastPageState = true; // nhớ lần gần nhất đã gửi
+        let unreadCount = 0;
+        let pageStateTimeout = null;
 
-        function getInitials(text) {
-            return text.substring(0, 2).toUpperCase();
-        }
-
+        // ------- Utils -------
+        function escapeHtml(text) { const div = document.createElement('div'); div.textContent = text ?? ''; return div.innerHTML; }
+        function getInitials(text) { const s = (text ?? '').trim(); return s ? s.substring(0,2).toUpperCase() : '??'; }
         function formatTime(date) {
-            const d = new Date(date);
-            const now = new Date();
-            const diff = now - d;
-            const hours = Math.floor(diff / (1000 * 60 * 60));
-
-            if (hours < 24) {
-                return d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
-            }
-            return d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' });
+            const d = new Date(date); if (Number.isNaN(d.getTime())) return '';
+            const hours = Math.floor((Date.now() - d.getTime()) / 36e5);
+            return hours < 24
+                ? d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
+                : d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' });
         }
 
+        // ------- Render -------
         function renderList() {
             const q = document.getElementById('q').value.trim().toLowerCase();
             const f = document.getElementById('f').value;
             const list = document.getElementById('convList');
 
             const items = [...convMap.values()]
-                .filter(x => !q || x.customerUserId.toLowerCase().includes(q))
-                .filter(x => f === "" || (f === "online" ? x.customerOnline : (x.unreadForStaff ?? 0) > 0))
-                .sort((a, b) => new Date(b.lastAt || 0) - new Date(a.lastAt || 0));
+                .filter(x => !q || (x.customerUserId ?? '').toLowerCase().includes(q))
+                .filter(x => f === "" ? true : (f === "online" ? !!x.customerOnline : (x.unreadForStaff ?? 0) > 0))
+                .sort((a,b) => new Date(b.lastAt||0) - new Date(a.lastAt||0));
 
             document.getElementById('totalConv').textContent = items.length;
 
@@ -577,13 +586,13 @@
                     <div class="empty-state">
                         <div class="empty-icon">📭</div>
                         <p>Không có hội thoại nào</p>
-                    </div>
-                `;
+                    </div>`;
                 return;
             }
 
             list.innerHTML = items.map(x => `
-                <div class="conversation-item ${currentConv === x.conversationId ? 'active' : ''}" onclick="openConv('${x.conversationId}')">
+                <div class="conversation-item ${currentConv === x.conversationId ? 'active' : ''}"
+                     onclick="openConv('${x.conversationId}')">
                     <div class="customer-avatar">${getInitials(x.customerUserId)}</div>
                     <div class="customer-info">
                         <div class="customer-name">
@@ -603,29 +612,6 @@
             `).join('');
         }
 
-        function addChatLine(senderId, text, when) {
-            const msg = document.createElement('div');
-            msg.className = 'chat-message ' + (senderId === STAFF_ID ? 'sent' : 'received');
-
-            const content = document.createElement('div');
-            content.className = 'message-content';
-            content.textContent = text;
-
-            const time = document.createElement('span');
-            time.className = 'message-timestamp';
-            time.textContent = new Date(when || Date.now()).toLocaleTimeString('vi-VN', {
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-
-            content.appendChild(time);
-            msg.appendChild(content);
-
-            const body = document.getElementById('chatBody');
-            body.appendChild(msg);
-            body.scrollTop = body.scrollHeight;
-        }
-
         function setDetailHeader(card) {
             const title = document.getElementById('chatTitle');
             const status = document.getElementById('chatStatus');
@@ -637,8 +623,7 @@
                     <span class="status-indicator ${card.customerOnline ? 'online' : 'offline'}">
                         <span class="status-dot"></span>
                         ${card.customerOnline ? 'Đang online' : 'Offline'}
-                    </span>
-                `;
+                    </span>`;
                 openBtn.style.display = '';
             } else {
                 title.textContent = 'Chưa chọn hội thoại';
@@ -647,34 +632,107 @@
             }
         }
 
+        function addChatLine(senderId, text, when) {
+            const msg = document.createElement('div');
+            msg.className = 'chat-message ' + (senderId === STAFF_ID ? 'sent' : 'received');
+
+            const content = document.createElement('div');
+            content.className = 'message-content';
+            content.textContent = text ?? '';
+
+            const time = document.createElement('span');
+            time.className = 'message-timestamp';
+            time.textContent = new Date(when || Date.now()).toLocaleTimeString('vi-VN', { hour:'2-digit', minute:'2-digit' });
+
+            content.appendChild(time);
+            msg.appendChild(content);
+
+            const body = document.getElementById('chatBody');
+            body.appendChild(msg);
+            body.scrollTop = body.scrollHeight;
+
+            if (currentConv) {
+                const key = `messages:${currentConv}`;
+                const messages = JSON.parse(sessionStorage.getItem(key) || '[]');
+                messages.push({ senderId, text, sentAt: when || new Date().toISOString() });
+                sessionStorage.setItem(key, JSON.stringify(messages));
+            }
+        }
+
         async function openConv(convId) {
             currentConv = convId;
             setDetailHeader(convMap.get(convId));
             document.getElementById('chatBody').innerHTML = '';
-            await conn.invoke("OpenByStaff", convId);
+
+            try {
+                const key = `messages:${convId}`;
+                const cached = JSON.parse(sessionStorage.getItem(key) || '[]');
+
+                if (cached.length > 0) {
+                    cached.forEach(m => addChatLine(m.senderId, m.text, m.sentAt));
+                } else {
+                    const msgs = await conn.invoke("GetMessages", convId);
+                    msgs.forEach(m => addChatLine(m.senderId, m.text, m.sentAt));
+                    sessionStorage.setItem(key, JSON.stringify(msgs));
+                }
+            } catch (err) { console.error("Error loading messages:", err); }
+
+            try { await conn.invoke("OpenConversation", convId); }
+            catch (err) { console.error("Error opening conversation:", err); }
+
             renderList();
         }
 
-        async function start() {
-            await conn.start();
-
-            const res = await fetch('/api/chat-dashboard/conversations');
-            const data = await res.json();
-            data.forEach(x => convMap.set(x.conversationId, {
-                conversationId: x.conversationId,
-                customerUserId: x.customerUserId,
-                staffUserId: x.staffUserId,
-                lastMessage: x.lastMessage,
-                lastAt: x.lastAt,
-                unreadForStaff: x.unreadForStaff,
-                customerOnline: x.customerOnline
-            }));
-            renderList();
+        // ------- Page State (debounced & dedup) -------
+        function updatePageState(state) {
+            if (state === lastPageState) return; // không gửi nếu không đổi
+            lastPageState = state;
+            clearTimeout(pageStateTimeout);
+            pageStateTimeout = setTimeout(() => {
+                if (conn && conn.state === signalR.HubConnectionState.Connected) {
+                    conn.invoke("UpdatePageState", state).catch(err => console.error('UpdatePageState error:', err));
+                }
+            }, 400);
         }
 
-        // SignalR events
-        conn.on("convUpdated", (card) => {
+        // ------- Notification badge -------
+        function showNotificationBadge(count = 1) {
+            if (!isOnChatPage) {
+                unreadCount += count;
+                const badge = document.getElementById('notificationBadge');
+                const countEl = document.getElementById('unreadCount');
+                countEl.textContent = String(unreadCount);
+                badge.style.display = 'block';
+            }
+        }
+        function hideNotificationBadge() {
+            const badge = document.getElementById('notificationBadge');
+            const countEl = document.getElementById('unreadCount');
+            badge.style.display = 'none';
+            unreadCount = 0;
+            countEl.textContent = '0';
+        }
+
+        // ------- SignalR Handlers (register ONCE) -------
+        conn.on("receive", (m) => {
+            if (!isOnChatPage) showNotificationBadge(1);
+            if (m.conversationId === currentConv) {
+                addChatLine(m.senderId, m.text, m.sentAt);
+            } else {
+                const card = convMap.get(m.conversationId);
+                if (card) {
+                    card.lastMessage = m.text;
+                    card.lastAt = m.sentAt;
+                    card.unreadForStaff = (card.unreadForStaff ?? 0) + 1;
+                    convMap.set(m.conversationId, card);
+                    renderList();
+                }
+            }
+        });
+
+        conn.on("conversationUpdated", (card) => {
             convMap.set(card.conversationId, card);
+            if (!isOnChatPage && (card.unreadForStaff ?? 0) > 0) showNotificationBadge(1);
             if (currentConv === card.conversationId) setDetailHeader(card);
             renderList();
         });
@@ -687,38 +745,65 @@
             renderList();
         });
 
-        conn.on("receive", (m) => {
-            if (m.conversationId !== currentConv) return;
-            addChatLine(m.senderId, m.text, m.sentAt);
-        });
-
-        conn.on("typing", (from, isTyping) => {
-            if (!currentConv) return;
-            const t = document.getElementById('typing');
-            t.textContent = isTyping ? "⌨️ Khách hàng đang nhập..." : "";
-        });
-
-        // Input handlers
+        // ------- DOM Events -------
         document.getElementById('q').addEventListener('input', renderList);
         document.getElementById('f').addEventListener('change', renderList);
-        document.getElementById('openBtn').onclick = () => currentConv && conn.invoke("OpenByStaff", currentConv);
-
-        document.getElementById('sendBtn').onclick = async () => {
+        document.getElementById('openBtn').addEventListener('click', () => { if (currentConv) openConv(currentConv); });
+        document.getElementById('sendBtn').addEventListener('click', async () => {
             if (!currentConv) return alert("⚠️ Chưa chọn hội thoại");
             const el = document.getElementById('txt');
             const v = el.value.trim();
             if (!v) return;
             el.value = "";
-            await conn.invoke("SendMessage", currentConv, STAFF_ID, v);
-        };
-
+            try { await conn.invoke("SendMessage", currentConv, STAFF_ID, v); }
+            catch (err) { console.error('SendMessage error:', err); }
+        });
         document.getElementById('txt').addEventListener('keydown', (e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                document.getElementById('sendBtn').click();
-            }
+            if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); document.getElementById('sendBtn').click(); }
+        });
+        document.getElementById('notificationBadge').addEventListener('click', () => {
+            hideNotificationBadge();
+            window.location.href = `/Chat/Staff?userId=${encodeURIComponent(STAFF_ID)}&name=${encodeURIComponent(STAFF_NAME)}`;
         });
 
+        // Page focus/visibility
+        window.addEventListener('blur',  () => { isOnChatPage = false; updatePageState(false); });
+        window.addEventListener('focus', () => { isOnChatPage = true;  updatePageState(true); hideNotificationBadge(); });
+        document.addEventListener('visibilitychange', () => {
+            const now = !document.hidden;
+            isOnChatPage = now;
+            updatePageState(now);
+            if (now) hideNotificationBadge();
+        });
+
+        // ------- Start / Reconnect -------
+        async function start() {
+            try {
+                await conn.start();
+                updatePageState(true);
+
+           const res = await fetch(`/api/chat-dashboard/conversations?staffId=${encodeURIComponent(STAFF_ID)}`);
+                const data = await res.json();
+                data.forEach(x => convMap.set(x.conversationId, {
+                    conversationId: x.conversationId,
+                    customerUserId: x.customerUserId,
+                    staffUserId: x.staffUserId,
+                    lastMessage: x.lastMessage,
+                    lastAt: x.lastAt,
+                    unreadForStaff: x.unreadForStaff,
+                    customerOnline: x.customerOnline
+                }));
+                renderList();
+            } catch (err) {
+                console.error('Connection error:', err);
+                setTimeout(start, 5000);
+            }
+        }
+
+        conn.onreconnecting = (error) => { console.warn('Reconnecting...', error); };
+        conn.onreconnected  = () => { console.log('Reconnected'); updatePageState(isOnChatPage); };
+
+        // Single start
         start().catch(console.error);
     </script>
 }

@@ -64,8 +64,18 @@ namespace DAL.Repositories
             existing.Status = promotion.Status;
             existing.UpdatedAt = DateTime.Now;
 
-            await _context.SaveChangesAsync();
-            return true;
+                
+            try
+            {
+                var affected = await _context.SaveChangesAsync();
+                return affected > 0;
+            }
+            catch (Exception ex)
+            {
+                // Log lỗi nếu cần
+                Console.WriteLine($"[ERROR] UpdateAsync failed: {ex.Message}");
+                return false;
+            }
         }
 
         public async Task<bool> DeleteAsync(int id)

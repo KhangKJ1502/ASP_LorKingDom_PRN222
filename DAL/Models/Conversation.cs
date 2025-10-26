@@ -5,7 +5,8 @@
         public string ConversationId { get; init; } = Guid.NewGuid().ToString("N");
         public string CustomerUserId { get; init; } = default!;
         public string StaffUserId { get; set; } = default!;
-        public DateTime LastActivityAt { get; private set; } = DateTime.UtcNow;
+        public DateTime LastActivityAt { get;  set; } = DateTime.UtcNow;
+
 
         private readonly List<ChatMessage> _messages = new();
         public IReadOnlyList<ChatMessage> Messages => _messages;

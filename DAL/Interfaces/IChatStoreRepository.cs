@@ -1,11 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿using System.Collections.Concurrent;
 using DAL.Models;
-using System.Collections.Concurrent;
 
 namespace DAL.Interfaces;
 
@@ -22,4 +16,3 @@ public interface IChatStoreRepository
     void UnregisterStaff(string staffId);
     string? PickStaff();
 }
-
