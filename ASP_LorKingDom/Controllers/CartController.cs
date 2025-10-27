@@ -1,8 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using BLL.DTOs;
 using BLL.Interfaces;
-using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
-using BLL.DTOs;
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace WebUI.Controllers
 {

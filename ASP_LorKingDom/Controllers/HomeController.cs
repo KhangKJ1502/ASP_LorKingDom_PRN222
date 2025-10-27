@@ -10,7 +10,7 @@ namespace ASP_LorKingDom.Controllers
     {
         private readonly ILogger<HomeController> _logger;
         private readonly IProductService _productSvc;
-        public HomeController(ILogger<HomeController> logger, IProductService productSvc) // <- thêm service
+        public HomeController(ILogger<HomeController> logger, IProductService productSvc) // <- thÃªm service
         {
             _logger = logger;
             _productSvc = productSvc;
@@ -41,7 +41,7 @@ namespace ASP_LorKingDom.Controllers
             var total = filtered.Count();
 
             var items = filtered
-                .OrderByDescending(p => p.CreatedAt)   
+                .OrderByDescending(p => p.CreatedAt)
                 .ThenByDescending(p => p.Id)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)

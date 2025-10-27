@@ -51,7 +51,7 @@
 			</div>
 
 			@* Login Form *@
-			<form class="login-form" id="loginForm" method="post">
+			<form class="login-form" id="loginForm">
 				@Html.AntiForgeryToken()
 
 				<div class="form-group">
@@ -71,7 +71,7 @@
 						<input type="checkbox" name="rememberMe" value="true" />
 						<span>Ghi nhớ đăng nhập</span>
 					</label>
-					<a asp-controller="Auth" asp-action="ForgotPassword" class="forgot-link">Quên mật khẩu?</a>
+					<a href="#" class="forgot-link">Quên mật khẩu?</a>
 				</div>
 
 				<input type="hidden" name="returnUrl" value="@ViewBag.ReturnUrl" />
@@ -120,48 +120,141 @@
 	</div>
 </div>
 
+<!-- Modal Quên Mật Khẩu -->
+<div class="modal fade" id="forgotPasswordModal" tabindex="-1" aria-labelledby="forgotPasswordModalLabel" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-centered">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="forgotPasswordModalLabel">
+					<i class="fas fa-key me-2"></i>Quên mật khẩu
+				</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<form id="forgotPasswordForm" class="modal-body">
+				@Html.AntiForgeryToken()
+				<div class="mb-3">
+					<label for="forgotEmail" class="form-label">Địa chỉ Email</label>
+					<input type="email" class="form-control" id="forgotEmail" name="email" placeholder="Nhập email đã đăng ký" required />
+				</div>
+				<button type="submit" class="btn btn-primary w-100">
+					<span class="spinner-border spinner-border-sm me-2 d-none" id="forgotPasswordSpinner" role="status" aria-hidden="true"></span>
+					<span id="forgotPasswordBtnText">Gửi OTP</span>
+				</button>
+			</form>
+		</div>
+	</div>
+</div>
+
 @section Scripts {
 	<script>
-		document.getElementById('loginForm').addEventListener('submit', async function (e) {
+		// Hiển thị modal quên mật khẩu từ link "Quên mật khẩu?"
+		$('.forgot-link').on('click', function(e) {
 			e.preventDefault();
-
-			const formData = new FormData(this);
-
-			try {
-				const response = await fetch('@Url.Action("Login", "Auth")', {
-					method: 'POST',
-					body: formData
-				});
-
-				const data = await response.json();
-
-				if (data.success) {
-					Swal.fire({
-						icon: 'success',
-						title: 'Đăng nhập thành công',
-						text: data.message,
-						confirmButtonColor: '#28a745',
-						allowOutsideClick: false
-					}).then(() => {
-						window.location.href = data.redirectUrl;
-					});
-				} else {
-					Swal.fire({
-						icon: 'error',
-						title: 'Đăng nhập thất bại',
-						text: data.message,
-						confirmButtonColor: '#f97316',
-						timer: 5000
-					});
-				}
-			} catch (error) {
-				Swal.fire({
-					icon: 'error',
-					title: 'Lỗi',
-					text: 'Đã xảy ra lỗi khi đăng nhập',
-					confirmButtonColor: '#f97316'
-				});
-			}
+			const modal = new bootstrap.Modal(document.getElementById('forgotPasswordModal'));
+			modal.show();
 		});
+
+		
+		$(document).ready(function () {
+			// Xử lý login
+			$('#loginForm').on('submit', function (e) {
+				e.preventDefault();
+
+				const form = $(this);
+
+				$.ajax({
+					url: '@Url.Action("Login", "Auth")',
+					type: 'POST',
+					data: form.serialize(), 
+					headers: {
+						'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val() // để ValidateAntiForgeryToken hoạt động
+					},
+					success: function (data) {
+						if (data.success) {
+							Swal.fire({
+								icon: 'success',
+								title: 'Đăng nhập thành công',
+								text: data.message,
+								confirmButtonColor: '#4f46e5',
+								allowOutsideClick: false
+							}).then(() => {
+								window.location.href = data.redirectUrl;
+							});
+						} else {
+							Swal.fire({
+								icon: 'error',
+								title: 'Đăng nhập thất bại',
+								text: data.message,
+								confirmButtonColor: '#dc2626',
+								timer: 5000
+							});
+						}
+					},
+					error: function () {
+						Swal.fire({
+							icon: 'error',
+							title: 'Lỗi',
+							text: 'Đã xảy ra lỗi khi gửi yêu cầu đăng nhập.',
+							confirmButtonColor: '#dc2626'
+						});
+					}
+				});
+			});
+
+			// Handle form quên mật khẩu
+			$('#forgotPasswordForm').on('submit', function (e) {
+				e.preventDefault();
+
+				const form = $(this);
+				const spinner = $('#forgotPasswordSpinner');
+				const btnText = $('#forgotPasswordBtnText');
+
+				spinner.removeClass('d-none');
+				btnText.text('Đang gửi...');
+
+				$.ajax({
+					url: '@Url.Action("ForgotPasswordRequest", "Auth")',
+					type: 'POST',
+					data: form.serialize(),
+					headers: {
+						'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val() // để ValidateAntiForgeryToken hoạt động
+					},
+					success: function (data) {
+						if (data.success) {
+							Swal.fire({
+								icon: 'success',
+								title: 'Thành công',
+								text: data.message,
+								confirmButtonColor: '#4f46e5',
+								allowOutsideClick: false
+							}).then(() => {
+								window.location.href = data.redirectUrl;
+							});
+						} else {
+							Swal.fire({
+								icon: 'error',
+								title: 'Lỗi',
+								text: data.message,
+								confirmButtonColor: '#dc2626',
+								timer: 5000
+							});
+						}
+					},
+					error: function () {
+						Swal.fire({
+							icon: 'error',
+							title: 'Lỗi hệ thống',
+							text: data.message,
+							confirmButtonColor: '#dc2626'
+						});
+					},
+					complete: function(){
+						spinner.addClass('d-none');
+						btnText.text('Gửi OTP');
+					}
+				});
+			});
+		});
+
 	</script>
 }

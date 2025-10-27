@@ -1,0 +1,645 @@
+﻿@{
+    ViewData["Title"] = "Chi tiết đơn hàng";
+    Layout = "_Layout";
+}
+
+@section Styles {
+    <style>
+        :root {
+            --color-primary: rgb(230, 126, 75);
+            --color-primary-light: rgb(245, 160, 120);
+            --color-primary-dark: rgb(200, 100, 60);
+            --color-success: #10b981;
+            --color-warning: rgb(230, 126, 75);
+            --color-muted: rgb(245, 245, 245);
+            --color-border: rgb(235, 235, 235);
+            --color-foreground: rgb(30, 30, 30);
+            --color-white: #ffffff;
+            --radius-xl: 1.5rem;
+            --radius-lg: 1.25rem;
+            --radius: 1rem;
+            --radius-sm: 0.75rem;
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+            --font-fredoka: "Fredoka", sans-serif;
+            --font-inter: "Inter", sans-serif;
+            --color-muted-foreground: rgb(115, 115, 115);
+        }
+
+        .order-details-page {
+            background: linear-gradient(to bottom right, rgba(245, 160, 120, 0.05), #ffffff 30%);
+            min-height: calc(100vh - 200px);
+            padding-top: 2rem;
+            padding-bottom: 2rem;
+        }
+
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            gap: 1rem;
+        }
+
+        .order-header-left h2 {
+            font-family: var(--font-fredoka);
+            font-weight: 600;
+            font-size: 1.75rem;
+            color: var(--color-foreground);
+            margin-bottom: 0.5rem;
+        }
+
+        .order-header-info {
+            display: flex;
+            gap: 2rem;
+            font-size: 0.95rem;
+            color: var(--color-muted-foreground);
+        }
+
+        .order-header-info span {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-back {
+            background: var(--color-white);
+            border: 2px solid var(--color-border);
+            color: var(--color-primary);
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius);
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-back:hover {
+            background: var(--color-primary);
+            color: var(--color-white);
+            border-color: var(--color-primary);
+        }
+
+        /* Timeline - Trạng thái đơn hàng */
+        .order-timeline {
+            background: var(--color-white);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-xl);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-md);
+        }
+
+        .timeline-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            position: relative;
+        }
+
+        .timeline-container::before {
+            content: '';
+            position: absolute;
+            top: 24px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(to right, var(--color-success) 50%, var(--color-border) 50%);
+            z-index: 0;
+        }
+
+        .timeline-step {
+            flex: 1;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .timeline-step.completed .timeline-icon {
+            background: var(--color-success);
+            color: var(--color-white);
+        }
+
+        .timeline-step.active .timeline-icon {
+            background: var(--color-warning);
+            color: var(--color-white);
+        }
+
+        .timeline-step.pending .timeline-icon {
+            background: var(--color-border);
+            color: var(--color-muted-foreground);
+        }
+
+        .timeline-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            margin: 0 auto 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .timeline-label {
+            font-family: var(--font-fredoka);
+            font-weight: 600;
+            color: var(--color-foreground);
+            margin-bottom: 0.25rem;
+        }
+
+        .timeline-date {
+            font-size: 0.85rem;
+            color: var(--color-muted-foreground);
+        }
+
+        .delivery-estimate {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: var(--radius);
+            padding: 1rem;
+            text-align: center;
+            margin-top: 1.5rem;
+            color: var(--color-success);
+            font-weight: 500;
+        }
+
+        /* Thông tin giao hàng & Thanh toán */
+        .order-content {
+            display: grid;
+            grid-template-columns: 7fr 5fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .order-content-left {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .order-card {
+            background: var(--color-white);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-xl);
+            padding: 2rem;
+            box-shadow: var(--shadow-md);
+        }
+
+        .order-card-title {
+            font-family: var(--font-fredoka);
+            font-weight: 600;
+            font-size: 1.25rem;
+            color: var(--color-foreground);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .order-card-title svg {
+            width: 24px;
+            height: 24px;
+            color: var(--color-primary);
+        }
+
+        .order-info-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .order-info-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .order-info-row .order-info-group {
+            margin-bottom: 0;
+        }
+
+        .order-info-label {
+            font-weight: 500;
+            color: var(--color-muted-foreground);
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .order-info-value {
+            color: var(--color-foreground);
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .order-info-value.primary {
+            color: var(--color-primary);
+            font-weight: 600;
+        }
+
+        /* Danh sách sản phẩm */
+        .order-products {
+            background: var(--color-white);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-xl);
+            padding: 2rem;
+            box-shadow: var(--shadow-md);
+            margin-bottom: 2rem;
+        }
+
+        .order-products-title {
+            font-family: var(--font-fredoka);
+            font-weight: 600;
+            font-size: 1.25rem;
+            color: var(--color-foreground);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .product-item {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            padding: 1.5rem;
+            background: var(--color-muted);
+            border-radius: var(--radius-lg);
+            margin-bottom: 1rem;
+        }
+
+        .product-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .product-image {
+            width: 100px;
+            height: 100px;
+            background: var(--color-white);
+            border-radius: var(--radius);
+            border: 1px solid var(--color-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 2.5rem;
+        }
+
+        .product-info {
+            flex: 1;
+        }
+
+        .product-name {
+            font-family: var(--font-fredoka);
+            font-weight: 600;
+            color: var(--color-foreground);
+            margin-bottom: 0.5rem;
+        }
+
+        .product-price {
+            font-size: 0.95rem;
+            color: var(--color-muted-foreground);
+            margin-bottom: 0.75rem;
+        }
+
+        .product-status {
+            display: inline-block;
+            padding: 0.4rem 0.8rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .product-status.available {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--color-success);
+        }
+
+        .product-status.unavailable {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+        }
+
+        .product-price-right {
+            font-family: var(--font-fredoka);
+            font-weight: 600;
+            font-size: 1.25rem;
+            color: var(--color-primary);
+            text-align: right;
+        }
+
+        /* Tóm tắt đơn hàng */
+        .order-summary {
+            background: var(--color-white);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-xl);
+            padding: 2rem;
+            box-shadow: var(--shadow-md);
+            position: sticky;
+            top: 210px;
+            height: fit-content;
+            max-height: calc(100vh - 150px);
+            overflow-y: auto;
+        }
+
+        .order-summary-title {
+            font-family: var(--font-fredoka);
+            font-weight: 600;
+            font-size: 1.25rem;
+            color: var(--color-foreground);
+            margin-bottom: 1.5rem;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .summary-row:last-child {
+            border-bottom: none;
+        }
+
+        .summary-row.total {
+            border-top: 2px solid var(--color-border);
+            padding-top: 1rem;
+            padding-bottom: 1rem;
+            background: rgba(245, 160, 120, 0.05);
+            border-radius: var(--radius);
+            padding-left: 1rem;
+            padding-right: 1rem;
+            margin-top: 1rem;
+        }
+
+        .summary-label {
+            color: var(--color-muted-foreground);
+            font-weight: 500;
+        }
+
+        .summary-value {
+            color: var(--color-foreground);
+            font-weight: 500;
+        }
+
+        .summary-value.total {
+            color: var(--color-primary);
+            font-family: var(--font-fredoka);
+            font-weight: 600;
+            font-size: 1.25rem;
+        }
+
+        .summary-value.discount {
+            color: #ef4444;
+        }
+
+        .summary-value.success {
+            color: var(--color-success);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+            color: var(--color-white);
+            border: none;
+            border-radius: var(--radius);
+            padding: 0.9rem 1.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex: 1;
+            justify-content: center;
+        }
+
+        .btn-primary:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn-secondary {
+            background: var(--color-white);
+            color: var(--color-primary);
+            border: 2px solid var(--color-primary);
+            border-radius: var(--radius);
+            padding: 0.9rem 1.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex: 1;
+            justify-content: center;
+        }
+
+        .btn-secondary:hover {
+            background: var(--color-primary);
+            color: var(--color-white);
+        }
+    </style>
+}
+
+<div class="order-details-page">
+    <div class="container">
+        <!-- Header -->
+        <div class="order-header">
+            <div class="order-header-left">
+                <h2>Chi tiết đơn hàng</h2>
+                <div class="order-header-info">
+                    <span><strong>Mã đơn:</strong> #123456</span>
+                    <span><strong>Ngày đặt:</strong> 25/10/2025</span>
+                </div>
+            </div>
+            <a href="/Home/MyOrders" class="btn-back">
+                <i class="fas fa-arrow-left"></i>Quay lại
+            </a>
+        </div>
+
+        <!-- Timeline - Trạng thái đơn hàng -->
+        <div class="order-timeline">
+            <div class="timeline-container">
+                <div class="timeline-step completed">
+                    <div class="timeline-icon">⏳</div>
+                    <div class="timeline-label">Chờ xác nhận</div>
+                    <div class="timeline-date">24/10/2025</div>
+                </div>
+
+                <div class="timeline-step completed">
+                    <div class="timeline-icon">✓</div>
+                    <div class="timeline-label">Đã xác nhận</div>
+                    <div class="timeline-date">24/10/2025</div>
+                </div>
+
+                <div class="timeline-step active">
+                    <div class="timeline-icon">🚚</div>
+                    <div class="timeline-label">Đang vận chuyển</div>
+                    <div class="timeline-date"></div>
+                </div>
+
+                <div class="timeline-step pending">
+                    <div class="timeline-icon">📦</div>
+                    <div class="timeline-label">Đã giao</div>
+                    <div class="timeline-date"></div>
+                </div>
+            </div>
+
+            <div class="delivery-estimate">
+                <i class="fas fa-calendar-alt me-2"></i>Dự kiến giao hàng vào ngày 28/10/2025
+            </div>
+        </div>
+
+        <!-- Content: Thông tin giao hàng & Thanh toán -->
+        <div class="order-content">
+            <!-- Cột trái: Thông tin + Danh sách sản phẩm -->
+            <div class="order-content-left">
+                <!-- Thông tin giao hàng -->
+                <div class="order-card">
+                    <div class="order-card-title">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                            <circle cx="12" cy="10" r="3"></circle>
+                        </svg>
+                        Thông tin giao hàng & Thanh toán
+                    </div>
+
+                    <div class="order-info-row">
+                        <div class="order-info-group">
+                            <div class="order-info-label">Người nhận</div>
+                            <div class="order-info-value">Nguyễn Văn A</div>
+                        </div>
+
+                        <div class="order-info-group">
+                            <div class="order-info-label">Số điện thoại</div>
+                            <div class="order-info-value">0901234567</div>
+                        </div>
+                    </div>
+
+                    <div class="order-info-group">
+                        <div class="order-info-label">Địa chỉ</div>
+                        <div class="order-info-value">123 Đường ABC, Phường XYZ, Quận 1, Hồ Chí Minh</div>
+                    </div>
+
+                    <div class="order-info-group">
+                        <div class="order-info-label">Phương thức vận chuyển</div>
+                        <div class="order-info-value">Giao hàng nhanh (50.000đ)</div>
+                    </div>
+
+                    <div class="order-info-group">
+                        <div class="order-info-label">Phương thức thanh toán</div>
+                        <div class="order-info-value">Thanh toán khi nhận hàng (COD)</div>
+                    </div>
+                </div>
+
+                <!-- Danh sách sản phẩm -->
+                <div class="order-card">
+                    <div class="order-card-title">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="9" cy="21" r="1"></circle>
+                            <circle cx="20" cy="21" r="1"></circle>
+                            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                        </svg>
+                        Danh sách sản phẩm
+                    </div>
+
+                    <div style="max-height: 300px; overflow-y: auto;">
+                        <div class="order-info-group"
+                            style="border-bottom: 1px solid var(--color-border); padding-bottom: 0.75rem; margin-bottom: 0.75rem; display: flex; gap: 1rem; align-items: flex-start;">
+                            <div style="width: 70px; height: 70px; background: linear-gradient(135deg, #ffd700, #ffed4e); border-radius: var(--radius); display: flex; align-items: center; justify-content: center; font-size: 2.5rem; flex-shrink: 0;">🧸</div>
+                            <div style="flex: 1;">
+                                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
+                                    <span style="color: var(--color-foreground); font-weight: 500;">Gấu Bông Teddy Lông Mín</span>
+                                    <span style="color: var(--color-primary); font-weight: 600;">350.000đ</span>
+                                </div>
+                                <small style="color: var(--color-muted-foreground);">Đơn giá: 350.000đ x 1 (SL)</small>
+                            </div>
+                        </div>
+
+                        <div class="order-info-group"
+                            style="border-bottom: 1px solid var(--color-border); padding-bottom: 0.75rem; margin-bottom: 0.75rem; display: flex; gap: 1rem; align-items: flex-start;">
+                            <div style="width: 70px; height: 70px; background: linear-gradient(135deg, #ff6b6b, #ff8787); border-radius: var(--radius); display: flex; align-items: center; justify-content: center; font-size: 2.5rem; flex-shrink: 0;">🧱</div>
+                            <div style="flex: 1;">
+                                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
+                                    <span style="color: var(--color-foreground); font-weight: 500;">Bộ Xếp Hình LEGO Sáng Tạo</span>
+                                    <span style="color: var(--color-primary); font-weight: 600;">750.000đ</span>
+                                </div>
+                                <small style="color: var(--color-muted-foreground);">Đơn giá: 750.000đ x 1 (SL)</small>
+                            </div>
+                        </div>
+
+                        <div class="order-info-group"
+                            style="display: flex; gap: 1rem; align-items: flex-start;">
+                            <div style="width: 70px; height: 70px; background: linear-gradient(135deg, #4ecdc4, #44b3aa); border-radius: var(--radius); display: flex; align-items: center; justify-content: center; font-size: 2.5rem; flex-shrink: 0;">🚗</div>
+                            <div style="flex: 1;">
+                                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
+                                    <span style="color: var(--color-foreground); font-weight: 500;">Xe Điều Khiển Từ Xa Tốc Độ Cao</span>
+                                    <span style="color: var(--color-primary); font-weight: 600;">520.000đ</span>
+                                </div>
+                                <small style="color: var(--color-muted-foreground);">Đơn giá: 520.000đ x 1 (SL)</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cột phải: Tóm tắt đơn hàng (Sticky) -->
+            <div class="order-summary">
+                <h3 class="order-summary-title">Tóm tắt đơn hàng</h3>
+
+                <div class="summary-row">
+                    <span class="summary-label">Tạm tính (3 sản phẩm)</span>
+                    <span class="summary-value">1.620.000đ</span>
+                </div>
+
+                <div class="summary-row">
+                    <span class="summary-label">Phí vận chuyển</span>
+                    <span class="summary-value">50.000đ</span>
+                </div>
+
+                <div class="summary-row">
+                    <span class="summary-label">Giảm giá (Voucher)</span>
+                    <span class="summary-value discount">-0đ</span>
+                </div>
+
+                <div class="summary-row total">
+                    <span class="summary-label">Tổng cộng</span>
+                    <span class="summary-value total">1.670.000đ</span>
+                </div>
+
+                <div class="action-buttons">
+                    <button class="btn-primary">
+                        <i class="fas fa-print"></i>In đơn hàng
+                    </button>
+                    <a href="/Home/Index" class="btn-secondary">
+                        <i class="fas fa-shopping-bag"></i>Tiếp tục mua sắm
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Print button functionality
+            document.querySelector('.btn-primary').addEventListener('click', function () {
+                window.print();
+            });
+        });
+    </script>
+}
