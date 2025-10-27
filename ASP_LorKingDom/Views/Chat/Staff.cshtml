@@ -1,5 +1,7 @@
 ﻿@{
     Layout = "_AdminLayout";
+
+    // Lấy đúng ID và tên từ Controller (đã chuẩn hoá = claim)
     var userId = (string)ViewBag.UserId!;
     var name = (string)ViewBag.Name!;
 }
@@ -41,7 +43,6 @@
             color: var(--text-light);
         }
 
-        /* Chat Container */
         .chat-container {
             display: grid;
             grid-template-columns: 420px 1fr;
@@ -49,7 +50,7 @@
             height: calc(100vh - 280px);
             min-height: 600px;
         }
-        /* Cards */
+
         .chat-card {
             background: var(--bg-card);
             border-radius: 12px;
@@ -87,7 +88,6 @@
             font-weight: 600;
         }
 
-        /* Search & Filter */
         .search-box {
             padding: 16px 20px;
             border-bottom: 1px solid var(--border);
@@ -100,7 +100,8 @@
             position: relative;
         }
 
-            .input-wrapper input, .input-wrapper select {
+            .input-wrapper input,
+            .input-wrapper select {
                 width: 100%;
                 padding: 10px 14px 10px 38px;
                 border: 1px solid var(--border);
@@ -110,7 +111,8 @@
                 background: #fff;
             }
 
-                .input-wrapper input:focus, .input-wrapper select:focus {
+                .input-wrapper input:focus,
+                .input-wrapper select:focus {
                     outline: none;
                     border-color: var(--primary);
                     box-shadow: 0 0 0 3px rgba(99,102,241,.1);
@@ -125,7 +127,6 @@
             font-size: 16px;
         }
 
-        /* Conversation List */
         .conversation-list {
             flex: 1;
             overflow-y: auto;
@@ -234,7 +235,6 @@
             display: inline-block;
         }
 
-        /* Chat Area */
         .chat-area-header {
             padding: 20px 24px;
             border-bottom: 1px solid var(--border);
@@ -417,25 +417,27 @@
                 transform: translateY(0);
             }
 
-        /* Scrollbar */
-        .conversation-list::-webkit-scrollbar, .messages-area::-webkit-scrollbar {
+        .conversation-list::-webkit-scrollbar,
+        .messages-area::-webkit-scrollbar {
             width: 8px;
         }
 
-        .conversation-list::-webkit-scrollbar-track, .messages-area::-webkit-scrollbar-track {
+        .conversation-list::-webkit-scrollbar-track,
+        .messages-area::-webkit-scrollbar-track {
             background: transparent;
         }
 
-        .conversation-list::-webkit-scrollbar-thumb, .messages-area::-webkit-scrollbar-thumb {
+        .conversation-list::-webkit-scrollbar-thumb,
+        .messages-area::-webkit-scrollbar-thumb {
             background: #d1d5db;
             border-radius: 4px;
         }
 
-            .conversation-list::-webkit-scrollbar-thumb:hover, .messages-area::-webkit-scrollbar-thumb:hover {
+            .conversation-list::-webkit-scrollbar-thumb:hover,
+            .messages-area::-webkit-scrollbar-thumb:hover {
                 background: #9ca3af;
             }
 
-        /* Notification badge */
         .notification-badge {
             position: fixed;
             top: 20px;
@@ -447,34 +449,33 @@
             font-weight: 600;
             z-index: 10000;
             box-shadow: 0 4px 12px rgba(239,68,68,.4);
-            animation: slideIn .3s ease-out;
             cursor: pointer;
+            display: none;
         }
-   
 
-        /* Responsive */
         @@media (max-width: 1200px) {
-            .chat-container {
-                grid-template-columns: 1fr;
-                height: auto;
-            }
+            .chat-container
+
+        {
+            grid-template-columns: 1fr;
+            height: auto;
+        }
+
         }
     </style>
 }
 
-<!-- Notification badge -->
-<div class="notification-badge" id="notificationBadge" style="display:none;">
+<!-- Badge thông báo -->
+<div class="notification-badge" id="notificationBadge">
     <span id="unreadCount">0</span> tin nhắn mới
 </div>
 
-<!-- Page Header -->
 <div class="chat-page-header">
     <h2 class="chat-page-title">💬 Quản lý Chat</h2>
 </div>
 
-<!-- Chat Container -->
 <div class="chat-container">
-    <!-- LEFT: Conversation List -->
+    <!-- LEFT -->
     <div class="chat-card">
         <div class="chat-card-header">
             <div class="chat-card-title">📥 Danh sách hội thoại</div>
@@ -504,7 +505,7 @@
         </div>
     </div>
 
-    <!-- RIGHT: Chat Detail -->
+    <!-- RIGHT -->
     <div class="chat-card">
         <div class="chat-area-header">
             <div class="current-customer">
@@ -534,41 +535,55 @@
 @section Scripts {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
     <script>
-        // ------- Constants -------
+        // ===== Staff info lấy từ Razor (=> từ Claims => ID thật, vd "22")
         const STAFF_ID = "@userId";
         const STAFF_NAME = "@name";
+
+        // Hub URL: KHÔNG lấy query string nữa
         const HUB = `/chatHub?userId=${encodeURIComponent(STAFF_ID)}&isStaff=true&name=${encodeURIComponent(STAFF_NAME)}`;
 
-        // ------- State / Connection -------
+        // ===== State
         const conn = new signalR.HubConnectionBuilder()
             .withUrl(HUB)
-            .withAutomaticReconnect({ nextRetryDelayInMilliseconds: ctx => Math.min(1000 * (ctx.previousRetryCount + 1), 10000) })
+            .withAutomaticReconnect({
+                nextRetryDelayInMilliseconds: ctx =>
+                    Math.min(1000 * (ctx.previousRetryCount + 1), 10000)
+            })
             .build();
 
-        // Tinh chỉnh client keepalive/timeout
-        conn.serverTimeoutInMilliseconds = 60000;     // 60s
-        conn.keepAliveIntervalInMilliseconds = 20000; // 20s
+        conn.serverTimeoutInMilliseconds = 60000;
+        conn.keepAliveIntervalInMilliseconds = 20000;
 
         const convMap = new Map();
         let currentConv = null;
 
         let isOnChatPage = true;
-        let lastPageState = true; // nhớ lần gần nhất đã gửi
+        let lastPageState = true;
         let unreadCount = 0;
         let pageStateTimeout = null;
 
-        // ------- Utils -------
-        function escapeHtml(text) { const div = document.createElement('div'); div.textContent = text ?? ''; return div.innerHTML; }
-        function getInitials(text) { const s = (text ?? '').trim(); return s ? s.substring(0,2).toUpperCase() : '??'; }
+        // ===== Utils
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text ?? '';
+            return div.innerHTML;
+        }
+
+        function getInitials(text) {
+            const s = (text ?? '').trim();
+            return s ? s.substring(0, 2).toUpperCase() : '??';
+        }
+
         function formatTime(date) {
-            const d = new Date(date); if (Number.isNaN(d.getTime())) return '';
+            const d = new Date(date);
+            if (Number.isNaN(d.getTime())) return '';
             const hours = Math.floor((Date.now() - d.getTime()) / 36e5);
             return hours < 24
                 ? d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
                 : d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' });
         }
 
-        // ------- Render -------
+        // ===== Render danh sách hội thoại
         function renderList() {
             const q = document.getElementById('q').value.trim().toLowerCase();
             const f = document.getElementById('f').value;
@@ -606,12 +621,15 @@
                     </div>
                     <div class="conversation-meta">
                         <div class="message-time">${x.lastAt ? formatTime(x.lastAt) : ''}</div>
-                        ${(x.unreadForStaff ?? 0) > 0 ? `<span class="unread-count">${x.unreadForStaff}</span>` : ''}
+                        ${(x.unreadForStaff ?? 0) > 0
+                            ? `<span class="unread-count">${x.unreadForStaff}</span>`
+                            : ''}
                     </div>
                 </div>
             `).join('');
         }
 
+        // ===== Header khung chat bên phải
         function setDetailHeader(card) {
             const title = document.getElementById('chatTitle');
             const status = document.getElementById('chatStatus');
@@ -632,7 +650,8 @@
             }
         }
 
-        function addChatLine(senderId, text, when) {
+        // ===== Thêm 1 tin nhắn vào khung phải
+        function addChatLine(senderId, text, when, shouldCache = true) {
             const msg = document.createElement('div');
             msg.className = 'chat-message ' + (senderId === STAFF_ID ? 'sent' : 'received');
 
@@ -642,7 +661,10 @@
 
             const time = document.createElement('span');
             time.className = 'message-timestamp';
-            time.textContent = new Date(when || Date.now()).toLocaleTimeString('vi-VN', { hour:'2-digit', minute:'2-digit' });
+            time.textContent = new Date(when || Date.now()).toLocaleTimeString('vi-VN', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
 
             content.appendChild(time);
             msg.appendChild(content);
@@ -651,14 +673,19 @@
             body.appendChild(msg);
             body.scrollTop = body.scrollHeight;
 
-            if (currentConv) {
+            if (shouldCache && currentConv) {
                 const key = `messages:${currentConv}`;
                 const messages = JSON.parse(sessionStorage.getItem(key) || '[]');
-                messages.push({ senderId, text, sentAt: when || new Date().toISOString() });
+                messages.push({
+                    senderId,
+                    text,
+                    sentAt: when || new Date().toISOString()
+                });
                 sessionStorage.setItem(key, JSON.stringify(messages));
             }
         }
 
+        // ===== Mở 1 cuộc hội thoại
         async function openConv(convId) {
             currentConv = convId;
             setDetailHeader(convMap.get(convId));
@@ -669,33 +696,39 @@
                 const cached = JSON.parse(sessionStorage.getItem(key) || '[]');
 
                 if (cached.length > 0) {
-                    cached.forEach(m => addChatLine(m.senderId, m.text, m.sentAt));
+                    cached.forEach(m => addChatLine(m.senderId, m.text, m.sentAt, false));
                 } else {
                     const msgs = await conn.invoke("GetMessages", convId);
-                    msgs.forEach(m => addChatLine(m.senderId, m.text, m.sentAt));
+                    msgs.forEach(m => addChatLine(m.senderId, m.text, m.sentAt, false));
                     sessionStorage.setItem(key, JSON.stringify(msgs));
                 }
-            } catch (err) { console.error("Error loading messages:", err); }
+            } catch (err) {
+                console.error("Error loading messages:", err);
+            }
 
-            try { await conn.invoke("OpenConversation", convId); }
-            catch (err) { console.error("Error opening conversation:", err); }
+            try {
+                await conn.invoke("OpenConversation", convId);
+            } catch (err) {
+                console.error("Error opening conversation:", err);
+            }
 
             renderList();
         }
 
-        // ------- Page State (debounced & dedup) -------
+        // ===== Update trạng thái đang xem trang
         function updatePageState(state) {
-            if (state === lastPageState) return; // không gửi nếu không đổi
+            if (state === lastPageState) return;
             lastPageState = state;
             clearTimeout(pageStateTimeout);
             pageStateTimeout = setTimeout(() => {
                 if (conn && conn.state === signalR.HubConnectionState.Connected) {
-                    conn.invoke("UpdatePageState", state).catch(err => console.error('UpdatePageState error:', err));
+                    conn.invoke("UpdatePageState", state)
+                        .catch(err => console.error('UpdatePageState error:', err));
                 }
             }, 400);
         }
 
-        // ------- Notification badge -------
+        // ===== Badge thông báo
         function showNotificationBadge(count = 1) {
             if (!isOnChatPage) {
                 unreadCount += count;
@@ -705,6 +738,7 @@
                 badge.style.display = 'block';
             }
         }
+
         function hideNotificationBadge() {
             const badge = document.getElementById('notificationBadge');
             const countEl = document.getElementById('unreadCount');
@@ -713,9 +747,10 @@
             countEl.textContent = '0';
         }
 
-        // ------- SignalR Handlers (register ONCE) -------
+        // ===== SignalR events
         conn.on("receive", (m) => {
             if (!isOnChatPage) showNotificationBadge(1);
+
             if (m.conversationId === currentConv) {
                 addChatLine(m.senderId, m.text, m.sentAt);
             } else {
@@ -732,43 +767,78 @@
 
         conn.on("conversationUpdated", (card) => {
             convMap.set(card.conversationId, card);
-            if (!isOnChatPage && (card.unreadForStaff ?? 0) > 0) showNotificationBadge(1);
-            if (currentConv === card.conversationId) setDetailHeader(card);
+
+            if (!isOnChatPage && (card.unreadForStaff ?? 0) > 0) {
+                showNotificationBadge(1);
+            }
+
+            if (currentConv === card.conversationId) {
+                setDetailHeader(card);
+            }
+
             renderList();
         });
 
         conn.on("presenceChanged", (uid, online) => {
             for (const v of convMap.values()) {
-                if (v.customerUserId === uid) v.customerOnline = online;
+                if (v.customerUserId === uid) {
+                    v.customerOnline = online;
+                }
             }
-            if (currentConv && convMap.has(currentConv)) setDetailHeader(convMap.get(currentConv));
+            if (currentConv && convMap.has(currentConv)) {
+                setDetailHeader(convMap.get(currentConv));
+            }
             renderList();
         });
 
-        // ------- DOM Events -------
+        // ===== DOM events
         document.getElementById('q').addEventListener('input', renderList);
         document.getElementById('f').addEventListener('change', renderList);
-        document.getElementById('openBtn').addEventListener('click', () => { if (currentConv) openConv(currentConv); });
+
+        document.getElementById('openBtn').addEventListener('click', () => {
+            if (currentConv) openConv(currentConv);
+        });
+
         document.getElementById('sendBtn').addEventListener('click', async () => {
-            if (!currentConv) return alert("⚠️ Chưa chọn hội thoại");
+            if (!currentConv) {
+                alert("⚠️ Chưa chọn hội thoại");
+                return;
+            }
             const el = document.getElementById('txt');
             const v = el.value.trim();
             if (!v) return;
             el.value = "";
-            try { await conn.invoke("SendMessage", currentConv, STAFF_ID, v); }
-            catch (err) { console.error('SendMessage error:', err); }
-        });
-        document.getElementById('txt').addEventListener('keydown', (e) => {
-            if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); document.getElementById('sendBtn').click(); }
-        });
-        document.getElementById('notificationBadge').addEventListener('click', () => {
-            hideNotificationBadge();
-            window.location.href = `/Chat/Staff?userId=${encodeURIComponent(STAFF_ID)}&name=${encodeURIComponent(STAFF_NAME)}`;
+            try {
+                await conn.invoke("SendMessage", currentConv, STAFF_ID, v);
+            } catch (err) {
+                console.error('SendMessage error:', err);
+            }
         });
 
-        // Page focus/visibility
-        window.addEventListener('blur',  () => { isOnChatPage = false; updatePageState(false); });
-        window.addEventListener('focus', () => { isOnChatPage = true;  updatePageState(true); hideNotificationBadge(); });
+        document.getElementById('txt').addEventListener('keydown', (e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                document.getElementById('sendBtn').click();
+            }
+        });
+
+        // ⚠ FIX QUAN TRỌNG: badge click KHÔNG redirect kèm query string nữa
+        document.getElementById('notificationBadge').addEventListener('click', () => {
+            hideNotificationBadge();
+            // chỉ reload lại /Chat/Staff thôi
+            window.location.href = `/Chat/Staff`;
+        });
+
+        // focus/blur để biết agent còn coi tab không
+        window.addEventListener('blur', () => {
+            isOnChatPage = false;
+            updatePageState(false);
+        });
+        window.addEventListener('focus', () => {
+            isOnChatPage = true;
+            updatePageState(true);
+            hideNotificationBadge();
+        });
         document.addEventListener('visibilitychange', () => {
             const now = !document.hidden;
             isOnChatPage = now;
@@ -776,14 +846,16 @@
             if (now) hideNotificationBadge();
         });
 
-        // ------- Start / Reconnect -------
+        // ===== Khởi động kết nối
         async function start() {
             try {
                 await conn.start();
                 updatePageState(true);
 
-           const res = await fetch(`/api/chat-dashboard/conversations?staffId=${encodeURIComponent(STAFF_ID)}`);
+                // load danh sách hội thoại cho staff hiện tại (ID thật "22")
+                const res = await fetch(`/api/chat-dashboard/conversations?staffId=${encodeURIComponent(STAFF_ID)}`);
                 const data = await res.json();
+
                 data.forEach(x => convMap.set(x.conversationId, {
                     conversationId: x.conversationId,
                     customerUserId: x.customerUserId,
@@ -793,17 +865,28 @@
                     unreadForStaff: x.unreadForStaff,
                     customerOnline: x.customerOnline
                 }));
+
                 renderList();
             } catch (err) {
                 console.error('Connection error:', err);
+                // optional retry
                 setTimeout(start, 5000);
             }
         }
 
-        conn.onreconnecting = (error) => { console.warn('Reconnecting...', error); };
-        conn.onreconnected  = () => { console.log('Reconnected'); updatePageState(isOnChatPage); };
+        conn.onreconnecting = (error) => {
+            console.warn('Reconnecting...', error);
+        };
 
-        // Single start
+        conn.onreconnected = () => {
+            console.log('Reconnected');
+            updatePageState(isOnChatPage);
+        };
+
+        // run
         start().catch(console.error);
+
+        // expose openConv cho onclick inline
+        window.openConv = openConv;
     </script>
 }

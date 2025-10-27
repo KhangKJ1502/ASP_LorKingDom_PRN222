@@ -1,4 +1,5 @@
-﻿using DAL.Interfaces;
+﻿// DAL/Repositories/NotificationRepository.cs
+using DAL.Interfaces;
 using DAL.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -34,7 +35,7 @@ namespace DAL.Repositories
 
             IQueryable<Notification> q = _db.Notifications.AsNoTracking();
 
-            // keyword on Title or Message (use LIKE)
+            // keyword on Title or Message
             if (!string.IsNullOrWhiteSpace(keyword))
             {
                 var kw = $"%{keyword.Trim()}%";

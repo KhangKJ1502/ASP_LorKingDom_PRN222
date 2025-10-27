@@ -1,5 +1,4 @@
-﻿// DAL/Repositories/PromotionRepository.cs
-using DAL.Interfaces;
+﻿using DAL.Interfaces;
 using DAL.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -18,6 +17,41 @@ namespace DAL.Repositories
             _context = context;
         }
 
+        // HÀM MỚI: search + phân trang
+        public async Task<(IList<Promotion> Items, int Total)> SearchPagedAsync(
+            string? keyword,
+            int page,
+            int pageSize)
+        {
+            if (page < 1) page = 1;
+            if (pageSize < 1) pageSize = 10;
+            if (pageSize > 200) pageSize = 200;
+
+            var query = _context.Promotions
+                .AsNoTracking()
+                .Where(p => !p.IsDeleted);
+
+            if (!string.IsNullOrWhiteSpace(keyword))
+            {
+                var kw = $"%{keyword.Trim()}%";
+                query = query.Where(p =>
+                    EF.Functions.Like(p.PromotionCode, kw) ||
+                    (p.Description != null && EF.Functions.Like(p.Description, kw)));
+            }
+
+            query = query.OrderByDescending(p => p.CreatedAt);
+
+            var total = await query.CountAsync();
+
+            var items = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return (items, total);
+        }
+
+        // Giữ hàm GetAllAsync nếu bạn muốn dùng ở chỗ khác, nhưng UI quản trị bây giờ sẽ xài SearchPagedAsync
         public async Task<List<Promotion>> GetAllAsync(string? keyword)
         {
             var query = _context.Promotions
@@ -64,7 +98,6 @@ namespace DAL.Repositories
             existing.Status = promotion.Status;
             existing.UpdatedAt = DateTime.Now;
 
-                
             try
             {
                 var affected = await _context.SaveChangesAsync();
@@ -72,7 +105,6 @@ namespace DAL.Repositories
             }
             catch (Exception ex)
             {
-                // Log lỗi nếu cần
                 Console.WriteLine($"[ERROR] UpdateAsync failed: {ex.Message}");
                 return false;
             }
@@ -155,7 +187,7 @@ namespace DAL.Repositories
             return query.AnyAsync();
         }
 
-        public Task<bool> HasOverlapAsync(int promotionId, DateTime start, DateTime end, int? excludeId = null)
+        public Task<bool> HasOverlapAsync(int productId, DateTime start, DateTime end, int? excludeId = null)
         {
             if (end < start) (start, end) = (end, start);
 

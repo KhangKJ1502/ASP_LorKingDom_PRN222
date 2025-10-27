@@ -1,4 +1,5 @@
-﻿using BLL.DTOs;
+﻿// BLL/Services/UserNotificationService.cs
+using BLL.DTOs;
 using BLL.Interfaces;
 using DAL.Interfaces;
 using System;
@@ -8,7 +9,7 @@ using System.Threading.Tasks;
 namespace BLL.Services
 {
     /// <summary>
-    /// Service dành cho tính năng thông báo phía người dùng cuối.
+    /// Service cho người dùng cuối xem / đánh dấu thông báo của họ.
     /// </summary>
     public class UserNotificationService : IUserNotificationService
     {
@@ -44,8 +45,12 @@ namespace BLL.Services
             };
         }
 
-        public Task MarkReadAsync(int userNotificationId)
-            => _repo.MarkReadAsync(userNotificationId, DateTime.UtcNow);
+        public async Task MarkReadAsync(int userNotificationId)
+        {
+            // gọi thẳng repo.MarkReadAsync().
+            // QUAN TRỌNG: controller sẽ check quyền sở hữu trước khi gọi chứ service này không check userId.
+            await _repo.MarkReadAsync(userNotificationId, DateTime.UtcNow);
+        }
 
         public async Task<UserNotificationDto?> GetUserNotificationByIdAsync(int userNotificationId)
         {
@@ -66,9 +71,9 @@ namespace BLL.Services
         }
 
         public Task<int> MarkAllReadAsync(int userId)
-            => _repo.MarkAllReadAsync(userId, DateTime.UtcNow); // TODO: đảm bảo DAL đã có method này
+            => _repo.MarkAllReadAsync(userId, DateTime.UtcNow);
 
         public Task<int> GetUnreadCountAsync(int userId)
-            => _repo.GetUnreadCountAsync(userId);               // TODO: đảm bảo DAL đã có method này
+            => _repo.GetUnreadCountAsync(userId);
     }
 }

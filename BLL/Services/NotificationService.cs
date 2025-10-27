@@ -1,4 +1,5 @@
-﻿using BLL.DTOs;
+﻿// BLL/Services/NotificationService.cs
+using BLL.DTOs;
 using BLL.Interfaces;
 using DAL.Interfaces;
 using DAL.Models;
@@ -47,9 +48,17 @@ namespace BLL.Services
         public async Task<PagedResult<NotificationDto>> SearchAsync(NotificationFilterDto f)
         {
             var (items, total) = await _notificationRepo.SearchAsync(
-                f.Keyword, f.Type, f.TargetType, f.TargetRoleId, f.TargetUserId,
-                f.IsSent, f.IsCanceled, f.ScheduledFrom, f.ScheduledTo,
-                f.Page, f.PageSize);
+                f.Keyword,
+                NormalizeTypeForService(f.Type),
+                NormalizeTargetTypeForService(f.TargetType),
+                f.TargetRoleId,
+                f.TargetUserId,
+                f.IsSent,
+                f.IsCanceled,
+                f.ScheduledFrom,
+                f.ScheduledTo,
+                f.Page,
+                f.PageSize);
 
             return new PagedResult<NotificationDto>
             {
@@ -299,6 +308,7 @@ namespace BLL.Services
                         throw new InvalidOperationException("Phải chỉ định TargetUserId hợp lệ khi TargetType = SingleUser");
                     var user = await _accountRepo.GetByIdAsync(targetUserId.Value)
                                ?? throw new InvalidOperationException($"User ID {targetUserId.Value} không tồn tại");
+                    _ = user;
                     break;
 
                 case "ByRole":
@@ -306,10 +316,11 @@ namespace BLL.Services
                         throw new InvalidOperationException("Phải chỉ định TargetRoleId hợp lệ khi TargetType = ByRole");
                     var role = await _roleRepo.GetByIdAsync(targetRoleId.Value)
                                ?? throw new InvalidOperationException($"Role ID {targetRoleId.Value} không tồn tại");
+                    _ = role;
                     break;
 
                 case "ByCondition":
-                    // TODO: validate conditionJson khi implement filter
+                    // TODO: validate conditionJson khi implement logic lọc
                     _ = conditionJson;
                     break;
 
@@ -328,6 +339,7 @@ namespace BLL.Services
         {
             try
             {
+                // hết hạn
                 if (notif.ExpireAt.HasValue && notif.ExpireAt.Value <= nowUtc)
                 {
                     await _logRepo.AddAsync(new NotificationLog
@@ -342,6 +354,7 @@ namespace BLL.Services
                     return false;
                 }
 
+                // build recipients
                 var recipients = await BuildRecipientsAsync(notif);
 
                 if (recipients.Count == 0)
@@ -358,6 +371,7 @@ namespace BLL.Services
                     return true;
                 }
 
+                // phát UserNotification
                 var userNotifs = recipients.Select(uid => new UserNotification
                 {
                     NotificationId = notif.NotificationId,
@@ -424,7 +438,7 @@ namespace BLL.Services
                     }
                 case "ByCondition":
                     {
-                        // TODO: parse ConditionJson & filter nâng cao
+                        // TODO parse ConditionJson
                         break;
                     }
             }
@@ -441,5 +455,31 @@ namespace BLL.Services
                 "ByCondition" => "Theo điều kiện",
                 _ => "N/A"
             };
+
+        // map filter type/targetType từ UI text tự do -> enum chuẩn
+        private static string? NormalizeTypeForService(string? type) =>
+            string.IsNullOrWhiteSpace(type)
+                ? null
+                : (type.Trim().ToLowerInvariant()) switch
+                {
+                    "info" => "General",
+                    "general" => "General",
+                    "order" => "Order",
+                    "promo" or "promotion" => "Promotion",
+                    "warning" or "error" or "system" => "System",
+                    _ => type
+                };
+
+        private static string? NormalizeTargetTypeForService(string? targetType) =>
+            string.IsNullOrWhiteSpace(targetType)
+                ? null
+                : (targetType.Trim().ToLowerInvariant()) switch
+                {
+                    "all" => "All",
+                    "role" or "byrole" => "ByRole",
+                    "user" or "singleuser" => "SingleUser",
+                    "condition" or "bycondition" => "ByCondition",
+                    _ => targetType
+                };
     }
 }

@@ -2,397 +2,676 @@
 <html lang="en">
 
 <head>
-	<meta charset="utf-8" />
-	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-	<title>@ViewData["Title"] - ToyLand</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - ToyLand</title>
 
-	<!-- Google Fonts -->
-	<link rel="preconnect" href="https://fonts.googleapis.com">
-	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-	<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap"
-		  rel="stylesheet">
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
-		  integrity="sha512-SzlrxWUlpfuzQ+pcUCosxcglQRNAq/DZjVsC0lE3xgI1Gx9l9QKf5nLDGosVdC1p5c+X1Y9wM5Vd8N6b+9l9FA=="
-		  crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap"
+          rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+          integrity="sha512-SzlrxWUlpfuzQ+pcUCosxcglQRNAq/DZjVsC0lE3xgI1Gx9l9QKf5nLDGosVdC1p5c+X1Y9wM5Vd8N6b+9l9FA=="
+          crossorigin="anonymous" referrerpolicy="no-referrer" />
 
-	<link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-	<link rel="stylesheet" href="~/css/home.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/home.css" asp-append-version="true" />
 
-	@await RenderSectionAsync("Styles", required: false) <!-- THÊM DÒNG NÀY -->
-
+    @await RenderSectionAsync("Styles", required: false)
 </head>
+
 @await Html.PartialAsync("_ChatWidget")
 
 <body>
-	<!-- Header -->
-	<header class="site-header">
-		<!-- Top Bar -->
-		<div class="header-topbar">
-			<div class="container">
-				<div class="topbar-content">
-					<div class="topbar-left">
-						<span class="topbar-item">
-							<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-								 stroke-width="2">
-								<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-								<circle cx="12" cy="10" r="3"></circle>
-							</svg>
-							Free shipping nationwide
-						</span>
-					</div>
-					<div class="topbar-right">
-						<span class="topbar-item">Hotline: 1900-1234</span>
-						<span class="topbar-divider">|</span>
-						<span class="topbar-item">24/7 Support</span>
-					</div>
-				</div>
-			</div>
-		</div>
+    <!-- Header -->
+    <header class="site-header">
+        <!-- Top Bar -->
+        <div class="header-topbar">
+            <div class="container">
+                <div class="topbar-content">
+                    <div class="topbar-left">
+                        <span class="topbar-item">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                 stroke-width="2">
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                                <circle cx="12" cy="10" r="3"></circle>
+                            </svg>
+                            Free shipping nationwide
+                        </span>
+                    </div>
+                    <div class="topbar-right">
+                        <span class="topbar-item">Hotline: 1900-1234</span>
+                        <span class="topbar-divider">|</span>
+                        <span class="topbar-item">24/7 Support</span>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-		<!-- Main Header -->
-		<div class="header-main">
-			<div class="container">
-				<div class="header-content">
-					<!-- Logo -->
-					<a href="/" class="header-logo">
-						<div class="logo-icon">
-							<span class="logo-emoji">🧸</span>
-						</div>
-						<div class="logo-text">
-							<h1 class="logo-title">ToyLand</h1>
-							<p class="logo-subtitle">Toy Wonderland</p>
-						</div>
-					</a>
+        <!-- Main Header -->
+        <div class="header-main">
+            <div class="container">
+                <div class="header-content">
+                    <!-- Logo -->
+                    <a href="/" class="header-logo">
+                        <div class="logo-icon">
+                            <span class="logo-emoji">🧸</span>
+                        </div>
+                        <div class="logo-text">
+                            <h1 class="logo-title">ToyLand</h1>
+                            <p class="logo-subtitle">Toy Wonderland</p>
+                        </div>
+                    </a>
 
-					<!-- Search Bar -->
-					<!-- Search Bar -->
-					<div class="header-search">
-						<form asp-controller="Home" asp-action="Index" method="get" class="search-wrapper">
-							<svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-								<circle cx="11" cy="11" r="8"></circle>
-								<path d="m21 21-4.35-4.35"></path>
-							</svg>
+                    <!-- Search Bar -->
+                    <div class="header-search">
+                        <form asp-controller="Home" asp-action="Index" method="get" class="search-wrapper">
+                            <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <path d="m21 21-4.35-4.35"></path>
+                            </svg>
 
-							<!-- name="q" là điều QUAN TRỌNG -->
-							<input type="text"
-								   name="q"
-								   class="search-input"
-								   placeholder="Search toys, brands..."
-								   value="@Context.Request.Query["q"]" />
+                            <input type="text"
+                                   name="q"
+                                   class="search-input"
+                                   placeholder="Search toys, brands..."
+                                   value="@Context.Request.Query["q"]" />
 
-							<!-- Giữ nguyên pageSize hiện tại nếu đang có -->
-							<input type="hidden" name="pageSize" value="@(Context.Request.Query["pageSize"].ToString() == "" ? "16" : Context.Request.Query["pageSize"].ToString())" />
-							<!-- Reset về trang 1 khi search -->
-							<input type="hidden" name="page" value="1" />
+                            <input type="hidden" name="pageSize"
+                                   value="@(Context.Request.Query["pageSize"].ToString() == "" ? "16" : Context.Request.Query["pageSize"].ToString())" />
+                            <input type="hidden" name="page" value="1" />
 
-							<button type="submit" class="search-btn">Search</button>
-						</form>
-					</div>
+                            <button type="submit" class="search-btn">Search</button>
+                        </form>
+                    </div>
 
+                    <!-- Actions -->
+                    <div class="header-actions">
 
-					<!-- Actions -->
-					<div class="header-actions">
-						<button class="header-action-btn" id="wishlistBtn" type="button" data-bs-toggle="offcanvas"
-								data-bs-target="#wishlistOffcanvas" aria-controls="wishlistOffcanvas"
-								title="Danh sách yêu thích">
-							<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-								 stroke-width="2">
-								<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z">
-								</path>
-							</svg>
-							<span class="action-badge">2</span>
-						</button>
-						<!-- Nút thông báo -->
-						<button class="header-action-btn" id="notificationBtn" type="button" data-bs-toggle="offcanvas"
-								data-bs-target="#notificationOffcanvas" aria-controls="notificationOffcanvas"
-								title="Thông báo">
-							<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-								 stroke-width="2">
-								<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-								<path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-							</svg>
-							<span class="action-badge action-badge-danger">5</span>
-						</button>
+                        <!-- Wishlist -->
+                        <button class="header-action-btn" id="wishlistBtn"
+                                type="button"
+                                data-bs-toggle="offcanvas"
+                                data-bs-target="#wishlistOffcanvas"
+                                aria-controls="wishlistOffcanvas"
+                                title="Danh sách yêu thích">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                 stroke-width="2">
+                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z">
+                                </path>
+                            </svg>
+                            <span class="action-badge">2</span>
+                        </button>
 
-						<a asp-controller="Home" asp-action="Cart" class="header-action-btn">
-							<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-								 stroke-width="2">
-								<circle cx="9" cy="21" r="1"></circle>
-								<circle cx="20" cy="21" r="1"></circle>
-								<path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
-							</svg>
-							<span class="action-badge action-badge-primary">3</span>
-						</a>
+                        <!-- Notifications -->
+                        <button class="header-action-btn"
+                                id="notificationBtn"
+                                type="button"
+                                data-bs-toggle="offcanvas"
+                                data-bs-target="#notificationOffcanvas"
+                                aria-controls="notificationOffcanvas"
+                                title="Thông báo">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                 stroke="currentColor" stroke-width="2">
+                                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                            </svg>
 
-						@await Html.PartialAsync("_ProfileDropdown")
+                            <!-- Badge động -->
+                            <span id="unreadBadge"
+                                  class="action-badge action-badge-danger"
+                                  style="display:none;">0</span>
+                        </button>
 
-						<button class="header-action-btn mobile-menu-btn" id="mobileMenuBtn">
-							<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-								 stroke-width="2">
-								<line x1="3" y1="12" x2="21" y2="12"></line>
-								<line x1="3" y1="6" x2="21" y2="6"></line>
-								<line x1="3" y1="18" x2="21" y2="18"></line>
-							</svg>
-						</button>
-					</div>
-				</div>
+                        <!-- Cart -->
+                        <a asp-controller="Home" asp-action="Cart" class="header-action-btn">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                 stroke-width="2">
+                                <circle cx="9" cy="21" r="1"></circle>
+                                <circle cx="20" cy="21" r="1"></circle>
+                                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                            </svg>
+                            <span class="action-badge action-badge-primary">3</span>
+                        </a>
 
-				<!-- Navigation -->
-				<nav class="header-nav">
-					<div class="nav-content">
-						<div class="nav-links">
-							<a href="/Home/Index" class="nav-link">Home</a>
+                        @await Html.PartialAsync("_ProfileDropdown")
 
-							<div class="nav-dropdown">
-								<button class="nav-link nav-link-dropdown" id="productsDropdown">
-									Products
-									<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-										 stroke-width="2">
-										<polyline points="6 9 12 15 18 9"></polyline>
-									</svg>
-								</button>
+                        <!-- Mobile Menu -->
+                        <button class="header-action-btn mobile-menu-btn" id="mobileMenuBtn">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                 stroke-width="2">
+                                <line x1="3" y1="12" x2="21" y2="12"></line>
+                                <line x1="3" y1="6" x2="21" y2="6"></line>
+                                <line x1="3" y1="18" x2="21" y2="18"></line>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
 
-								<!-- Dropdown Menu -->
-								<div class="dropdown-menu" id="productsDropdownMenu">
-									<div class="dropdown-grid">
-										<div class="dropdown-column">
-											<h4 class="dropdown-title">Action Figures</h4>
-											<ul class="dropdown-list">
-												<li><a href="#" class="dropdown-item">Superheroes</a></li>
-												<li><a href="#" class="dropdown-item">Anime Figures</a></li>
-												<li><a href="#" class="dropdown-item">Movie Characters</a></li>
-												<li><a href="#" class="dropdown-item">Collectibles</a></li>
-											</ul>
-										</div>
-										<div class="dropdown-column">
-											<h4 class="dropdown-title">Building Blocks</h4>
-											<ul class="dropdown-list">
-												<li><a href="#" class="dropdown-item">LEGO Sets</a></li>
-												<li><a href="#" class="dropdown-item">Magnetic Blocks</a></li>
-												<li><a href="#" class="dropdown-item">Wooden Blocks</a></li>
-												<li><a href="#" class="dropdown-item">Creative Sets</a></li>
-											</ul>
-										</div>
-										<div class="dropdown-column">
-											<h4 class="dropdown-title">Dolls & Plush</h4>
-											<ul class="dropdown-list">
-												<li><a href="#" class="dropdown-item">Barbie Dolls</a></li>
-												<li><a href="#" class="dropdown-item">Stuffed Animals</a></li>
-												<li><a href="#" class="dropdown-item">Baby Dolls</a></li>
-												<li><a href="#" class="dropdown-item">Plush Toys</a></li>
-											</ul>
-										</div>
-										<div class="dropdown-column">
-											<h4 class="dropdown-title">Educational Toys</h4>
-											<ul class="dropdown-list">
-												<li><a href="#" class="dropdown-item">STEM Kits</a></li>
-												<li><a href="#" class="dropdown-item">Learning Games</a></li>
-												<li><a href="#" class="dropdown-item">Puzzles</a></li>
-												<li><a href="#" class="dropdown-item">Science Sets</a></li>
-											</ul>
-										</div>
-										<div class="dropdown-column">
-											<h4 class="dropdown-title">Electronic Toys</h4>
-											<ul class="dropdown-list">
-												<li><a href="#" class="dropdown-item">Gaming Devices</a></li>
-												<li><a href="#" class="dropdown-item">Smart Toys</a></li>
-												<li><a href="#" class="dropdown-item">Remote Control</a></li>
-												<li><a href="#" class="dropdown-item">Interactive Toys</a></li>
-											</ul>
-										</div>
-										<div class="dropdown-column">
-											<h4 class="dropdown-title">Outdoor & Sports</h4>
-											<ul class="dropdown-list">
-												<li><a href="#" class="dropdown-item">Bikes & Scooters</a></li>
-												<li><a href="#" class="dropdown-item">Sports Equipment</a></li>
-												<li><a href="#" class="dropdown-item">Water Toys</a></li>
-												<li><a href="#" class="dropdown-item">Playground Sets</a></li>
-											</ul>
-										</div>
-									</div>
-								</div>
-							</div>
+                <!-- Navigation -->
+                <nav class="header-nav">
+                    <div class="nav-content">
+                        <div class="nav-links">
+                            <a href="/Home/Index" class="nav-link">Home</a>
 
-							<a href="/Home/Brands" class="nav-link">Brands</a>
-							<a href="/Home/Promotions" class="nav-link">Promotions</a>
-							<a href="/Blog/Index" class="nav-link">Blog</a>
-							<a href="/Home/Contact" class="nav-link">Contact</a>
-						</div>
+                            <div class="nav-dropdown">
+                                <button class="nav-link nav-link-dropdown" id="productsDropdown">
+                                    Products
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                         stroke-width="2">
+                                        <polyline points="6 9 12 15 18 9"></polyline>
+                                    </svg>
+                                </button>
 
-						<div class="nav-age-filters">
-							<span class="age-label">Age Groups:</span>
-							<button class="age-btn">0-2 years</button>
-							<button class="age-btn">3-5 years</button>
-							<button class="age-btn">6+ years</button>
-						</div>
-					</div>
-				</nav>
-			</div>
-		</div>
-	</header>
+                                <!-- Dropdown Menu -->
+                                <div class="dropdown-menu" id="productsDropdownMenu">
+                                    <div class="dropdown-grid">
+                                        <div class="dropdown-column">
+                                            <h4 class="dropdown-title">Action Figures</h4>
+                                            <ul class="dropdown-list">
+                                                <li><a href="#" class="dropdown-item">Superheroes</a></li>
+                                                <li><a href="#" class="dropdown-item">Anime Figures</a></li>
+                                                <li><a href="#" class="dropdown-item">Movie Characters</a></li>
+                                                <li><a href="#" class="dropdown-item">Collectibles</a></li>
+                                            </ul>
+                                        </div>
+                                        <div class="dropdown-column">
+                                            <h4 class="dropdown-title">Building Blocks</h4>
+                                            <ul class="dropdown-list">
+                                                <li><a href="#" class="dropdown-item">LEGO Sets</a></li>
+                                                <li><a href="#" class="dropdown-item">Magnetic Blocks</a></li>
+                                                <li><a href="#" class="dropdown-item">Wooden Blocks</a></li>
+                                                <li><a href="#" class="dropdown-item">Creative Sets</a></li>
+                                            </ul>
+                                        </div>
+                                        <div class="dropdown-column">
+                                            <h4 class="dropdown-title">Dolls & Plush</h4>
+                                            <ul class="dropdown-list">
+                                                <li><a href="#" class="dropdown-item">Barbie Dolls</a></li>
+                                                <li><a href="#" class="dropdown-item">Stuffed Animals</a></li>
+                                                <li><a href="#" class="dropdown-item">Baby Dolls</a></li>
+                                                <li><a href="#" class="dropdown-item">Plush Toys</a></li>
+                                            </ul>
+                                        </div>
+                                        <div class="dropdown-column">
+                                            <h4 class="dropdown-title">Educational Toys</h4>
+                                            <ul class="dropdown-list">
+                                                <li><a href="#" class="dropdown-item">STEM Kits</a></li>
+                                                <li><a href="#" class="dropdown-item">Learning Games</a></li>
+                                                <li><a href="#" class="dropdown-item">Puzzles</a></li>
+                                                <li><a href="#" class="dropdown-item">Science Sets</a></li>
+                                            </ul>
+                                        </div>
+                                        <div class="dropdown-column">
+                                            <h4 class="dropdown-title">Electronic Toys</h4>
+                                            <ul class="dropdown-list">
+                                                <li><a href="#" class="dropdown-item">Gaming Devices</a></li>
+                                                <li><a href="#" class="dropdown-item">Smart Toys</a></li>
+                                                <li><a href="#" class="dropdown-item">Remote Control</a></li>
+                                                <li><a href="#" class="dropdown-item">Interactive Toys</a></li>
+                                            </ul>
+                                        </div>
+                                        <div class="dropdown-column">
+                                            <h4 class="dropdown-title">Outdoor & Sports</h4>
+                                            <ul class="dropdown-list">
+                                                <li><a href="#" class="dropdown-item">Bikes & Scooters</a></li>
+                                                <li><a href="#" class="dropdown-item">Sports Equipment</a></li>
+                                                <li><a href="#" class="dropdown-item">Water Toys</a></li>
+                                                <li><a href="#" class="dropdown-item">Playground Sets</a></li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
 
-	<!-- Main Content -->
-	<main role="main">
-		@RenderBody()
-	</main>
+                            <a href="/Home/Brands" class="nav-link">Brands</a>
+                            <a href="/Home/Promotions" class="nav-link">Promotions</a>
+                            <a href="/Blog/Index" class="nav-link">Blog</a>
+                            <a href="/Home/Contact" class="nav-link">Contact</a>
+                        </div>
 
-	<!-- Footer -->
-	<footer class="site-footer">
-		<div class="footer-main">
-			<div class="container">
-				<div class="footer-grid">
-					<div class="footer-column">
-						<div class="footer-logo">
-							<div class="logo-icon">
-								<span class="logo-emoji">🧸</span>
-							</div>
-							<div class="logo-text">
-								<h3 class="logo-title">ToyLand</h3>
-								<p class="logo-subtitle">Toy Wonderland</p>
-							</div>
-						</div>
-						<p class="footer-description">
-							Your trusted destination for high-quality toys and games.
-							Bringing joy to children worldwide since 2020.
-						</p>
-						<div class="footer-social">
-							<a href="#" class="social-link">
-								<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-									<path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-								</svg>
-							</a>
-							<a href="#" class="social-link">
-								<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-									<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z">
-									</path>
-								</svg>
-							</a>
-							<a href="#" class="social-link">
-								<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-									 stroke-width="2">
-									<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z">
-									</path>
-									<polyline points="22,6 12,13 2,6"></polyline>
-								</svg>
-							</a>
-						</div>
-					</div>
+                        <div class="nav-age-filters">
+                            <span class="age-label">Age Groups:</span>
+                            <button class="age-btn">0-2 years</button>
+                            <button class="age-btn">3-5 years</button>
+                            <button class="age-btn">6+ years</button>
+                        </div>
+                    </div>
+                </nav>
+            </div>
+        </div>
+    </header>
 
-					<div class="footer-column">
-						<h4 class="footer-title">Quick Links</h4>
-						<ul class="footer-links">
-							<li><a href="/Home/About">About Us</a></li>
-							<li><a asp-controller="Home" asp-action="Contact">Contact</a></li>
-							<li><a href="/Home/Careers">Careers</a></li>
-							<li><a href="/Home/Blog">Blog</a></li>
-							<li><a href="/Home/Press">Press</a></li>
-						</ul>
-					</div>
+    <!-- Main Content -->
+    <main role="main">
+        @RenderBody()
+    </main>
 
-					<div class="footer-column">
-						<h4 class="footer-title">Customer Service</h4>
-						<ul class="footer-links">
-							<li><a href="/Home/Help">Help Center</a></li>
-							<li><a href="/Home/Shipping">Shipping Info</a></li>
-							<li><a href="/Home/Returns">Returns</a></li>
-							<li><a href="/Home/Track">Track Order</a></li>
-							<li><a href="/Home/FAQ">FAQ</a></li>
-						</ul>
-					</div>
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="footer-main">
+            <div class="container">
+                <div class="footer-grid">
+                    <div class="footer-column">
+                        <div class="footer-logo">
+                            <div class="logo-icon">
+                                <span class="logo-emoji">🧸</span>
+                            </div>
+                            <div class="logo-text">
+                                <h3 class="logo-title">ToyLand</h3>
+                                <p class="logo-subtitle">Toy Wonderland</p>
+                            </div>
+                        </div>
+                        <p class="footer-description">
+                            Your trusted destination for high-quality toys and games.
+                            Bringing joy to children worldwide since 2020.
+                        </p>
+                        <div class="footer-social">
+                            <a href="#" class="social-link">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                                </svg>
+                            </a>
+                            <a href="#" class="social-link">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z">
+                                    </path>
+                                </svg>
+                            </a>
+                            <a href="#" class="social-link">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                     stroke-width="2">
+                                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z">
+                                    </path>
+                                    <polyline points="22,6 12,13 2,6"></polyline>
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
 
-					<div class="footer-column">
-						<h4 class="footer-title">Contact Info</h4>
-						<ul class="footer-contact">
-							<li>
-								<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-									 stroke-width="2">
-									<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-									<circle cx="12" cy="10" r="3"></circle>
-								</svg>
-								123 Toy Street, Play City, PC 12345
-							</li>
-							<li>
-								<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-									 stroke-width="2">
-									<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z">
-									</path>
-								</svg>
-								1900-1234
-							</li>
-							<li>
-								<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-									 stroke-width="2">
-									<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z">
-									</path>
-									<polyline points="22,6 12,13 2,6"></polyline>
-								</svg>
-								support@toyland.com
-							</li>
-						</ul>
-					</div>
-				</div>
-			</div>
-		</div>
+                    <div class="footer-column">
+                        <h4 class="footer-title">Quick Links</h4>
+                        <ul class="footer-links">
+                            <li><a href="/Home/About">About Us</a></li>
+                            <li><a asp-controller="Home" asp-action="Contact">Contact</a></li>
+                            <li><a href="/Home/Careers">Careers</a></li>
+                            <li><a href="/Home/Blog">Blog</a></li>
+                            <li><a href="/Home/Press">Press</a></li>
+                        </ul>
+                    </div>
 
-		<div class="footer-bottom">
-			<div class="container">
-				<div class="footer-bottom-content">
-					<p>&copy; 2025 ToyLand. All rights reserved.</p>
-					<div class="footer-bottom-links">
-						<a href="/Home/Privacy">Privacy Policy</a>
-						<span>|</span>
-						<a href="/Home/Terms">Terms of Service</a>
-						<span>|</span>
-						<a href="/Home/Cookies">Cookie Policy</a>
-					</div>
-				</div>
-			</div>
-		</div>
-	</footer>
-	@await Html.PartialAsync("_Wishlist")
+                    <div class="footer-column">
+                        <h4 class="footer-title">Customer Service</h4>
+                        <ul class="footer-links">
+                            <li><a href="/Home/Help">Help Center</a></li>
+                            <li><a href="/Home/Shipping">Shipping Info</a></li>
+                            <li><a href="/Home/Returns">Returns</a></li>
+                            <li><a href="/Home/Track">Track Order</a></li>
+                            <li><a href="/Home/FAQ">FAQ</a></li>
+                        </ul>
+                    </div>
 
+                    <div class="footer-column">
+                        <h4 class="footer-title">Contact Info</h4>
+                        <ul class="footer-contact">
+                            <li>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                     stroke-width="2">
+                                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                                    <circle cx="12" cy="10" r="3"></circle>
+                                </svg>
+                                123 Toy Street, Play City, PC 12345
+                            </li>
+                            <li>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                     stroke-width="2">
+                                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z">
+                                    </path>
+                                </svg>
+                                1900-1234
+                            </li>
+                            <li>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                     stroke-width="2">
+                                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z">
+                                    </path>
+                                    <polyline points="22,6 12,13 2,6"></polyline>
+                                </svg>
+                                support@toyland.com
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-	<script src="~/lib/jquery/dist/jquery.min.js"></script>
-	<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-	<script src="~/js/site.js" asp-append-version="true"></script>
-	<script src="https://unpkg.com/lucide@latest"></script>
-	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-	<script>
-		document.addEventListener('DOMContentLoaded', function () {
-			if (window.lucide) lucide.createIcons();
-		});
-	</script>
-	@await RenderSectionAsync("Scripts", required: false)
-	<script>
-		// Lấy số thông báo chưa đọc
-		async function updateNotificationBadge() {
-			try {
-				const response = await fetch('/MyNotifications/GetUnreadCount');
-				const data = await response.json();
+        <div class="footer-bottom">
+            <div class="container">
+                <div class="footer-bottom-content">
+                    <p>&copy; 2025 ToyLand. All rights reserved.</p>
+                    <div class="footer-bottom-links">
+                        <a href="/Home/Privacy">Privacy Policy</a>
+                        <span>|</span>
+                        <a href="/Home/Terms">Terms of Service</a>
+                        <span>|</span>
+                        <a href="/Home/Cookies">Cookie Policy</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
 
-				const badge = document.getElementById('unreadBadge');
-				if (data.success && data.count > 0) {
-					badge.textContent = data.count > 99 ? '99+' : data.count;
-					badge.style.display = 'block';
-				} else {
-					badge.style.display = 'none';
-				}
-			} catch (error) {
-				console.error('Error:', error);
-			}
-		}
+    @await Html.PartialAsync("_Wishlist")
 
-		// Cập nhật lúc load trang
-		updateNotificationBadge();
+    <!-- Offcanvas Thông báo -->
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="notificationOffcanvas" aria-labelledby="notificationOffcanvasLabel">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="notificationOffcanvasLabel">Thông báo của bạn</h5>
+            <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body p-0" id="notificationListContainer">
+            <div class="p-3 text-muted small">
+                <div class="d-flex align-items-start gap-2 mb-3">
+                    <div class="badge bg-danger rounded-circle d-inline-flex align-items-center justify-content-center" style="width:10px;height:10px;"></div>
+                    <div>
+                        <div class="fw-semibold text-dark">Giảm giá 20% cho đơn hàng đầu tiên 🎁</div>
+                        <div class="text-muted">2 phút trước</div>
+                    </div>
+                </div>
 
-		// Cập nhật mỗi 30 giây
-		setInterval(updateNotificationBadge, 30000);
+                <div class="d-flex align-items-start gap-2 mb-3">
+                    <div class="badge bg-secondary rounded-circle d-inline-flex align-items-center justify-content-center" style="width:10px;height:10px;opacity:.4;"></div>
+                    <div>
+                        <div class="text-dark">Đơn hàng #A0123 đã được xác nhận ✅</div>
+                        <div class="text-muted">1 giờ trước</div>
+                    </div>
+                </div>
 
-		// Khi click nút thông báo -> đi đến trang xem thông báo
-		document.getElementById('notificationBtn').addEventListener('click', function () {
-			window.location.href = '/MyNotifications/Index';
-		});
-	</script>
+                <div class="text-center">
+                    <a href="/MyNotifications/Index" class="btn btn-link btn-sm text-decoration-none">
+                        Xem tất cả thông báo →
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+
+    <script>
+               // Thêm script này vào cuối _Layout.cshtml, thay thế script cũ
+        document.addEventListener("DOMContentLoaded", () => {
+            // Khởi tạo icon lucide
+            if (window.lucide) lucide.createIcons();
+
+            const badgeEl = document.getElementById("unreadBadge");
+            const notificationBtn = document.getElementById("notificationBtn");
+            const notificationOffcanvas = document.getElementById("notificationOffcanvas");
+            const notificationContainer = document.getElementById("notificationListContainer");
+
+            // ==================== CẬP NHẬT BADGE ====================
+            async function updateNotificationBadge() {
+                if (!badgeEl) return;
+
+                try {
+                    const response = await fetch("/MyNotifications/GetUnreadCount", {
+                        headers: { "Accept": "application/json" }
+                    });
+
+                    if (!response.ok) {
+                        console.error("HTTP error", response.status);
+                        badgeEl.textContent = "0";
+                        badgeEl.style.display = "none";
+                        return;
+                    }
+
+                    const data = await response.json();
+
+                    if (data.success && typeof data.count === 'number' && data.count > 0) {
+                        const displayCount = Math.max(0, Math.min(99, Math.floor(data.count)));
+                        badgeEl.textContent = displayCount > 99 ? "99+" : displayCount;
+                        badgeEl.style.display = "block";
+                    } else {
+                        badgeEl.textContent = "0";
+                        badgeEl.style.display = "none";
+                    }
+                } catch (err) {
+                    console.error("Error fetching unread count:", err);
+                    badgeEl.textContent = "0";
+                    badgeEl.style.display = "none";
+                }
+            }
+
+            // ==================== LOAD NOTIFICATIONS CHO OFFCANVAS ====================
+            async function loadNotificationsForOffcanvas() {
+                if (!notificationContainer) return;
+
+                // Hiển thị loading
+                notificationContainer.innerHTML = `
+                    <div class="p-4 text-center">
+                        <div class="spinner-border spinner-border-sm text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <div class="mt-2 text-muted small">Đang tải thông báo...</div>
+                    </div>
+                `;
+
+                try {
+                    const response = await fetch("/MyNotifications/Index?pageSize=5", {
+                        headers: { "Accept": "application/json" }
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}`);
+                    }
+
+                    const data = await response.json();
+
+                    if (!data || !data.items || data.items.length === 0) {
+                        notificationContainer.innerHTML = `
+                            <div class="p-4 text-center text-muted">
+                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="mx-auto mb-3 opacity-50">
+                                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                                    <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                                </svg>
+                                <div>Chưa có thông báo nào</div>
+                            </div>
+                        `;
+                        return;
+                    }
+
+                    // Render notifications
+                    let html = '<div class="p-3">';
+
+                    data.items.forEach(notif => {
+                        const isUnread = !notif.isRead;
+                        const timeAgo = formatTimeAgo(notif.deliveredAt || notif.scheduledAt);
+                        const badgeBg = isUnread ? 'bg-danger' : 'bg-secondary';
+                        const badgeOpacity = isUnread ? '' : 'opacity: 0.4;';
+
+                        html += `
+                            <div class="notification-item d-flex align-items-start gap-2 mb-3 p-2 rounded ${isUnread ? 'bg-light' : ''}"
+                                 data-notification-id="${notif.id}"
+                                 style="cursor: pointer; transition: background 0.2s;"
+                                 onmouseover="this.style.backgroundColor='#f8f9fa'"
+                                 onmouseout="this.style.backgroundColor='${isUnread ? '#f8f9fa' : 'transparent'}'">
+                                <div class="badge ${badgeBg} rounded-circle d-inline-flex align-items-center justify-content-center"
+                                     style="width:10px;height:10px;${badgeOpacity} min-width:10px;"></div>
+                                <div class="flex-grow-1">
+                                    <div class="${isUnread ? 'fw-semibold' : ''} text-dark">${escapeHtml(notif.title)}</div>
+                                    ${notif.message ? `<div class="text-muted small">${escapeHtml(notif.message)}</div>` : ''}
+                                    <div class="text-muted small">${timeAgo}</div>
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    html += `
+                        <div class="text-center mt-3">
+                            <a href="/MyNotifications/Index" class="btn btn-link btn-sm text-decoration-none">
+                                Xem tất cả thông báo →
+                            </a>
+                        </div>
+                    </div>`;
+
+                    notificationContainer.innerHTML = html;
+
+                    // Thêm event listeners cho từng notification
+                    document.querySelectorAll('.notification-item').forEach(item => {
+                        item.addEventListener('click', async function() {
+                            const notifId = this.getAttribute('data-notification-id');
+                            await markNotificationAsRead(notifId);
+                        });
+                    });
+
+                } catch (err) {
+                    console.error("Error loading notifications:", err);
+                    notificationContainer.innerHTML = `
+                        <div class="p-4 text-center text-danger">
+                            <div class="mb-2">⚠️</div>
+                            <div>Không thể tải thông báo</div>
+                            <button class="btn btn-sm btn-outline-primary mt-2" onclick="location.reload()">
+                                Thử lại
+                            </button>
+                        </div>
+                    `;
+                }
+            }
+
+            // ==================== MARK AS READ ====================
+            async function markNotificationAsRead(notificationId) {
+                try {
+                    // Lấy CSRF token
+                    const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+
+                    const formData = new FormData();
+                    formData.append('id', notificationId);
+                    if (token) {
+                        formData.append('__RequestVerificationToken', token);
+                    }
+
+                    const response = await fetch('/MyNotifications/MarkRead', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (response.ok) {
+                        // Refresh badge và notification list
+                        await updateNotificationBadge();
+                        await loadNotificationsForOffcanvas();
+                    }
+                } catch (err) {
+                    console.error("Error marking notification as read:", err);
+                }
+            }
+
+            // ==================== HELPER FUNCTIONS ====================
+            function escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text || '';
+                return div.innerHTML;
+            }
+
+            function formatTimeAgo(dateString) {
+                if (!dateString) return 'Vừa xong';
+
+                const date = new Date(dateString);
+                const now = new Date();
+                const diffMs = now - date;
+                const diffMins = Math.floor(diffMs / 60000);
+
+                if (diffMins < 1) return 'Vừa xong';
+                if (diffMins < 60) return `${diffMins} phút trước`;
+
+                const diffHours = Math.floor(diffMins / 60);
+                if (diffHours < 24) return `${diffHours} giờ trước`;
+
+                const diffDays = Math.floor(diffHours / 24);
+                if (diffDays < 7) return `${diffDays} ngày trước`;
+
+                return date.toLocaleDateString('vi-VN');
+            }
+
+            // ==================== EVENT LISTENERS ====================
+
+            // Khi offcanvas được mở
+            if (notificationOffcanvas) {
+                notificationOffcanvas.addEventListener('show.bs.offcanvas', function() {
+                    loadNotificationsForOffcanvas();
+                });
+            }
+
+            // ==================== INITIALIZATION ====================
+
+            // Gọi lần đầu để update badge
+            updateNotificationBadge();
+
+            // Poll mỗi 30 giây
+            if (badgeEl) {
+                setInterval(updateNotificationBadge, 30000);
+            }
+
+            // Real-time check mỗi 60s (kiểm tra notification mới)
+            let lastCheckTime = new Date();
+            setInterval(async () => {
+                try {
+                    const response = await fetch(`/MyNotifications/CheckNewNotifications?lastCheck=${lastCheckTime.toISOString()}`, {
+                        headers: { "Accept": "application/json" }
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+
+                        if (data.success && data.hasNew) {
+                            // Có notification mới -> update badge
+                            await updateNotificationBadge();
+
+                            // Nếu offcanvas đang mở -> refresh list
+                            if (notificationOffcanvas && notificationOffcanvas.classList.contains('show')) {
+                                await loadNotificationsForOffcanvas();
+                            }
+
+                            // Optional: hiển thị toast notification
+                            showToastNotification('Bạn có thông báo mới!');
+                        }
+
+                        if (data.latest) {
+                            lastCheckTime = new Date(data.latest);
+                        }
+                    }
+                } catch (err) {
+                    console.error("Error checking new notifications:", err);
+                }
+            }, 60000); // Check mỗi 60 giây
+
+            // ==================== TOAST NOTIFICATION (Optional) ====================
+            function showToastNotification(message) {
+                // Kiểm tra xem có SweetAlert2 không
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        icon: 'info',
+                        title: message,
+                        showConfirmButton: false,
+                        timer: 3000,
+                        timerProgressBar: true
+                    });
+                } else {
+                    // Fallback: hiển thị alert đơn giản
+                    console.log(message);
+                }
+            }
+        });
+    </script>
 </body>
 
 </html>

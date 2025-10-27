@@ -95,10 +95,12 @@ namespace BLL.DTOs
         public int? TargetUserId { get; set; }
         public bool? IsSent { get; set; }
         public bool? IsCanceled { get; set; }
+
         public DateTime? ScheduledFrom { get; set; }
         public DateTime? ScheduledTo { get; set; }
+
         public int Page { get; set; } = 1;
-        public int PageSize { get; set; } = 20;
+        public int PageSize { get; set; } = 3;
     }
 
     public class NotificationLogDto
