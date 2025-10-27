@@ -1,5 +1,5 @@
 ﻿<!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 
 <head>
 	<meta charset="utf-8" />
@@ -12,18 +12,24 @@
 	<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap"
 		  rel="stylesheet">
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
-		  integrity="sha512-SzlrxWUlpfuzQ+pcUCosxcglQRNAq/DZjVsC0lE3xgI1Gx9l9QKf5nLDGosVdC1p5c+X1Y9wM5Vd8N6b+9l9FA=="
+		  integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A=="
 		  crossorigin="anonymous" referrerpolicy="no-referrer" />
 
 	<link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
 	<link rel="stylesheet" href="~/css/home.css" asp-append-version="true" />
 
-	@await RenderSectionAsync("Styles", required: false) <!-- THÊM DÒNG NÀY -->
-
+	@await RenderSectionAsync("Styles", required: false)
 </head>
-@await Html.PartialAsync("_ChatWidget")
 
-<body>
+@* THÊM: class logged-in + meta user-id để JS kiểm tra đăng nhập *@
+<body class="@(User.Identity?.IsAuthenticated == true ? "logged-in" : "")">
+	@if (User.Identity?.IsAuthenticated == true)
+	{
+		<meta name="user-id" content="@User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value" />
+	}
+
+	@await Html.PartialAsync("_ChatWidget")
+
 	<!-- Header -->
 	<header class="site-header">
 		<!-- Top Bar -->
@@ -37,13 +43,13 @@
 								<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
 								<circle cx="12" cy="10" r="3"></circle>
 							</svg>
-							Free shipping nationwide
+							Miễn phí vận chuyển toàn quốc
 						</span>
 					</div>
 					<div class="topbar-right">
 						<span class="topbar-item">Hotline: 1900-1234</span>
 						<span class="topbar-divider">|</span>
-						<span class="topbar-item">24/7 Support</span>
+						<span class="topbar-item">Hỗ trợ 24/7</span>
 					</div>
 				</div>
 			</div>
@@ -65,7 +71,6 @@
 					</a>
 
 					<!-- Search Bar -->
-					<!-- Search Bar -->
 					<div class="header-search">
 						<form asp-controller="Home" asp-action="Index" method="get" class="search-wrapper">
 							<svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -73,22 +78,18 @@
 								<path d="m21 21-4.35-4.35"></path>
 							</svg>
 
-							<!-- name="q" là điều QUAN TRỌNG -->
 							<input type="text"
 								   name="q"
 								   class="search-input"
-								   placeholder="Search toys, brands..."
+								   placeholder="Tìm kiếm đồ chơi, thương hiệu..."
 								   value="@Context.Request.Query["q"]" />
 
-							<!-- Giữ nguyên pageSize hiện tại nếu đang có -->
 							<input type="hidden" name="pageSize" value="@(Context.Request.Query["pageSize"].ToString() == "" ? "16" : Context.Request.Query["pageSize"].ToString())" />
-							<!-- Reset về trang 1 khi search -->
 							<input type="hidden" name="page" value="1" />
 
-							<button type="submit" class="search-btn">Search</button>
+							<button type="submit" class="search-btn">Tìm kiếm</button>
 						</form>
 					</div>
-
 
 					<!-- Actions -->
 					<div class="header-actions">
@@ -101,7 +102,7 @@
 								</path>
 							</svg>
 						</button>
-						<!-- Nút thông báo -->
+
 						<button class="header-action-btn" id="notificationBtn" type="button" data-bs-toggle="offcanvas"
 								data-bs-target="#notificationOffcanvas" aria-controls="notificationOffcanvas"
 								title="Thông báo">
@@ -120,7 +121,7 @@
 								<circle cx="20" cy="21" r="1"></circle>
 								<path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
 							</svg>
-							<span class="action-badge action-badge-primary">3</span>
+							<span class="action-badge action-badge-primary" id="cart-badge" style="display:block;">0</span>
 						</a>
 
 						@await Html.PartialAsync("_ProfileDropdown")
@@ -142,14 +143,14 @@
 						<div class="nav-links">
 							<a href="/Home/Index" class="nav-link">Trang chủ</a>
 
-							@* <div class="nav-dropdown"> *@
-							@* 	<button class="nav-link nav-link-dropdown" id="productsDropdown"> *@
-							@* 		Products *@
-							@* 		<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" *@
-							@* 			 stroke-width="2"> *@
-							@* 			<polyline points="6 9 12 15 18 9"></polyline> *@
-							@* 		</svg> *@
-							@* 	</button> *@
+							<div class="nav-dropdown">
+								<button class="nav-link nav-link-dropdown" id="productsDropdown">
+									Sản phẩm
+									<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+										 stroke-width="2">
+										<polyline points="6 9 12 15 18 9"></polyline>
+									</svg>
+								</button>
 
 							@* 	<!-- Dropdown Menu --> *@
 							@* 	<div class="dropdown-menu" id="productsDropdownMenu"> *@
@@ -212,18 +213,18 @@
 							@* 	</div> *@
 							@* </div> *@
 
-							@* <a href="/Home/Brands" class="nav-link">Brands</a> *@
-							@* <a href="/Home/Promotions" class="nav-link">Promotions</a> *@
+							<a href="/Home/Brands" class="nav-link">Thương hiệu</a>
+							<a href="/Home/Promotions" class="nav-link">Khuyến mãi</a>
 							<a href="/Blog/Index" class="nav-link">Blog</a>
-							<a href="/Home/Contact" class="nav-link">Về Thương hiệu</a>
+							<a href="/Home/Contact" class="nav-link">Liên hệ</a>
 						</div>
 
-						@* <div class="nav-age-filters"> *@
-						@* 	<span class="age-label">Age Groups:</span> *@
-						@* 	<button class="age-btn">0-2 years</button> *@
-						@* 	<button class="age-btn">3-5 years</button> *@
-						@* 	<button class="age-btn">6+ years</button> *@
-						@* </div> *@
+						<div class="nav-age-filters">
+							<span class="age-label">Độ tuổi:</span>
+							<button class="age-btn">0-2 tuổi</button>
+							<button class="age-btn">3-5 tuổi</button>
+							<button class="age-btn">6+ tuổi</button>
+						</div>
 					</div>
 				</nav>
 			</div>
@@ -347,12 +348,13 @@
 			</div>
 		</div>
 	</footer>
-	@await Html.PartialAsync("_Wishlist")
 
+	@await Html.PartialAsync("_Wishlist")
 
 	<script src="~/lib/jquery/dist/jquery.min.js"></script>
 	<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 	<script src="~/js/site.js" asp-append-version="true"></script>
+	<script src="~/js/cart-client.js" asp-append-version="true"></script>
 	<script src="https://unpkg.com/lucide@latest"></script>
 	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -361,7 +363,9 @@
 			if (window.lucide) lucide.createIcons();
 		});
 	</script>
+
 	@await RenderSectionAsync("Scripts", required: false)
+
 	<script>
 		// Lấy số thông báo chưa đọc
 		async function updateNotificationBadge() {

@@ -63,13 +63,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.ExpireTimeSpan = TimeSpan.FromDays(7);
         options.SlidingExpiration = false;
         options.Cookie.Name = "AdminAuth"; // Cookie riêng cho admin
-    });
-
-// Thêm DI cho Cart và Product (giả định bạn đã có IProductService và ProductService trong BLL; nếu không, bỏ dòng đó)
-builder.Services.AddScoped<ICartRepository, CartRepository>();
-builder.Services.AddScoped<IProductRepository, ProductRepository>();
-builder.Services.AddScoped<ICartService, CartService>();
-builder.Services.AddScoped<IProductService, ProductService>(); // Nếu có IProductService
+    }); 
 
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
