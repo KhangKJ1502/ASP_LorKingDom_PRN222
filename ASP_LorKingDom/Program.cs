@@ -1,75 +1,73 @@
 ﻿// Program.cs (ASP.NET Core 8)
-using BLL; // AddBLL()
+using BLL;
 using BLL.Interfaces;
 using BLL.Services;
 using DAL;
 using DAL.Interfaces;
 using DAL.Repositories;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using WebUI.BackgroundServices; // AddDAL()
-using WebUI.Hubs; // AddDAL()
+using WebUI.BackgroundServices;
+using WebUI.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1) Nạp cấu hình theo lớp (không bắt buộc Local/UserSecrets nhưng nên có khi làm team)
+// ===== Config sources =====
 builder.Configuration
-    .AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true) // gitignore
-    .AddUserSecrets<Program>(optional: true)                                     // mỗi dev tự set
+    .AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true)
+    .AddUserSecrets<Program>(optional: true)
     .AddEnvironmentVariables();
+
 builder.Services.AddHostedService<NotificationWorkerService>();
-// 2) Lấy connection string
+
 var conn = builder.Configuration.GetConnectionString("DefaultConnection")
            ?? throw new InvalidOperationException("Missing ConnectionStrings:DefaultConnection");
 
-// 3) Đăng ký DI: DAL/BLL + MVC
+// ===== DI: DAL / BLL / MVC =====
 builder.Services.AddDAL(conn);
 builder.Services.AddBLL();
 builder.Services.AddControllersWithViews();
+
+// Anti-Forgery (khớp header JS)
+builder.Services.AddAntiforgery(o => o.HeaderName = "RequestVerificationToken");
+
+// (Chỉ giữ nếu AddDAL/AddBLL CHƯA đăng ký 2 service này)
 builder.Services.AddScoped<IAddressRepository, AddressRepository>();
 builder.Services.AddScoped<IAddressService, AddressService>();
 
-
-// Thêm Session (bắt buộc cho SignupEmail, SignupPassword)
-builder.Services.AddSession(options =>
+// Session
+builder.Services.AddSession(o =>
 {
-    options.IdleTimeout = TimeSpan.FromMinutes(30);
-    options.Cookie.HttpOnly = true;
-    options.Cookie.IsEssential = true;
+    o.IdleTimeout = TimeSpan.FromMinutes(30);
+    o.Cookie.HttpOnly = true;
+    o.Cookie.IsEssential = true;
 });
 
-//ChatHUb
-builder.Services.AddControllersWithViews();
+// SignalR
 builder.Services.AddSignalR();
 
-// Authentication với 2 scheme: Customer và Admin
+// Auth (Customer + Admin)
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-    .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
+    .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, o =>
     {
-        options.LoginPath = "/Auth/Login"; // Customer login
-        options.LogoutPath = "/Auth/Logout";
-        options.AccessDeniedPath = "/Home/Error";
-        options.Cookie.HttpOnly = true;
-        options.Cookie.IsEssential = true;
-        options.ExpireTimeSpan = TimeSpan.FromDays(7);
-        options.SlidingExpiration = false;
+        o.LoginPath = "/Auth/Login";
+        o.LogoutPath = "/Auth/Logout";
+        o.AccessDeniedPath = "/Home/Error";
+        o.Cookie.HttpOnly = true;
+        o.Cookie.IsEssential = true;
+        o.ExpireTimeSpan = TimeSpan.FromDays(7);
+        o.SlidingExpiration = false;
     })
-    .AddCookie("AdminScheme", options =>
+    .AddCookie("AdminScheme", o =>
     {
-        options.LoginPath = "/AdminAuth/Login"; // Admin login
-        options.LogoutPath = "/AdminAuth/Logout";
-        options.AccessDeniedPath = "/AdminAuth/AccessDenied";
-        options.Cookie.HttpOnly = true;
-        options.Cookie.IsEssential = true;
-        options.ExpireTimeSpan = TimeSpan.FromDays(7);
-        options.SlidingExpiration = false;
-        options.Cookie.Name = "AdminAuth"; // Cookie riêng cho admin
+        o.LoginPath = "/AdminAuth/Login";
+        o.LogoutPath = "/AdminAuth/Logout";
+        o.AccessDeniedPath = "/AdminAuth/AccessDenied";
+        o.Cookie.HttpOnly = true;
+        o.Cookie.IsEssential = true;
+        o.ExpireTimeSpan = TimeSpan.FromDays(7);
+        o.SlidingExpiration = false;
+        o.Cookie.Name = "AdminAuth";
     });
-
-// Thêm DI cho Cart và Product (giả định bạn đã có IProductService và ProductService trong BLL; nếu không, bỏ dòng đó)
-builder.Services.AddScoped<ICartRepository, CartRepository>();
-builder.Services.AddScoped<IProductRepository, ProductRepository>();
-builder.Services.AddScoped<ICartService, CartService>();
-builder.Services.AddScoped<IProductService, ProductService>(); // Nếu có IProductService
 
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
@@ -77,9 +75,7 @@ builder.Logging.SetMinimumLevel(LogLevel.Debug);
 
 var app = builder.Build();
 
-// 4) Pipeline mặc định
-app.UseSession(); // Thêm Session middleware
-
+// ===== Pipeline =====
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -91,12 +87,16 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+// Session nên đặt sau Routing
+app.UseSession();
+
 app.UseAuthentication();
 app.UseAuthorization();
+
 app.MapHub<ChatHub>("/chatHub");
 
-// 5) Map cả attribute-routed controllers (ví dụ /health/db) lẫn conventional route
-app.MapControllers(); // để các controller có [Route] hoạt động (HealthController)
+// Controller có [Route] + conventional
+app.MapControllers();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");

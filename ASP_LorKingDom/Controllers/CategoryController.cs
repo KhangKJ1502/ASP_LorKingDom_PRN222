@@ -14,17 +14,44 @@ namespace WebUI.Controllers
             _superService = superService;
         }
 
-        public async Task<IActionResult> Manage(string? q)
+        // ========== Helpers ==========
+        private async Task<IActionResult> ReturnManageViewAsync(
+            string? q, int page, int pageSize,
+            object? editDto = null,
+            string? error = null, bool showError = false)
         {
-            var list = await _service.GetAllAsync(q);
+            var paged = await _service.GetPagedAsync(q, page, pageSize);
+
             ViewBag.Query = q;
-            ViewBag.SuperCategories = await _superService.GetActiveAsync(); // dropdown
-            return View("~/Views/Admin/ManageCategory.cshtml", list);
+            ViewBag.Page = paged.Page;
+            ViewBag.PageSize = paged.PageSize;
+            ViewBag.Total = paged.Total;
+            ViewBag.SuperCategories = await _superService.GetActiveAsync();
+
+            if (editDto != null) ViewBag.EditCategory = editDto;
+            if (showError && !string.IsNullOrWhiteSpace(error))
+            {
+                ViewBag.ErrorMessage = error;
+                ViewBag.ShowErrorModal = true;
+            }
+
+            return View("~/Views/Admin/ManageCategory.cshtml", paged);
         }
 
+        // ========== Manage ==========
+        public async Task<IActionResult> Manage(string? q, int page = 1, int pageSize = 8)
+        {
+            if (page <= 0) page = 1;
+            if (pageSize <= 0) pageSize = 8;
+            return await ReturnManageViewAsync(q, page, pageSize);
+        }
+
+        // ========== Save ==========
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> SaveCategory(int id, int superCategoryId, string name, bool isDeleted = false)
+        public async Task<IActionResult> SaveCategory(
+            int id, int superCategoryId, string name, bool isDeleted = false,
+            string? q = null, int page = 1, int pageSize = 8)
         {
             try
             {
@@ -34,48 +61,55 @@ namespace WebUI.Controllers
                     await _service.UpdateAsync(id, superCategoryId, name, isDeleted);
 
                 TempData["Success"] = "Lưu danh mục thành công!";
-                return RedirectToAction(nameof(Manage));
+                // Giữ lại điều kiện hiện tại
+                return RedirectToAction(nameof(Manage), new { q, page, pageSize });
             }
             catch (InvalidOperationException ex)
             {
-                var list = await _service.GetAllAsync();
-                ViewBag.ErrorMessage = ex.Message;
-                ViewBag.ShowErrorModal = true;
-                ViewBag.SuperCategories = await _superService.GetActiveAsync();
-
+                // Trả về đúng kiểu PagedResult + bật toast + giữ context
+                object? edit = null;
                 if (id != 0)
                 {
-                    var dto = await _service.GetByIdAsync(id)
-                              ?? new BLL.DTOs.CategoryDto { Id = id, SuperCategoryId = superCategoryId, Name = name, IsDeleted = isDeleted };
-                    ViewBag.EditCategory = dto;
+                    edit = await _service.GetByIdAsync(id)
+                           ?? new BLL.DTOs.CategoryDto
+                           {
+                               Id = id,
+                               SuperCategoryId = superCategoryId,
+                               Name = name,
+                               IsDeleted = isDeleted
+                           };
                 }
 
-                return View("~/Views/Admin/ManageCategory.cshtml", list);
+                return await ReturnManageViewAsync(
+                    q, page, pageSize,
+                    editDto: edit,
+                    error: ex.Message,
+                    showError: true
+                );
             }
             catch (Exception ex)
             {
-                var list = await _service.GetAllAsync();
-                ViewBag.ErrorMessage = "Đã có lỗi xảy ra. " + ex.Message;
-                ViewBag.ShowErrorModal = true;
-                ViewBag.SuperCategories = await _superService.GetActiveAsync();
-                return View("~/Views/Admin/ManageCategory.cshtml", list);
+                return await ReturnManageViewAsync(
+                    q, page, pageSize,
+                    error: "Đã có lỗi xảy ra. " + ex.Message,
+                    showError: true
+                );
             }
         }
 
+        // ========== Edit (mở modal) ==========
         [HttpGet]
-        public async Task<IActionResult> Edit(int id)
+        public async Task<IActionResult> Edit(int id, string? q = null, int page = 1, int pageSize = 8)
         {
             var dto = await _service.GetByIdAsync(id);
             if (dto == null)
             {
                 TempData["Error"] = "Không tìm thấy danh mục.";
-                return RedirectToAction(nameof(Manage));
+                return RedirectToAction(nameof(Manage), new { q, page, pageSize });
             }
 
-            var list = await _service.GetAllAsync();
-            ViewBag.EditCategory = dto;
-            ViewBag.SuperCategories = await _superService.GetActiveAsync();
-            return View("~/Views/Admin/ManageCategory.cshtml", list);
+            // Trả về Manage với EditCategory để mở modal
+            return await ReturnManageViewAsync(q, page, pageSize, editDto: dto);
         }
     }
 }

@@ -16,5 +16,6 @@ namespace DAL.Interfaces
         Task UpdateAsync(Category entity);
         Task<bool> ExistsByNameAsync(string name, int? excludeId = null);
         Task<int> SetIsDeletedBySuperCategoryAsync(int superCategoryId, bool isDeleted);
+        Task<(List<Category> Items, int Total)> QueryPagedAsync(string? keyword, int page, int pageSize);
     }
 }

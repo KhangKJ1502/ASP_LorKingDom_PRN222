@@ -14,5 +14,6 @@ namespace BLL.Interfaces
         Task<CategoryDto?> GetByIdAsync(int id);
         Task<int> CreateAsync(int superCategoryId, string name, bool isDeleted = false);
         Task<bool> UpdateAsync(int id, int superCategoryId, string name, bool isDeleted);
+        Task<PagedResult<CategoryDto>> GetPagedAsync(string? keyword, int page, int pageSize);
     }
 }

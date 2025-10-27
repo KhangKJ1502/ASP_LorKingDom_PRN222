@@ -167,13 +167,7 @@ function renderOverviewTab() {
                             </svg>
                             <span class="text-sm">Payment Methods</span>
                         </button>
-                        <button class="h-20 flex flex-col items-center justify-center gap-2 border-2 border-orange-200 hover:bg-orange-50 bg-transparent rounded-xl transition-all">
-                            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-                            </svg>
-                            <span class="text-sm">Addresses</span>
-                        </button>
+                        
                         <button class="h-20 flex flex-col items-center justify-center gap-2 border-2 border-orange-200 hover:bg-orange-50 bg-transparent rounded-xl transition-all">
                             <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/>
@@ -399,11 +393,6 @@ document.addEventListener("DOMContentLoaded", () => {
             // Active state
             tabs.forEach((t) => t.classList.remove("active"));
             this.classList.add("active");
-
-            // ❗️Addresses: để addresses.js xử lý (AJAX). Không gọi renderTabContent
-            if (tab === "addresses") {
-                return; // addresses.js đã lắng nghe click .profile-tab và sẽ load partial + list
-            }
 
             // Các tab còn lại render như cũ
             renderTabContent(tab);

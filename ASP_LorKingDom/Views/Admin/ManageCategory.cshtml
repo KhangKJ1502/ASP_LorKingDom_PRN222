@@ -1,10 +1,17 @@
-﻿@model IEnumerable<BLL.DTOs.CategoryDto>
+﻿@model BLL.DTOs.PagedResult<BLL.DTOs.CategoryDto>
 @{
     Layout = "_AdminLayout";
     ViewData["Title"] = "Quản Lí Danh Mục";
     var q = (string?)ViewBag.Query ?? "";
     var supers = ViewBag.SuperCategories as List<BLL.DTOs.SuperCategoryDto>;
+
+    int page = ViewBag.Page is int vp ? vp : (Model?.Page ?? 1);
+    int pageSize = ViewBag.PageSize is int vps ? vps : (Model?.PageSize ?? 20);
+    int total = ViewBag.Total is int vt ? vt : (Model?.Total ?? 0);
+    int totalPages = (int)Math.Ceiling(total / (double)Math.Max(1, pageSize));
+    Func<int, string> PageUrl = p => Url.Action("Manage", "Category", new { q, page = p, pageSize })!;
 }
+
 <style>
     /* Tạo viền đen cho ô tìm kiếm */
     .search-box .form-control {
@@ -37,10 +44,76 @@
         word-break: break-word;
     }
 
-    .deleted-row {
+    .deleted-row {  
         opacity: 0.6;
         background: #f8f9fa;
     }
+
+    /* ===== Pagination kiểu pill như ảnh ===== */
+    .pagination-pill {
+        /* không cần gì ở ul */
+    }
+
+        .pagination-pill .page-item {
+            margin: 0; /* dính nhau */
+        }
+
+        .pagination-pill .page-link {
+            border: 1px solid #e5e7eb; /* viền xám nhạt giữa các nút */
+            background: #fff; /* nền trắng (trang thường) */
+            color: #2563eb; /* số xanh dương */
+            font-weight: 600;
+            min-width: 42px;
+            text-align: center;
+            line-height: 1.2;
+            padding: 8px 14px;
+            border-radius: 0; /* phẳng để dính nhau */
+            transition: all .15s ease;
+            /* loại bỏ “viền đôi” ở chỗ tiếp giáp */
+            margin-left: -1px;
+        }
+
+        /* bo tròn ngoài cùng */
+        .pagination-pill .page-item:first-child .page-link {
+            border-top-left-radius: 12px;
+            border-bottom-left-radius: 12px;
+            margin-left: 0; /* không kéo đè ở phần đầu */
+        }
+
+        .pagination-pill .page-item:last-child .page-link {
+            border-top-right-radius: 12px;
+            border-bottom-right-radius: 12px;
+        }
+
+        /* hover trang thường */
+        .pagination-pill .page-link:hover,
+        .pagination-pill .page-link:focus {
+            background: #f8fafc; /* rất nhạt */
+            color: #1d4ed8; /* xanh đậm hơn chút */
+            text-decoration: none;
+            box-shadow: none;
+        }
+
+        /* Active: nền xanh dương tươi, chữ trắng (giống ảnh) */
+        .pagination-pill .page-item.active .page-link {
+            background: #1677ff; /* xanh kiểu Ant Design */
+            border-color: #1677ff;
+            color: #fff !important;
+        }
+
+        /* Disabled (mũi tên khi không đi tiếp được) */
+        .pagination-pill .page-item.disabled .page-link {
+            background: #f3f4f6; /* xám nhạt */
+            border-color: #e5e7eb;
+            color: #9ca3af !important; /* xám chữ */
+            pointer-events: none;
+        }
+
+    /* Tăng cảm giác “pill” cho cả cụm */
+    .pagination-pill {
+        filter: drop-shadow(0 1px 1px rgba(0,0,0,.04));
+    }
+
 </style>
 
 <div class="container-fluid px-5">
@@ -117,9 +190,9 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @if (Model.Any())
+                        @if (Model?.Items != null && Model.Items.Any())
                         {
-                            foreach (var x in Model)
+                            foreach (var x in Model.Items)
                             {
                                 <tr class="@(x.IsDeleted ? "deleted-row" : "")">
                                     <td>@x.Id</td>
@@ -153,7 +226,30 @@
                             </tr>
                         }
                     </tbody>
+
                 </table>
+                @if (totalPages > 1)
+                {
+                    <nav class="mt-3">
+                        <ul class="pagination justify-content-center pagination-pill">
+                            <li class="page-item @(page <= 1 ? "disabled" : "")">
+                                <a class="page-link" href="@PageUrl(page - 1)">«</a>
+                            </li>
+
+                            @for (int p = 1; p <= totalPages; p++)
+                            {
+                                bool isCurrent = p == page;
+                                <li class="page-item @(isCurrent ? "active" : "")">
+                                    <a class="page-link" href="@PageUrl(p)">@p</a>
+                                </li>
+                            }
+
+                            <li class="page-item @(page >= totalPages ? "disabled" : "")">
+                                <a class="page-link" href="@PageUrl(page + 1)">»</a>
+                            </li>
+                        </ul>
+                    </nav>
+                }
             </div>
         </div>
     </div>

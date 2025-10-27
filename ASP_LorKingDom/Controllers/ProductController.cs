@@ -191,9 +191,5 @@ namespace WebUI.Controllers
 
             return "/" + Path.Combine(subFolder, name).Replace("\\", "/");
         }
-
-     
-
-
     }   
 }

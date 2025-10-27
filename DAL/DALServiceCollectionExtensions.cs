@@ -14,6 +14,7 @@ namespace DAL
 
             // Repo của bạn ...
             // services.AddScoped<IProductRepository, ProductRepository>();
+            services.AddScoped<IAddressRepository, AddressRepository>();
 
             // Nhánh Authentication
             services.AddScoped<IAccountRepository, AccountRepository>();

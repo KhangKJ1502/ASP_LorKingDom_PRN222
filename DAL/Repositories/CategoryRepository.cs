@@ -77,6 +77,31 @@ namespace DAL.Repositories
             await _context.SaveChangesAsync();
             return items.Count;
         }
+        public async Task<(List<Category> Items, int Total)> QueryPagedAsync(string? keyword, int page, int pageSize)
+        {
+            if (page <= 0) page = 1;
+            if (pageSize <= 0) pageSize = 20;
+
+            var q = _context.Categories
+                .Include(c => c.SuperCategory)
+                .AsNoTracking()
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(keyword))
+                q = q.Where(x => x.CategoryName.Contains(keyword));
+
+            var total = await q.CountAsync();
+
+            var items = await q
+                .OrderByDescending(x => x.CreatedAt)
+                .ThenByDescending(x => x.CategoryId)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return (items, total);
+        }
+
     }
 
 }

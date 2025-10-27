@@ -1,184 +1,219 @@
-﻿@* ===== Anti-forgery (phù hợp afToken() trong JS) ===== *@
-<form id="__afForm" class="d-none">
+﻿@{
+    Layout = null;
+}
+<form id="__afForm" class="hidden">
     @Html.AntiForgeryToken()
 </form>
 
-@* ===== Header + Add ===== *@
-<div class="flex justify-between items-center mb-4">
-    <h2 class="text-2xl font-bold text-orange-600">My Addresses</h2>
-    <button id="btnAddAddress"
-            type="button"
-            class="inline-flex items-center gap-2 bg-gradient-to-r from-orange-500 to-amber-500 hover:opacity-90 text-white px-4 py-2 rounded-lg shadow-md transition">
-        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v12m6-6H6" />
-        </svg>
-        Add New
-    </button>
+<div class="border-2 border-orange-100 rounded-xl bg-white shadow-sm">
+    <div class="p-6 flex items-center justify-between">
+        <div>
+            <h3 class="text-gradient text-xl font-bold">My Addresses</h3>
+            <p class="text-gray-500 text-sm">Manage your shipping addresses</p>
+        </div>
+        <button data-action="open-add"
+                class="px-4 py-2 rounded-xl bg-gradient-to-r from-orange-500 to-orange-400 text-white hover:opacity-90 transition">
+            + Add Address
+        </button>
+    </div>
+
+    <div id="addr-grid" class="p-6 grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <!-- items render bằng JS -->
+    </div>
 </div>
 
-@* ===== Table ===== *@
-<div class="overflow-hidden border-2 border-orange-100 rounded-xl bg-white">
-    <table class="w-full text-left border-collapse">
-        <thead>
-            <tr class="bg-orange-50 text-gray-700">
-                <th class="p-3">Address</th>
-                <th class="p-3">City</th>
-                <th class="p-3">Ward</th>
-                <th class="p-3">Default</th>
-                <th class="p-3 text-center">Actions</th>
-            </tr>
-        </thead>
-        <tbody id="addressTableBody">
-            <tr>
-                <td colspan="5" class="p-4 text-center text-gray-500">Loading...</td>
-            </tr>
-        </tbody>
-    </table>
-</div>
-
-@* ===== Modal: Address Form (Add/Edit) ===== *@
-<div id="addressModal"
-     class="hidden fixed inset-0 z-[60]"
-     role="dialog" aria-modal="true"
-     aria-labelledby="addressModalTitle" aria-describedby="addressModalDesc">
-    <!-- overlay -->
-    <div class="absolute inset-0 bg-black/50 backdrop-blur-[1px]"></div>
-
-    <!-- dialog -->
-    <div class="relative z-[61] flex min-h-full items-center justify-center p-4">
-        <div class="w-full max-w-lg rounded-2xl bg-white shadow-[0_20px_60px_-12px_rgba(249,115,22,0.35)] border border-orange-100">
-            <!-- header -->
-            <div class="flex items-center justify-between p-5 border-b bg-gradient-to-r from-orange-50 to-amber-50 rounded-t-2xl">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-amber-500 text-white grid place-content-center shadow-md">
-                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M17.657 16.657L13.414 20.9a2 2 0 01-2.828 0l-4.243-4.243a8 8 0 1111.314 0z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                  d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
-                    </div>
-                    <h3 id="addressModalTitle" class="text-lg font-extrabold text-gray-800 tracking-tight">
-                        <span id="modalTitle">Add Address</span>
-                    </h3>
-                </div>
-                <button type="button"
-                        class="group rounded-lg p-2 hover:bg-orange-100 focus:outline-none focus:ring-2 focus:ring-orange-300"
-                        data-close-address aria-label="Close modal">
-                    <svg class="w-5 h-5 text-gray-500 group-hover:text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
+<!-- Modal Add/Edit -->
+<div id="addr-modal" class="fixed inset-0 hidden/ modal flex items-center justify-center">
+    <div class="absolute inset-0 bg-black/40" data-action="close-modal"></div>
+    <div class="relative bg-white rounded-2xl p-6 w-[520px] shadow-xl">
+        <h4 id="addr-modal-title" class="text-lg font-bold mb-4">Add Address</h4>
+        <input type="hidden" id="addr-id" value="0" />
+        <div class="space-y-3">
+            <div>
+                <label class="text-sm text-gray-600">Address Line</label>
+                <input id="addr-line" class="w-full border rounded-lg px-3 py-2" />
             </div>
-
-            <!-- body -->
-            <div class="p-5">
-                <p id="addressModalDesc" class="sr-only">Use this form to add or edit a saved address.</p>
-
-                <form id="addressForm" class="space-y-4" novalidate>
-                    <input type="hidden" id="addressId" />
-
-                    <div class="space-y-1.5">
-                        <label for="addressLine" class="block text-sm font-medium text-gray-700">
-                            Address Line <span class="text-red-500">*</span>
-                        </label>
-                        <input id="addressLine"
-                               class="w-full mt-0.5 px-4 py-2.5 border-2 border-orange-100 rounded-xl focus:outline-none focus:border-orange-300 focus:ring-2 focus:ring-orange-100 placeholder:text-gray-400"
-                               placeholder="e.g., 123 Nguyen Trai, District 5" required />
-                        <small class="text-xs text-gray-500">Nhập số nhà, đường, phường/quận nếu cần.</small>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="space-y-1.5">
-                            <label for="city" class="block text-sm font-medium text-gray-700">
-                                City <span class="text-red-500">*</span>
-                            </label>
-                            <input id="city"
-                                   class="w-full mt-0.5 px-4 py-2.5 border-2 border-orange-100 rounded-xl focus:outline-none focus:border-orange-300 focus:ring-2 focus:ring-orange-100"
-                                   placeholder="Ho Chi Minh City" required />
-                        </div>
-                        <div class="space-y-1.5">
-                            <label for="ward" class="block text-sm font-medium text-gray-700">Ward</label>
-                            <input id="ward"
-                                   class="w-full mt-0.5 px-4 py-2.5 border-2 border-orange-100 rounded-xl focus:outline-none focus:border-orange-300 focus:ring-2 focus:ring-orange-100"
-                                   placeholder="Ward 7" />
-                        </div>
-                    </div>
-
-                    <label class="inline-flex items-center gap-2 select-none">
-                        <input type="checkbox" id="isDefault"
-                               class="w-4 h-4 rounded border-gray-300 text-orange-600 focus:ring-orange-500" />
-                        <span class="text-sm text-gray-700">Set as default address</span>
-                    </label>
-                </form>
+            <div>
+                <label class="text-sm text-gray-600">City</label>
+                <input id="addr-city" class="w-full border rounded-lg px-3 py-2" />
             </div>
-
-            <!-- footer -->
-            <div class="flex items-center justify-end gap-2 p-5 border-t rounded-b-2xl bg-white">
-                <button type="button" id="cancelModal"
-                        class="inline-flex items-center gap-2 px-4 py-2 rounded-xl border-2 border-orange-200 text-gray-700 hover:bg-orange-50 focus:outline-none focus:ring-2 focus:ring-orange-200 transition">
-                    Cancel
-                </button>
-                <button type="button" id="saveAddress"
-                        class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-white hover:opacity-90 shadow-md focus:outline-none focus:ring-2 focus:ring-orange-300 transition">
-                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                    </svg>
-                    Save
-                </button>
+            <div>
+                <label class="text-sm text-gray-600">Ward (optional)</label>
+                <input id="addr-ward" class="w-full border rounded-lg px-3 py-2" />
             </div>
+            <label class="inline-flex items-center gap-2">
+                <input id="addr-default" type="checkbox" class="h-4 w-4">
+                <span>Set as default</span>
+            </label>
+        </div>
+        <div class="mt-5 flex justify-end gap-2">
+            <button class="px-4 py-2 rounded-lg border" data-action="close-modal">Cancel</button>
+            <button class="px-4 py-2 rounded-lg bg-orange-500 text-white" data-action="save-addr">Save</button>
         </div>
     </div>
 </div>
 
-@* ===== Modal: Confirm Delete ===== *@
-<div id="confirmModal"
-     class="hidden fixed inset-0 z-[60]"
-     role="dialog" aria-modal="true"
-     aria-labelledby="confirmTitle" aria-describedby="confirmDesc">
-    <!-- overlay -->
-    <div class="absolute inset-0 bg-black/50 backdrop-blur-[1px]"></div>
-
-    <!-- dialog -->
-    <div class="relative z-[61] flex min-h-full items-center justify-center p-4">
-        <div class="w-full max-w-md rounded-2xl bg-white shadow-[0_18px_50px_-10px_rgba(239,68,68,0.35)] border border-red-100">
-            <div class="flex items-center justify-between p-5 border-b rounded-t-2xl bg-red-50">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-full bg-red-500 text-white grid place-content-center shadow-md" aria-hidden="true">
-                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                    </div>
-                    <h3 id="confirmTitle" class="text-lg font-extrabold text-gray-800 tracking-tight">
-                        Delete Address?
-                    </h3>
-                </div>
-                <button type="button"
-                        class="group rounded-lg p-2 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-200"
-                        data-close-confirm aria-label="Close confirm dialog">
-                    <svg class="w-5 h-5 text-gray-500 group-hover:text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
-            </div>
-
-            <div class="p-5">
-                <p id="confirmDesc" class="text-gray-700 leading-relaxed">
-                    This action will soft-delete the selected address. You can’t use it at checkout anymore.
-                </p>
-            </div>
-
-            <div class="flex items-center justify-end gap-2 p-5 border-t rounded-b-2xl bg-white">
-                <button type="button"
-                        class="px-4 py-2 rounded-xl border-2 border-gray-200 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200"
-                        data-cancel-confirm>
-                    Cancel
-                </button>
-                <button type="button" id="confirmDeleteBtn"
-                        class="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white shadow-md focus:outline-none focus:ring-2 focus:ring-red-300">
-                    Delete
-                </button>
-            </div>
+<!-- Modal Confirm Delete -->
+<div id="addr-confirm" class="fixed inset-0 hidden/ modal flex items-center justify-center">
+    <div class="absolute inset-0 bg-black/40" data-action="close-confirm"></div>
+    <div class="relative bg-white rounded-2xl p-6 w-[420px] shadow-xl">
+        <h4 class="text-lg font-bold mb-2">Delete address?</h4>
+        <p class="text-gray-600 mb-4">This action cannot be undone.</p>
+        <input type="hidden" id="addr-del-id" value="0" />
+        <div class="mt-2 flex justify-end gap-2">
+            <button class="px-4 py-2 rounded-lg border" data-action="close-confirm">Cancel</button>
+            <button class="px-4 py-2 rounded-lg bg-red-600 text-white" data-action="confirm-delete">Delete</button>
         </div>
     </div>
 </div>
+
+<script>
+    (() => {
+      const api = {
+        list: "/addresses/list",
+        create: "/addresses/create",
+        update: "/addresses/update",
+        del: "/addresses/delete",
+        setDefault: "/addresses/set-default"
+      };
+
+      const qs = (s, el = document) => el.querySelector(s);
+      const af = () => {
+        const f = qs("#__afForm");
+        if (!f) return {};
+        const token = f.querySelector('input[name="__RequestVerificationToken"]')?.value;
+        return token ? { "RequestVerificationToken": token } : {};
+      };
+
+      async function fetchJson(url, options = {}) {
+        const opt = Object.assign({ method: "GET" }, options);
+        opt.headers = Object.assign(
+          { "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8" },
+          af(), opt.headers || {}
+        );
+        const res = await fetch(url, opt);
+        if (!res.ok) throw new Error(await res.text());
+        return res.json();
+      }
+
+      const show = el => el.classList.remove("hidden/");
+      const hide = el => el.classList.add("hidden/");
+
+      const grid = () => qs("#addr-grid");
+      const modal = () => qs("#addr-modal");
+      const confirmM = () => qs("#addr-confirm");
+
+      function itemCard(a) {
+        const badge = a.isDefault
+          ? `<span class="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full">Default</span>`
+          : `<button class="text-xs px-2 py-0.5 rounded-full border" data-action="make-default" data-id="${a.addressId}">Make default</button>`;
+        return `
+          <div class="border rounded-xl p-4 flex flex-col gap-3">
+            <div class="flex items-start justify-between">
+              <div class="font-semibold">${a.addressLine}</div>
+              <div class="flex items-center gap-2">
+                ${badge}
+                <button class="p-2 rounded-lg hover:bg-orange-50" title="Edit" data-action="edit" data-id="${a.addressId}">✏️</button>
+                <button class="p-2 rounded-lg hover:bg-red-50" title="Delete" data-action="delete" data-id="${a.addressId}">🗑️</button>
+              </div>
+            </div>
+            <div class="text-sm text-gray-600">${a.ward ? a.ward + ", " : ""}${a.city}</div>
+            <div class="text-xs text-gray-400">Added: ${new Date(a.createdAt).toLocaleString()}</div>
+          </div>`;
+      }
+
+      async function loadList() {
+        const data = await fetchJson(api.list);
+        grid().innerHTML = data.map(itemCard).join("");
+      }
+
+      function openAdd() {
+        qs("#addr-modal-title").textContent = "Add Address";
+        qs("#addr-id").value = "0";
+        qs("#addr-line").value = "";
+        qs("#addr-city").value = "";
+        qs("#addr-ward").value = "";
+        qs("#addr-default").checked = false;
+        show(modal());
+      }
+
+      async function openEdit(id) {
+        const card = qs(`[data-action="edit"][data-id="${id}"]`).closest(".border");
+        qs("#addr-modal-title").textContent = "Edit Address";
+        qs("#addr-id").value = id;
+
+        const line = card.querySelector(".font-semibold").textContent.trim();
+        const cityWard = card.querySelector(".text-sm").textContent.trim();
+        const parts = cityWard.split(",").map(s => s.trim());
+        qs("#addr-line").value = line;
+        if (parts.length === 2) { qs("#addr-ward").value = parts[0]; qs("#addr-city").value = parts[1]; }
+        else { qs("#addr-ward").value = ""; qs("#addr-city").value = parts[0] || ""; }
+
+        qs("#addr-default").checked = !!card.querySelector(".bg-orange-100");
+        show(modal());
+      }
+
+      function closeModal() { hide(modal()); }
+      function openConfirm(id) { qs("#addr-del-id").value = id; show(confirmM()); }
+      function closeConfirm() { hide(confirmM()); }
+
+      async function saveAddr() {
+        const id = parseInt(qs("#addr-id").value || "0", 10);
+        const payload = new URLSearchParams({
+          id: id.toString(),
+          addressLine: qs("#addr-line").value.trim(),
+          city: qs("#addr-city").value.trim(),
+          ward: qs("#addr-ward").value.trim(),
+          isDefault: qs("#addr-default").checked ? "true" : "false"
+        });
+
+        if (!payload.get("addressLine") || !payload.get("city")) {
+          alert("Address Line và City là bắt buộc.");
+          return;
+        }
+
+        if (id === 0)
+          await fetchJson(api.create, { method: "POST", body: payload });
+        else
+          await fetchJson(api.update, { method: "POST", body: payload });
+
+        closeModal();
+        await loadList();
+      }
+
+      async function doDelete() {
+        const id = parseInt(qs("#addr-del-id").value || "0", 10);
+        const payload = new URLSearchParams({ id: id.toString() });
+        await fetchJson(api.del, { method: "POST", body: payload });
+        closeConfirm();
+        await loadList();
+      }
+
+      async function makeDefault(id) {
+        const payload = new URLSearchParams({ id: id.toString() });
+        await fetchJson(api.setDefault, { method: "POST", body: payload });
+        await loadList();
+      }
+
+      document.addEventListener("click", (e) => {
+        const btn = e.target.closest("[data-action]");
+        if (!btn) return;
+        const action = btn.getAttribute("data-action");
+
+        if (action === "open-add") { e.preventDefault(); openAdd(); }
+        else if (action === "close-modal") { e.preventDefault(); closeModal(); }
+        else if (action === "save-addr") { e.preventDefault(); saveAddr(); }
+        else if (action === "edit") { e.preventDefault(); openEdit(parseInt(btn.dataset.id, 10)); }
+        else if (action === "delete") { e.preventDefault(); openConfirm(parseInt(btn.dataset.id, 10)); }
+        else if (action === "close-confirm") { e.preventDefault(); closeConfirm(); }
+        else if (action === "confirm-delete") { e.preventDefault(); doDelete(); }
+        else if (action === "make-default") { e.preventDefault(); makeDefault(parseInt(btn.dataset.id, 10)); }
+      });
+
+      // Gọi load khi partial được render
+      document.addEventListener("DOMContentLoaded", () => {
+        if (grid()) loadList().catch(console.error);
+      });
+    })();
+</script>
+
