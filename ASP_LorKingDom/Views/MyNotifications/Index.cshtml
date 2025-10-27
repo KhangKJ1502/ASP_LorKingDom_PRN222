@@ -2,6 +2,7 @@
 @{
     ViewData["Title"] = "Thông Báo Của Tôi";
     Layout = "_Layout";
+    bool? currentFilter = ViewBag.CurrentFilter as bool?;
 }
 
 <style>
@@ -17,90 +18,7 @@
         padding: 0 1rem;
     }
 
-    /* Header Section */
-    .page-header {
-        background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(10px);
-        border-radius: 20px;
-        padding: 2rem;
-        margin-bottom: 2rem;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
-    }
-
-    .header-content {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 1rem;
-    }
-
-    .header-title {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-    }
-
-    .title-icon {
-        width: 60px;
-        height: 60px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-radius: 15px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.8rem;
-        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
-    }
-
-    .title-text h1 {
-        font-size: 1.8rem;
-        font-weight: 700;
-        color: #1f2937;
-        margin: 0;
-    }
-
-    .title-text p {
-        color: #6b7280;
-        margin: 0;
-        font-size: 0.9rem;
-    }
-
-    .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-        gap: 1rem;
-        margin-top: 1.5rem;
-    }
-
-    .stat-card {
-        background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
-        padding: 1rem;
-        border-radius: 12px;
-        text-align: center;
-        transition: transform 0.3s ease;
-    }
-
-        .stat-card:hover {
-            transform: translateY(-5px);
-        }
-
-    .stat-number {
-        font-size: 2rem;
-        font-weight: 700;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-    }
-
-    .stat-label {
-        color: #6b7280;
-        font-size: 0.85rem;
-        margin-top: 0.25rem;
-    }
-
-    /* Filter Tabs */
+    /* Header / Filter Section shared styling */
     .filter-section {
         background: rgba(255, 255, 255, 0.95);
         backdrop-filter: blur(10px);
@@ -114,6 +32,18 @@
         display: flex;
         gap: 0.5rem;
         flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: flex-start;
+    }
+
+    .filter-left {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .filter-right {
+        margin-left: auto;
     }
 
     .filter-tab {
@@ -155,7 +85,28 @@
         background: rgba(255, 255, 255, 0.3);
     }
 
-    /* Notification List */
+    .mark-all-btn {
+        border: none;
+        border-radius: 12px;
+        background: linear-gradient(135deg,#10b981 0%,#059669 100%);
+        color: #fff;
+        font-weight: 600;
+        font-size: .9rem;
+        padding: .75rem 1rem;
+        box-shadow: 0 8px 20px rgba(16,185,129,.4);
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+        cursor: pointer;
+        text-decoration: none;
+    }
+
+        .mark-all-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px rgba(16,185,129,.5);
+        }
+
+    /* Notifications wrapper */
     .notifications-wrapper {
         background: rgba(255, 255, 255, 0.95);
         backdrop-filter: blur(10px);
@@ -220,7 +171,6 @@
                 animation: pulse 2s infinite;
             }
 
-
     .notification-content {
         display: grid;
         grid-template-columns: auto 1fr auto;
@@ -238,31 +188,27 @@
         font-size: 1.5rem;
         flex-shrink: 0;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        color: white;
     }
 
         .notification-icon.info {
             background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-            color: white;
         }
 
         .notification-icon.success {
             background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            color: white;
         }
 
         .notification-icon.warning {
             background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-            color: white;
         }
 
         .notification-icon.error {
             background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-            color: white;
         }
 
         .notification-icon.promo {
             background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
-            color: white;
         }
 
     .notification-body {
@@ -300,6 +246,8 @@
         font-size: 0.95rem;
         line-height: 1.6;
         margin-bottom: 0.75rem;
+        word-break: break-word;
+        white-space: pre-line;
     }
 
     .notification-meta {
@@ -315,10 +263,6 @@
         align-items: center;
         gap: 0.4rem;
     }
-
-        .meta-item i {
-            font-size: 0.9rem;
-        }
 
     .notification-actions {
         display: flex;
@@ -352,7 +296,7 @@
             box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
         }
 
-    /* Empty State */
+    /* Empty state */
     .empty-state {
         text-align: center;
         padding: 4rem 2rem;
@@ -364,7 +308,6 @@
         margin-bottom: 1.5rem;
         animation: float 3s ease-in-out infinite;
     }
-
 
     .empty-title {
         font-size: 1.5rem;
@@ -431,45 +374,93 @@
         pointer-events: none;
     }
 
+    @@keyframes pulse {
+        0%
+
+    {
+        box-shadow: 0 0 0 4px rgba(102,126,234,0.3);
+    }
+
+    70% {
+        box-shadow: 0 0 0 8px rgba(102,126,234,0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 4px rgba(102,126,234,0);
+    }
+
+    }
+
+    @@keyframes float {
+        0%,100%
+
+    {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-8px);
+    }
+
+    }
 </style>
 
 <div class="notification-page">
     <div class="notification-container">
-        <!-- Filter Section -->
+
+        <!-- Filter / actions -->
         <div class="filter-section">
             <div class="filter-tabs">
-                <a href="@Url.Action("Index", new { page = 1, pageSize = Model.PageSize })"
-                   class="filter-tab @(Context.Request.Query["isRead"].ToString() == "" ? "active" : "")">
-                    <i class="fa-solid fa-list"></i>
-                    <span>Tất cả</span>
-                    <span class="tab-count">@Model.Total</span>
-                </a>
-                <a href="@Url.Action("Index", new { isRead = false, page = 1, pageSize = Model.PageSize })"
-                   class="filter-tab @(Context.Request.Query["isRead"].ToString() == "false" ? "active" : "")">
-                    <i class="fa-solid fa-envelope"></i>
-                    <span>Chưa đọc</span>
-                    <span class="tab-count">@Model.Items.Count(n => !n.IsRead)</span>
-                </a>
-                <a href="@Url.Action("Index", new { isRead = true, page = 1, pageSize = Model.PageSize })"
-                   class="filter-tab @(Context.Request.Query["isRead"].ToString() == "true" ? "active" : "")">
-                    <i class="fa-solid fa-envelope-open"></i>
-                    <span>Đã đọc</span>
-                    <span class="tab-count">@Model.Items.Count(n => n.IsRead)</span>
-                </a>
+
+                <div class="filter-left">
+                    <a href="@Url.Action("Index", new { page = 1, pageSize = Model.PageSize })"
+                       class="filter-tab @(currentFilter == null ? "active" : "")">
+                        <i class="fa-solid fa-list"></i>
+                        <span>Tất cả</span>
+                        <span class="tab-count">@Model.Total</span>
+                    </a>
+
+                    <a href="@Url.Action("Index", new { isRead = false, page = 1, pageSize = Model.PageSize })"
+                       class="filter-tab @(currentFilter == false ? "active" : "")">
+                        <i class="fa-solid fa-envelope"></i>
+                        <span>Chưa đọc</span>
+                        <span class="tab-count">@Model.Items.Count(n => !n.IsRead)</span>
+                    </a>
+
+                    <a href="@Url.Action("Index", new { isRead = true, page = 1, pageSize = Model.PageSize })"
+                       class="filter-tab @(currentFilter == true ? "active" : "")">
+                        <i class="fa-solid fa-envelope-open"></i>
+                        <span>Đã đọc</span>
+                        <span class="tab-count">@Model.Items.Count(n => n.IsRead)</span>
+                    </a>
+                </div>
+
+                <div class="filter-right">
+                    <form method="post" asp-action="MarkAllRead" asp-controller="MyNotifications" style="display:inline;">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="mark-all-btn" title="Đánh dấu tất cả là đã đọc">
+                            <i class="fa-solid fa-check-double"></i>
+                            Đánh dấu tất cả đã đọc
+                        </button>
+                    </form>
+                </div>
             </div>
         </div>
 
-        <!-- Notifications -->
+        <!-- Notifications list -->
         <div class="notifications-wrapper">
             @if (Model.Items != null && Model.Items.Any())
             {
                 <div class="notification-list">
                     @foreach (var notification in Model.Items)
                     {
-                        var iconType = notification.Title.ToLower().Contains("thành công") || notification.Title.ToLower().Contains("success") ? "success" :
-                        notification.Title.ToLower().Contains("cảnh báo") || notification.Title.ToLower().Contains("warning") ? "warning" :
-                        notification.Title.ToLower().Contains("lỗi") || notification.Title.ToLower().Contains("error") ? "error" :
-                        notification.Title.ToLower().Contains("khuyến mãi") || notification.Title.ToLower().Contains("promo") ? "promo" : "info";
+                        var lower = (notification.Title ?? "").ToLowerInvariant();
+                        var iconType =
+                        lower.Contains("thành công") || lower.Contains("success") ? "success" :
+                        lower.Contains("cảnh báo") || lower.Contains("warning") ? "warning" :
+                        lower.Contains("lỗi") || lower.Contains("error") ? "error" :
+                        lower.Contains("khuyến mãi") || lower.Contains("promo") ? "promo" :
+                        "info";
 
                         var iconClass = iconType switch
                         {
@@ -494,12 +485,15 @@
                                             <span class="new-badge">Mới</span>
                                         }
                                     </div>
+
                                     <p class="notification-message">@notification.Message</p>
+
                                     <div class="notification-meta">
                                         <span class="meta-item">
                                             <i class="fa-regular fa-clock"></i>
                                             @GetTimeAgo(notification.ScheduledAt)
                                         </span>
+
                                         @if (notification.DeliveredAt.HasValue)
                                         {
                                             <span class="meta-item">
@@ -507,6 +501,7 @@
                                                 @notification.DeliveredAt.Value.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
                                             </span>
                                         }
+
                                         @if (notification.ReadAt.HasValue)
                                         {
                                             <span class="meta-item">
@@ -520,9 +515,12 @@
                                 @if (!notification.IsRead)
                                 {
                                     <div class="notification-actions">
-                                        <form method="post" asp-action="MarkRead" asp-controller="MyNotifications">
+                                        <form method="post"
+                                              asp-action="MarkRead"
+                                              asp-controller="MyNotifications">
                                             @Html.AntiForgeryToken()
                                             <input type="hidden" name="id" value="@notification.UserNotificationId" />
+                                            <input type="hidden" name="returnFilter" value="@(currentFilter?.ToString().ToLower() ?? "")" />
                                             <button type="submit" class="action-btn mark-read-btn" title="Đánh dấu đã đọc">
                                                 <i class="fa-solid fa-check"></i>
                                                 Đã đọc
@@ -540,14 +538,15 @@
                 {
                     var totalPages = (int)Math.Ceiling((double)Model.Total / Model.PageSize);
                     var currentPage = Model.Page;
-                    var isReadParam = Context.Request.Query["isRead"].ToString();
+                    var isReadParam = currentFilter?.ToString().ToLower();
 
                     <div class="pagination-wrapper">
                         <ul class="pagination">
                             @if (currentPage > 1)
                             {
                                 <li class="page-item">
-                                    <a class="page-link" href="@Url.Action("Index", new { isRead = isReadParam, page = currentPage - 1, pageSize = Model.PageSize })">
+                                    <a class="page-link"
+                                       href="@Url.Action("Index", new { isRead = isReadParam, page = currentPage - 1, pageSize = Model.PageSize })">
                                         <i class="fa-solid fa-chevron-left"></i>
                                     </a>
                                 </li>
@@ -556,14 +555,16 @@
                             @for (int i = Math.Max(1, currentPage - 2); i <= Math.Min(totalPages, currentPage + 2); i++)
                             {
                                 <li class="page-item @(i == currentPage ? "active" : "")">
-                                    <a class="page-link" href="@Url.Action("Index", new { isRead = isReadParam, page = i, pageSize = Model.PageSize })">@i</a>
+                                    <a class="page-link"
+                                       href="@Url.Action("Index", new { isRead = isReadParam, page = i, pageSize = Model.PageSize })">@i</a>
                                 </li>
                             }
 
                             @if (currentPage < totalPages)
                             {
                                 <li class="page-item">
-                                    <a class="page-link" href="@Url.Action("Index", new { isRead = isReadParam, page = currentPage + 1, pageSize = Model.PageSize })">
+                                    <a class="page-link"
+                                       href="@Url.Action("Index", new { isRead = isReadParam, page = currentPage + 1, pageSize = Model.PageSize })">
                                         <i class="fa-solid fa-chevron-right"></i>
                                     </a>
                                 </li>
@@ -606,7 +607,7 @@
 @section Scripts {
     <script>
         // Animation on load
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const cards = document.querySelectorAll('.notification-card');
             cards.forEach((card, index) => {
                 card.style.opacity = '0';
@@ -620,7 +621,7 @@
             });
         });
 
-        // Auto refresh every 30 seconds (only on unread tab)
+        // Auto refresh every 30s (for tab != 'true', tức là Tất cả hoặc Chưa đọc)
         const isRead = new URLSearchParams(window.location.search).get('isRead');
         if (isRead !== 'true') {
             let refreshInterval = setInterval(() => {
@@ -629,13 +630,16 @@
                 }
             }, 30000);
 
-            document.addEventListener('visibilitychange', function() {
+            document.addEventListener('visibilitychange', function () {
                 if (document.hidden) {
                     clearInterval(refreshInterval);
-                } else {
-                    refreshInterval = setInterval(() => location.reload(), 30000);
                 }
             });
         }
     </script>
+
+    <!-- Font Awesome (nếu layout chưa có) -->
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+          crossorigin="anonymous" referrerpolicy="no-referrer" />
 }

@@ -1,9 +1,14 @@
-﻿﻿@{
-var userId = User?.Identity?.Name ?? "guest_" + Guid.NewGuid().ToString("N").Substring(0, 8);
-var name = User?.Identity?.Name ?? "Khách hàng";
+﻿@{
+    // Lấy ID & Name cho customer (nếu đã login thì lấy info user, còn không thì random)
+    var userId = (string)ViewBag.UserId
+                 ?? User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+                 ?? ("guest_" + Guid.NewGuid().ToString("N").Substring(0, 8));
+
+    var name = (string)ViewBag.Name
+               ?? User?.Identity?.Name
+               ?? "Khách hàng";
 }
 
-<!-- Chat Widget Button & Box -->
 <div id="chatWidget">
     <!-- Floating Button -->
     <button class="chat-widget-button" id="chatToggleBtn" type="button">
@@ -140,17 +145,19 @@ var name = User?.Identity?.Name ?? "Khách hàng";
         .notification-dot.show {
             display: block;
         }
-
     @@keyframes pulse {
-        0%, 100% {
-            transform: scale(1);
-            opacity: 1;
-        }
+        0%, 100%
 
-        50% {
-            transform: scale(1.2);
-            opacity: 0.8;
-        }
+    {
+        transform: scale(1);
+        opacity: 1;
+    }
+
+    50% {
+        transform: scale(1.2);
+        opacity: 0.8;
+    }
+
     }
 
     .chat-widget-box {
@@ -171,17 +178,19 @@ var name = User?.Identity?.Name ?? "Khách hàng";
         .chat-widget-box.show {
             display: flex;
         }
-
     @@keyframes slideUp {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
-        }
+        from
 
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
+    {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
     }
 
     .chat-widget-header {
@@ -307,17 +316,19 @@ var name = User?.Identity?.Name ?? "Khách hàng";
         gap: 8px;
         animation: messageSlide 0.3s ease-out;
     }
-
     @@keyframes messageSlide {
-        from {
-            opacity: 0;
-            transform: translateY(10px);
-        }
+        from
 
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
+    {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
     }
 
     .chat-message.sent {
@@ -337,18 +348,18 @@ var name = User?.Identity?.Name ?? "Khách hàng";
         background: white;
         color: #1e293b;
         border-bottom-left-radius: 4px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        box-shadow: 0 2px 4px rgba(0,0,0,.05);
     }
 
     .chat-message.sent .chat-bubble {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg,#667eea 0%,#764ba2 100%);
         color: white;
         border-bottom-right-radius: 4px;
     }
 
     .message-time {
         font-size: 11px;
-        opacity: 0.7;
+        opacity: .7;
         margin-top: 6px;
         display: block;
     }
@@ -378,21 +389,24 @@ var name = User?.Identity?.Name ?? "Khách hàng";
         }
 
             .typing-dots span:nth-child(2) {
-                animation-delay: 0.2s;
+                animation-delay: .2s;
             }
 
             .typing-dots span:nth-child(3) {
-                animation-delay: 0.4s;
+                animation-delay: .4s;
             }
 
     @@keyframes typing {
-        0%, 60%, 100% {
-            transform: translateY(0);
-        }
+        0%,60%,100%
 
-        30% {
-            transform: translateY(-8px);
-        }
+    {
+        transform: translateY(0);
+    }
+
+    30% {
+        transform: translateY(-8px);
+    }
+
     }
 
     .typing-text {
@@ -416,36 +430,36 @@ var name = User?.Identity?.Name ?? "Khách hàng";
             border-radius: 24px;
             font-size: 14px;
             outline: none;
-            transition: all 0.2s;
+            transition: all .2s;
         }
 
             .chat-widget-input input:focus {
                 border-color: #667eea;
-                box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+                box-shadow: 0 0 0 3px rgba(102,126,234,.1);
             }
 
     .send-button {
         width: 44px;
         height: 44px;
         border: none;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg,#667eea 0%,#764ba2 100%);
         border-radius: 50%;
         color: white;
         cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
-        transition: all 0.2s;
+        transition: all .2s;
         flex-shrink: 0;
     }
 
         .send-button:hover {
             transform: scale(1.1);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 4px 12px rgba(102,126,234,.4);
         }
 
         .send-button:active {
-            transform: scale(0.95);
+            transform: scale(.95);
         }
 
     .chat-widget-footer {
@@ -458,36 +472,42 @@ var name = User?.Identity?.Name ?? "Khách hàng";
     }
 
     @@media (max-width: 480px) {
-        #chatWidget {
-            bottom: 16px;
-            right: 16px;
-        }
+        #chatWidget
 
-        .chat-widget-box {
-            width: calc(100vw - 32px);
-            height: calc(100vh - 120px);
-            max-height: 600px;
-        }
+    {
+        bottom: 16px;
+        right: 16px;
+    }
 
-        .chat-widget-button {
-            width: 56px;
-            height: 56px;
-        }
+    .chat-widget-box {
+        width: calc(100vw - 32px);
+        height: calc(100vh - 120px);
+        max-height: 600px;
+    }
+
+    .chat-widget-button {
+        width: 56px;
+        height: 56px;
+    }
+
     }
 </style>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
 <script>
-    (function() {
+    (function () {
+        // ===== Razor -> JS =====
         const USER_ID = "@userId";
         const DISPLAY_NAME = "@name";
         const HUB = `/chatHub?userId=${encodeURIComponent(USER_ID)}&isStaff=false&name=${encodeURIComponent(DISPLAY_NAME)}`;
 
+        // state
+        let conn = null;
         let convId = null;
         let typingTimer = null;
-        let conn = null;
         let isBoxOpen = false;
 
+        // dom
         const toggleBtn = document.getElementById('chatToggleBtn');
         const chatBox = document.getElementById('chatBox');
         const minimizeBtn = document.getElementById('minimizeBtn');
@@ -498,6 +518,22 @@ var name = User?.Identity?.Name ?? "Khách hàng";
         const agentStatus = document.getElementById('agentStatus');
         const notificationDot = document.getElementById('notificationDot');
 
+        // ===== Cookie helpers =====
+        function getCookie(name) {
+            const m = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/([$?*|{}\]\\^])/g, '\\$1') + '=([^;]*)'));
+            return m ? decodeURIComponent(m[1]) : null;
+        }
+
+        function getAssignedStaff() {
+            // Bạn phải đảm bảo action Customer() set 2 cookie này cho KH:
+            // Response.Cookies.Append("staffId", staffId);
+            // Response.Cookies.Append("staffName", staffName);
+            const staffId = getCookie("staffId");
+            const staffName = getCookie("staffName") || "Nhân viên hỗ trợ";
+            return { staffId, staffName };
+        }
+
+        // ===== UI helpers =====
         function toggleChatBox() {
             isBoxOpen = !isBoxOpen;
             chatBox.classList.toggle('show', isBoxOpen);
@@ -508,15 +544,8 @@ var name = User?.Identity?.Name ?? "Khách hàng";
                 notificationDot.classList.remove('show');
             }
         }
-
         toggleBtn.addEventListener('click', toggleChatBox);
         minimizeBtn.addEventListener('click', toggleChatBox);
-
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
 
         function formatTime(date) {
             return new Date(date || Date.now()).toLocaleTimeString('vi-VN', {
@@ -526,23 +555,24 @@ var name = User?.Identity?.Name ?? "Khách hàng";
         }
 
         function addMessage(senderId, text, when) {
-            const welcomeMsg = chatMessages.querySelector('.welcome-message');
-            if (welcomeMsg) welcomeMsg.remove();
+            // bỏ welcome lúc nhận tin đầu tiên
+            const welcome = chatMessages.querySelector('.welcome-message');
+            if (welcome) welcome.remove();
 
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `chat-message ${senderId === USER_ID ? 'sent' : 'received'}`;
+            const wrap = document.createElement('div');
+            wrap.className = `chat-message ${senderId === USER_ID ? 'sent' : 'received'}`;
 
             const bubble = document.createElement('div');
             bubble.className = 'chat-bubble';
-            bubble.textContent = text;
+            bubble.textContent = text ?? '';
 
             const time = document.createElement('span');
             time.className = 'message-time';
             time.textContent = formatTime(when);
 
             bubble.appendChild(time);
-            messageDiv.appendChild(bubble);
-            chatMessages.appendChild(messageDiv);
+            wrap.appendChild(bubble);
+            chatMessages.appendChild(wrap);
 
             chatMessages.scrollTop = chatMessages.scrollHeight;
 
@@ -568,19 +598,23 @@ var name = User?.Identity?.Name ?? "Khách hàng";
             }
         }
 
+        // ===== chat actions =====
         async function sendMessage() {
             const text = messageInput.value.trim();
             if (!text || !convId) return;
 
             messageInput.value = '';
-            await conn.invoke("SendMessage", convId, USER_ID, text);
+            try {
+                await conn.invoke("SendMessage", convId, USER_ID, text);
+            } catch (err) {
+                console.error("SendMessage error:", err);
+            }
         }
 
         function handleTyping() {
             if (!convId) return;
 
             conn.invoke("Typing", convId, USER_ID, true).catch(() => {});
-
             clearTimeout(typingTimer);
             typingTimer = setTimeout(() => {
                 conn.invoke("Typing", convId, USER_ID, false).catch(() => {});
@@ -588,7 +622,6 @@ var name = User?.Identity?.Name ?? "Khách hàng";
         }
 
         sendButton.addEventListener('click', sendMessage);
-
         messageInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
@@ -598,43 +631,78 @@ var name = User?.Identity?.Name ?? "Khách hàng";
             }
         });
 
-        async function initializeChat() {
-            try {
-                conn = new signalR.HubConnectionBuilder()
-                    .withUrl(HUB)
-                    .withAutomaticReconnect()
-                    .build();
+        // ===== SignalR =====
+        async function initSignalR() {
+            conn = new signalR.HubConnectionBuilder()
+                .withUrl(HUB)
+                .withAutomaticReconnect()
+                .build();
 
-                conn.on("receive", (m) => {
-                    if (m.conversationId === convId) {
-                        addMessage(m.senderId, m.text, m.sentAt);
-                    }
-                });
+            // Khi có tin nhắn mới
+            conn.on("receive", (m) => {
+                if (m.conversationId === convId) {
+                    addMessage(m.senderId, m.text, m.sentAt);
+                }
+            });
 
-                conn.on("typing", (from, isTyping) => {
-                    if (from !== USER_ID) {
-                        showTyping(isTyping);
-                    }
-                });
+            // Khi staff đang gõ
+            conn.on("typing", (from, isTyping) => {
+                if (from !== USER_ID) {
+                    showTyping(isTyping);
+                }
+            });
 
-                conn.on("presenceChanged", (uid, online) => {
+            // Khi presence thay đổi
+            conn.on("presenceChanged", (uid, online) => {
+                // chỉ update nếu uid == staff đang assigned cho mình
+                const { staffId } = getAssignedStaff();
+                if (uid && staffId && uid === staffId) {
                     setAgentStatus(online);
-                });
+                }
+            });
 
-                await conn.start();
-                convId = await conn.invoke("StartChatAsCustomer", USER_ID);
+            // Khi server báo cập nhật hội thoại (ví dụ đổi staff)
+            conn.on("conversationUpdated", (conv) => {
+                // nếu server có đổi conv.StaffUserId thì bạn có thể sync lại cookie bên dưới
+                console.log("conversationUpdated", conv);
+            });
 
-                console.log('Chat widget connected. Conversation ID:', convId);
-            } catch (error) {
-                console.error('Failed to initialize chat:', error);
+            await conn.start();
+            console.log("SignalR connected");
+        }
+
+        // Gọi RPC server để lấy / tạo conversation đúng staff
+        async function startConversation() {
+            const { staffId } = getAssignedStaff();
+
+            try {
+                if (staffId) {
+                    // Ưu tiên staffId từ cookie
+                    convId = await conn.invoke("StartChatWithStaff", USER_ID, staffId);
+                    console.log("StartChatWithStaff ->", convId);
+
+                    // bật tạm trạng thái online = true tới khi presenceChanged sync lại
+                    setAgentStatus(true);
+                } else {
+                    // fallback: auto-assign staff
+                    convId = await conn.invoke("StartChatAsCustomer", USER_ID);
+                    console.log("StartChatAsCustomer ->", convId);
+                }
+            } catch (err) {
+                console.error("startConversation failed:", err);
                 agentStatus.querySelector('.status-text').textContent = 'Lỗi kết nối';
             }
         }
 
+        async function init() {
+            await initSignalR();
+            await startConversation();
+        }
+
         if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initializeChat);
+            document.addEventListener('DOMContentLoaded', init);
         } else {
-            initializeChat();
+            init();
         }
     })();
 </script>

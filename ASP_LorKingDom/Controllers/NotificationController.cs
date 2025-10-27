@@ -28,11 +28,11 @@ namespace WebUI.Controllers
         public async Task<IActionResult> Manage([FromQuery] NotificationFilterDto f)
         {
             f = NormalizeFilter(f);
-            var list = await _svc.SearchAsync(f);
-            ViewBag.Filter = f;
 
-            var roles = await _roleRepo.GetAllAsync();
-            ViewBag.Roles = roles;
+            var list = await _svc.SearchAsync(f);
+
+            ViewBag.Filter = f;
+            ViewBag.Roles = await _roleRepo.GetAllAsync();
 
             if (TempData["EditNotificationId"] is int nid && nid > 0)
             {
@@ -79,9 +79,9 @@ namespace WebUI.Controllers
 
             try
             {
-                var basicValidationError = ValidateBasicInput(dto);
-                if (!string.IsNullOrEmpty(basicValidationError))
-                    throw new InvalidOperationException(basicValidationError);
+                var validationError = ValidateBasicInput(dto);
+                if (!string.IsNullOrWhiteSpace(validationError))
+                    throw new InvalidOperationException(validationError);
 
                 dto.ScheduledAt = ToUtcFromLocal(dto.ScheduledAt);
                 if (dto.ExpireAt.HasValue)
@@ -152,6 +152,7 @@ namespace WebUI.Controllers
             {
                 TempData["Error"] = ex.Message;
             }
+
             return RedirectToAction(nameof(Manage), NormalizeFilter(f));
         }
 
@@ -168,6 +169,7 @@ namespace WebUI.Controllers
             {
                 TempData["Error"] = ex.Message;
             }
+
             return RedirectToAction(nameof(Manage), NormalizeFilter(f));
         }
 
@@ -184,10 +186,11 @@ namespace WebUI.Controllers
             {
                 TempData["Error"] = ex.Message;
             }
+
             return RedirectToAction(nameof(Manage), NormalizeFilter(f));
         }
 
-        // =============== Private Helpers ===============
+        // ===== Helpers =====
 
         private int GetCurrentUserId()
         {
@@ -205,8 +208,10 @@ namespace WebUI.Controllers
 
         private static string ValidateBasicInput(NotificationSaveDto dto)
         {
-            if (string.IsNullOrWhiteSpace(dto.Title)) return "Tiêu đề là bắt buộc.";
-            if (string.IsNullOrWhiteSpace(dto.Message)) return "Nội dung là bắt buộc.";
+            if (string.IsNullOrWhiteSpace(dto.Title))
+                return "Tiêu đề là bắt buộc.";
+            if (string.IsNullOrWhiteSpace(dto.Message))
+                return "Nội dung là bắt buộc.";
             if (dto.ExpireAt.HasValue && dto.ExpireAt.Value <= dto.ScheduledAt)
                 return "Thời gian hết hạn phải sau thời gian hiển thị.";
             return string.Empty;
@@ -219,9 +224,7 @@ namespace WebUI.Controllers
 
             var list = await _svc.SearchAsync(f);
             ViewBag.Filter = f;
-
-            var roles = await _roleRepo.GetAllAsync();
-            ViewBag.Roles = roles;
+            ViewBag.Roles = await _roleRepo.GetAllAsync();
 
             if (dto.NotificationId.HasValue && dto.NotificationId.Value > 0)
             {

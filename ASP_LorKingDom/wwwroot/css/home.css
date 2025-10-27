@@ -1,4 +1,4 @@
-/* ===== CSS Variables ===== */
+﻿/* ===== CSS Variables ===== */
 :root {
     /* Softer Orange Color Palette */
     --color-primary: rgb(230, 126, 75);
@@ -60,6 +60,56 @@ a {
     color: inherit;
     transition: all 0.3s ease;
 }
+
+
+.header-action-btn {
+    position: relative;
+    background: #fff;
+    border: 0;
+    padding: 0.5rem;
+    border-radius: 12px;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+    .header-action-btn svg {
+        width: 24px;
+        height: 24px;
+        color: #1f2937;
+    }
+
+.action-badge {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    background-color: #ef4444; /* đỏ */
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 600;
+    min-width: 20px;
+    height: 20px;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    padding: 0 6px;
+    box-shadow: 0 4px 10px rgba(0,0,0,.2);
+}
+
+.action-badge-primary {
+    background-color: #6366f1; /* tím */
+}
+
+.action-badge-danger {
+    background-color: #ef4444; /* đỏ cảnh báo */
+}
+
+
+
 
 img {
     max-width: 100%;
