@@ -52,7 +52,44 @@ namespace BLL.Services
             return dto;
         }
 
-        public async Task UpdateCartItemQuantityAsync(int cartItemId, int newQuantity)
+		public async Task AddToCartAsync(int accountId, int productId, int quantity)
+		{
+			if (quantity < 1) throw new ArgumentException("Quantity must be at least 1");
+
+			var cart = await _cartRepo.GetOrCreateByAccountIdAsync(accountId);
+
+			var product = await _cartRepo.GetProductByIdAsync(productId);
+			if (product == null)
+				throw new InvalidOperationException("Product not found");
+
+			if (product.Quantity < quantity)
+				throw new InvalidOperationException($"Not enough stock for {product.ProductName}. Available: {product.Quantity}");
+
+			var existingItem = cart.CartItems.FirstOrDefault(ci => ci.ProductId == productId && ci.Status == "Active");
+			if (existingItem != null)
+			{
+				existingItem.Quantity += quantity;
+				existingItem.PriceAtThatTime = product.Price;
+				await _cartRepo.UpdateCartItemAsync(existingItem);
+			}
+			else
+			{
+				var newItem = new CartItem
+				{
+					CartId = cart.CartId,
+					ProductId = productId,
+					Quantity = quantity,
+					PriceAtThatTime = product.Price,
+					Status = "Active",
+					AddedAt = DateTime.Now
+				};
+				await _cartRepo.AddCartItemAsync(newItem);
+			}
+
+			cart.UpdatedAt = DateTime.Now;
+		}
+
+		public async Task UpdateCartItemQuantityAsync(int cartItemId, int newQuantity)
         {
             if (newQuantity < 1) throw new ArgumentException("Quantity must be at least 1");
 

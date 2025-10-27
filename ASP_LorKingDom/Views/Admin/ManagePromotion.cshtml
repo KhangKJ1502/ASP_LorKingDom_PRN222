@@ -1,9 +1,21 @@
-﻿@model IEnumerable<BLL.DTOs.PromotionDto>
+﻿@using Microsoft.AspNetCore.Html
+@model BLL.DTOs.PagedResult<BLL.DTOs.PromotionDto>
+
 @{
     Layout = "_AdminLayout";
     ViewData["Title"] = "Quản Lý Khuyến Mãi";
+
     var keyword = (string?)ViewBag.Keyword ?? "";
     var edit = ViewBag.EditPromotion as BLL.DTOs.PromotionDto;
+
+    var currentPage = Model?.Page ?? 1;
+    var pageSize = Model?.PageSize ?? 10;
+    var totalRows = Model?.Total ?? 0;
+    var totalPages = (int)Math.Ceiling(
+        totalRows == 0 ? 1.0 :
+        (double)totalRows / (pageSize == 0 ? 1 : pageSize)
+    );
+    if (totalPages < 1) totalPages = 1;
 }
 
 <style>
@@ -42,7 +54,6 @@
         background: #f8f9fa;
     }
 
-    /* Custom Modal Styling */
     #promotionModal .modal-content {
         border: none;
         border-radius: 16px;
@@ -103,10 +114,6 @@
         min-height: 80px;
     }
 
-    #promotionModal .text-danger {
-        color: #dc3545;
-    }
-
     #promotionModal .modal-footer {
         border-top: 1px solid #e9ecef;
         padding: 1.25rem 2rem;
@@ -141,12 +148,6 @@
             color: white;
         }
 
-    #promotionModal .form-text {
-        font-size: 0.85rem;
-        color: #6c757d;
-        margin-top: 0.25rem;
-    }
-
     #promotionModal .info-box {
         background-color: #e7f3ff;
         border-left: 4px solid #667eea;
@@ -162,16 +163,26 @@
     <div class="card mb-4 mt-4">
         <div class="card-header d-flex justify-content-between align-items-center">
             <div><i class="fa-solid fa-tags me-1"></i> Danh Sách Khuyến Mãi</div>
-            <button class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#promotionModal" onclick="openAddModal()">
+            <button class="btn btn-primary"
+                    type="button"
+                    data-bs-toggle="modal"
+                    data-bs-target="#promotionModal"
+                    onclick="openAddModal()">
                 <i class="fa-solid fa-plus me-1"></i> Thêm Khuyến Mãi
             </button>
         </div>
 
         <div class="card-body">
-            <!-- Tìm kiếm -->
+            <!-- Search -->
             <form class="mb-4" method="get" asp-action="Manage" asp-controller="Promotion">
+                <input type="hidden" name="page" value="1" />
+                <input type="hidden" name="pageSize" value="@pageSize" />
                 <div class="input-group search-box">
-                    <input type="text" name="keyword" value="@keyword" class="form-control" placeholder="Tìm theo mã/mô tả...">
+                    <input type="text"
+                           name="keyword"
+                           value="@keyword"
+                           class="form-control"
+                           placeholder="Tìm theo mã/mô tả..." />
                     <button class="btn btn-outline-secondary" type="submit">
                         <i class="fa-solid fa-magnifying-glass"></i>
                     </button>
@@ -186,9 +197,13 @@
             {
                 <div class="alert alert-success">@s</div>
             }
+            @if (TempData["toast"] is string t)
+            {
+                <div class="alert alert-info">@t</div>
+            }
 
             <div class="table-responsive">
-                <table class="table table-bordered table-striped table-hover">
+                <table class="table table-bordered table-striped table-hover align-middle">
                     <thead class="table-dark">
                         <tr>
                             <th style="white-space:nowrap">ID</th>
@@ -201,18 +216,41 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @if (Model != null && Model.Any())
+                        @if (Model?.Items != null && Model.Items.Any())
                         {
-                            foreach (var x in Model)
+                            foreach (var x in Model.Items)
                             {
                                 <tr class="@(x.IsDeleted ? "deleted-row" : "")">
                                     <td>@x.PromotionId</td>
                                     <td style="white-space:nowrap">
-                                        <a class="btn btn-sm btn-warning" title="Cập nhật"
-                                           asp-action="Edit" asp-controller="Promotion"
-                                           asp-route-id="@x.PromotionId" asp-route-keyword="@keyword">
+
+                                        <a class="btn btn-sm btn-warning"
+                                           title="Cập nhật"
+                                           asp-action="Edit"
+                                           asp-controller="Promotion"
+                                           asp-route-id="@x.PromotionId"
+                                           asp-route-keyword="@keyword"
+                                           asp-route-page="@currentPage"
+                                           asp-route-pageSize="@pageSize">
                                             <i class="fa-solid fa-pen-to-square"></i>
                                         </a>
+
+                                        <form method="post"
+                                              asp-action="SoftDelete"
+                                              asp-controller="Promotion"
+                                              style="display:inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@x.PromotionId" />
+                                            <input type="hidden" name="keyword" value="@keyword" />
+                                            <input type="hidden" name="page" value="@currentPage" />
+                                            <input type="hidden" name="pageSize" value="@pageSize" />
+                                            <button type="submit"
+                                                    class="btn btn-sm btn-danger"
+                                                    onclick="return confirm('Xóa mềm khuyến mãi này?')">
+                                                <i class="fa-solid fa-trash"></i>
+                                            </button>
+                                        </form>
+
                                     </td>
                                     <td>@x.PromotionCode</td>
                                     <td>@(x.DiscountPercent?.ToString("0.##") ?? "—")</td>
@@ -228,7 +266,9 @@
                                         }
                                         else
                                         {
-                                            <span class="badge bg-@(x.Status == "Active" ? "success" : "warning")">@x.Status</span>
+                                            <span class="badge bg-@(x.Status == "Active" ? "success" : "warning")">
+                                                @x.Status
+                                            </span>
                                         }
                                     </td>
                                     <td>@x.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
@@ -244,12 +284,114 @@
                     </tbody>
                 </table>
             </div>
+
+            @* PAGINATION: « 1 … 5 6 7 … 20 » *@
+            @if (totalPages > 1)
+            {
+                Func<int, IHtmlContent> PageItem = (int p) =>
+                {
+                    var active = p == currentPage ? "active" : "";
+                    var url = Url.Action("Manage", "Promotion",
+                            new { keyword = keyword, page = p, pageSize = pageSize });
+                    return new HtmlString($@"
+                        <li class=""page-item {active}"">
+                        <a class=""page-link"" href=""{url}"">{p}</a>
+                        </li>
+                        ");
+                };
+
+                Func<string, IHtmlContent> DisabledDots = (string text) =>
+                {
+                    return new HtmlString($@"
+                        <li class=""page-item disabled"">
+                        <span class=""page-link"">{text}</span>
+                        </li>
+                        ");
+                };
+
+                var prevDisabled = currentPage <= 1;
+                var nextDisabled = currentPage >= totalPages;
+                var prevPage = prevDisabled ? 1 : currentPage - 1;
+                var nextPage = nextDisabled ? totalPages : currentPage + 1;
+
+                var prevUrl = prevDisabled
+                ? "#"
+                : Url.Action("Manage", "Promotion",
+                new { keyword = keyword, page = prevPage, pageSize = pageSize });
+
+                var nextUrl = nextDisabled
+                ? "#"
+                : Url.Action("Manage", "Promotion",
+                new { keyword = keyword, page = nextPage, pageSize = pageSize });
+
+                <nav>
+                    <ul class="pagination justify-content-center">
+
+                        <li class="page-item @(prevDisabled ? "disabled" : "")">
+                            <a class="page-link" href="@prevUrl" aria-disabled="@(prevDisabled ? "true" : "false")">«</a>
+                        </li>
+
+                        @{
+                            // windowSize = số trang hai bên currentPage
+                            var windowSize = 1;
+                            var startPage = currentPage - windowSize;
+                            var endPage = currentPage + windowSize;
+                            if (startPage < 1) startPage = 1;
+                            if (endPage > totalPages) endPage = totalPages;
+
+                            // Trang đầu
+                            @PageItem(1)
+                            ;
+
+                            // "..." nếu block đầu bị gap
+                            if (startPage > 2)
+                            {
+                                @DisabledDots("...")
+                                ;
+                            }
+
+                            // các trang giữa
+                            for (int p = startPage; p <= endPage; p++)
+                            {
+                                if (p != 1 && p != totalPages)
+                                {
+                                    @PageItem(p)
+                                    ;
+                                }
+                            }
+
+                            // "..." nếu block cuối bị gap
+                            if (endPage < totalPages - 1)
+                            {
+                                @DisabledDots("...")
+                                ;
+                            }
+
+                            // Trang cuối
+                            if (totalPages > 1)
+                            {
+                                @PageItem(totalPages)
+                                ;
+                            }
+                        }
+
+                        <li class="page-item @(nextDisabled ? "disabled" : "")">
+                            <a class="page-link" href="@nextUrl" aria-disabled="@(nextDisabled ? "true" : "false")">»</a>
+                        </li>
+
+                    </ul>
+                </nav>
+            }
         </div>
     </div>
 </div>
 
-<!-- Modal Thêm/Sửa Promotion -->
-<div class="modal fade" id="promotionModal" tabindex="-1" aria-labelledby="promotionModalLabel" aria-hidden="true">
+<!-- Modal Add / Edit -->
+<div class="modal fade"
+     id="promotionModal"
+     tabindex="-1"
+     aria-labelledby="promotionModalLabel"
+     aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
             <div class="modal-header">
@@ -257,13 +399,25 @@
                     <i class="fa-solid fa-tag me-2"></i>
                     @(edit != null ? "Cập nhật khuyến mãi" : "Thêm khuyến mãi mới")
                 </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="closeModal()"></button>
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal"
+                        aria-label="Close"
+                        onclick="closeModal()"></button>
             </div>
 
-            <form method="post" asp-action="SavePromotion" asp-controller="Promotion" id="promotionForm">
+            <form method="post"
+                  asp-action="SavePromotion"
+                  asp-controller="Promotion"
+                  id="promotionForm">
                 @Html.AntiForgeryToken()
+
                 <div class="modal-body">
                     <input type="hidden" name="PromotionId" id="promotionId" value="@(edit?.PromotionId ?? 0)" />
+                    <input type="hidden" name="keyword" value="@keyword" />
+                    <input type="hidden" name="page" value="@currentPage" />
+                    <input type="hidden" name="pageSize" value="@pageSize" />
 
                     <div class="row g-3">
                         <div class="col-lg-12">
@@ -271,8 +425,13 @@
                                 <i class="fa-solid fa-barcode me-1"></i>
                                 Mã khuyến mãi <span class="text-danger">*</span>
                             </label>
-                            <input type="text" class="form-control" name="PromotionCode" id="promotionCode"
-                                   value="@(edit?.PromotionCode ?? "")" placeholder="VD: SUMMER2024, SALE50..." required />
+                            <input type="text"
+                                   class="form-control"
+                                   name="PromotionCode"
+                                   id="promotionCode"
+                                   value="@(edit?.PromotionCode ?? "")"
+                                   placeholder="VD: SUMMER2024, SALE50..."
+                                   required />
                             <small class="form-text">Mã khuyến mãi phải duy nhất</small>
                         </div>
 
@@ -281,10 +440,16 @@
                                 <i class="fa-solid fa-percent me-1"></i>
                                 Giảm giá (%) <span class="text-danger">*</span>
                             </label>
-                            <input type="number" step="0.01" min="0" max="100" class="form-control"
-                                   name="DiscountPercent" id="discountPercent"
+                            <input type="number"
+                                   step="0.01"
+                                   min="0"
+                                   max="100"
+                                   class="form-control"
+                                   name="DiscountPercent"
+                                   id="discountPercent"
                                    value="@(edit?.DiscountPercent?.ToString("0.##") ?? "")"
-                                   placeholder="0 - 100" required />
+                                   placeholder="0 - 100"
+                                   required />
                         </div>
 
                         <div class="col-lg-6">
@@ -292,16 +457,33 @@
                                 <i class="fa-solid fa-toggle-on me-1"></i>
                                 Trạng thái <span class="text-danger">*</span>
                             </label>
-                            <input type="hidden" name="Status" id="status" value="@(edit?.Status ?? "Active")" />
+
+                            <input type="hidden"
+                                   name="Status"
+                                   id="status"
+                                   value="@(edit?.Status ?? "Active")" />
+
                             <div class="btn-group d-flex" role="group">
-                                <input type="radio" class="btn-check" name="statusRadio" id="statusActive" value="Active"
-                                       checked="@((edit?.Status ?? "Active") == "Active" ? "checked" : null)" onchange="updateStatus(this.value)" autocomplete="off">
+                                <input type="radio"
+                                       class="btn-check"
+                                       name="statusRadio"
+                                       id="statusActive"
+                                       value="Active"
+                                       checked="@(((edit?.Status ?? "Active") == "Active") ? "checked" : null)"
+                                       onchange="updateStatus(this.value)"
+                                       autocomplete="off">
                                 <label class="btn btn-outline-success" for="statusActive">
                                     <i class="fa-solid fa-circle-check me-1"></i>Active
                                 </label>
 
-                                <input type="radio" class="btn-check" name="statusRadio" id="statusInactive" value="Inactive"
-                                       checked="@(edit?.Status == "Inactive" ? "checked" : null)" onchange="updateStatus(this.value)" autocomplete="off">
+                                <input type="radio"
+                                       class="btn-check"
+                                       name="statusRadio"
+                                       id="statusInactive"
+                                       value="Inactive"
+                                       checked="@(edit?.Status == "Inactive" ? "checked" : null)"
+                                       onchange="updateStatus(this.value)"
+                                       autocomplete="off">
                                 <label class="btn btn-outline-danger" for="statusInactive">
                                     <i class="fa-solid fa-circle-xmark me-1"></i>Inactive
                                 </label>
@@ -313,8 +495,12 @@
                                 <i class="fa-solid fa-calendar-check me-1"></i>
                                 Ngày bắt đầu <span class="text-danger">*</span>
                             </label>
-                            <input type="datetime-local" class="form-control" name="StartDate" id="startDate"
-                                   value="@(edit != null ? edit.StartDate.ToString("yyyy-MM-ddTHH:mm") : "")" required />
+                            <input type="datetime-local"
+                                   class="form-control"
+                                   name="StartDate"
+                                   id="startDate"
+                                   value="@(edit != null ? edit.StartDate.ToString("yyyy-MM-ddTHH:mm") : "")"
+                                   required />
                         </div>
 
                         <div class="col-lg-6">
@@ -322,8 +508,12 @@
                                 <i class="fa-solid fa-calendar-xmark me-1"></i>
                                 Ngày kết thúc <span class="text-danger">*</span>
                             </label>
-                            <input type="datetime-local" class="form-control" name="EndDate" id="endDate"
-                                   value="@(edit != null ? edit.EndDate.ToString("yyyy-MM-ddTHH:mm") : "")" required />
+                            <input type="datetime-local"
+                                   class="form-control"
+                                   name="EndDate"
+                                   id="endDate"
+                                   value="@(edit != null ? edit.EndDate.ToString("yyyy-MM-ddTHH:mm") : "")"
+                                   required />
                         </div>
 
                         <div class="col-lg-12">
@@ -331,8 +521,13 @@
                                 <i class="fa-solid fa-align-left me-1"></i>
                                 Mô tả
                             </label>
-                            <textarea class="form-control" name="Description" id="description"
-                                      rows="2" placeholder="Nhập mô tả khuyến mãi...">@(edit?.Description ?? "")</textarea>
+                            <textarea class="form-control"
+                                      name="Description"
+                                      id="description"
+                                      rows="2"
+                                      placeholder="Nhập mô tả khuyến mãi...">@(
+                                edit?.Description ?? ""
+                                )</textarea>
                         </div>
 
                         @if (edit != null)
@@ -341,7 +536,7 @@
                                 <div class="info-box">
                                     <div class="text-muted small">
                                         <i class="fa-regular fa-clock me-1"></i>
-                                        <strong>Ngày tạo:</strong> @(edit.CreatedAt.ToString("dd/MM/yyyy HH:mm"))
+                                        <strong>Ngày tạo:</strong> @edit.CreatedAt.ToString("dd/MM/yyyy HH:mm")
                                         @if (edit.UpdatedAt != null)
                                         {
                                             <span class="ms-3">
@@ -357,7 +552,10 @@
                 </div>
 
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" onclick="closeModal()">
+                    <button type="button"
+                            class="btn btn-outline-secondary"
+                            data-bs-dismiss="modal"
+                            onclick="closeModal()">
                         <i class="fa-solid fa-xmark me-1"></i>
                         Hủy
                     </button>
@@ -373,21 +571,26 @@
 
 <!-- Toast lỗi -->
 <div class="toast-container position-fixed p-3 toast-top-right" style="z-index:2080;">
-    <div id="liveToast" class="toast align-items-center text-bg-danger border-0" role="alert" aria-live="assertive" aria-atomic="true">
+    <div id="liveToast"
+         class="toast align-items-center text-bg-danger border-0"
+         role="alert" aria-live="assertive" aria-atomic="true">
         <div class="d-flex">
             <div class="toast-body fs-5 fw-semibold">
                 <i class="fa-solid fa-circle-exclamation me-2"></i>
                 @ViewBag.ErrorMessage
             </div>
-            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Đóng"></button>
+            <button type="button"
+                    class="btn-close btn-close-white me-2 m-auto"
+                    data-bs-dismiss="toast"
+                    aria-label="Đóng"></button>
         </div>
     </div>
 </div>
 
-<!-- Font Awesome 6 -->
 <link rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
-      crossorigin="anonymous" referrerpolicy="no-referrer" />
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer" />
 
 @section Scripts {
     <script>
@@ -396,7 +599,6 @@
         }
 
         document.addEventListener('DOMContentLoaded', function () {
-            // Hiển thị toast nếu có lỗi
             const hasError = '@(ViewBag.ShowErrorModal == true ? "true" : "false")';
             if (hasError === "true") {
                 const toastEl = document.getElementById('liveToast');
@@ -406,7 +608,6 @@
                 }
             }
 
-            // Hiển thị modal nếu cần
             const needShow = '@((edit != null || (ViewBag.ShowErrorModal == true)) ? "true" : "false")';
             if (needShow === "true") {
                 const modalEl = document.getElementById('promotionModal');
@@ -417,14 +618,22 @@
         function openAddModal() {
             const form = document.getElementById('promotionForm');
             form.reset();
-            document.getElementById('promotionModalLabel').innerHTML = '<i class="fa-solid fa-tag me-2"></i>Thêm khuyến mãi mới';
+
+            document.getElementById('promotionModalLabel').innerHTML =
+                '<i class="fa-solid fa-tag me-2"></i>Thêm khuyến mãi mới';
+
             document.getElementById('promotionId').value = '0';
             document.getElementById('status').value = 'Active';
             document.getElementById('statusActive').checked = true;
+
+            // giữ lại ngữ cảnh hiện tại
+            document.querySelector('#promotionForm input[name="keyword"]').value = '@keyword';
+            document.querySelector('#promotionForm input[name="page"]').value = '@currentPage';
+            document.querySelector('#promotionForm input[name="pageSize"]').value = '@pageSize';
         }
 
         function closeModal() {
-            window.location.href = '@Url.Action("Manage", "Promotion")';
+            window.location.href = '@Url.Action("Manage", "Promotion", new { keyword = keyword, page = currentPage, pageSize = pageSize })';
         }
     </script>
 }

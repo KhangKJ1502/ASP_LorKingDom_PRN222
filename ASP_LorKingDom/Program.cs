@@ -59,15 +59,15 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     })
     .AddCookie("AdminScheme", o =>
     {
-        o.LoginPath = "/AdminAuth/Login";
+        o.LoginPath = "/AdminAuth/Login"; // Admin login
         o.LogoutPath = "/AdminAuth/Logout";
         o.AccessDeniedPath = "/AdminAuth/AccessDenied";
         o.Cookie.HttpOnly = true;
         o.Cookie.IsEssential = true;
         o.ExpireTimeSpan = TimeSpan.FromDays(7);
         o.SlidingExpiration = false;
-        o.Cookie.Name = "AdminAuth";
-    });
+        o.Cookie.Name = "AdminAuth"; // Cookie riêng cho admin
+    }); 
 
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();

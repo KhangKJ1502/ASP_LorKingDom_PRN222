@@ -1,4 +1,4 @@
-/* ===== CSS Variables ===== */
+﻿/* ===== CSS Variables ===== */
 :root {
     /* Softer Orange Color Palette */
     --color-primary: rgb(230, 126, 75);
@@ -60,6 +60,56 @@ a {
     color: inherit;
     transition: all 0.3s ease;
 }
+
+
+.header-action-btn {
+    position: relative;
+    background: #fff;
+    border: 0;
+    padding: 0.5rem;
+    border-radius: 12px;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+    .header-action-btn svg {
+        width: 24px;
+        height: 24px;
+        color: #1f2937;
+    }
+
+.action-badge {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    background-color: #ef4444; /* đỏ */
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 600;
+    min-width: 20px;
+    height: 20px;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    padding: 0 6px;
+    box-shadow: 0 4px 10px rgba(0,0,0,.2);
+}
+
+.action-badge-primary {
+    background-color: #6366f1; /* tím */
+}
+
+.action-badge-danger {
+    background-color: #ef4444; /* đỏ cảnh báo */
+}
+
+
+
 
 img {
     max-width: 100%;
@@ -2144,11 +2194,10 @@ img {
     }
 
 :root {
- 
-    --toy-primary: #1e6fff; 
-    --toy-primary-weak: #e9f0ff; 
-    --toy-text: #111827; 
-    --toy-muted: #6b7280; 
+    --toy-primary: #1e6fff;
+    --toy-primary-weak: #e9f0ff;
+    --toy-text: #111827;
+    --toy-muted: #6b7280;
     --toy-shadow: 0 8px 24px rgba(17,24,39,.08);
 }
 
@@ -2187,7 +2236,7 @@ img {
 }
 
 .pagination-toy {
-    --bs-pagination-padding-x: 0; 
+    --bs-pagination-padding-x: 0;
     --bs-pagination-border-width: 0;
 }
 
@@ -2199,4 +2248,212 @@ img {
         font-size: 16px;
         border-radius: 12px;
     }
+}
+
+.promotion-section {
+    padding: 4rem 0;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+    position: relative;
+    overflow: hidden;
+    color: var(--white);
+}
+
+.promotion-decorations {
+    position: absolute;
+    inset: 0;
+    opacity: 0.1;
+    pointer-events: none;
+}
+
+.decoration-circle {
+    position: absolute;
+    background: var(--white);
+    border-radius: 50%;
+}
+
+    .decoration-circle:nth-child(1) {
+        width: 5rem;
+        height: 5rem;
+        top: 2.5rem;
+        left: 2.5rem;
+        animation: float 3s ease-in-out infinite;
+    }
+
+    .decoration-circle:nth-child(2) {
+        width: 4rem;
+        height: 4rem;
+        top: 8rem;
+        right: 5rem;
+        animation: bounce-gentle 2s infinite;
+    }
+
+    .decoration-circle:nth-child(3) {
+        width: 3rem;
+        height: 3rem;
+        bottom: 5rem;
+        left: 25%;
+        animation: wiggle 1s ease-in-out infinite;
+    }
+
+    .decoration-circle:nth-child(4) {
+        width: 6rem;
+        height: 6rem;
+        bottom: 8rem;
+        right: 33%;
+        animation: float 3s ease-in-out infinite;
+    }
+
+.promotion-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    align-items: center;
+    position: relative;
+    z-index: 10;
+}
+
+.promotion-text {
+    text-align: left;
+}
+
+.flash-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    font-size: 1.125rem;
+    font-weight: 600;
+}
+
+    .flash-badge svg {
+        width: 1.5rem;
+        height: 1.5rem;
+        animation: pulse 1s infinite;
+    }
+
+.promotion-title {
+    font-size: 3.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    animation: bounce-gentle 2s infinite;
+}
+
+.promotion-description {
+    font-size: 1.25rem;
+    margin-bottom: 1.5rem;
+    opacity: 0.95;
+}
+
+.countdown {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.countdown-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+}
+
+.countdown-items {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.countdown-item {
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    border-radius: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    min-width: 3.75rem;
+    text-align: center;
+}
+
+.countdown-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.countdown-unit {
+    font-size: 0.75rem;
+    opacity: 0.8;
+}
+
+.promotion-buttons {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.btn {
+    padding: 0.75rem 2rem;
+    border-radius: 9999px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-primary {
+    background: rgba(255, 255, 255, 0.3);
+    color: var(--white);
+    border: none;
+}
+
+    .btn-primary:hover {
+        background: rgba(255, 255, 255, 0.4);
+    }
+
+.btn-outline {
+    background: transparent;
+    color: var(--white);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+    .btn-outline:hover {
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+.promotion-cards {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
+.promo-card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    text-align: center;
+    color: var(--white);
+    transition: transform 0.3s;
+}
+
+    .promo-card:hover {
+        transform: scale(1.05);
+    }
+
+.promo-card-icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.promo-card-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+.promo-card-subtitle {
+    font-size: 0.875rem;
+    opacity: 0.8;
 }

@@ -16,9 +16,9 @@
 <section class="hero-section">
 	<div class="hero-banner">
 		<div class="hero-overlay"></div>
-		<img src="~/images/hero/colorful-toys-and-children-playing.jpg" alt="Discover Amazing Toys World" class="hero-image active" id="heroImage1">
-		<img src="~/images/hero/educational-toys-and-learning-games.jpg" alt="Smart Educational Toys" class="hero-image" id="heroImage2">
-		<img src="~/images/hero/famous-toy-brands-display.jpg" alt="Trusted Global Brands" class="hero-image" id="heroImage3">
+		<img src="~/Assets/image/contact/colorful-toys-and-children-playing.jpg" alt="Khám phá thế giới đồ chơi tuyệt vời" class="hero-image active" id="heroImage1">
+		<img src="~/Assets/image/contact/famous-toy-brands-display.jpg" alt="Đồ chơi giáo dục thông minh" class="hero-image" id="heroImage2">
+		<img src="~/Assets/image/contact/educational-toys-and-learning-games.jpg" alt="Thương hiệu toàn cầu đáng tin cậy" class="hero-image" id="heroImage3">
 
 		<button class="hero-nav-btn hero-prev" onclick="prevSlide()">
 			<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
@@ -42,29 +42,86 @@
 					<span class="badge badge-outline">Best Seller</span>
 				</div>
 
-				<h1 class="hero-title">Discover Amazing Toys World</h1>
-				<p class="hero-subtitle">Thousands of high-quality products for your beloved children</p>
-
-				<div class="hero-actions">
-					<a class="btn btn-primary btn-lg" href="#featured">Shop Now</a>
-					<button class="btn btn-outline btn-lg">Watch Demo</button>
-				</div>
-			</div>
+				<h1 class="hero-title">Khám phá thế giới đồ chơi tuyệt vời</h1>
+				<p class="hero-subtitle">Hàng ngàn sản phẩm chất lượng cao dành cho con yêu của bạn</p>
+			</div
 		</div>
 	</div>
 </section>
 
+
 <section class="promotion-section">
 	<div class="container">
 		<div class="promotion-banner">
-			<div class="promotion-content">
-				<span class="promotion-badge">SPECIAL OFFER</span>
-				<h2 class="promotion-title">Summer Sale - Up to 50% OFF</h2>
-				<p class="promotion-text">Limited time offer on selected toys</p>
-				<a class="btn btn-light btn-lg" href="#featured">Shop Now</a>
+			<!-- Left Content -->
+			<div class="promotion-text">
+				<div class="flash-badge">
+					<span>⚡</span>
+					<span>FLASH SALE</span>
+				</div>
+
+				<h2 class="promotion-title">GIẢM ĐẾN 70%</h2>
+
+				<p class="promotion-description">
+					Cơ hội vàng sở hữu những món đồ chơi yêu thích với giá không thể tốt hơn!
+				</p>
+
+				<!-- Countdown -->
+				<div class="countdown">
+					<div class="countdown-label">
+						<span>⏱️</span>
+						<span>Kết thúc sau:</span>
+					</div>
+					<div class="countdown-items">
+						<div class="countdown-item">
+							<div class="countdown-value" id="hours">23</div>
+							<div class="countdown-unit">Giờ</div>
+						</div>
+						<div class="countdown-item">
+							<div class="countdown-value" id="minutes">45</div>
+							<div class="countdown-unit">Phút</div>
+						</div>
+						<div class="countdown-item">
+							<div class="countdown-value" id="seconds">30</div>
+							<div class="countdown-unit">Giây</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- Buttons -->
+				<div class="promotion-buttons">
+					<button class="btn btn-primary">
+						<span>🎁</span>
+						<span>Mua ngay</span>
+					</button>
+					<button class="btn btn-outline">
+						Xem tất cả ưu đãi
+					</button>
+				</div>
 			</div>
-			<div class="promotion-image">
-				<img src="~/images/promotion/summer-sale.jpg" alt="Summer Sale">
+
+			<!-- Right Cards -->
+			<div class="promotion-cards">
+				<div class="promo-card">
+					<div class="promo-card-icon">🎁</div>
+					<div class="promo-card-title">Quà tặng</div>
+					<div class="promo-card-subtitle">Mua 2 tặng 1</div>
+				</div>
+				<div class="promo-card">
+					<div class="promo-card-icon">🚚</div>
+					<div class="promo-card-title">Miễn phí</div>
+					<div class="promo-card-subtitle">Vận chuyển</div>
+				</div>
+				<div class="promo-card">
+					<div class="promo-card-icon">💳</div>
+					<div class="promo-card-title">Trả góp</div>
+					<div class="promo-card-subtitle">0% lãi suất</div>
+				</div>
+				<div class="promo-card">
+					<div class="promo-card-icon">🔄</div>
+					<div class="promo-card-title">Đổi trả</div>
+					<div class="promo-card-subtitle">Trong 30 ngày</div>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -73,8 +130,8 @@
 <section id="featured" class="products-section">
 	<div class="container">
 		<div class="section-header">
-			<h2 class="section-title">Featured Products</h2>
-			<p class="section-subtitle">Handpicked toys loved by children</p>
+			<h2 class="section-title">Danh sách sản phẩm </h2>
+			<p class="section-subtitle">Đồ chơi được trẻ em yêu thích</p>
 		</div>
 
 		<!-- Khối grid sản phẩm: lần đầu render server-side, các lần sau thay bằng AJAX -->
@@ -94,15 +151,11 @@
 				</svg>
 			</div>
 			<div class="newsletter-text">
-				<h2 class="newsletter-title">Subscribe to Our Newsletter</h2>
-				<p class="newsletter-subtitle">Get the latest updates on new products and special offers</p>
-			</div>
-			<div class="newsletter-form">
-				<input type="email" class="form-control" placeholder="Enter your email">
-				<button class="btn btn-primary">Subscribe</button>
+				<h2 class="newsletter-title">Đăng ký nhận bản tin của chúng tôi</h2>
+				<p class="newsletter-subtitle">Nhận thông tin cập nhật mới nhất về sản phẩm mới và ưu đãi đặc biệt</p>
 			</div>
 		</div>
-	</div>
+	</div>   
 </section>
 
 @section Scripts {
@@ -126,10 +179,10 @@
 		});
 
 		// ========= AJAX Search + Pagination cho grid =========
-		(function(){
+		(function () {
 			const container = document.getElementById('product-container');
 
-			function queryFromUrl(urlStr){
+			function queryFromUrl(urlStr) {
 				const u = new URL(urlStr, window.location.origin);
 				return {
 					q: u.searchParams.get('q') ?? '',
@@ -138,9 +191,9 @@
 				};
 			}
 
-			async function loadGrid({ q = '', page = 1, pageSize = 16 }){
+			async function loadGrid({ q = '', page = 1, pageSize = 16 }) {
 				const url = `/Home/ProductGrid?q=${encodeURIComponent(q)}&page=${page}&pageSize=${pageSize}`;
-				const res = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' }});
+				const res = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
 				const html = await res.text();
 				container.innerHTML = html;
 
@@ -153,7 +206,7 @@
 			}
 
 			// --- Intercept pagination trong partial ---
-			container.addEventListener('click', function(e){
+			container.addEventListener('click', function (e) {
 				const a = e.target.closest('a.page-link, a.js-page'); // hỗ trợ cả 2 kiểu class
 				if (!a) return;
 
@@ -179,7 +232,7 @@
 			});
 
 			// --- Intercept search form ở header (giữ nguyên UI của bạn) ---
-			document.addEventListener('submit', function(e){
+			document.addEventListener('submit', function (e) {
 				const form = e.target.closest('.header-search .search-wrapper');
 				if (!form) return;
 
@@ -202,7 +255,7 @@
 			});
 
 			// --- Handle back/forward (optional thân thiện) ---
-			window.addEventListener('popstate', function(){
+			window.addEventListener('popstate', function () {
 				const { q, page, pageSize } = queryFromUrl(window.location.href);
 				loadGrid({ q, page, pageSize });
 			});

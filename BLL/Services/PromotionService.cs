@@ -1,5 +1,4 @@
-﻿// BLL/Services/PromotionService.cs
-using BLL.DTOs;
+﻿using BLL.DTOs;
 using BLL.Interfaces;
 using BLL.Validators;
 using DAL.Interfaces;
@@ -22,6 +21,21 @@ namespace BLL.Services
             _validator = validator;
         }
 
+        // HÀM MỚI: phân trang cho màn Manage
+        public async Task<PagedResult<PromotionDto>> SearchPagedAsync(string? keyword, int page, int pageSize)
+        {
+            var (items, total) = await _repo.SearchPagedAsync(keyword, page, pageSize);
+
+            return new PagedResult<PromotionDto>
+            {
+                Items = items.Select(Map).ToList(),
+                Total = total,
+                Page = page,
+                PageSize = pageSize
+            };
+        }
+
+        // vẫn giữ GetAllAsync nếu chỗ khác cần list full
         public async Task<List<PromotionDto>> GetAllAsync(string? keyword)
         {
             var list = await _repo.GetAllAsync(keyword);

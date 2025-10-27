@@ -75,7 +75,7 @@ namespace ASP_LorKingDom.Controllers
             };
         }
 
-     
+
         public async Task<IActionResult> Index(string? q, int page = 1, int pageSize = 16)
         {
             var model = await BuildPagedModelAsync(q, page, pageSize);

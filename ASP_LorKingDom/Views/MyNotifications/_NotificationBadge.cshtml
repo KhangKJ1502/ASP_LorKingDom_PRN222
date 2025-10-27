@@ -105,18 +105,18 @@
         gap: 0.5rem;
     }
 
-        .filter-tab:hover {
-            background: #e5e7eb;
-            color: #667eea;
-            transform: translateY(-2px);
-        }
+    .filter-tab:hover {
+        background: #e5e7eb;
+        color: #667eea;
+        transform: translateY(-2px);
+    }
 
-        .filter-tab.active {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border-color: #667eea;
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        }
+    .filter-tab.active {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-color: #667eea;
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
 
     .tab-count {
         background: rgba(255, 255, 255, 0.2);
@@ -129,7 +129,7 @@
         background: rgba(255, 255, 255, 0.3);
     }
 
-    /* ✅ Mark All Read Button */
+    /* Mark All Read Button */
     .mark-all-btn {
         padding: 0.75rem 1.5rem;
         background: linear-gradient(135deg, #10b981 0%, #059669 100%);
@@ -145,15 +145,15 @@
         box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
     }
 
-        .mark-all-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
-        }
+    .mark-all-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+    }
 
-        .mark-all-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
+    .mark-all-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
 
     /* Notification List */
     .notifications-wrapper {
@@ -181,44 +181,54 @@
         overflow: hidden;
     }
 
-        .notification-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 4px;
-            height: 100%;
-            background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
-            opacity: 0;
-            transition: opacity 0.3s ease;
+    .notification-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 4px;
+        height: 100%;
+        background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .notification-card:hover {
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+        transform: translateX(5px);
+    }
+
+    .notification-card:hover::before {
+        opacity: 1;
+    }
+
+    .notification-card.unread {
+        background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+        border-left-color: #667eea;
+    }
+
+    .notification-card.unread::after {
+        content: '';
+        position: absolute;
+        top: 1.5rem;
+        right: 1.5rem;
+        width: 12px;
+        height: 12px;
+        background: #667eea;
+        border-radius: 50%;
+        box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.2);
+        animation: pulse 2s infinite;
+    }
+
+    @@keyframes pulse {
+        0%, 100% {
+            opacity: 1;
         }
-
-        .notification-card:hover {
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
-            transform: translateX(5px);
+        50% {
+            opacity: 0.5;
         }
+    }
 
-            .notification-card:hover::before {
-                opacity: 1;
-            }
-
-        .notification-card.unread {
-            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
-            border-left-color: #667eea;
-        }
-
-            .notification-card.unread::after {
-                content: '';
-                position: absolute;
-                top: 1.5rem;
-                right: 1.5rem;
-                width: 12px;
-                height: 12px;
-                background: #667eea;
-                border-radius: 50%;
-                box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.2);
-                animation: pulse 2s infinite;
-            }
     .notification-content {
         display: grid;
         grid-template-columns: auto 1fr auto;
@@ -238,30 +248,30 @@
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
 
-        .notification-icon.info {
-            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-            color: white;
-        }
+    .notification-icon.info {
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        color: white;
+    }
 
-        .notification-icon.success {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            color: white;
-        }
+    .notification-icon.success {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white;
+    }
 
-        .notification-icon.warning {
-            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-            color: white;
-        }
+    .notification-icon.warning {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        color: white;
+    }
 
-        .notification-icon.error {
-            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-            color: white;
-        }
+    .notification-icon.error {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        color: white;
+    }
 
-        .notification-icon.promo {
-            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
-            color: white;
-        }
+    .notification-icon.promo {
+        background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+        color: white;
+    }
 
     .notification-body {
         flex: 1;
@@ -317,9 +327,9 @@
         gap: 0.4rem;
     }
 
-        .meta-item i {
-            font-size: 0.9rem;
-        }
+    .meta-item i {
+        font-size: 0.9rem;
+    }
 
     .notification-actions {
         display: flex;
@@ -348,10 +358,10 @@
         box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
     }
 
-        .mark-read-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-        }
+    .mark-read-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    }
 
     /* Empty State */
     .empty-state {
@@ -411,11 +421,11 @@
         min-width: 40px;
     }
 
-        .page-link:hover {
-            background: #f0f9ff;
-            border-color: #667eea;
-            transform: translateY(-2px);
-        }
+    .page-link:hover {
+        background: #f0f9ff;
+        border-color: #667eea;
+        transform: translateY(-2px);
+    }
 
     .page-item.active .page-link {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -430,13 +440,16 @@
         pointer-events: none;
     }
 
-    /* ✅ Alert Messages */
+    /* Alert Messages */
     .alert {
         border-radius: 12px;
         padding: 1rem 1.5rem;
         margin-bottom: 1rem;
         border: none;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
     }
 
     .alert-success {
@@ -485,25 +498,28 @@
 
 <div class="notification-page">
     <div class="notification-container">
-        <!-- ✅ Alert Messages -->
+        <!-- Alert Messages -->
         @if (TempData["Error"] is string errorMsg)
         {
             <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <i class="fa-solid fa-circle-exclamation me-2"></i>@Html.Encode(errorMsg)
+                <i class="fa-solid fa-circle-exclamation"></i>
+                <span>@Html.Encode(errorMsg)</span>
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         }
         @if (TempData["Success"] is string successMsg)
         {
             <div class="alert alert-success alert-dismissible fade show" role="alert">
-                <i class="fa-solid fa-circle-check me-2"></i>@Html.Encode(successMsg)
+                <i class="fa-solid fa-circle-check"></i>
+                <span>@Html.Encode(successMsg)</span>
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         }
         @if (TempData["Info"] is string infoMsg)
         {
             <div class="alert alert-info alert-dismissible fade show" role="alert">
-                <i class="fa-solid fa-circle-info me-2"></i>@Html.Encode(infoMsg)
+                <i class="fa-solid fa-circle-info"></i>
+                <span>@Html.Encode(infoMsg)</span>
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         }
@@ -532,7 +548,7 @@
                     </a>
                 </div>
 
-                <!-- ✅ Mark All Read Button -->
+                <!-- Mark All Read Button -->
                 @if (Model.Items != null && Model.Items.Any(n => !n.IsRead))
                 {
                     <form method="post" asp-action="MarkAllRead" asp-controller="MyNotifications" style="display:inline;">
@@ -553,7 +569,6 @@
                 <div class="notification-list">
                     @foreach (var notification in Model.Items)
                     {
-                        // ✅ Escape và validate dữ liệu
                         var title = notification.Title ?? "Thông báo";
                         var message = notification.Message ?? "";
 
@@ -655,7 +670,6 @@
                                 var startPage = Math.Max(1, currentPage - 2);
                                 var endPage = Math.Min(totalPages, currentPage + 2);
 
-                                // Hiển thị trang đầu nếu cần
                                 if (startPage > 1)
                                 {
                                     <li class="page-item">
@@ -678,7 +692,6 @@
                             }
 
                             @{
-                                // Hiển thị trang cuối nếu cần
                                 if (endPage < totalPages)
                                 {
                                     if (endPage < totalPages - 1)
@@ -739,7 +752,6 @@
 </div>
 
 @functions {
-    // ✅ FIX: Xử lý null và timezone an toàn
     string GetTimeAgo(DateTime dateTime)
     {
         try
@@ -751,9 +763,7 @@
             var timeSpan = DateTime.Now - localTime;
 
             if (timeSpan.TotalSeconds < 0)
-            {
-                return "Vừa xong"; // Xử lý trường hợp thời gian tương lai
-            }
+                return "Vừa xong";
 
             if (timeSpan.TotalMinutes < 1) return "Vừa xong";
             if (timeSpan.TotalMinutes < 60) return $"{(int)timeSpan.TotalMinutes} phút trước";
@@ -771,9 +781,8 @@
     }
 }
 
-@section Scripts {
+@@section Scripts {
     <script>
-        // ✅ Animation on load với error handling
         document.addEventListener('DOMContentLoaded', function() {
             try {
                 const cards = document.querySelectorAll('.notification-card');
@@ -785,19 +794,18 @@
                         card.style.transition = 'all 0.5s ease';
                         card.style.opacity = '1';
                         card.style.transform = 'translateY(0)';
-                    }, Math.min(index * 100, 1000)); // ✅ Cap max delay
+                    }, Math.min(index * 100, 1000));
                 });
             } catch (error) {
                 console.error('Animation error:', error);
             }
         });
 
-        // ✅ FIX: Chỉ auto-refresh khi cần thiết
+        // Auto-refresh notifications
         (function() {
             const urlParams = new URLSearchParams(window.location.search);
             const isRead = urlParams.get('isRead');
 
-            // Chỉ refresh khi đang xem tab "chưa đọc" hoặc "tất cả"
             if (isRead !== 'true') {
                 let refreshInterval;
                 let lastCheckTime = new Date();
@@ -809,84 +817,15 @@
                         .then(response => response.json())
                         .then(data => {
                             if (data.success && data.hasNew) {
-                                // ✅ Hiển thị notification badge hoặc toast
                                 const unreadCountEl = document.getElementById('unreadCount');
                                 if (unreadCountEl && data.count) {
                                     unreadCountEl.textContent = data.count;
-
-                                    // ✅ Tùy chọn: hiển thị notification toast
                                     if (typeof showNotificationToast === 'function') {
                                         showNotificationToast('Bạn có thông báo mới!');
                                     }
                                 }
-
                                 lastCheckTime = new Date(data.latest || new Date());
                             }
                         })
                         .catch(error => {
-                            console.error('Error checking notifications:', error);
-                        });
-                }
-
-                // ✅ Check mỗi 30 giây thay vì reload toàn bộ trang
-                refreshInterval = setInterval(checkForNewNotifications, 30000);
-
-                // ✅ Pause khi tab không active
-                document.addEventListener('visibilitychange', function() {
-                    if (document.hidden) {
-                        clearInterval(refreshInterval);
-                    } else {
-                        checkForNewNotifications();
-                        refreshInterval = setInterval(checkForNewNotifications, 30000);
-                    }
-                });
-
-                // ✅ Cleanup khi rời trang
-                window.addEventListener('beforeunload', function() {
-                    clearInterval(refreshInterval);
-                });
-            }
-        })();
-
-        // ✅ FIX: Xác nhận trước khi đánh dấu đã đọc (tùy chọn)
-        document.querySelectorAll('.mark-read-btn').forEach(btn => {
-            btn.closest('form').addEventListener('submit', function(e) {
-                // Có thể bỏ comment dòng dưới nếu muốn confirm
-                // if (!confirm('Đánh dấu thông báo này là đã đọc?')) {
-                //     e.preventDefault();
-                // }
-            });
-        });
-
-        // ✅ Auto dismiss alerts sau 5 giây
-        setTimeout(() => {
-            document.querySelectorAll('.alert').forEach(alert => {
-                const bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
-                if (bsAlert) {
-                    bsAlert.close();
-                }
-            });
-        }, 5000);
-
-        // ✅ Optional: Toast notification function
-        function showNotificationToast(message) {
-            // Kiểm tra browser notification permission
-            if ('Notification' in window && Notification.permission === 'granted') {
-                new Notification('Thông báo mới', {
-                    body: message,
-                    icon: '/favicon.ico',
-                    badge: '/favicon.ico'
-                });
-            } else if ('Notification' in window && Notification.permission !== 'denied') {
-                Notification.requestPermission().then(permission => {
-                    if (permission === 'granted') {
-                        new Notification('Thông báo mới', {
-                            body: message,
-                            icon: '/favicon.ico'
-                        });
-                    }
-                });
-            }
-        }
-    </script>
-}
+                            console.error('Error checking

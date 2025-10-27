@@ -33,14 +33,14 @@ namespace WebUI.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Login(string email, string password, bool rememberMe, string? returnUrl = null)
+        public async Task<JsonResult> Login(string email, string password, bool rememberMe, string? returnUrl = null)
         {
             try
             {
                 AuthValidator.ValidateLogin(email, password);
                 var user = await _accountService.AuthenticateAsync(email, password);
                 if (user == null)
-                    return BadRequest(new { success = false, message = "Email hoặc mật khẩu không đúng." });
+                    return Json(new { success = false, message = "Email hoặc mật khẩu không đúng." });
 
                 var roleName = await _roleService.GetRoleNameByIdAsync(user.RoleId);
 
@@ -61,7 +61,7 @@ namespace WebUI.Controllers
                         ExpiresUtc = rememberMe ? DateTimeOffset.UtcNow.AddDays(7) : null
                     });
 
-                return Ok(new
+                return Json(new
                 {
                     success = true,
                     message = "Đăng nhập thành công! Chào mừng bạn trở lại.",
@@ -70,11 +70,11 @@ namespace WebUI.Controllers
             }
             catch (ArgumentException ex)
             {
-                return BadRequest(new { success = false, message = ex.Message });
+                return Json(new { success = false, message = ex.Message });
             }
             catch
             {
-                return BadRequest(new { success = false, message = "Đã xảy ra lỗi khi đăng nhập." });
+                return Json(new { success = false, message = "Đã xảy ra lỗi khi đăng nhập." });
             }
         }
 
@@ -124,53 +124,6 @@ namespace WebUI.Controllers
             {
                 return BadRequest(new { success = false, message = "Đã xảy ra lỗi khi gửi OTP." });
             }
-        }
-
-
-        [HttpGet]
-        public IActionResult ForgotPassword()
-        {
-            return View();
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ForgotPassword(string email)
-        {
-            if (string.IsNullOrWhiteSpace(email))
-                return BadRequest(new { success = false, message = "Vui lòng nhập email." });
-
-            if (!await _accountService.ExistsByEmailAsync(email))
-                return BadRequest(new { success = false, message = "Email không tồn tại trong hệ thống." });
-
-            try
-            {
-                var newPassword = GenerateRandomPassword(8);
-                var success = await _accountService.ResetPasswordAsync(email, newPassword);
-
-                if (!success)
-                    return BadRequest(new { success = false, message = "Không thể đặt lại mật khẩu. Vui lòng thử lại." });
-
-                await _emailOtpService.SendPasswordResetEmailAsync(email, newPassword);
-
-                return Ok(new
-                {
-                    success = true,
-                    message = "Mật khẩu mới đã được gửi qua email. Vui lòng kiểm tra hộp thư."
-                });
-            }
-            catch
-            {
-                return BadRequest(new { success = false, message = "Đã xảy ra lỗi khi đặt lại mật khẩu." });
-            }
-        }
-
-        // Helper method để tạo mật khẩu ngẫu nhiên
-        private string GenerateRandomPassword(int length)
-        {
-            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-            var random = new Random();
-            return new string(Enumerable.Repeat(chars, length).Select(s => s[random.Next(s.Length)]).ToArray());
         }
 
         [HttpGet]
@@ -227,11 +180,34 @@ namespace WebUI.Controllers
                         HttpContext.Session.Remove("SignupEmail");
                         HttpContext.Session.Remove("SignupPassword");
 
+                        // Tự động đăng nhập người dùng mới
+                        var user = await _accountService.AuthenticateAsync(email, password);
+                        if (user != null)
+                        {
+                            var roleName = await _roleService.GetRoleNameByIdAsync(user.RoleId);
+                            var claims = new List<Claim>
+                            {
+                                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                                new Claim(ClaimTypes.Name, user.Email),
+                                new Claim(ClaimTypes.Role, roleName ?? "Customer")
+                            };
+
+                            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                            var principal = new ClaimsPrincipal(identity);
+
+                            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal,
+                                new AuthenticationProperties
+                                {
+                                    IsPersistent = false,
+                                    ExpiresUtc = DateTimeOffset.UtcNow.AddDays(7)
+                                });
+                        }
+
                         return Ok(new
                         {
                             success = true,
-                            message = "Đăng ký thành công! Vui lòng đăng nhập để tiếp tục.",
-                            redirectUrl = "/Auth/Login"
+                            message = "Đăng ký thành công! Tài khoản của bạn đã được tạo.",
+                            redirectUrl = "/"
                         });
                     }
                     catch
@@ -270,6 +246,161 @@ namespace WebUI.Controllers
             catch
             {
                 return BadRequest(new { success = false, message = "Đã xảy ra lỗi khi gửi lại OTP." });
+            }
+        }
+
+        [HttpGet]
+        public IActionResult ForgotPassword()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<JsonResult> ForgotPasswordRequest(string email)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+                return Json(new { success = false, message = "Vui lòng nhập email." });
+
+            if (!await _accountService.ExistsByEmailAsync(email))
+                return Json(new { success = false, message = "Email không tồn tại trong hệ thống." });
+
+            try
+            {
+                // Gửi OTP cho quên mật khẩu
+                await _emailOtpService.SendOtpAsync(email, "ForgotPassword");
+
+                // Lưu email vào session
+                HttpContext.Session.SetString("ForgotPasswordEmail", email);
+
+                return Json(new
+                {
+                    success = true,
+                    message = "OTP đã được gửi. Vui lòng kiểm tra email của bạn.",
+                    redirectUrl = "/Auth/VerifyForgotPasswordOtp"
+                });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+            catch
+            {
+                return Json(new { success = false, message = "Đã xảy ra lỗi khi gửi OTP." });
+            }
+        }
+
+        [HttpGet]
+        public IActionResult VerifyForgotPasswordOtp()
+        {
+            var email = HttpContext.Session.GetString("ForgotPasswordEmail");
+            if (string.IsNullOrEmpty(email))
+                return RedirectToAction("Login");
+
+            ViewBag.Email = email;
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<JsonResult> VerifyForgotPasswordOtp(string email, string? otpCode)
+        {
+            if (string.IsNullOrWhiteSpace(otpCode))
+                return Json(new { success = false, message = "Vui lòng nhập OTP." });
+
+            try
+            {
+                if (await _emailOtpService.VerifyOtpAsync(email, otpCode, "ForgotPassword"))
+                {
+                    // Lưu email vào session để dùng ở trang Reset Password
+                    HttpContext.Session.SetString("VerifiedForgotPasswordEmail", email);
+
+                    return Json(new
+                    {
+                        success = true,
+                        message = "OTP hợp lệ.",
+                        redirectUrl = "/Auth/ResetPasswordForm"
+                    });
+                }
+                else
+                {
+                    return Json(new { success = false, message = "OTP không hợp lệ hoặc đã hết hạn." });
+                }
+            }
+            catch
+            {
+                return Json(new { success = false, message = "Đã xảy ra lỗi khi xác minh OTP." });
+            }
+        }
+
+        [HttpGet]
+        public IActionResult ResetPasswordForm()
+        {
+            var email = HttpContext.Session.GetString("VerifiedForgotPasswordEmail");
+            if (string.IsNullOrEmpty(email))
+                return RedirectToAction("Login");
+
+            ViewBag.Email = email;
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<JsonResult> ResetPassword(string email, string newPassword, string confirmPassword)
+        {
+            if (string.IsNullOrWhiteSpace(newPassword) || string.IsNullOrWhiteSpace(confirmPassword))
+                return Json(new { success = false, message = "Vui lòng nhập đầy đủ mật khẩu." });
+
+            if (newPassword != confirmPassword)
+                return Json(new { success = false, message = "Mật khẩu xác nhận không khớp." });
+
+            if (newPassword.Length < 8)
+                return Json(new { success = false, message = "Mật khẩu phải tối thiểu 8 ký tự." });
+
+            try
+            {
+                var success = await _accountService.ResetPasswordAsync(email, newPassword);
+
+                if (!success)
+                    return Json(new { success = false, message = "Không thể đặt lại mật khẩu." });
+
+                // Xóa session
+                HttpContext.Session.Remove("ForgotPasswordEmail");
+                HttpContext.Session.Remove("VerifiedForgotPasswordEmail");
+
+                return Json(new
+                {
+                    success = true,
+                    message = "Mật khẩu đã được đặt lại thành công!",
+                    redirectUrl = "/Auth/Login"
+                });
+            }
+            catch
+            {
+                return Json(new { success = false, message = "Đã xảy ra lỗi khi đặt lại mật khẩu." });
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<JsonResult> ResendForgotPasswordOtp(string email)
+        {
+            try
+            {
+                await _emailOtpService.SendOtpAsync(email, "ForgotPassword");
+                return Json(new
+                {
+                    success = true,
+                    message = "OTP đã được gửi lại. Vui lòng kiểm tra email của bạn."
+                });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+            catch
+            {
+                return Json(new { success = false, message = "Đã xảy ra lỗi khi gửi lại OTP." });
             }
         }
     }

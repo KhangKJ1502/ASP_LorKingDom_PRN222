@@ -1,9 +1,14 @@
-﻿@model BLL.DTOs.PagedResult<BLL.DTOs.NotificationDto>
+﻿@using Microsoft.AspNetCore.Html
+@model BLL.DTOs.PagedResult<BLL.DTOs.NotificationDto>
+
 @{
     Layout = "_AdminLayout";
     ViewData["Title"] = "Quản Lý Thông Báo Hệ Thống";
+
     var f = ViewBag.Filter as BLL.DTOs.NotificationFilterDto;
     var edit = ViewBag.EditNotification as BLL.DTOs.NotificationDto;
+
+    var roles = ViewBag.Roles as IEnumerable<DAL.Models.Role>;
 }
 
 <style>
@@ -39,7 +44,6 @@
         background: #f8f9fa;
     }
 
-    /* Modal */
     #notificationModal .modal-content {
         border: none;
         border-radius: 16px;
@@ -80,7 +84,8 @@
         font-size: .9rem;
     }
 
-    #notificationModal .form-control, #notificationModal .form-select {
+    #notificationModal .form-control,
+    #notificationModal .form-select {
         border: 2px solid #e9ecef;
         border-radius: 8px;
         padding: .65rem .875rem;
@@ -88,14 +93,15 @@
         background-color: #fff;
     }
 
-        #notificationModal .form-control:focus, #notificationModal .form-select:focus {
+        #notificationModal .form-control:focus,
+        #notificationModal .form-select:focus {
             border-color: #667eea;
             box-shadow: 0 0 0 .2rem rgba(102,126,234,.15);
         }
 
     #notificationModal textarea.form-control {
-        resize: vertical;
         min-height: 100px;
+        resize: vertical;
     }
 
     #notificationModal .modal-footer {
@@ -136,8 +142,16 @@
         animation: slideIn .3s ease;
     }
 
-    #notificationModal #type {
-        font-weight: 500;
+    @@keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(-4px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 </style>
 
@@ -147,17 +161,29 @@
     <div class="card mb-4 mt-4">
         <div class="card-header d-flex justify-content-between align-items-center">
             <div><i class="fa-solid fa-bell me-1"></i> Danh Sách Thông Báo</div>
-            <button class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#notificationModal" onclick="openAddModal()">
+
+            <button class="btn btn-primary"
+                    type="button"
+                    data-bs-toggle="modal"
+                    data-bs-target="#notificationModal"
+                    onclick="openAddModal()">
                 <i class="fa-solid fa-plus me-1"></i> Thêm Thông Báo
             </button>
         </div>
 
         <div class="card-body">
-            <!-- Tìm kiếm -->
+
+            <!-- Search -->
             <form class="mb-4" method="get" asp-action="Manage" asp-controller="Notification">
                 <div class="input-group search-box">
-                    <input type="text" name="Keyword" value="@(f?.Keyword ?? "")" class="form-control" placeholder="Tìm theo tiêu đề/nội dung...">
-                    <button class="btn btn-outline-secondary" type="submit"><i class="fa-solid fa-magnifying-glass"></i></button>
+                    <input type="text"
+                           name="Keyword"
+                           value="@(f?.Keyword ?? "")"
+                           class="form-control"
+                           placeholder="Tìm theo tiêu đề/nội dung..." />
+                    <button class="btn btn-outline-secondary" type="submit">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </button>
                 </div>
             </form>
 
@@ -175,7 +201,7 @@
             }
 
             <div class="table-responsive">
-                <table class="table table-bordered table-striped table-hover">
+                <table class="table table-bordered table-striped table-hover align-middle">
                     <thead class="table-dark">
                         <tr>
                             <th>ID</th>
@@ -195,52 +221,74 @@
                             {
                                 <tr class="@(n.IsCanceled ? "deleted-row" : "")">
                                     <td>@n.NotificationId</td>
+
                                     <td style="white-space:nowrap">
                                         @if (!n.IsSent && !n.IsCanceled)
                                         {
-                                            <a class="btn btn-sm btn-warning" asp-action="Edit" asp-controller="Notification" asp-route-id="@n.NotificationId">
+                                            <a class="btn btn-sm btn-warning"
+                                               asp-action="Edit"
+                                               asp-controller="Notification"
+                                               asp-route-id="@n.NotificationId">
                                                 <i class="fa-solid fa-pen-to-square"></i>
                                             </a>
 
-                                            <form method="post" asp-action="SendNow" asp-controller="Notification" style="display:inline">
+                                            <form method="post"
+                                                  asp-action="SendNow"
+                                                  asp-controller="Notification"
+                                                  style="display:inline">
                                                 @Html.AntiForgeryToken()
                                                 <input type="hidden" name="id" value="@n.NotificationId" />
-                                                <button type="submit" class="btn btn-sm btn-success" onclick="return confirm('Gửi ngay thông báo này?')">
+                                                <button type="submit"
+                                                        class="btn btn-sm btn-success"
+                                                        onclick="return confirm('Gửi ngay thông báo này?')">
                                                     <i class="fa-solid fa-paper-plane"></i>
                                                 </button>
                                             </form>
 
-                                            <form method="post" asp-action="Cancel" asp-controller="Notification" style="display:inline">
+                                            <form method="post"
+                                                  asp-action="Cancel"
+                                                  asp-controller="Notification"
+                                                  style="display:inline">
                                                 @Html.AntiForgeryToken()
                                                 <input type="hidden" name="id" value="@n.NotificationId" />
-                                                <button type="submit" class="btn btn-sm btn-secondary" onclick="return confirm('Hủy thông báo này?')">
+                                                <button type="submit"
+                                                        class="btn btn-sm btn-secondary"
+                                                        onclick="return confirm('Hủy thông báo này?')">
                                                     <i class="fa-solid fa-ban"></i>
                                                 </button>
                                             </form>
                                         }
 
-                                        <form method="post" asp-action="SoftDelete" asp-controller="Notification" style="display:inline">
+                                        <form method="post"
+                                              asp-action="SoftDelete"
+                                              asp-controller="Notification"
+                                              style="display:inline">
                                             @Html.AntiForgeryToken()
                                             <input type="hidden" name="id" value="@n.NotificationId" />
-                                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Xóa thông báo này?')">
+                                            <button type="submit"
+                                                    class="btn btn-sm btn-danger"
+                                                    onclick="return confirm('Xóa thông báo này?')">
                                                 <i class="fa-solid fa-trash"></i>
                                             </button>
                                         </form>
                                     </td>
+
                                     <td>@n.Title</td>
+
                                     <td>@n.Type</td>
+
                                     <td>
                                         @n.TargetType
                                         @if (n.TargetUserId.HasValue)
                                         {
-                                            <span class="text-muted">(User @n.TargetUserId)</span>
+                                            <span class="text-muted ms-1">(User @n.TargetUserId)</span>
                                         }
                                         else if (n.TargetRoleId.HasValue)
                                         {
-
-                                            <span class="text-muted">(Role @n.TargetRoleId)</span>
+                                            <span class="text-muted ms-1">(Role @n.TargetRoleId)</span>
                                         }
                                     </td>
+
                                     <td>
                                         @n.ScheduledAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
                                         @if (n.ExpireAt.HasValue)
@@ -248,6 +296,7 @@
                                             <span> - @n.ExpireAt.Value.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
                                         }
                                     </td>
+
                                     <td>
                                         @if (n.IsCanceled)
                                         {
@@ -255,77 +304,213 @@
                                         }
                                         else if (n.IsSent)
                                         {
-
                                             <span class="badge bg-success">Đã gửi</span>
                                         }
                                         else
                                         {
-
                                             <span class="badge bg-warning text-dark">Chờ gửi</span>
                                         }
                                     </td>
+
                                     <td>@n.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
                                 </tr>
                             }
                         }
                         else
                         {
-                            <tr><td colspan="8" class="text-center text-muted">Không có dữ liệu.</td></tr>
+                            <tr>
+                                <td colspan="8" class="text-center text-muted">Không có dữ liệu.</td>
+                            </tr>
                         }
                     </tbody>
                 </table>
             </div>
 
-            @if (Model != null && Model.Total > Model.PageSize)
+            @{
+                // ====== CUSTOM PAGINATION START ======
+                var totalPages = 1;
+                var currentPage = 1;
+                var pageSize = 20;
+                var keyword = f?.Keyword ?? "";
+
+                if (Model != null)
+                {
+                    pageSize = Model.PageSize;
+                    currentPage = Model.Page;
+                    totalPages = (int)Math.Ceiling((double)Model.Total / Model.PageSize);
+                    if (totalPages < 1) totalPages = 1;
+                }
+
+                // helper render 1 trang (li>a)
+                Func<int, IHtmlContent> renderPageItem = (int pageNum) =>
+                {
+                    var liClass = pageNum == currentPage ? "page-item active" : "page-item";
+                    var url = Url.Action("Manage", "Notification", new { page = pageNum, pageSize = pageSize, keyword = keyword });
+
+                    return new HtmlString($@"
+                        <li class=""{liClass}"">
+                        <a class=""page-link"" href=""{url}"">{pageNum}</a>
+                        </li>
+                        ");
+                };
+
+                // helper render item disabled (ví dụ ... )
+                Func<string, IHtmlContent> renderDisabledItem = (string text) =>
+                {
+                    return new HtmlString($@"
+                        <li class=""page-item disabled"">
+                        <span class=""page-link"">{text}</span>
+                        </li>
+                        ");
+                };
+            }
+
+            @if (totalPages > 1)
             {
-                var totalPages = (int)Math.Ceiling((double)Model.Total / Model.PageSize);
                 <nav>
                     <ul class="pagination justify-content-center">
-                        @for (int i = 1; i <= totalPages; i++)
-                        {
-                            <li class="page-item @(i == Model.Page ? "active" : "")">
-                                <a class="page-link"
-                                   asp-action="Manage"
-                                   asp-route-page="@i"
-                                   asp-route-pageSize="@Model.PageSize"
-                                   asp-route-keyword="@f?.Keyword">@i</a>
-                            </li>
+
+                        @* Previous *@
+                        @{
+                            var prevDisabled = currentPage <= 1;
+                            var prevPage = currentPage > 1 ? currentPage - 1 : 1;
+                            var prevUrl = prevDisabled
+                            ? "#"
+                            : Url.Action("Manage", "Notification", new { page = prevPage, pageSize = pageSize, keyword = keyword });
                         }
+                        <li class="page-item @(prevDisabled ? "disabled" : "")">
+                            <a class="page-link"
+                               href="@prevUrl"
+                               tabindex="-1"
+                               aria-disabled="@(prevDisabled ? "true" : "false")">«</a>
+                        </li>
+
+                        @* Pages with window + ... *@
+                        @{
+                            // Ví dụ windowSize = 1 => currentPage-1, currentPage, currentPage+1
+                            var windowSize = 1;
+                            var startPage = currentPage - windowSize;
+                            var endPage = currentPage + windowSize;
+
+                            if (startPage < 1) startPage = 1;
+                            if (endPage > totalPages) endPage = totalPages;
+
+                            // luôn hiện trang 1
+                            @renderPageItem(1)
+                            ;
+
+                            // nếu block giữa không dính sát trang 1 => in "..."
+                            if (startPage > 2)
+                            {
+                                @renderDisabledItem("...")
+                                ;
+                            }
+
+                            // render các trang giữa (trừ 1 và totalPages để không bị lặp)
+                            for (int p = startPage; p <= endPage; p++)
+                            {
+                                if (p != 1 && p != totalPages)
+                                {
+                                    @renderPageItem(p)
+                                    ;
+                                }
+                            }
+
+                            // nếu block giữa không dính sát trang cuối => in "..."
+                            if (endPage < totalPages - 1)
+                            {
+                                @renderDisabledItem("...")
+                                ;
+                            }
+
+                            // luôn hiện trang cuối (nếu >1)
+                            if (totalPages > 1)
+                            {
+                                @renderPageItem(totalPages)
+                                ;
+                            }
+                        }
+
+                        @* Next *@
+                        @{
+                            var nextDisabled = currentPage >= totalPages;
+                            var nextPage = currentPage < totalPages ? currentPage + 1 : totalPages;
+                            var nextUrl = nextDisabled
+                            ? "#"
+                            : Url.Action("Manage", "Notification", new { page = nextPage, pageSize = pageSize, keyword = keyword });
+                        }
+                        <li class="page-item @(nextDisabled ? "disabled" : "")">
+                            <a class="page-link"
+                               href="@nextUrl"
+                               aria-disabled="@(nextDisabled ? "true" : "false")">»</a>
+                        </li>
+
                     </ul>
                 </nav>
             }
+            @* ====== CUSTOM PAGINATION END ====== *@
+
         </div>
     </div>
 </div>
 
 <!-- Modal -->
-<div class="modal fade" id="notificationModal" tabindex="-1" aria-labelledby="notificationModalLabel" aria-hidden="true">
+<div class="modal fade"
+     id="notificationModal"
+     tabindex="-1"
+     aria-labelledby="notificationModalLabel"
+     aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
+
             <div class="modal-header">
                 <h5 id="notificationModalLabel" class="modal-title">
                     <i class="fa-solid fa-bell me-2"></i>
                     @(edit != null ? "Cập nhật thông báo" : "Thêm thông báo mới")
                 </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="closeModal()"></button>
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal"
+                        aria-label="Close"
+                        onclick="closeModal()"></button>
             </div>
 
-            <form method="post" asp-action="SaveNotification" asp-controller="Notification" id="notificationForm">
+            <form method="post"
+                  asp-action="SaveNotification"
+                  asp-controller="Notification"
+                  id="notificationForm">
                 @Html.AntiForgeryToken()
+
                 <div class="modal-body">
                     <input type="hidden" name="NotificationId" id="notificationId" value="@(edit?.NotificationId ?? 0)" />
-                    <input type="hidden" name="CreatedBy" id="createdBy" value="@(edit?.CreatedBy ?? 0)" />
+                    <input type="hidden" name="CreatedBy" id="createdBy" value="0" />
 
                     <div class="row g-3">
+
                         <div class="col-lg-6">
-                            <label class="form-label"><i class="fa-solid fa-heading me-1"></i>Tiêu đề <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" name="Title" id="title"
-                                   value="@(edit?.Title ?? "")" placeholder="Nhập tiêu đề thông báo" required maxlength="200" />
+                            <label class="form-label">
+                                <i class="fa-solid fa-heading me-1"></i>
+                                Tiêu đề <span class="text-danger">*</span>
+                            </label>
+                            <input type="text"
+                                   class="form-control"
+                                   name="Title"
+                                   id="title"
+                                   value="@(edit?.Title ?? "")"
+                                   placeholder="Nhập tiêu đề thông báo"
+                                   required
+                                   maxlength="200" />
                         </div>
 
                         <div class="col-lg-6">
-                            <label class="form-label"><i class="fa-solid fa-tag me-1"></i>Loại <span class="text-danger">*</span></label>
-                            <select class="form-select" name="Type" id="type" required>
+                            <label class="form-label">
+                                <i class="fa-solid fa-tag me-1"></i>
+                                Loại <span class="text-danger">*</span>
+                            </label>
+                            <select class="form-select"
+                                    name="Type"
+                                    id="type"
+                                    required>
                                 <option value="info">ℹ️ Info</option>
                                 <option value="warning">⚠️ Warning</option>
                                 <option value="error">❌ Error</option>
@@ -335,13 +520,31 @@
                         </div>
 
                         <div class="col-12">
-                            <label class="form-label"><i class="fa-solid fa-message me-1"></i>Nội dung <span class="text-danger">*</span></label>
-                            <textarea class="form-control" name="Message" id="message" rows="3" placeholder="Nhập nội dung thông báo..." required maxlength="1000">@(edit?.Message ?? "")</textarea>
+                            <label class="form-label">
+                                <i class="fa-solid fa-message me-1"></i>
+                                Nội dung <span class="text-danger">*</span>
+                            </label>
+                            <textarea class="form-control"
+                                      name="Message"
+                                      id="message"
+                                      rows="3"
+                                      placeholder="Nhập nội dung thông báo..."
+                                      required
+                                      maxlength="1000">@(
+                                          edit?.Message ?? ""
+                                      )</textarea>
                         </div>
 
                         <div class="col-lg-4">
-                            <label class="form-label"><i class="fa-solid fa-bullseye me-1"></i>Đối tượng <span class="text-danger">*</span></label>
-                            <select class="form-select" name="TargetType" id="targetType" onchange="toggleTargetFields()" required>
+                            <label class="form-label">
+                                <i class="fa-solid fa-bullseye me-1"></i>
+                                Đối tượng <span class="text-danger">*</span>
+                            </label>
+                            <select class="form-select"
+                                    name="TargetType"
+                                    id="targetType"
+                                    onchange="toggleTargetFields()"
+                                    required>
                                 <option value="All">👥 Tất cả</option>
                                 <option value="Role">🎭 Theo vai trò</option>
                                 <option value="User">👤 Người dùng cụ thể</option>
@@ -349,44 +552,106 @@
                             </select>
                         </div>
 
-                        <div class="col-lg-4 field-animate" id="targetRoleField" style="display:none">
-                            <label class="form-label"><i class="fa-solid fa-user-tag me-1"></i>Vai trò</label>
-                            <select class="form-select" name="TargetRoleId" id="targetRoleId">
+                        <div class="col-lg-4 field-animate"
+                             id="targetRoleField"
+                             style="display:none">
+                            <label class="form-label">
+                                <i class="fa-solid fa-user-tag me-1"></i>
+                                Vai trò
+                            </label>
+                            <select class="form-select"
+                                    name="TargetRoleId"
+                                    id="targetRoleId">
                                 <option value="">-- Chọn vai trò --</option>
-                                @foreach (var r in (IEnumerable<dynamic>)ViewBag.Roles)
+                                @if (roles != null)
                                 {
-                                    var rid = (int)r.RoleId;
-                                    <option value="@rid" data-selected="@(edit?.TargetRoleId == rid ? "true" : "false")">@r.RoleName</option>
+                                    foreach (var r in roles)
+                                    {
+                                        var rid = r.RoleId;
+                                        if (edit?.TargetRoleId == rid)
+                                        {
+                                            <option value="@rid" selected="selected">@r.RoleName</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@rid">@r.RoleName</option>
+                                        }
+                                    }
                                 }
                             </select>
                         </div>
 
-                        <div class="col-lg-4 field-animate" id="targetUserField" style="display:none">
-                            <label class="form-label"><i class="fa-solid fa-user me-1"></i>ID Người dùng</label>
-                            <input type="number" class="form-control" name="TargetUserId" id="targetUserId"
-                                   value="@(edit?.TargetUserId?.ToString() ?? "")" placeholder="Nhập ID người dùng" min="1" />
+                        <div class="col-lg-4 field-animate"
+                             id="targetUserField"
+                             style="display:none">
+                            <label class="form-label">
+                                <i class="fa-solid fa-user me-1"></i>
+                                ID Người dùng
+                            </label>
+                            <input type="number"
+                                   class="form-control"
+                                   name="TargetUserId"
+                                   id="targetUserId"
+                                   value="@(edit?.TargetUserId?.ToString() ?? "")"
+                                   placeholder="Nhập ID người dùng"
+                                   min="1" />
                         </div>
 
                         <div class="col-lg-6">
-                            <label class="form-label"><i class="fa-solid fa-clock me-1"></i>Thời gian hiển thị <span class="text-danger">*</span></label>
-                            <input type="datetime-local" class="form-control" name="ScheduledAt" id="scheduledAt"
-                                   value="@(edit != null ? edit.ScheduledAt.ToLocalTime().ToString("yyyy-MM-ddTHH:mm") : DateTime.Now.ToString("yyyy-MM-ddTHH:mm"))" required />
+                            <label class="form-label">
+                                <i class="fa-solid fa-clock me-1"></i>
+                                Thời gian hiển thị <span class="text-danger">*</span>
+                            </label>
+                            <input type="datetime-local"
+                                   class="form-control"
+                                   name="ScheduledAt"
+                                   id="scheduledAt"
+                                   value="@(edit != null
+                                                                               ? edit.ScheduledAt.ToLocalTime().ToString("yyyy-MM-ddTHH:mm")
+                                                                               : DateTime.Now.ToString("yyyy-MM-ddTHH:mm"))"
+                                   required />
                         </div>
 
                         <div class="col-lg-6">
-                            <label class="form-label"><i class="fa-solid fa-calendar-xmark me-1"></i>Thời gian hết hạn</label>
-                            <input type="datetime-local" class="form-control" name="ExpireAt" id="expireAt"
+                            <label class="form-label">
+                                <i class="fa-solid fa-calendar-xmark me-1"></i>
+                                Thời gian hết hạn
+                            </label>
+                            <input type="datetime-local"
+                                   class="form-control"
+                                   name="ExpireAt"
+                                   id="expireAt"
                                    value="@(edit?.ExpireAt?.ToLocalTime().ToString("yyyy-MM-ddTHH:mm") ?? "")" />
                         </div>
+
+                        <div class="col-12 field-animate"
+                             id="conditionField"
+                             style="display:none">
+                            <label class="form-label">
+                                <i class="fa-solid fa-filter me-1"></i>
+                                Điều kiện (JSON, optional)
+                            </label>
+                            <input type="text"
+                                   class="form-control"
+                                   name="ConditionJson"
+                                   id="conditionJson"
+                                   value="@(edit?.ConditionJson ?? "")"
+                                   placeholder='VD: {"minSpent":1000000}' />
+                        </div>
+
                     </div>
                 </div>
 
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" onclick="closeModal()">
+                    <button type="button"
+                            class="btn btn-outline-secondary"
+                            data-bs-dismiss="modal"
+                            onclick="closeModal()">
                         <i class="fa-solid fa-xmark me-1"></i>Hủy
                     </button>
                     <button type="submit" class="btn btn-primary">
-                        <i class="fa-solid fa-floppy-disk me-1"></i>@(edit != null ? "Lưu thay đổi" : "Thêm mới")
+                        <i class="fa-solid fa-floppy-disk me-1"></i>
+                        @(edit != null ? "Lưu thay đổi" : "Thêm mới")
                     </button>
                 </div>
             </form>
@@ -396,45 +661,45 @@
 
 <!-- Toast lỗi -->
 <div class="toast-container position-fixed p-3 toast-top-right">
-    <div id="liveToast" class="toast align-items-center text-bg-danger border-0" role="alert">
+    <div id="liveToast"
+         class="toast align-items-center text-bg-danger border-0"
+         role="alert">
         <div class="d-flex">
             <div class="toast-body fs-5 fw-semibold">
                 <i class="fa-solid fa-circle-exclamation me-2"></i>
                 @ViewBag.ErrorMessage
             </div>
-            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            <button type="button"
+                    class="btn-close btn-close-white me-2 m-auto"
+                    data-bs-dismiss="toast"></button>
         </div>
     </div>
 </div>
 
-<!-- Font Awesome 6 -->
 <link rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
-      crossorigin="anonymous" referrerpolicy="no-referrer" />
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer" />
 
 @section Scripts {
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            // Hiện toast nếu có lỗi
             const hasError = '@(ViewBag.ShowErrorModal == true ? "true" : "false")';
             if (hasError === "true") {
                 const toastEl = document.getElementById('liveToast');
                 if (toastEl) new bootstrap.Toast(toastEl, { delay: 5000 }).show();
             }
 
-            // Auto mở modal nếu Edit hoặc lỗi
             const needShow = '@((edit != null || (ViewBag.ShowErrorModal == true)) ? "true" : "false")';
             if (needShow === "true") {
                 const modalEl = document.getElementById('notificationModal');
                 if (modalEl) new bootstrap.Modal(modalEl).show();
             }
 
-            // Map Type từ server -> UI
+            // map type server -> UI
             const typeSel = document.getElementById('type');
             if (typeSel) {
                 const serverType = '@(edit?.Type?.ToLowerInvariant() ?? "info")';
-
-                // Map server types to UI values
                 const typeMapping = {
                     'general': 'info',
                     'promotion': 'promo',
@@ -445,34 +710,20 @@
                     'error': 'error',
                     'promo': 'promo'
                 };
-
                 typeSel.value = typeMapping[serverType] || 'info';
             }
 
-            // Map TargetType từ server -> UI
+            // map TargetType server -> UI
             const targetSel = document.getElementById('targetType');
             if (targetSel) {
                 const serverTarget = '@(edit?.TargetType ?? "All")';
-
                 const targetMapping = {
                     'ByRole': 'Role',
                     'SingleUser': 'User',
                     'ByCondition': 'Condition',
                     'All': 'All'
                 };
-
                 targetSel.value = targetMapping[serverTarget] || 'All';
-            }
-
-            // Set selected role if editing
-            const roleSelect = document.getElementById('targetRoleId');
-            if (roleSelect) {
-                const options = roleSelect.querySelectorAll('option');
-                options.forEach(opt => {
-                    if (opt.getAttribute('data-selected') === 'true') {
-                        opt.selected = true;
-                    }
-                });
             }
 
             toggleTargetFields();
@@ -480,14 +731,14 @@
 
         function openAddModal() {
             const form = document.getElementById('notificationForm');
-            form.reset();
+            if (form) form.reset();
 
             document.getElementById('notificationId').value = '0';
             document.getElementById('createdBy').value = '0';
             document.getElementById('scheduledAt').value = '@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")';
-            document.getElementById('notificationModalLabel').innerHTML = '<i class="fa-solid fa-bell me-2"></i>Thêm thông báo mới';
+            document.getElementById('notificationModalLabel').innerHTML =
+                '<i class="fa-solid fa-bell me-2"></i>Thêm thông báo mới';
 
-            // Reset to defaults
             const typeSel = document.getElementById('type');
             if (typeSel) typeSel.value = 'info';
 
@@ -500,33 +751,42 @@
             const userInput = document.getElementById('targetUserId');
             if (userInput) userInput.value = '';
 
+            const condInput = document.getElementById('conditionJson');
+            if (condInput) condInput.value = '';
+
             toggleTargetFields();
         }
 
         function closeModal() {
-            window.location.href = '@Url.Action("Manage", "Notification")';
+            window.location.href = '@Url.Action("Manage", "Notification", new { Keyword = f?.Keyword, Page = f?.Page, PageSize = f?.PageSize })';
         }
 
         function toggleTargetFields() {
             const type = document.getElementById('targetType').value;
             const roleField = document.getElementById('targetRoleField');
             const userField = document.getElementById('targetUserField');
+            const condField = document.getElementById('conditionField');
+
             const roleSelect = document.getElementById('targetRoleId');
             const userInput = document.getElementById('targetUserId');
 
-            // Hide all fields first
+            // hide all first
             if (roleField) roleField.style.display = 'none';
             if (userField) userField.style.display = 'none';
+            if (condField) condField.style.display = 'none';
+
             if (roleSelect) roleSelect.required = false;
             if (userInput) userInput.required = false;
 
-            // Show appropriate field based on selection
+            // show per mode
             if (type === 'Role') {
                 if (roleField) roleField.style.display = 'block';
                 if (roleSelect) roleSelect.required = true;
             } else if (type === 'User') {
                 if (userField) userField.style.display = 'block';
                 if (userInput) userInput.required = true;
+            } else if (type === 'Condition') {
+                if (condField) condField.style.display = 'block';
             }
         }
     </script>

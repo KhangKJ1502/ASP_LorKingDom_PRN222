@@ -255,6 +255,39 @@ public class ChatHub : Hub
         }
     }
 
+    //public async Task SendMessage(string conversationId, string senderId, string text)
+    //{
+    //    try
+    //    {
+    //        if (string.IsNullOrWhiteSpace(text)) return;
+
+    //        _logger.LogInformation("📤 SendMessage - Conv:{Conv}, From:{From}", conversationId, senderId);
+    //        var (message, conversation) = await _chatService.SendAsync(conversationId, senderId, text);
+
+    //        await Clients.Group($"conv:{conversationId}").SendAsync("receive", message);
+
+    //        if (!string.IsNullOrWhiteSpace(conversation.StaffUserId))
+    //        {
+    //            var sid = conversation.StaffUserId!;
+    //            var onPage = IsStaffOnChatPage(sid);
+    //            _logger.LogInformation("📍 Staff {Staff} - OnPage: {OnPage}", sid, onPage ? "YES" : "NO");
+
+    //            await Clients.Group($"user:{sid}").SendAsync("conversationUpdated", conversation);
+
+    //            if (senderId != sid)
+    //            {
+    //                await Clients.Group($"user:{sid}").SendAsync("receive", message);
+    //            }
+    //        }
+
+    //        _logger.LogInformation("✅ Message delivered");
+    //    }
+    //    catch (Exception ex)
+    //    {
+    //        _logger.LogError(ex, "❌ Error sending message");
+    //        throw;
+    //    }
+    //}
     public async Task SendMessage(string conversationId, string senderId, string text)
     {
         try
@@ -262,22 +295,24 @@ public class ChatHub : Hub
             if (string.IsNullOrWhiteSpace(text)) return;
 
             _logger.LogInformation("📤 SendMessage - Conv:{Conv}, From:{From}", conversationId, senderId);
+
             var (message, conversation) = await _chatService.SendAsync(conversationId, senderId, text);
 
+            // 1) Gửi tin nhắn realtime cho tất cả client trong phòng hội thoại
             await Clients.Group($"conv:{conversationId}").SendAsync("receive", message);
 
+            // 2) Cập nhật danh sách hội thoại (sidebar) cho staff
             if (!string.IsNullOrWhiteSpace(conversation.StaffUserId))
             {
                 var sid = conversation.StaffUserId!;
                 var onPage = IsStaffOnChatPage(sid);
                 _logger.LogInformation("📍 Staff {Staff} - OnPage: {OnPage}", sid, onPage ? "YES" : "NO");
 
+                // cập nhật lastMessage, unreadForStaff,... bên trái
                 await Clients.Group($"user:{sid}").SendAsync("conversationUpdated", conversation);
 
-                if (senderId != sid)
-                {
-                    await Clients.Group($"user:{sid}").SendAsync("receive", message);
-                }
+                // ❌ KHÔNG gửi lại "receive" lần hai cho staff nữa
+                // vì staff đã nhận "receive" ở group conv:{conversationId}
             }
 
             _logger.LogInformation("✅ Message delivered");

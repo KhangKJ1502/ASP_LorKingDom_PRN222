@@ -1,4 +1,5 @@
-﻿using DAL.Interfaces;
+﻿// DAL/Repositories/NotificationLogRepository.cs
+using DAL.Interfaces;
 using DAL.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;

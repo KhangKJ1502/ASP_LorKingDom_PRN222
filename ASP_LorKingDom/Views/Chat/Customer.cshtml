@@ -1,640 +1,21 @@
-﻿@* ﻿@{
-var userId = (string)ViewBag.UserId ?? "guest_" + Guid.NewGuid().ToString("N").Substring(0, 8);
-var name = (string)ViewBag.Name ?? "Khách hàng";
-}
-
-<!-- Chat Widget Button & Box -->
-<div id="chatWidget">
-    <!-- Floating Button -->
-    <button class="chat-widget-button" id="chatToggleBtn" type="button">
-        <svg class="chat-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-        </svg>
-        <svg class="close-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="18" y1="6" x2="6" y2="18"></line>
-            <line x1="6" y1="6" x2="18" y2="18"></line>
-        </svg>
-        <span class="notification-dot" id="notificationDot"></span>
-    </button>
-
-    <!-- Chat Box -->
-    <div class="chat-widget-box" id="chatBox">
-        <!-- Header -->
-        <div class="chat-widget-header">
-            <div class="header-content">
-                <div class="agent-avatar">
-                    <span>🎧</span>
-                </div>
-                <div class="agent-info">
-                    <h4>Hỗ trợ khách hàng</h4>
-                    <p class="agent-status" id="agentStatus">
-                        <span class="status-dot"></span>
-                        <span class="status-text">Đang kiểm tra...</span>
-                    </p>
-                </div>
-            </div>
-            <button class="minimize-btn" id="minimizeBtn" type="button">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="5" y1="12" x2="19" y2="12"></line>
-                </svg>
-            </button>
-        </div>
-
-        <!-- Messages -->
-        <div class="chat-widget-messages" id="chatMessages">
-            <div class="welcome-message">
-                <div class="welcome-icon">👋</div>
-                <h3>Xin chào!</h3>
-                <p>Chúng tôi có thể giúp gì cho bạn?</p>
-            </div>
-        </div>
-
-        <!-- Typing Indicator -->
-        <div class="typing-indicator" id="typingIndicator">
-            <div class="typing-dots">
-                <span></span>
-                <span></span>
-                <span></span>
-            </div>
-            <span class="typing-text">Nhân viên đang nhập...</span>
-        </div>
-
-        <!-- Input -->
-        <div class="chat-widget-input">
-            <input type="text" id="messageInput" placeholder="Nhập tin nhắn..." autocomplete="off" />
-            <button class="send-button" id="sendButton" type="button">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="22" y1="2" x2="11" y2="13"></line>
-                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-                </svg>
-            </button>
-        </div>
-
-        <!-- Footer -->
-        <div class="chat-widget-footer">
-            <span>Powered by ToyLand Support</span>
-        </div>
-    </div>
-</div>
-
-<style>
-    /* Chat Widget Styles */
-    #chatWidget {
-        position: fixed;
-        bottom: 24px;
-        right: 24px;
-        z-index: 9999;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    }
-
-    /* Floating Button */
-    .chat-widget-button {
-        width: 64px;
-        height: 64px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border: none;
-        box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        position: relative;
-    }
-
-        .chat-widget-button:hover {
-            transform: scale(1.1);
-            box-shadow: 0 12px 32px rgba(102, 126, 234, 0.5);
-        }
-
-        .chat-widget-button .chat-icon {
-            display: block;
-            color: white;
-        }
-
-        .chat-widget-button .close-icon {
-            display: none;
-            color: white;
-        }
-
-        .chat-widget-button.active .chat-icon {
-            display: none;
-        }
-
-        .chat-widget-button.active .close-icon {
-            display: block;
-        }
-
-    .notification-dot {
-        position: absolute;
-        top: 8px;
-        right: 8px;
-        width: 12px;
-        height: 12px;
-        background: #ef4444;
-        border: 2px solid white;
-        border-radius: 50%;
-        display: none;
-        animation: pulse 2s infinite;
-    }
-
-        .notification-dot.show {
-            display: block;
-        }
-
-
-    /* Chat Box */
-    .chat-widget-box {
-        position: absolute;
-        bottom: 80px;
-        right: 0;
-        width: 380px;
-        height: 600px;
-        background: white;
-        border-radius: 16px;
-        box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
-        display: none;
-        flex-direction: column;
-        overflow: hidden;
-        animation: slideUp 0.3s ease-out;
-    }
-
-        .chat-widget-box.show {
-            display: flex;
-        }
-
-
-
-    /* Header */
-    .chat-widget-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 20px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-    }
-
-    .header-content {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        flex: 1;
-    }
-
-    .agent-avatar {
-        width: 48px;
-        height: 48px;
-        border-radius: 50%;
-        background: rgba(255, 255, 255, 0.2);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 24px;
-    }
-
-    .agent-info h4 {
-        margin: 0;
-        font-size: 16px;
-        font-weight: 600;
-    }
-
-    .agent-info p {
-        margin: 4px 0 0 0;
-        font-size: 13px;
-        opacity: 0.9;
-    }
-
-    .agent-status {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-    }
-
-    .status-dot {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        background: #94a3b8;
-    }
-
-    .agent-status.online .status-dot {
-        background: #22c55e;
-        box-shadow: 0 0 8px rgba(34, 197, 94, 0.5);
-    }
-
-    .minimize-btn {
-        width: 32px;
-        height: 32px;
-        border: none;
-        background: rgba(255, 255, 255, 0.2);
-        border-radius: 8px;
-        color: white;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.2s;
-    }
-
-        .minimize-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-        }
-
-    /* Messages Area */
-    .chat-widget-messages {
-        flex: 1;
-        padding: 20px;
-        overflow-y: auto;
-        background: #f8f9fa;
-    }
-
-        .chat-widget-messages::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .chat-widget-messages::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        .chat-widget-messages::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 3px;
-        }
-
-    /* Welcome Message */
-    .welcome-message {
-        text-align: center;
-        padding: 40px 20px;
-        color: #64748b;
-    }
-
-    .welcome-icon {
-        font-size: 48px;
-        margin-bottom: 16px;
-    }
-
-    .welcome-message h3 {
-        margin: 0 0 8px 0;
-        font-size: 20px;
-        color: #1e293b;
-    }
-
-    .welcome-message p {
-        margin: 0;
-        font-size: 14px;
-    }
-
-    /* Chat Messages */
-    .chat-message {
-        margin-bottom: 16px;
-        display: flex;
-        gap: 8px;
-        animation: messageSlide 0.3s ease-out;
-    }
-
-
-
-        .chat-message.sent {
-            justify-content: flex-end;
-        }
-
-    .chat-bubble {
-        max-width: 75%;
-        padding: 12px 16px;
-        border-radius: 16px;
-        font-size: 14px;
-        line-height: 1.5;
-        word-wrap: break-word;
-    }
-
-    .chat-message.received .chat-bubble {
-        background: white;
-        color: #1e293b;
-        border-bottom-left-radius: 4px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    }
-
-    .chat-message.sent .chat-bubble {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border-bottom-right-radius: 4px;
-    }
-
-    .message-time {
-        font-size: 11px;
-        opacity: 0.7;
-        margin-top: 6px;
-        display: block;
-    }
-
-    /* Typing Indicator */
-    .typing-indicator {
-        padding: 0 20px 12px;
-        display: none;
-        align-items: center;
-        gap: 8px;
-    }
-
-        .typing-indicator.show {
-            display: flex;
-        }
-
-    .typing-dots {
-        display: flex;
-        gap: 4px;
-    }
-
-        .typing-dots span {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #94a3b8;
-            animation: typing 1.4s infinite;
-        }
-
-            .typing-dots span:nth-child(2) {
-                animation-delay: 0.2s;
-            }
-
-            .typing-dots span:nth-child(3) {
-                animation-delay: 0.4s;
-            }
-
-
-
-    .typing-text {
-        font-size: 12px;
-        color: #64748b;
-        font-style: italic;
-    }
-
-    /* Input Area */
-    .chat-widget-input {
-        padding: 16px 20px;
-        border-top: 1px solid #e5e7eb;
-        display: flex;
-        gap: 12px;
-        background: white;
-    }
-
-        .chat-widget-input input {
-            flex: 1;
-            padding: 12px 16px;
-            border: 1px solid #e5e7eb;
-            border-radius: 24px;
-            font-size: 14px;
-            outline: none;
-            transition: all 0.2s;
-        }
-
-            .chat-widget-input input:focus {
-                border-color: #667eea;
-                box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-            }
-
-    .send-button {
-        width: 44px;
-        height: 44px;
-        border: none;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-radius: 50%;
-        color: white;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.2s;
-        flex-shrink: 0;
-    }
-
-        .send-button:hover {
-            transform: scale(1.1);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-        }
-
-        .send-button:active {
-            transform: scale(0.95);
-        }
-
-    /* Footer */
-    .chat-widget-footer {
-        padding: 12px 20px;
-        text-align: center;
-        font-size: 11px;
-        color: #94a3b8;
-        border-top: 1px solid #e5e7eb;
-        background: #f8f9fa;
-    }
-
-    /* Mobile Responsive */
-    @@media (max-width: 480px) {
-        #chatWidget {
-            bottom: 16px;
-            right: 16px;
-        }
-
-        .chat-widget-box {
-            width: calc(100vw - 32px);
-            height: calc(100vh - 120px);
-            max-height: 600px;
-        }
-
-        .chat-widget-button {
-            width: 56px;
-            height: 56px;
-        }
-    }
-</style>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
-<script>
-    (function() {
-        const USER_ID = "@userId";
-        const DISPLAY_NAME = "@name";
-        const HUB = `/chatHub?userId=${encodeURIComponent(USER_ID)}&isStaff=false&name=${encodeURIComponent(DISPLAY_NAME)}`;
-
-        let convId = null;
-        let typingTimer = null;
-        let conn = null;
-        let isBoxOpen = false;
-
-        // DOM Elements
-        const toggleBtn = document.getElementById('chatToggleBtn');
-        const chatBox = document.getElementById('chatBox');
-        const minimizeBtn = document.getElementById('minimizeBtn');
-        const messageInput = document.getElementById('messageInput');
-        const sendButton = document.getElementById('sendButton');
-        const chatMessages = document.getElementById('chatMessages');
-        const typingIndicator = document.getElementById('typingIndicator');
-        const agentStatus = document.getElementById('agentStatus');
-        const notificationDot = document.getElementById('notificationDot');
-
-        // Toggle Chat Box
-        function toggleChatBox() {
-            isBoxOpen = !isBoxOpen;
-            chatBox.classList.toggle('show', isBoxOpen);
-            toggleBtn.classList.toggle('active', isBoxOpen);
-
-            if (isBoxOpen) {
-                messageInput.focus();
-                notificationDot.classList.remove('show');
-            }
-        }
-
-        toggleBtn.addEventListener('click', toggleChatBox);
-        minimizeBtn.addEventListener('click', toggleChatBox);
-
-        // Escape HTML
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-
-        // Format Time
-        function formatTime(date) {
-            return new Date(date || Date.now()).toLocaleTimeString('vi-VN', {
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-        }
-
-        // Add Message
-        function addMessage(senderId, text, when) {
-            // Remove welcome message if exists
-            const welcomeMsg = chatMessages.querySelector('.welcome-message');
-            if (welcomeMsg) {
-                welcomeMsg.remove();
-            }
-
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `chat-message ${senderId === USER_ID ? 'sent' : 'received'}`;
-
-            const bubble = document.createElement('div');
-            bubble.className = 'chat-bubble';
-            bubble.textContent = text;
-
-            const time = document.createElement('span');
-            time.className = 'message-time';
-            time.textContent = formatTime(when);
-
-            bubble.appendChild(time);
-            messageDiv.appendChild(bubble);
-            chatMessages.appendChild(messageDiv);
-
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-
-            // Show notification if box is closed
-            if (!isBoxOpen && senderId !== USER_ID) {
-                notificationDot.classList.add('show');
-            }
-        }
-
-        // Set Agent Status
-        function setAgentStatus(online) {
-            if (online) {
-                agentStatus.classList.add('online');
-                agentStatus.querySelector('.status-text').textContent = 'Đang online';
-            } else {
-                agentStatus.classList.remove('online');
-                agentStatus.querySelector('.status-text').textContent = 'Offline';
-            }
-        }
-
-        // Show Typing
-        function showTyping(isTyping) {
-            typingIndicator.classList.toggle('show', isTyping);
-            if (isTyping) {
-                chatMessages.scrollTop = chatMessages.scrollHeight;
-            }
-        }
-
-        // Send Message
-        async function sendMessage() {
-            const text = messageInput.value.trim();
-            if (!text || !convId) return;
-
-            messageInput.value = '';
-            await conn.invoke("SendMessage", convId, USER_ID, text);
-        }
-
-        // Handle Typing
-        function handleTyping() {
-            if (!convId) return;
-
-            conn.invoke("Typing", convId, USER_ID, true).catch(() => {});
-
-            clearTimeout(typingTimer);
-            typingTimer = setTimeout(() => {
-                conn.invoke("Typing", convId, USER_ID, false).catch(() => {});
-            }, 1000);
-        }
-
-        // Event Listeners
-        sendButton.addEventListener('click', sendMessage);
-
-        messageInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                sendMessage();
-            } else {
-                handleTyping();
-            }
-        });
-
-        // SignalR Setup
-        async function initializeChat() {
-            try {
-                conn = new signalR.HubConnectionBuilder()
-                    .withUrl(HUB)
-                    .withAutomaticReconnect()
-                    .build();
-
-                // Event Handlers
-                conn.on("receive", (m) => {
-                    if (m.conversationId === convId) {
-                        addMessage(m.senderId, m.text, m.sentAt);
-                    }
-                });
-
-                conn.on("typing", (from, isTyping) => {
-                    if (from !== USER_ID) {
-                        showTyping(isTyping);
-                    }
-                });
-
-                conn.on("presenceChanged", (uid, online) => {
-                    setAgentStatus(online);
-                });
-
-                // Start Connection
-                await conn.start();
-                convId = await conn.invoke("StartChatAsCustomer", USER_ID);
-
-                console.log('Chat widget connected. Conversation ID:', convId);
-            } catch (error) {
-                console.error('Failed to initialize chat:', error);
-                agentStatus.querySelector('.status-text').textContent = 'Lỗi kết nối';
-            }
-        }
-
-        // Initialize on page load
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initializeChat);
-        } else {
-            initializeChat();
-        }
-    })();
-</script> *@
-
+﻿@using DAL.Models
 @{
-    var userId = (string)ViewBag.UserId ?? "guest_" + Guid.NewGuid().ToString("N").Substring(0, 8);
-    var name = (string)ViewBag.Name ?? "Khách hàng";
+    // 1. Lấy info khách
+    var userId = (string)ViewBag.UserId
+                 ?? User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+                 ?? ("guest_" + Guid.NewGuid().ToString("N").Substring(0, 8));
+
+    var name = (string)ViewBag.Name
+               ?? User?.Identity?.Name
+               ?? "Khách hàng";
+
+    // 2. Lấy danh sách staff online mà controller đã bỏ vào ViewBag
+    var onlineStaff = ViewBag.OnlineStaff as List<OnlineStaff> ?? new List<OnlineStaff>();
+
+    // 3. Staff mà khách đã từng chat (cookie staffId mà controller đưa xuống)
+    var preSelectedStaffId = ViewBag.SelectedStaffIdFromCookie as string;
 }
 
-<!-- Chat Widget Button & Box -->
 <div id="chatWidget">
     <!-- Floating Button -->
     <button class="chat-widget-button" id="chatToggleBtn" type="button">
@@ -656,14 +37,45 @@ var name = (string)ViewBag.Name ?? "Khách hàng";
                 <div class="agent-avatar">
                     <span>🎧</span>
                 </div>
+
                 <div class="agent-info">
                     <h4>Hỗ trợ khách hàng</h4>
+
                     <p class="agent-status" id="agentStatus">
                         <span class="status-dot"></span>
                         <span class="status-text">Đang kiểm tra...</span>
                     </p>
+
+                    <!-- Staff selector (chỉ hiện nếu có staff online) -->
+                    <div class="staff-select-row"
+                         id="staffSelectRow"
+                         style="@(onlineStaff.Any() ? "display:flex;flex-direction:column;margin-top:8px;" : "display:none;")">
+
+                        <label for="staffSelect"
+                               class="staff-select-label"
+                               style="font-size:12px;color:#fff;font-weight:500;">
+                            Chọn nhân viên online:
+                        </label>
+
+                        <select id="staffSelect"
+                                class="staff-select"
+                                style="font-size:13px;border-radius:6px;border:1px solid rgba(255,255,255,0.4);padding:6px 8px;background:rgba(255,255,255,0.15);color:#fff;outline:none;cursor:pointer;">
+                            <option value="">— Chọn nhân viên —</option>
+
+                            @foreach (var s in onlineStaff)
+                            {
+                                var isSelected = (!string.IsNullOrEmpty(preSelectedStaffId) && preSelectedStaffId == s.StaffId);
+                                <option value="@s.StaffId"
+                                        data-name="@s.StaffName"
+                                        @@(isSelected ? "selected=\"selected\"" : "")>
+                                    @s.StaffName (@s.StaffId)
+                                </option>
+                            }
+                        </select>
+                    </div>
                 </div>
             </div>
+
             <button class="minimize-btn" id="minimizeBtn" type="button">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -709,7 +121,6 @@ var name = (string)ViewBag.Name ?? "Khách hàng";
 </div>
 
 <style>
-    /* Chat Widget Styles */
     #chatWidget {
         position: fixed;
         bottom: 24px;
@@ -718,7 +129,6 @@ var name = (string)ViewBag.Name ?? "Khách hàng";
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     }
 
-    /* Floating Button */
     .chat-widget-button {
         width: 64px;
         height: 64px;
@@ -734,28 +144,28 @@ var name = (string)ViewBag.Name ?? "Khách hàng";
         position: relative;
     }
 
-        .chat-widget-button:hover {
-            transform: scale(1.1);
-            box-shadow: 0 12px 32px rgba(102, 126, 234, 0.5);
-        }
+    .chat-widget-button:hover {
+        transform: scale(1.1);
+        box-shadow: 0 12px 32px rgba(102, 126, 234, 0.5);
+    }
 
-        .chat-widget-button .chat-icon {
-            display: block;
-            color: white;
-        }
+    .chat-widget-button .chat-icon {
+        display: block;
+        color: white;
+    }
 
-        .chat-widget-button .close-icon {
-            display: none;
-            color: white;
-        }
+    .chat-widget-button .close-icon {
+        display: none;
+        color: white;
+    }
 
-        .chat-widget-button.active .chat-icon {
-            display: none;
-        }
+    .chat-widget-button.active .chat-icon {
+        display: none;
+    }
 
-        .chat-widget-button.active .close-icon {
-            display: block;
-        }
+    .chat-widget-button.active .close-icon {
+        display: block;
+    }
 
     .notification-dot {
         position: absolute;
@@ -770,14 +180,15 @@ var name = (string)ViewBag.Name ?? "Khách hàng";
         animation: pulse 2s infinite;
     }
 
-        .notification-dot.show {
-            display: block;
-        }
+    .notification-dot.show {
+        display: block;
+    }
 
+    @@keyframes pulse {
+        0%, 100% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.2); opacity: 0.8; }
+    }
 
- 
-
-    /* Chat Box */
     .chat-widget-box {
         position: absolute;
         bottom: 80px;
@@ -793,11 +204,15 @@ var name = (string)ViewBag.Name ?? "Khách hàng";
         animation: slideUp 0.3s ease-out;
     }
 
-        .chat-widget-box.show {
-            display: flex;
-        }
+    .chat-widget-box.show {
+        display: flex;
+    }
 
-    /* Header */
+    @@keyframes slideUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
     .chat-widget-header {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
@@ -869,11 +284,10 @@ var name = (string)ViewBag.Name ?? "Khách hàng";
         transition: all 0.2s;
     }
 
-        .minimize-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-        }
+    .minimize-btn:hover {
+        background: rgba(255, 255, 255, 0.3);
+    }
 
-    /* Messages Area */
     .chat-widget-messages {
         flex: 1;
         padding: 20px;
@@ -881,20 +295,17 @@ var name = (string)ViewBag.Name ?? "Khách hàng";
         background: #f8f9fa;
     }
 
-        .chat-widget-messages::-webkit-scrollbar {
-            width: 6px;
-        }
+    .chat-widget-messages::-webkit-scrollbar {
+        width: 6px;
+    }
+    .chat-widget-messages::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    .chat-widget-messages::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 3px;
+    }
 
-        .chat-widget-messages::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        .chat-widget-messages::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 3px;
-        }
-
-    /* Welcome Message */
     .welcome-message {
         text-align: center;
         padding: 40px 20px;
@@ -917,7 +328,6 @@ var name = (string)ViewBag.Name ?? "Khách hàng";
         font-size: 14px;
     }
 
-    /* Chat Messages */
     .chat-message {
         margin-bottom: 16px;
         display: flex;
@@ -925,9 +335,14 @@ var name = (string)ViewBag.Name ?? "Khách hàng";
         animation: messageSlide 0.3s ease-out;
     }
 
-        .chat-message.sent {
-            justify-content: flex-end;
-        }
+    @@keyframes messageSlide {
+        from { opacity: 0; transform: translateY(10px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .chat-message.sent {
+        justify-content: flex-end;
+    }
 
     .chat-bubble {
         max-width: 75%;
@@ -942,23 +357,22 @@ var name = (string)ViewBag.Name ?? "Khách hàng";
         background: white;
         color: #1e293b;
         border-bottom-left-radius: 4px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        box-shadow: 0 2px 4px rgba(0,0,0,.05);
     }
 
     .chat-message.sent .chat-bubble {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg,#667eea 0%,#764ba2 100%);
         color: white;
         border-bottom-right-radius: 4px;
     }
 
     .message-time {
         font-size: 11px;
-        opacity: 0.7;
+        opacity: .7;
         margin-top: 6px;
         display: block;
     }
 
-    /* Typing Indicator */
     .typing-indicator {
         padding: 0 20px 12px;
         display: none;
@@ -966,30 +380,35 @@ var name = (string)ViewBag.Name ?? "Khách hàng";
         gap: 8px;
     }
 
-        .typing-indicator.show {
-            display: flex;
-        }
+    .typing-indicator.show {
+        display: flex;
+    }
 
     .typing-dots {
         display: flex;
         gap: 4px;
     }
 
-        .typing-dots span {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #94a3b8;
-            animation: typing 1.4s infinite;
-        }
+    .typing-dots span {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #94a3b8;
+        animation: typing 1.4s infinite;
+    }
 
-            .typing-dots span:nth-child(2) {
-                animation-delay: 0.2s;
-            }
+    .typing-dots span:nth-child(2) {
+        animation-delay: .2s;
+    }
 
-            .typing-dots span:nth-child(3) {
-                animation-delay: 0.4s;
-            }
+    .typing-dots span:nth-child(3) {
+        animation-delay: .4s;
+    }
+
+    @@keyframes typing {
+        0%,60%,100% { transform: translateY(0); }
+        30% { transform: translateY(-8px); }
+    }
 
     .typing-text {
         font-size: 12px;
@@ -997,7 +416,6 @@ var name = (string)ViewBag.Name ?? "Khách hàng";
         font-style: italic;
     }
 
-    /* Input Area */
     .chat-widget-input {
         padding: 16px 20px;
         border-top: 1px solid #e5e7eb;
@@ -1006,46 +424,45 @@ var name = (string)ViewBag.Name ?? "Khách hàng";
         background: white;
     }
 
-        .chat-widget-input input {
-            flex: 1;
-            padding: 12px 16px;
-            border: 1px solid #e5e7eb;
-            border-radius: 24px;
-            font-size: 14px;
-            outline: none;
-            transition: all 0.2s;
-        }
+    .chat-widget-input input {
+        flex: 1;
+        padding: 12px 16px;
+        border: 1px solid #e5e7eb;
+        border-radius: 24px;
+        font-size: 14px;
+        outline: none;
+        transition: all .2s;
+    }
 
-            .chat-widget-input input:focus {
-                border-color: #667eea;
-                box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-            }
+    .chat-widget-input input:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102,126,234,.1);
+    }
 
     .send-button {
         width: 44px;
         height: 44px;
         border: none;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg,#667eea 0%,#764ba2 100%);
         border-radius: 50%;
         color: white;
         cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
-        transition: all 0.2s;
+        transition: all .2s;
         flex-shrink: 0;
     }
 
-        .send-button:hover {
-            transform: scale(1.1);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-        }
+    .send-button:hover {
+        transform: scale(1.1);
+        box-shadow: 0 4px 12px rgba(102,126,234,.4);
+    }
 
-        .send-button:active {
-            transform: scale(0.95);
-        }
+    .send-button:active {
+        transform: scale(.95);
+    }
 
-    /* Footer */
     .chat-widget-footer {
         padding: 12px 20px;
         text-align: center;
@@ -1055,7 +472,6 @@ var name = (string)ViewBag.Name ?? "Khách hàng";
         background: #f8f9fa;
     }
 
-    /* Mobile Responsive */
     @@media (max-width: 480px) {
         #chatWidget {
             bottom: 16px;
@@ -1077,201 +493,237 @@ var name = (string)ViewBag.Name ?? "Khách hàng";
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
 <script>
-    (function() {
-        const USER_ID = "@userId";
-        const DISPLAY_NAME = "@name";
-        const HUB = `/chatHub?userId=${encodeURIComponent(USER_ID)}&isStaff=false&name=${encodeURIComponent(DISPLAY_NAME)}`;
+(function () {
 
-        let convId = null;
-        let typingTimer = null;
-        let conn = null;
-        let isBoxOpen = false;
+    // ===== Razor -> JS =====
+    const USER_ID = "@userId";
+    const DISPLAY_NAME = "@name";
+    const HUB = `/chatHub?userId=${encodeURIComponent(USER_ID)}&isStaff=false&name=${encodeURIComponent(DISPLAY_NAME)}`;
 
-        // DOM Elements
-        const toggleBtn = document.getElementById('chatToggleBtn');
-        const chatBox = document.getElementById('chatBox');
-        const minimizeBtn = document.getElementById('minimizeBtn');
-        const messageInput = document.getElementById('messageInput');
-        const sendButton = document.getElementById('sendButton');
-        const chatMessages = document.getElementById('chatMessages');
-        const typingIndicator = document.getElementById('typingIndicator');
-        const agentStatus = document.getElementById('agentStatus');
-        const notificationDot = document.getElementById('notificationDot');
+    // state
+    let conn = null;
+    let convId = null;
+    let typingTimer = null;
+    let isBoxOpen = false;
 
-        // Toggle Chat Box
-        function toggleChatBox() {
-            isBoxOpen = !isBoxOpen;
-            chatBox.classList.toggle('show', isBoxOpen);
-            toggleBtn.classList.toggle('active', isBoxOpen);
+    // dom
+    const toggleBtn = document.getElementById('chatToggleBtn');
+    const chatBox = document.getElementById('chatBox');
+    const minimizeBtn = document.getElementById('minimizeBtn');
+    const messageInput = document.getElementById('messageInput');
+    const sendButton = document.getElementById('sendButton');
+    const chatMessages = document.getElementById('chatMessages');
+    const typingIndicator = document.getElementById('typingIndicator');
+    const agentStatus = document.getElementById('agentStatus');
+    const notificationDot = document.getElementById('notificationDot');
+    const staffSelect = document.getElementById('staffSelect');
 
-            if (isBoxOpen) {
-                messageInput.focus();
-                notificationDot.classList.remove('show');
-            }
+    // cookie helpers
+    function getCookie(name) {
+        const m = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/([$?*|{}\]\\^])/g, '\\$1') + '=([^;]*)'));
+        return m ? decodeURIComponent(m[1]) : null;
+    }
+
+    function setCookie(name, value, minutes) {
+        const d = new Date();
+        d.setTime(d.getTime() + (minutes * 60 * 1000));
+        document.cookie = `${name}=${encodeURIComponent(value)};expires=${d.toUTCString()};path=/;SameSite=Lax`;
+    }
+
+    function getAssignedStaff() {
+        const staffId = getCookie("staffId");
+        const staffName = getCookie("staffName") || "Nhân viên hỗ trợ";
+        return { staffId, staffName };
+    }
+
+    // UI helpers
+    function toggleChatBox() {
+        isBoxOpen = !isBoxOpen;
+        chatBox.classList.toggle('show', isBoxOpen);
+        toggleBtn.classList.toggle('active', isBoxOpen);
+
+        if (isBoxOpen) {
+            messageInput.focus();
+            notificationDot.classList.remove('show');
         }
+    }
+    toggleBtn.addEventListener('click', toggleChatBox);
+    minimizeBtn.addEventListener('click', toggleChatBox);
 
-        toggleBtn.addEventListener('click', toggleChatBox);
-        minimizeBtn.addEventListener('click', toggleChatBox);
+    function formatTime(date) {
+        return new Date(date || Date.now()).toLocaleTimeString('vi-VN', {
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    }
 
-        // Escape HTML
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
+    function addMessage(senderId, text, when) {
+        const welcome = chatMessages.querySelector('.welcome-message');
+        if (welcome) welcome.remove();
+
+        const wrap = document.createElement('div');
+        wrap.className = `chat-message ${senderId === USER_ID ? 'sent' : 'received'}`;
+
+        const bubble = document.createElement('div');
+        bubble.className = 'chat-bubble';
+        bubble.textContent = text ?? '';
+
+        const time = document.createElement('span');
+        time.className = 'message-time';
+        time.textContent = formatTime(when);
+
+        bubble.appendChild(time);
+        wrap.appendChild(bubble);
+        chatMessages.appendChild(wrap);
+
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+
+        if (!isBoxOpen && senderId !== USER_ID) {
+            notificationDot.classList.add('show');
         }
+    }
 
-        // Format Time
-        function formatTime(date) {
-            return new Date(date || Date.now()).toLocaleTimeString('vi-VN', {
-                hour: '2-digit',
-                minute: '2-digit'
-            });
+    function setAgentStatus(online) {
+        if (online) {
+            agentStatus.classList.add('online');
+            agentStatus.querySelector('.status-text').textContent = 'Đang online';
+        } else {
+            agentStatus.classList.remove('online');
+            agentStatus.querySelector('.status-text').textContent = 'Offline';
         }
+    }
 
-        // Add Message
-        function addMessage(senderId, text, when) {
-            // Remove welcome message if exists
-            const welcomeMsg = chatMessages.querySelector('.welcome-message');
-            if (welcomeMsg) {
-                welcomeMsg.remove();
-            }
-
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `chat-message ${senderId === USER_ID ? 'sent' : 'received'}`;
-
-            const bubble = document.createElement('div');
-            bubble.className = 'chat-bubble';
-            bubble.textContent = text;
-
-            const time = document.createElement('span');
-            time.className = 'message-time';
-            time.textContent = formatTime(when);
-
-            bubble.appendChild(time);
-            messageDiv.appendChild(bubble);
-            chatMessages.appendChild(messageDiv);
-
+    function showTyping(isTyping) {
+        typingIndicator.classList.toggle('show', isTyping);
+        if (isTyping) {
             chatMessages.scrollTop = chatMessages.scrollHeight;
-
-            // Show notification if box is closed
-            if (!isBoxOpen && senderId !== USER_ID) {
-                notificationDot.classList.add('show');
-            }
         }
+    }
 
-        // Set Agent Status
-        function setAgentStatus(online) {
-            if (online) {
-                agentStatus.classList.add('online');
-                agentStatus.querySelector('.status-text').textContent = 'Đang online';
-            } else {
-                agentStatus.classList.remove('online');
-                agentStatus.querySelector('.status-text').textContent = 'Offline';
-            }
-        }
+    // khi KH chọn staff khác bằng dropdown
+    if (staffSelect) {
+        staffSelect.addEventListener('change', async function () {
+            const newStaffId = staffSelect.value;
+            const staffName = staffSelect.options[staffSelect.selectedIndex]?.getAttribute('data-name') || "Nhân viên hỗ trợ";
 
-        // Show Typing
-        function showTyping(isTyping) {
-            typingIndicator.classList.toggle('show', isTyping);
-            if (isTyping) {
-                chatMessages.scrollTop = chatMessages.scrollHeight;
-            }
-        }
+            if (!newStaffId) return;
 
-        // Send Message
-        async function sendMessage() {
-            const text = messageInput.value.trim();
-            if (!text || !convId) return;
+            // lưu cookie để nhớ agent
+            setCookie("staffId", newStaffId, 30);
+            setCookie("staffName", staffName, 30);
 
-            messageInput.value = '';
+            // chuyển hội thoại sang staff mới
             try {
-                await conn.invoke("SendMessage", convId, USER_ID, text);
+                if (conn && convId) {
+                    convId = await conn.invoke("StartChatWithStaff", USER_ID, newStaffId);
+                    console.log("Staff switched -> new convId:", convId);
+
+                    // tạm set online cho đẹp, presenceChanged sẽ sync thật
+                    setAgentStatus(true);
+                }
             } catch (err) {
-                console.error('Error sending message:', err);
+                console.error("switch staff error:", err);
             }
+        });
+    }
+
+    // chat actions
+    async function sendMessage() {
+        const text = messageInput.value.trim();
+        if (!text || !convId) return;
+
+        messageInput.value = '';
+        try {
+            await conn.invoke("SendMessage", convId, USER_ID, text);
+        } catch (err) {
+            console.error("SendMessage error:", err);
         }
+    }
 
-        // Handle Typing
-        function handleTyping() {
-            if (!convId) return;
+    function handleTyping() {
+        if (!convId) return;
 
-            conn.invoke("Typing", convId, USER_ID, true).catch(() => {});
+        conn.invoke("Typing", convId, USER_ID, true).catch(() => {});
+        clearTimeout(typingTimer);
+        typingTimer = setTimeout(() => {
+            conn.invoke("Typing", convId, USER_ID, false).catch(() => {});
+        }, 1000);
+    }
 
-            clearTimeout(typingTimer);
-            typingTimer = setTimeout(() => {
-                conn.invoke("Typing", convId, USER_ID, false).catch(() => {});
-            }, 1000);
+    sendButton.addEventListener('click', sendMessage);
+    messageInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+        } else {
+            handleTyping();
         }
+    });
 
-        // Event Listeners
-        sendButton.addEventListener('click', sendMessage);
+    // SignalR
+    async function initSignalR() {
+        conn = new signalR.HubConnectionBuilder()
+            .withUrl(HUB)
+            .withAutomaticReconnect()
+            .build();
 
-        messageInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                sendMessage();
-            } else {
-                handleTyping();
+        conn.on("receive", (m) => {
+            if (m.conversationId === convId) {
+                addMessage(m.senderId, m.text, m.sentAt);
             }
         });
 
-        // SignalR Setup
-        async function initializeChat() {
-            try {
-                conn = new signalR.HubConnectionBuilder()
-                    .withUrl(HUB)
-                    .withAutomaticReconnect()
-                    .build();
-
-                // ✅ FIX: Event handlers
-                conn.on("receive", (m) => {
-                    console.log('Message received:', m);
-                    if (m.conversationId === convId) {
-                        addMessage(m.senderId, m.text, m.sentAt);
-                    }
-                });
-
-                conn.on("typing", (from, isTyping) => {
-                    console.log('Typing:', from, isTyping);
-                    if (from !== USER_ID) {
-                        showTyping(isTyping);
-                    }
-                });
-
-                // ✅ FIX: Thêm event listener cho presenceChanged
-                conn.on("presenceChanged", (uid, online) => {
-                    console.log('Presence changed:', uid, online);
-                    // Nếu uid là staff, update status
-                    if (uid !== USER_ID) {
-                        setAgentStatus(online);
-                    }
-                });
-
-                // ✅ FIX: Thêm event listener cho conversationUpdated
-                conn.on("conversationUpdated", (conversation) => {
-                    console.log('Conversation updated:', conversation);
-                    // Update conversation data nếu cần
-                });
-
-                // Start Connection
-                await conn.start();
-                console.log('SignalR connected');
-
-                // ✅ FIX: Gọi đúng method
-                convId = await conn.invoke("StartChatAsCustomer", USER_ID);
-                console.log('Chat initialized. Conversation ID:', convId);
-
-            } catch (error) {
-                console.error('Failed to initialize chat:', error);
-                agentStatus.querySelector('.status-text').textContent = 'Lỗi kết nối';
+        conn.on("typing", (from, isTyping) => {
+            if (from !== USER_ID) {
+                showTyping(isTyping);
             }
-        }
+        });
 
-        // Initialize on page load
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initializeChat);
-        } else {
-            initializeChat();
+        conn.on("presenceChanged", (uid, online) => {
+            const { staffId } = getAssignedStaff();
+            if (uid && staffId && uid === staffId) {
+                setAgentStatus(online);
+            }
+        });
+
+        conn.on("conversationUpdated", (conv) => {
+            console.log("conversationUpdated", conv);
+        });
+
+        await conn.start();
+        console.log("SignalR connected");
+    }
+
+    async function startConversation() {
+        const { staffId } = getAssignedStaff();
+
+        try {
+            if (staffId) {
+                // ưu tiên staffId từ cookie
+                convId = await conn.invoke("StartChatWithStaff", USER_ID, staffId);
+                console.log("StartChatWithStaff ->", convId);
+                setAgentStatus(true);
+            } else {
+                // fallback auto-assign
+                convId = await conn.invoke("StartChatAsCustomer", USER_ID);
+                console.log("StartChatAsCustomer ->", convId);
+            }
+        } catch (err) {
+            console.error("startConversation failed:", err);
+            agentStatus.querySelector('.status-text').textContent = 'Lỗi kết nối';
         }
-    })();
+    }
+
+    async function init() {
+        await initSignalR();
+        await startConversation();
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+
+})();
 </script>

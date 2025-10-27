@@ -1,4 +1,5 @@
-﻿using BLL.Interfaces;
+﻿// WebUI/BackgroundServices/NotificationWorkerService.cs
+using BLL.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -9,9 +10,6 @@ using System.Threading.Tasks;
 
 namespace WebUI.BackgroundServices
 {
-    /// <summary>
-    /// Worker gửi thông báo theo lịch. Chống chồng lặp, có jitter, và dùng PeriodicTimer.
-    /// </summary>
     public class NotificationWorkerService : BackgroundService
     {
         private readonly ILogger<NotificationWorkerService> _logger;
@@ -44,7 +42,7 @@ namespace WebUI.BackgroundServices
                     await SafeProcessOnceAsync(stoppingToken);
                 }
             }
-            catch (OperationCanceledException) { /* normal on shutdown */ }
+            catch (OperationCanceledException) { }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "NotificationWorkerService crashed unexpectedly.");
@@ -85,8 +83,10 @@ namespace WebUI.BackgroundServices
 
             if (count > 0)
             {
-                _logger.LogInformation("Processed {Count} due notification(s) at {UtcTime}.",
-                    count, DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss"));
+                _logger.LogInformation(
+                    "Processed {Count} due notification(s) at {UtcTime}.",
+                    count,
+                    DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss"));
             }
         }
 

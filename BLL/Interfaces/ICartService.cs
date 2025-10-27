@@ -11,6 +11,7 @@ namespace BLL.Interfaces
     public interface ICartService
     {
         Task<CartDto?> GetByAccountIdAsync(int accountId);
+        Task AddToCartAsync(int accountId, int productId, int quantity);
         Task UpdateCartItemQuantityAsync(int cartItemId, int newQuantity);
         Task RemoveCartItemAsync(int cartItemId);
         Task ClearCartAsync(int accountId);

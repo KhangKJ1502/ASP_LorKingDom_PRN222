@@ -77,7 +77,7 @@
             <form class="mb-4" method="get" asp-action="Manage" asp-controller="BlogCategory">
                 <div class="row g-2 mb-3">
                     <div class="col-md-8">
-                        <input type="text" name="q" value="@q" class="form-control"
+                        <input type="text" name="q" value="@q" class="form-control border"
                             placeholder="Tìm theo tên chuyên mục hoặc mô tả...">
                     </div>
                     <div class="col-md-2">
@@ -92,12 +92,12 @@
                 <table class="table table-bordered table-striped table-hover">
                     <thead class="table-dark">
                         <tr>
-                            <th>ID</th>
+                            <th style="width: 70px">ID</th>
+                            <th style="width: 130px; text-align: center;">Hành Động</th>
                             <th>Tên Chuyên Mục</th>
                             <th>Mô tả</th>
                             <th style="width: 130px;">Ngày Cập nhật</th>
-                            <th style="width: 130px;">Ngày Tạo</th>
-                            <th style="width: 130px; text-align: center;">Hành Động</th>
+                            <th style="width: 130px;">Ngày Tạo</th>                        
                         </tr>
                     </thead>
                     <tbody>
@@ -107,21 +107,21 @@
                             {
                                 <tr>
                                     <td>@x.BlogCategoryId</td>
+                                    <td style="text-align: center;">
+                                        <button type="button" class="btn btn-sm btn-warning"
+                                                onclick="editBlogCategory(@x.BlogCategoryId)" title="Cập nhật">
+                                            <i class="fa-solid fa-pen-to-square"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-danger"
+                                                onclick="confirmDelete(@x.BlogCategoryId)" title="Xóa">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
                                     <td>@x.BlogCategoryName</td>
                                     <td>@(x.Description ?? "-")</td>
                                     <td>@(x.UpdatedAt?.ToString("dd/MM/yyyy HH:mm") ?? x.CreatedAt.ToString("dd/MM/yyyy HH:mm"))
                                     </td>
-                                    <td>@x.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
-                                    <td style="text-align: center;">
-                                        <button type="button" class="btn btn-sm btn-warning"
-                                            onclick="editBlogCategory(@x.BlogCategoryId)" title="Cập nhật">
-                                            <i class="fa-solid fa-pen-to-square"></i>
-                                        </button>
-                                        <button type="button" class="btn btn-sm btn-danger"
-                                            onclick="confirmDelete(@x.BlogCategoryId)" title="Xóa">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </td>
+                                    <td>@x.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>                                  
                                 </tr>
                             }
                         }

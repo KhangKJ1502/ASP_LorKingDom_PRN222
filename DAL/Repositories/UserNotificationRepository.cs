@@ -1,4 +1,5 @@
-﻿using DAL.Interfaces;
+﻿// DAL/Repositories/UserNotificationRepository.cs
+using DAL.Interfaces;
 using DAL.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -22,6 +23,7 @@ namespace DAL.Repositories
         public async Task<(IList<UserNotification> Items, int Total)> GetByUserAsync(
             int userId, bool? isRead, int page = 1, int pageSize = 20)
         {
+            // clamp
             if (page < 1) page = 1;
             if (pageSize < 1) pageSize = 20;
             if (pageSize > 200) pageSize = 200;
@@ -34,6 +36,7 @@ namespace DAL.Repositories
             if (isRead.HasValue)
                 q = q.Where(x => x.IsRead == isRead.Value);
 
+            // ưu tiên cái nào vừa gửi gần đây
             q = q.OrderByDescending(x => x.DeliveredAt ?? x.Notification!.ScheduledAt);
 
             var total = await q.CountAsync();
@@ -49,13 +52,13 @@ namespace DAL.Repositories
                 .FirstOrDefaultAsync(x => x.UserNotificationId == userNotificationId);
         }
 
-        // NEW
         public Task<UserNotification?> GetByIdForUserAsync(int userNotificationId, int userId)
         {
             return _db.UserNotifications
                 .Include(x => x.Notification)
                 .FirstOrDefaultAsync(x =>
-                    x.UserNotificationId == userNotificationId && x.UserId == userId);
+                    x.UserNotificationId == userNotificationId &&
+                    x.UserId == userId);
         }
 
         public async Task MarkReadAsync(int userNotificationId, DateTime readAtUtc)
@@ -80,7 +83,6 @@ namespace DAL.Repositories
             await _db.SaveChangesAsync();
         }
 
-        // NEW
         public async Task<int> MarkAllReadAsync(int userId, DateTime readAtUtc)
         {
             var list = await _db.UserNotifications
@@ -99,7 +101,6 @@ namespace DAL.Repositories
             return list.Count;
         }
 
-        // NEW
         public Task<int> GetUnreadCountAsync(int userId)
         {
             return _db.UserNotifications
