@@ -5,34 +5,64 @@
 	var q = (string?)ViewBag.Query ?? "";
 }
 @section Styles {
-  <link rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
-        crossorigin="anonymous" referrerpolicy="no-referrer" />
-  <style>
-    .card-body { overflow-x: hidden; }
+	<link rel="stylesheet"
+		  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+		  crossorigin="anonymous" referrerpolicy="no-referrer" />
+	<style>
+		.card-body {
+			overflow-x: hidden;
+		}
 
-    .table-wrap {
-      overflow-x: auto;
-      overflow-y: hidden;
-      /* nếu còn thấy dư khoảng, thử bỏ dòng dưới */
-      /* scrollbar-gutter: stable both-edges; */
-      -webkit-overflow-scrolling: touch;
-    }
+		.table-wrap {
+			overflow-x: auto;
+			overflow-y: hidden;
+			/* nếu còn thấy dư khoảng, thử bỏ dòng dưới */
+			/* scrollbar-gutter: stable both-edges; */
+			-webkit-overflow-scrolling: touch;
+		}
 
-    .table-wrap { 
-      scrollbar-width: thin;
-      scrollbar-color: #94a3b8 #e2e8f0;
-    }
-    .table-wrap::-webkit-scrollbar { height: 10px; }
-    .table-wrap::-webkit-scrollbar-track { background: #e2e8f0; border-radius: 999px; }
-    .table-wrap::-webkit-scrollbar-thumb {
-      background: linear-gradient(90deg,#94a3b8,#64748b);
-      border-radius: 999px; border: 2px solid #e2e8f0;
-    }
-    .table-wrap::-webkit-scrollbar-thumb:hover { background: #475569; }
+		.table-wrap {
+			scrollbar-width: thin;
+			scrollbar-color: #94a3b8 #e2e8f0;
+		}
 
-    .table-wide { min-width: 1200px; }
-  </style>
+			.table-wrap::-webkit-scrollbar {
+				height: 10px;
+			}
+
+			.table-wrap::-webkit-scrollbar-track {
+				background: #e2e8f0;
+				border-radius: 999px;
+			}
+
+			.table-wrap::-webkit-scrollbar-thumb {
+				background: linear-gradient(90deg,#94a3b8,#64748b);
+				border-radius: 999px;
+				border: 2px solid #e2e8f0;
+			}
+
+				.table-wrap::-webkit-scrollbar-thumb:hover {
+					background: #475569;
+				}
+
+		.table-wide {
+			min-width: 1200px;
+		}
+
+		.search-box .form-control {
+			border: 1px solid #000 !important; /* viền đen */
+			box-shadow: none !important; /* bỏ hiệu ứng sáng */
+		}
+
+		/* Giữ độ cao đồng đều */
+		.search-box .btn {
+			border: 1px solid #000 !important;
+			border-left: none !important; /* loại viền giữa input và button */
+		}
+		.search-box {
+			margin-bottom: 10px;
+		}
+	</style>
 }
 
 
@@ -40,14 +70,6 @@
 	<h1 class="mt-4">Quản Lí Sản Phẩm</h1>
 
 	<div class="d-flex justify-content-between align-items-center mt-3">
-		<form class="mb-0" method="get" asp-action="Manage" asp-controller="Product">
-			<div class="input-group search-box">
-				<input type="text" name="q" value="@q" class="form-control" placeholder="Tìm kiếm tên / SKU / thương hiệu...">
-				<button class="btn btn-outline-secondary" type="submit">
-					<i class="fa-solid fa-magnifying-glass"></i>
-				</button>
-			</div>
-		</form>
 		<a class="btn btn-primary" asp-controller="Product" asp-action="Create">
 			<i class="fa-solid fa-plus me-2"></i>Thêm Sản Phẩm
 		</a>
@@ -66,7 +88,17 @@
 		<div class="card-header">
 			<i class="fa-solid fa-table me-1"></i> Danh Sách
 		</div>
+
 		<div class="card-body">
+
+			<form class="mb-0" method="get" asp-action="Manage" asp-controller="Product">
+				<div class="input-group search-box">
+					<input type="text" name="q" value="@q" class="form-control" placeholder="Tìm kiếm tên / SKU / thương hiệu...">
+					<button class="btn btn-outline-secondary" type="submit">
+						<i class="fa-solid fa-magnifying-glass"></i>
+					</button>
+				</div>
+			</form>
 			<div class="table-wrap">
 				<table class="table table-bordered table-striped table-hover align-middle table-wide">
 					<colgroup>

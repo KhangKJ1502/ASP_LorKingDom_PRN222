@@ -23,7 +23,7 @@
 
 	<!-- Font Awesome 6 -->
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
-		crossorigin="anonymous" referrerpolicy="no-referrer">
+		  crossorigin="anonymous" referrerpolicy="no-referrer">
 
 	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 	<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
@@ -47,7 +47,7 @@
 						<span class="sr-only">Home</span>
 						<span class="icon logo" aria-hidden="true"></span>
 						<div class="logo-text">
-							<span class="logo-title">Elegant</span>
+							<span class="logo-title">LorKingDom</span>
 							<span class="logo-subtitle">Dashboard</span>
 						</div>
 					</a>
@@ -78,37 +78,13 @@
 
 								</li>
 								<li>
-									<a asp-controller="Notification" asp-action="Manage">Quản Lý Thông Báo</a>
-								</li>
-
-								<li>
-									<a asp-controller="Chat" asp-action="Staff" asp-route-userId="staff001"
-										asp-route-name="Admin">
-										<span class="icon message" aria-hidden="true"></span>
-										Quản lý Chat
-									</a>
-								</li>
-
-								<li>
-									<a asp-controller="Blog" asp-action="ManageBlog">Quản Lý Blog</a>
-								</li>
-								<li>
-									<a asp-controller="BlogCategory" asp-action="Manage">Quản Lý Blog Category</a>
-								</li>
-								<li>
-									<a asp-controller="BlogReview" asp-action="ManageBlogReview">Quản Lý Blog Review</a>
-								</li>
-								<li>
-									<a asp-controller="ReviewProduct" asp-action="ManageProductReview">Quản Lý Đánh Giá Sản Phẩm</a>
-								</li>
-								<li>
 									<a asp-controller="Voucher" asp-action="ManageVouchers">Quản Lý Voucher</a>
 								</li>
 							</ul>
 						</li>
 						<li>
 							<a class="show-cat-btn" href="##">
-								<span class="icon folder" aria-hidden="true"></span>Categories
+								<span class="icon folder" aria-hidden="true"></span>Mục sản phẩm
 								<span class="category__btn transparent-btn" title="Open list">
 									<span class="sr-only">Open list</span>
 									<span class="icon arrow-down" aria-hidden="true"></span>
@@ -117,6 +93,9 @@
 							<ul class="cat-sub-menu">
 								<li>
 									<a asp-controller="SuperCategory" asp-action="Manage">Quản lý danh mục tổng</a>
+								</li>
+								<li>
+									<a asp-controller="Category" asp-action="Manage">Quản lý danh mục</a>
 								</li>
 								<li>
 									<a asp-controller="Brand" asp-action="Manage">Quản lý thương hiệu</a>
@@ -129,9 +108,6 @@
 								</li>
 								<li>
 									<a asp-controller="Origin" asp-action="Manage">Quản lý xuất xứ</a>
-								</li>
-								<li>
-									<a asp-controller="Category" asp-action="Manage">Quản lý danh mục</a>
 								</li>
 								<li>
 									<a asp-controller="Product" asp-action="Manage">Quản lý sản phẩm</a>
@@ -164,7 +140,7 @@
 						</li>
 						<li>
 							<a class="show-cat-btn" href="##">
-								<span class="icon image" aria-hidden="true"></span>Media
+								<span class="icon image" aria-hidden="true"></span>Truyền thông
 								<span class="category__btn transparent-btn" title="Open list">
 									<span class="sr-only">Open list</span>
 									<span class="icon arrow-down" aria-hidden="true"></span>
@@ -172,16 +148,22 @@
 							</a>
 							<ul class="cat-sub-menu">
 								<li>
-									<a href="media-01.html">Media-01</a>
+									<a asp-controller="Blog" asp-action="ManageBlog">Quản Lý Bài Viết</a>
 								</li>
 								<li>
-									<a href="media-02.html">Media-02</a>
+									<a asp-controller="BlogCategory" asp-action="Manage">Danh mục Bài Viết </a>
+								</li>
+								<li>
+									<a asp-controller="BlogReview" asp-action="ManageBlogReview">Quản Lý Bình Luận Bài Viết</a>
+								</li>
+								<li>
+									<a asp-controller="ReviewProduct" asp-action="ManageProductReview">Quản Lý Đánh Giá Sản Phẩm</a>
 								</li>
 							</ul>
 						</li>
 						<li>
 							<a class="show-cat-btn" href="##">
-								<span class="icon paper" aria-hidden="true"></span>Pages
+								<span class="icon message" aria-hidden="true"></span>Thông báo
 								<span class="category__btn transparent-btn" title="Open list">
 									<span class="sr-only">Open list</span>
 									<span class="icon arrow-down" aria-hidden="true"></span>
@@ -189,88 +171,99 @@
 							</a>
 							<ul class="cat-sub-menu">
 								<li>
-									<a href="pages.html">All pages</a>
+									<a asp-controller="Notification" asp-action="Manage">Quản Lý Thông Báo</a>
 								</li>
+
 								<li>
-									<a href="new-page.html">Add new page</a>
+									<a asp-controller="Chat" asp-action="Staff" asp-route-userId="staff001"
+									   asp-route-name="Admin">
+										Quản lý Chat
+									</a>
 								</li>
 							</ul>
-						</li>					
+						</li>
+						@* <li> *@
+						@* 	<a href="comments.html"> *@
+						@* 		<span class="icon message" aria-hidden="true"></span> *@
+						@* 		Comments *@
+						@* 	</a> *@
+						@* 	<span class="msg-counter">7</span> *@
+						@* </li> *@
 					</ul>
-					<span class="system-menu__title">system</span>
-					<ul class="sidebar-body-menu">
-						<li>
-							<a href="appearance.html">
-								<span class="icon edit" aria-hidden="true">
-								</span>Appearance
-							</a>
-						</li>
-						<li>
-							<a class="show-cat-btn" href="##">
-								<span class="icon category" aria-hidden="true">
-								</span>Extentions
-								<span class="category__btn transparent-btn" title="Open list">
-									<span class="sr-only">Open list</span>
-									<span class="icon arrow-down" aria-hidden="true"></span>
-								</span>
-							</a>
-							<ul class="cat-sub-menu">
-								<li>
-									<a href="extention-01.html">Extentions-01</a>
-								</li>
-								<li>
-									<a href="extention-02.html">Extentions-02</a>
-								</li>
-							</ul>
-						</li>
-						<li>
-							<a class="show-cat-btn" href="##">
-								<span class="icon user-3" aria-hidden="true"></span>Users
-								<span class="category__btn transparent-btn" title="Open list">
-									<span class="sr-only">Open list</span>
-									<span class="icon arrow-down" aria-hidden="true"></span>
-								</span>
-							</a>
-							<ul class="cat-sub-menu">
-								<li>
-									<a href="users-01.html">Users-01</a>
-								</li>
-								<li>
-									<a href="users-02.html">Users-02</a>
-								</li>
-							</ul>
-						</li>
-						<li>
-							<a href="##">
-								<span class="icon setting" aria-hidden="true">
-								</span>Settings
-							</a>
-						</li>
-					</ul>
+					@* <span class="system-menu__title">system</span> *@
+					@* <ul class="sidebar-body-menu"> *@
+					@* 	<li> *@
+					@* 		<a href="appearance.html"> *@
+					@* 			<span class="icon edit" aria-hidden="true"> *@
+					@* 			</span>Appearance *@
+					@* 		</a> *@
+					@* 	</li> *@
+					@* 	<li> *@
+					@* 		<a class="show-cat-btn" href="##"> *@
+					@* 			<span class="icon category" aria-hidden="true"> *@
+					@* 			</span>Extentions *@
+					@* 			<span class="category__btn transparent-btn" title="Open list"> *@
+					@* 				<span class="sr-only">Open list</span> *@
+					@* 				<span class="icon arrow-down" aria-hidden="true"></span> *@
+					@* 			</span> *@
+					@* 		</a> *@
+					@* 		<ul class="cat-sub-menu"> *@
+					@* 			<li> *@
+					@* 				<a href="extention-01.html">Extentions-01</a> *@
+					@* 			</li> *@
+					@* 			<li> *@
+					@* 				<a href="extention-02.html">Extentions-02</a> *@
+					@* 			</li> *@
+					@* 		</ul> *@
+					@* 	</li> *@
+					@* 	<li> *@
+					@* 		<a class="show-cat-btn" href="##"> *@
+					@* 			<span class="icon user-3" aria-hidden="true"></span>Users *@
+					@* 			<span class="category__btn transparent-btn" title="Open list"> *@
+					@* 				<span class="sr-only">Open list</span> *@
+					@* 				<span class="icon arrow-down" aria-hidden="true"></span> *@
+					@* 			</span> *@
+					@* 		</a> *@
+					@* 		<ul class="cat-sub-menu"> *@
+					@* 			<li> *@
+					@* 				<a href="users-01.html">Users-01</a> *@
+					@* 			</li> *@
+					@* 			<li> *@
+					@* 				<a href="users-02.html">Users-02</a> *@
+					@* 			</li> *@
+					@* 		</ul> *@
+					@* 	</li> *@
+					@* 	<li> *@
+					@* 		<a href="##"> *@
+					@* 			<span class="icon setting" aria-hidden="true"> *@
+					@* 			</span>Settings *@
+					@* 		</a> *@
+					@* 	</li> *@
+					@* </ul> *@
 				</div>
 			</div>
-			<div class="sidebar-footer">
-				<a href="##" class="sidebar-user">
-					<span class="sidebar-user-img">
-						<img src="@(User.FindFirst("Avatar")?.Value ?? "/Assets/image/avatar/avatar-illustrated-01.png")" 
-							 alt="@(User.FindFirst("AccountName")?.Value ?? "User")" />
-					</span>
-					<div class="sidebar-user-info">
-						<span class="sidebar-user__title">@(User.FindFirst("AccountName")?.Value ?? "User")</span>
-						<span class="sidebar-user__subtitle">@(User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "Staff")</span>
-					</div>
-				</a>
-			</div>
+			@* <div class="sidebar-footer"> *@
+			@* 	<a href="##" class="sidebar-user"> *@
+			@* 		<span class="sidebar-user-img"> *@
+			@* 			<img src="@(User.FindFirst("Avatar")?.Value ?? "/Assets/image/avatar/avatar-illustrated-01.png")" *@
+			@* 				 alt="@(User.FindFirst("AccountName")?.Value ?? "User")" /> *@
+			@* 		</span> *@
+			@* 		<div class="sidebar-user-info"> *@
+			@* 			<span class="sidebar-user__title">@(User.FindFirst("AccountName")?.Value ?? "User")</span> *@
+			@* 			<span class="sidebar-user__subtitle">@(User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "Staff")</span> *@
+			@* 		</div> *@
+			@* 	</a> *@
+			@* </div> *@
 		</aside>
 		<div class="main-wrapper">
 			<!-- ! Main nav -->
 			<nav class="main-nav--bg">
 				<div class="container main-nav">
 					<div class="main-nav-start">
-						<div class="search-wrapper">
-							<i data-feather="search" aria-hidden="true"></i>
-							<input type="text" placeholder="Enter keywords ..." required />
-						</div>
+						@* <div class="search-wrapper"> *@
+						@* 	<i data-feather="search" aria-hidden="true"></i> *@
+						@* 	<input type="text" placeholder="Enter keywords ..." required /> *@
+						@* </div> *@
 					</div>
 					<div class="main-nav-end">
 						<button class="sidebar-toggle transparent-btn" title="Menu" type="button">
@@ -278,21 +271,7 @@
 							<span class="icon menu-toggle--gray" aria-hidden="true"></span>
 						</button>
 						<div class="lang-switcher-wrapper">
-							<button class="lang-switcher transparent-btn" type="button">
-								EN
-								<i data-feather="chevron-down" aria-hidden="true"></i>
-							</button>
-							<ul class="lang-menu dropdown">
-								<li>
-									<a href="##">English</a>
-								</li>
-								<li>
-									<a href="##">French</a>
-								</li>
-								<li>
-									<a href="##">Uzbek</a>
-								</li>
-							</ul>
+						
 						</div>
 						<button class="theme-switcher gray-circle-btn" type="button" title="Switch theme">
 							<span class="sr-only">Switch theme</span>
@@ -365,7 +344,7 @@
 							<button href="##" class="nav-user-btn dropdown-btn" title="My profile" type="button">
 								<span class="sr-only">My profile</span>
 								<span class="nav-user-img">
-									<img src="@(User.FindFirst("Avatar")?.Value ?? "/Assets/image/avatar/avatar-illustrated-02.png")" 
+									<img src="@(User.FindFirst("Avatar")?.Value ?? "/Assets/image/avatar/avatar-illustrated-02.png")"
 										 alt="@(User.FindFirst("AccountName")?.Value ?? "User")" />
 								</span>
 							</button>
@@ -446,7 +425,7 @@
 				</div>
 				<div class="modal-body">
 					<div class="text-center mb-4">
-						<img id="profileAvatar" src="" alt="Avatar" 
+						<img id="profileAvatar" src="" alt="Avatar"
 							 style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid #667eea;">
 					</div>
 					<div class="profile-info">
@@ -497,7 +476,7 @@
 				if (!response.ok) throw new Error('Không thể tải thông tin');
 
 				const data = await response.json();
-				
+
 				document.getElementById('profileAvatar').src = data.image || '/Assets/image/avatar/avatar-illustrated-02.png';
 				document.getElementById('profileName').textContent = data.accountName || '-';
 				document.getElementById('profileEmail').textContent = data.email || '-';

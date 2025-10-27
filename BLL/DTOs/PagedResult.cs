@@ -1,13 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace BLL.DTOs
 {
-    public sealed class PagedResult<T>
+    public class PagedResult<T>
     {
-        public IReadOnlyList<T> Items { get; init; } = Array.Empty<T>();
-        public int Total { get; init; }
-        public int Page { get; init; }
-        public int PageSize { get; init; }
+        public IList<T> Items { get; set; } = new List<T>();
+        public int Total { get; set; }
+        public int Page { get; set; }
+        public int PageSize { get; set; }
+
+        // convenience cho View
+        public int TotalPages => PageSize > 0
+            ? (int)((Total + PageSize - 1) / PageSize)
+            : 1;
+
+        public bool HasPrev => Page > 1;
+        public bool HasNext => Page < TotalPages;
     }
 }

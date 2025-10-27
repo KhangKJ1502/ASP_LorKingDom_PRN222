@@ -99,47 +99,47 @@ document.addEventListener("DOMContentLoaded", () => {
         item.style.animationDelay = delay + "ms"
     })
 
-    // Add to cart functionality
-    const addToCartButtons = document.querySelectorAll(".product-card .btn-primary")
-    addToCartButtons.forEach((button) => {
-        button.addEventListener("click", function (e) {
-            e.preventDefault()
+    //// Add to cart functionality
+    //const addToCartButtons = document.querySelectorAll(".product-card .btn-primary")
+    //addToCartButtons.forEach((button) => {
+    //    button.addEventListener("click", function (e) {
+    //        e.preventDefault()
 
-            // Add animation
-            this.textContent = "Added!"
-            this.style.background = "#10b981"
+    //        // Add animation
+    //        this.textContent = "Added!"
+    //        this.style.background = "#10b981"
 
-            // Update cart count
-            const cartBadge = document.querySelector("#cartBtn .action-badge-primary")
-            if (cartBadge) {
-                const currentCount = Number.parseInt(cartBadge.textContent)
-                cartBadge.textContent = currentCount + 1
-            }
+    //        // Update cart count
+    //        const cartBadge = document.querySelector("#cartBtn .action-badge-primary")
+    //        if (cartBadge) {
+    //            const currentCount = Number.parseInt(cartBadge.textContent)
+    //            cartBadge.textContent = currentCount + 1
+    //        }
 
-            // Reset button after 2 seconds
-            setTimeout(() => {
-                this.textContent = "Add to Cart"
-                this.style.background = ""
-            }, 2000)
-        })
-    })
+    //        // Reset button after 2 seconds
+    //        setTimeout(() => {
+    //            this.textContent = "Add to Cart"
+    //            this.style.background = ""
+    //        }, 2000)
+    //    })
+    //})
 
-    // Wishlist functionality
-    const wishlistButtons = document.querySelectorAll(".product-wishlist")
-    wishlistButtons.forEach((button) => {
-        button.addEventListener("click", function (e) {
-            e.preventDefault()
-            e.stopPropagation()
+    //// Wishlist functionality
+    //const wishlistButtons = document.querySelectorAll(".product-wishlist")
+    //wishlistButtons.forEach((button) => {
+    //    button.addEventListener("click", function (e) {
+    //        e.preventDefault()
+    //        e.stopPropagation()
 
-            // Toggle active state
-            this.classList.toggle("active")
+    //        // Toggle active state
+    //        this.classList.toggle("active")
 
-            // Update wishlist count
-            const wishlistBadge = document.querySelector("#wishlistBtn .action-badge")
-            if (wishlistBadge) {
-                const currentCount = Number.parseInt(wishlistBadge.textContent)
-                wishlistBadge.textContent = this.classList.contains("active") ? currentCount + 1 : currentCount - 1
-            }
-        })
-    })
+    //        // Update wishlist count
+    //        const wishlistBadge = document.querySelector("#wishlistBtn .action-badge")
+    //        if (wishlistBadge) {
+    //            const currentCount = Number.parseInt(wishlistBadge.textContent)
+    //            wishlistBadge.textContent = this.classList.contains("active") ? currentCount + 1 : currentCount - 1
+    //        }
+    //    })
+    //})
 })

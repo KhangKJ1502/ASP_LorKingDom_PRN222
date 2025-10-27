@@ -1,8 +1,10 @@
+using BLL.DTOs;
 using BLL.Interfaces;
 using DAL.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
+using System.Security.Claims;
 
 namespace ASP_LorKingDom.Controllers
 {
@@ -10,15 +12,29 @@ namespace ASP_LorKingDom.Controllers
     {
         private readonly ILogger<HomeController> _logger;
         private readonly IProductService _productSvc;
-        public HomeController(ILogger<HomeController> logger, IProductService productSvc) // <- thêm service
+        private readonly IWishlistService _wishlistSvc;
+
+        public HomeController(
+            ILogger<HomeController> logger,
+            IProductService productSvc,
+            IWishlistService wishlistSvc)
         {
             _logger = logger;
             _productSvc = productSvc;
+            _wishlistSvc = wishlistSvc;
         }
 
+        // ===== helpers =====
+        private async Task<HashSet<int>> GetLikedSetAsync()
+        {
+            if (User.Identity?.IsAuthenticated != true) return new();
+            var idStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            return int.TryParse(idStr, out var accountId)
+                ? new HashSet<int>(await _wishlistSvc.GetProductIdsAsync(accountId))
+                : new HashSet<int>();
+        }
 
-
-        public async Task<IActionResult> Index(string? q, int page = 1, int pageSize = 16)
+        private async Task<PagedResult<ProductDto>> BuildPagedModelAsync(string? q, int page, int pageSize)
         {
             if (page <= 0) page = 1;
             if (pageSize <= 0) pageSize = 16;
@@ -47,51 +63,50 @@ namespace ASP_LorKingDom.Controllers
                 .Take(pageSize)
                 .ToList();
 
-            var model = new BLL.DTOs.PagedResult<BLL.DTOs.ProductDto>
+            var liked = await GetLikedSetAsync();
+            foreach (var p in items) p.IsLiked = liked.Contains(p.Id);
+
+            return new PagedResult<ProductDto>
             {
                 Items = items,
                 Total = total,
                 Page = page,
                 PageSize = pageSize
             };
+        }
 
+
+        public async Task<IActionResult> Index(string? q, int page = 1, int pageSize = 16)
+        {
+            var model = await BuildPagedModelAsync(q, page, pageSize);
             return View(model);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ProductGrid(string? q, int page = 1, int pageSize = 16)
+        {
+            var model = await BuildPagedModelAsync(q, page, pageSize);
+            return PartialView("_ProductGridPartial", model);
         }
 
         public async Task<IActionResult> ProductDetails(int id)
         {
             var dto = await _productSvc.GetByIdAsync(id);
             if (dto == null) return NotFound();
-
-
+            var liked = await GetLikedSetAsync();
+            dto.IsLiked = liked.Contains(id);
             return View(dto);
         }
 
-
-        public IActionResult Privacy()
-        {
-            return View();
-        }
-        public IActionResult Contact()
-        {
-            return View();
-        }
-
-        public IActionResult Cart()
-        {
-            return View();
-        }
+        public IActionResult Privacy() => View();
+        public IActionResult Contact() => View();
+        public IActionResult Cart() => View();
 
         [Authorize]
-        public IActionResult Profile()
-        {
-            return View();
-        }
+        public IActionResult Profile() => View();
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
-        {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
-        }
+            => View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
     }
 }
