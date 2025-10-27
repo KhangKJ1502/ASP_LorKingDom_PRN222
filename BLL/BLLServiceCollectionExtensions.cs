@@ -46,6 +46,10 @@ namespace BLL
             services.AddScoped<IUserNotificationService, UserNotificationService>();
             services.AddScoped<IChatService, ChatService>();
 
+            //Wishlist
+            services.AddScoped<IWishlistService, WishlistService>();
+
+
             // Nhánh ReviewBlog
             services.AddScoped<IReviewBlogService, ReviewBlogService>();
             services.AddScoped<IReviewBlogReactionService, ReviewBlogReactionService>();

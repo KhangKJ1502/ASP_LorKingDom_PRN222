@@ -1,161 +1,140 @@
-﻿@* Offcanvas Wishlist - không dùng model *@
-@* Anti-forgery để JS lấy token *@
-<form id="__afForm" class="d-none">
-	@Html.AntiForgeryToken()
-</form>
+﻿@using System.Security.Claims
+@inject BLL.Interfaces.IWishlistService WishlistSvc
+
+@{
+	var req = Context.Request;
+	var q = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(req.QueryString.Value ?? "");
+	var wq = (string?)req.Query["wq"];
+	var wl = (string?)req.Query["wl"];
+
+	int accountId = 0;
+	bool isAuth = User?.Identity?.IsAuthenticated == true &&
+		int.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out accountId);
+
+	var items = isAuth
+		? await WishlistSvc.ListAsync(accountId, string.IsNullOrWhiteSpace(wq) ? null : wq)
+		: new List<BLL.DTOs.WishlistItemDto>();
+}
 
 <link rel="stylesheet"
 	  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
 	  crossorigin="anonymous" referrerpolicy="no-referrer">
 <link rel="stylesheet" href="~/css/wishlist.css" asp-append-version="true" />
 
-<div class="offcanvas offcanvas-end wishlist-canvas"
-	 id="wishlistOffcanvas" tabindex="-1" style="width:800px"
-	 aria-labelledby="wishlistTitle"
-	 data-url-list="@Url.Action("List", "Wishlist")"
-	 data-url-remove="@Url.Action("Remove", "Wishlist")"
-	 data-url-clear="@Url.Action("Clear", "Wishlist")"
-	 data-url-toggle="@Url.Action("Toggle", "Wishlist")"
-	 data-url-heartset="@Url.Action("HeartSet", "Wishlist")">
+<div class="offcanvas offcanvas-end wishlist-canvas" tabindex="-1" style="width:800px"
+	 id="wishlistOffcanvas" aria-labelledby="wishlistTitle">
 
 	<div class="offcanvas-header align-items-center">
 		<h5 id="wishlistTitle" class="m-0 d-flex align-items-center gap-2">
 			<i class="fa-solid fa-heart text-danger"></i>
-			<span>Danh sách yêu thích (<span id="wl-count">0</span> sản phẩm)</span>
+			<span>Danh sách yêu thích (<span id="wl-count">@items.Count</span> sản phẩm)</span>
 		</h5>
 		<button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
 	</div>
 
-	<!-- Thanh tìm kiếm -->
 	<div class="wishlist-search px-3 pb-2">
-		<div class="input-group">
-			<span class="input-group-text bg-white border-end-0">
-				<i class="fa-solid fa-magnifying-glass text-secondary"></i>
-			</span>
-			<input type="text" id="wl-search" class="form-control border-start-0"
-				   placeholder="Tìm sản phẩm trong danh sách yêu thích...">
-		</div>
+		<form id="wl-search-form" method="get">
+			<div class="input-group">
+				<span class="input-group-text bg-white border-end-0">
+					<i class="fa-solid fa-magnifying-glass text-secondary"></i>
+				</span>
+				<input type="text" name="wq" id="wl-search" class="form-control border-start-0"
+					   value="@(wq ?? "")" placeholder="Tìm sản phẩm trong danh sách yêu thích...">
+				<button class="btn btn-outline-secondary" type="submit">Tìm</button>
+			</div>
+		</form>
 	</div>
 
 	<div class="offcanvas-body d-flex flex-column pt-2">
-		<!-- Server sẽ render partial vào đây -->
-		<div id="wl-list" class="flex-grow-1 overflow-auto"></div>
+		<div id="wl-list" class="flex-grow-1 overflow-auto">
+			@if (!isAuth)
+			{
+				<div class="alert alert-info mx-3">
+					Vui lòng <a href="/Account/Login">đăng nhập</a> để sử dụng Wishlist.
+				</div>
+			}
+			else
+			{
+				@await Html.PartialAsync("_WishlistListPartial", items)
+			}
+		</div>
 
-		<!-- Footer actions -->
-		<div class="wl-footer mt-3">
-			<button class="btn btn-cart w-100 py-3 mb-2" id="wl-add-all">
-				<i class="fa-solid fa-cart-shopping me-2"></i> Thêm tất cả vào giỏ hàng
-			</button>
-			<button class="btn btn-outline-danger w-100" id="wl-clear-all">
+		<div class="wl-footer mt-3 px-3">
+			<button id="wl-clear-all" class="btn btn-outline-danger w-100"
+			@(items.Count == 0 ? "disabled" : null)>
 				<i class="fa-solid fa-trash-can me-2"></i> Xóa tất cả
 			</button>
 		</div>
 	</div>
 </div>
 
-@section Scripts {
-	<script>
-		(function () {
-		  // ====== Lấy URL action từ data-* ======
-		  const root = document.getElementById('wishlistOffcanvas');
-		  const urlList   = root.dataset.urlList;       // GET  : /Wishlist/List?q=
-		  const urlRemove = root.dataset.urlRemove;     // DELETE: /Wishlist/Remove (body {productId})
-		  const urlClear  = root.dataset.urlClear;      // DELETE: /Wishlist/Clear
-		  const urlToggle = root.dataset.urlToggle;     // POST  : /Wishlist/Toggle (dùng khi muốn toggle tim)
-		  const urlHeart  = root.dataset.urlHeartset;   // GET  : /Wishlist/HeartSet (nếu cần đồng bộ tim ngoài grid)
+@* ========== SCRIPT (KHÔNG DÙNG @section TRONG PARTIAL) ========== *@
+<script>
+	document.addEventListener('DOMContentLoaded', function () {
 
-		  // ====== DOM ======
-		  const wlListEl   = document.getElementById('wl-list');
-		  const searchEl   = document.getElementById('wl-search');
-		  const countEl    = document.getElementById('wl-count');
-		  const addAllEl   = document.getElementById('wl-add-all');
-		  const clearAllEl = document.getElementById('wl-clear-all');
+		// 1️⃣ Tự mở wishlist khi có wl=1
+		const url = new URL(window.location.href);
+		if (url.searchParams.get('wl') === '1') {
+			const el = document.getElementById('wishlistOffcanvas');
+			if (el && window.bootstrap) new bootstrap.Offcanvas(el).show();
+		}
 
-		  // ====== Helpers ======
-		  const afToken = () => document.querySelector("#__afForm input[name='__RequestVerificationToken']")?.value || "";
+		// 2️⃣ Search AJAX
+		const searchForm = document.getElementById('wl-search-form');
+		const wlList = document.getElementById('wl-list');
+		const wlCount = document.getElementById('wl-count');
 
-		  function updateCountFromDom() {
-			const n = wlListEl.querySelectorAll('.wl-card').length;
-			if (countEl) countEl.textContent = n;
-			addAllEl?.toggleAttribute('disabled', n === 0);
-			clearAllEl?.toggleAttribute('disabled', n === 0);
-			const badge = document.getElementById('wl-badge'); // nếu có badge tổng ở header
-			if (badge) { badge.textContent = n; badge.classList.toggle('d-none', n === 0); }
-		  }
-
-		  async function loadList(q = "") {
-			const url = q ? `${urlList}?q=${encodeURIComponent(q)}` : urlList;
-			const res = await fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" }});
-			const html = await res.text();
-			wlListEl.innerHTML = html;
-			updateCountFromDom();
-			wireRowEvents();
-		  }
-
-		  async function removeOne(productId) {
-			const res = await fetch(urlRemove, {
-			  method: "DELETE",
-			  headers: {
-				"Content-Type": "application/json",
-				"RequestVerificationToken": afToken()
-			  },
-			  body: JSON.stringify({ productId: Number(productId) })
+		if (searchForm) {
+			searchForm.addEventListener('submit', async (e) => {
+				e.preventDefault();
+				const params = new URLSearchParams(new FormData(searchForm));
+				try {
+					const resp = await fetch(`/Wishlist/ListPartial?${params}`);
+					if (!resp.ok) throw new Error();
+					const html = await resp.text();
+					wlList.innerHTML = html;
+					wlCount.textContent = wlList.querySelectorAll('.wl-card').length;
+					attachWishlistEvents(); // re-bind events
+				} catch {
+					alert('Không thể tải danh sách yêu thích.');
+				}
 			});
-			// server trả { isLiked:false, count }
-			await res.json().catch(()=>({}));
-			await loadList(searchEl?.value || "");
+		}
 
-			// Nếu trên trang có icon tim ngoài grid, đồng bộ nó:
-			const heart = document.querySelector(`[data-heart='${productId}']`);
-			if (heart) heart.classList.remove("active");
-		  }
-
-		  async function clearAll() {
-			await fetch(urlClear, {
-			  method: "DELETE",
-			  headers: { "RequestVerificationToken": afToken() }
+		// 3️⃣ Gắn sự kiện xóa từng sản phẩm (AJAX)
+		function attachWishlistEvents() {
+			document.querySelectorAll('.btn-remove').forEach(btn => {
+				btn.addEventListener('click', async () => {
+					const id = btn.dataset.id;
+					if (!id) return;
+					const fd = new FormData();
+					fd.append('productId', id);
+					const resp = await fetch('/Wishlist/Remove', { method: 'POST', body: fd });
+					if (resp.ok) {
+						btn.closest('.wl-card').remove();
+						wlCount.textContent = wlList.querySelectorAll('.wl-card').length;
+					} else {
+						alert('Không thể xóa sản phẩm.');
+					}
+				});
 			});
-			await loadList();
-		  }
+		}
 
-		  function wireRowEvents() {
-			// Nút "Thêm vào giỏ" trong danh sách
-			wlListEl.querySelectorAll('.wl-add').forEach(btn => {
-			  btn.addEventListener('click', () => {
-				// TODO: Gọi CartController/Add theo hệ thống của bạn
-				btn.disabled = true;
-				const old = btn.innerHTML;
-				btn.innerHTML = '<i class="fa-solid fa-check me-2"></i> Đã thêm';
-				setTimeout(()=>{ btn.disabled=false; btn.innerHTML = old; }, 1000);
-			  });
+		// 4️⃣ Xóa tất cả (AJAX)
+		const clearAll = document.getElementById('wl-clear-all');
+		if (clearAll) {
+			clearAll.addEventListener('click', async () => {
+				const resp = await fetch('/Wishlist/Clear', { method: 'POST' });
+				if (resp.ok) {
+					wlList.innerHTML = '<div class="text-muted mx-3">Danh sách yêu thích của bạn đang trống.</div>';
+					wlCount.textContent = 0;
+				} else {
+					alert('Không thể xóa danh sách.');
+				}
 			});
+		}
 
-			// Nút xóa 1 sản phẩm
-			wlListEl.querySelectorAll('.wl-trash').forEach(btn => {
-			  btn.addEventListener('click', () => removeOne(btn.dataset.id));
-			});
-		  }
-
-		  // ====== Search server-side (debounce) ======
-		  let deb = null;
-		  searchEl?.addEventListener('input', function(){
-			clearTimeout(deb);
-			deb = setTimeout(() => loadList(this.value), 300);
-		  });
-
-		  // ====== Footer actions ======
-		  addAllEl?.addEventListener('click', function(){
-			// TODO: Gọi add-many vào Cart nếu có
-			this.disabled = true;
-			const old = this.innerHTML;
-			this.innerHTML = '<i class="fa-solid fa-check me-2"></i> Đã thêm tất cả';
-			setTimeout(()=>{ this.disabled = false; this.innerHTML = old; }, 1000);
-		  });
-
-		  clearAllEl?.addEventListener('click', clearAll);
-
-		  // ====== Khởi tạo: load danh sách khi DOM sẵn sàng ======
-		  document.addEventListener('DOMContentLoaded', () => loadList());
-		})();
-	</script>
-}
+		// 5️⃣ Kích hoạt sự kiện ban đầu
+		attachWishlistEvents();
+	});
+</script>
