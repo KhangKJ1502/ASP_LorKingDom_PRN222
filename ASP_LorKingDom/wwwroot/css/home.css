@@ -2192,3 +2192,61 @@ img {
     .wishlist-heart:hover {
         color: #ef4444;
     }
+
+:root {
+ 
+    --toy-primary: #1e6fff; 
+    --toy-primary-weak: #e9f0ff; 
+    --toy-text: #111827; 
+    --toy-muted: #6b7280; 
+    --toy-shadow: 0 8px 24px rgba(17,24,39,.08);
+}
+
+.pagination-toy.pagination-xl .page-link {
+    min-width: 52px;
+    height: 52px;
+    padding: 0 16px;
+    border-radius: 14px;
+    font-size: 18px;
+    line-height: 52px;
+    text-align: center;
+    border: 1px solid #e5e7eb;
+    color: var(--toy-text);
+    background: #fff;
+    box-shadow: var(--toy-shadow);
+    transition: all .18s ease;
+}
+
+.pagination-toy.pagination-xl .page-item:not(.active) .page-link:hover {
+    transform: translateY(-1px);
+    background: var(--toy-primary-weak);
+    border-color: var(--toy-primary-weak);
+    color: var(--toy-primary);
+}
+
+.pagination-toy.pagination-xl .page-item.active .page-link {
+    background: var(--toy-primary);
+    border-color: var(--toy-primary);
+    color: #fff;
+    box-shadow: 0 10px 24px rgba(30,111,255,.25);
+}
+
+.pagination-toy.pagination-xl .page-item.disabled .page-link {
+    opacity: .5;
+    pointer-events: none;
+}
+
+.pagination-toy {
+    --bs-pagination-padding-x: 0; 
+    --bs-pagination-border-width: 0;
+}
+
+@media (max-width: 576px) {
+    .pagination-toy.pagination-xl .page-link {
+        min-width: 44px;
+        height: 44px;
+        line-height: 44px;
+        font-size: 16px;
+        border-radius: 12px;
+    }
+}

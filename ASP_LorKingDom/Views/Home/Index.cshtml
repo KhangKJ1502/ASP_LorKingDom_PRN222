@@ -1,252 +1,211 @@
 ﻿@model BLL.DTOs.PagedResult<BLL.DTOs.ProductDto>
 @using System.Linq
+
 @{
-    ViewData["Title"] = "ToyLand - Toy Wonderland";
+	ViewData["Title"] = "ToyLand - Toy Wonderland";
 
-    var q = Context.Request.Query["q"].ToString();
-    int page = Model?.Page ?? 1;
-    int pageSize = Model?.PageSize ?? 16;
-    int total = Model?.Total ?? 0;
-    int totalPages = (int)Math.Ceiling(total / (double)Math.Max(1, pageSize));
+	var q = Context.Request.Query["q"].ToString();
+	int page = Model?.Page ?? 1;
+	int pageSize = Model?.PageSize ?? 16;
+	int total = Model?.Total ?? 0;
 
-    // 1 instance Random cho cả view
-    var rnd = new System.Random(12345);
+	// 1 instance Random cho cả view (nếu cần dùng ở partial)
+	var rnd = new System.Random(12345);
 }
 
 <section class="hero-section">
-    <div class="hero-banner">
-        <div class="hero-overlay"></div>
-        <img src="~/images/hero/colorful-toys-and-children-playing.jpg" alt="Discover Amazing Toys World" class="hero-image active" id="heroImage1">
-        <img src="~/images/hero/educational-toys-and-learning-games.jpg" alt="Smart Educational Toys" class="hero-image" id="heroImage2">
-        <img src="~/images/hero/famous-toy-brands-display.jpg" alt="Trusted Global Brands" class="hero-image" id="heroImage3">
+	<div class="hero-banner">
+		<div class="hero-overlay"></div>
+		<img src="~/images/hero/colorful-toys-and-children-playing.jpg" alt="Discover Amazing Toys World" class="hero-image active" id="heroImage1">
+		<img src="~/images/hero/educational-toys-and-learning-games.jpg" alt="Smart Educational Toys" class="hero-image" id="heroImage2">
+		<img src="~/images/hero/famous-toy-brands-display.jpg" alt="Trusted Global Brands" class="hero-image" id="heroImage3">
 
-        <button class="hero-nav-btn hero-prev" onclick="prevSlide()">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
-        </button>
-        <button class="hero-nav-btn hero-next" onclick="nextSlide()">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
-        </button>
+		<button class="hero-nav-btn hero-prev" onclick="prevSlide()">
+			<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+		</button>
+		<button class="hero-nav-btn hero-next" onclick="nextSlide()">
+			<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+		</button>
 
-        <div class="hero-dots">
-            <button class="hero-dot active" onclick="goToSlide(0)"></button>
-            <button class="hero-dot" onclick="goToSlide(1)"></button>
-            <button class="hero-dot" onclick="goToSlide(2)"></button>
-        </div>
-    </div>
+		<div class="hero-dots">
+			<button class="hero-dot active" onclick="goToSlide(0)"></button>
+			<button class="hero-dot" onclick="goToSlide(1)"></button>
+			<button class="hero-dot" onclick="goToSlide(2)"></button>
+		</div>
+	</div>
 
-    <div class="hero-content">
-        <div class="container">
-            <div class="hero-content-inner">
-                <div class="hero-badges">
-                    <span class="badge badge-primary badge-glow">50% OFF</span>
-                    <span class="badge badge-outline">Best Seller</span>
-                </div>
+	<div class="hero-content">
+		<div class="container">
+			<div class="hero-content-inner">
+				<div class="hero-badges">
+					<span class="badge badge-primary badge-glow">50% OFF</span>
+					<span class="badge badge-outline">Best Seller</span>
+				</div>
 
-                <h1 class="hero-title">Discover Amazing Toys World</h1>
-                <p class="hero-subtitle">Thousands of high-quality products for your beloved children</p>
+				<h1 class="hero-title">Discover Amazing Toys World</h1>
+				<p class="hero-subtitle">Thousands of high-quality products for your beloved children</p>
 
-                <div class="hero-actions">
-                    <a class="btn btn-primary btn-lg" href="#featured">Shop Now</a>
-                    <button class="btn btn-outline btn-lg">Watch Demo</button>
-                </div>
-            </div>
-        </div>
-    </div>
+				<div class="hero-actions">
+					<a class="btn btn-primary btn-lg" href="#featured">Shop Now</a>
+					<button class="btn btn-outline btn-lg">Watch Demo</button>
+				</div>
+			</div>
+		</div>
+	</div>
 </section>
 
 <section class="promotion-section">
-    <div class="container">
-        <div class="promotion-banner">
-            <div class="promotion-content">
-                <span class="promotion-badge">SPECIAL OFFER</span>
-                <h2 class="promotion-title">Summer Sale - Up to 50% OFF</h2>
-                <p class="promotion-text">Limited time offer on selected toys</p>
-                <a class="btn btn-light btn-lg" href="#featured">Shop Now</a>
-            </div>
-            <div class="promotion-image">
-                <img src="~/images/promotion/summer-sale.jpg" alt="Summer Sale">
-            </div>
-        </div>
-    </div>
+	<div class="container">
+		<div class="promotion-banner">
+			<div class="promotion-content">
+				<span class="promotion-badge">SPECIAL OFFER</span>
+				<h2 class="promotion-title">Summer Sale - Up to 50% OFF</h2>
+				<p class="promotion-text">Limited time offer on selected toys</p>
+				<a class="btn btn-light btn-lg" href="#featured">Shop Now</a>
+			</div>
+			<div class="promotion-image">
+				<img src="~/images/promotion/summer-sale.jpg" alt="Summer Sale">
+			</div>
+		</div>
+	</div>
 </section>
 
 <section id="featured" class="products-section">
-    <div class="container">
-        <div class="section-header">
-            <h2 class="section-title">Featured Products</h2>
-            <p class="section-subtitle">Handpicked toys loved by children</p>
-        </div>
+	<div class="container">
+		<div class="section-header">
+			<h2 class="section-title">Featured Products</h2>
+			<p class="section-subtitle">Handpicked toys loved by children</p>
+		</div>
 
-        @if (Model?.Items != null && Model.Items.Any())
-        {
-            @foreach (var row in Model.Items.Chunk(4))
-            {
-                <div class="product-row d-grid" style="grid-template-columns: repeat(4, minmax(0,1fr)); gap:24px; margin-bottom:24px;">
-                    @foreach (var p in row)
-                    {
-                        var url = Url.Action("ProductDetails", "Home", new { id = p.Id });
-                        int stars = rnd.Next(4, 6);
-                        int reviews = rnd.Next(50, 500);
-
-                        <article class="product-card js-card"
-                                 role="link" tabindex="0"
-                                 data-url="@url"
-                                 aria-label="View details for @p.ProductName">
-                            <div class="product-image">
-                                <img src="@(string.IsNullOrWhiteSpace(p.MainImageUrl) ? Url.Content("~/images/placeholder.png") : p.MainImageUrl)"
-                                     alt="@p.ProductName" loading="lazy" />
-                                <form asp-controller="Wishlist"
-                                      asp-action="Toggle"
-                                      asp-route-productId="@p.Id"
-                                      asp-route-returnUrl="@Context.Request.Path + Context.Request.QueryString"
-                                      method="post"
-                                      class="wishlist-form"
-                                      onclick="event.stopPropagation();">
-
-                                    <button type="submit" class="product-wishlist @(p.IsLiked ? "active" : "")" title="Yêu thích">
-                                        <svg width="20" height="20" viewBox="0 0 24 24"
-                                             fill="@(p.IsLiked ? "red" : "none")"
-                                             stroke="currentColor" stroke-width="2">
-                                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06
-                     a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78
-                     1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-                                        </svg>
-                                    </button>
-                                </form>
-
-
-                                @* Ví dụ badge *@
-                                @if (p.Price < 50)
-                                {
-                                    <span class="product-badge badge-hot">Hot</span>
-                                }
-                                else if (p.Price > 200)
-                                {
-                                    <span class="product-badge badge-sale">-30%</span>
-                                }
-                            </div>
-
-                            <div class="product-info">
-                                <h3 class="product-name" title="@p.ProductName">
-                                    <a href="@url" onclick="event.stopPropagation();">@p.ProductName</a>
-                                </h3>
-
-                                <div class="product-rating">
-                                    <div class="stars">
-                                        @for (int i = 0; i < stars; i++)
-                                        {
-                                            <span>★</span>
-                                        }
-                                        @for (int i = stars; i < 5; i++)
-                                        {
-                                            <span>☆</span>
-                                        }
-                                    </div>
-                                    <span>(@reviews)</span>
-                                </div>
-
-                                <div class="product-price">
-                                    <span class="price-current">@p.Price.ToString("C0")</span>
-                                </div>
-
-                                <form method="post"
-                                      asp-controller="Cart"
-                                      asp-action="AddToCart"
-                                      asp-route-id="@p.Id"
-                                      onsubmit="event.stopPropagation();">
-                                    <button type="submit" class="btn btn-primary btn-block">Add to Cart</button>
-                                </form>
-                            </div>
-                        </article>
-                    }
-                </div>
-            }
-        }
-        else
-        {
-            <div class="alert alert-info">No products available.</div>
-        }
-    </div>
+		<!-- Khối grid sản phẩm: lần đầu render server-side, các lần sau thay bằng AJAX -->
+		<div id="product-container">
+			@await Html.PartialAsync("_ProductGridPartial", Model)
+		</div>
+	</div>
 </section>
 
-@if (totalPages > 1)
-{
-    <nav aria-label="pagination" class="mt-4">
-        <ul class="pagination justify-content-center">
-            <li class="page-item @(page <= 1 ? "disabled" : "")">
-                <a class="page-link"
-                   asp-action="Index"
-                   asp-route-page="@(page - 1)"
-                   asp-route-q="@q"
-                   asp-route-pageSize="@pageSize">&laquo;</a>
-            </li>
-
-            @for (int i = Math.Max(1, page - 2); i <= Math.Min(totalPages, page + 2); i++)
-            {
-                <li class="page-item @(i == page ? "active" : "")">
-                    <a class="page-link"
-                       asp-action="Index"
-                       asp-route-page="@i"
-                       asp-route-q="@q"
-                       asp-route-pageSize="@pageSize">@i</a>
-                </li>
-            }
-
-            <li class="page-item @(page >= totalPages ? "disabled" : "")">
-                <a class="page-link"
-                   asp-action="Index"
-                   asp-route-page="@(page + 1)"
-                   asp-route-q="@q"
-                   asp-route-pageSize="@pageSize">&raquo;</a>
-            </li>
-        </ul>
-    </nav>
-}
-
 <section class="newsletter-section">
-    <div class="container">
-        <div class="newsletter-content">
-            <div class="newsletter-icon">
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
-                    <polyline points="22,6 12,13 2,6"></polyline>
-                </svg>
-            </div>
-            <div class="newsletter-text">
-                <h2 class="newsletter-title">Subscribe to Our Newsletter</h2>
-                <p class="newsletter-subtitle">Get the latest updates on new products and special offers</p>
-            </div>
-            <div class="newsletter-form">
-                <input type="email" class="form-control" placeholder="Enter your email">
-                <button class="btn btn-primary">Subscribe</button>
-            </div>
-        </div>
-    </div>
+	<div class="container">
+		<div class="newsletter-content">
+			<div class="newsletter-icon">
+				<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+					<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+					<polyline points="22,6 12,13 2,6"></polyline>
+				</svg>
+			</div>
+			<div class="newsletter-text">
+				<h2 class="newsletter-title">Subscribe to Our Newsletter</h2>
+				<p class="newsletter-subtitle">Get the latest updates on new products and special offers</p>
+			</div>
+			<div class="newsletter-form">
+				<input type="email" class="form-control" placeholder="Enter your email">
+				<button class="btn btn-primary">Subscribe</button>
+			</div>
+		</div>
+	</div>
 </section>
 
 @section Scripts {
-    <script src="~/js/home.js"></script>
+	<script src="~/js/home.js"></script>
 
-    <script>
-        // Click vào bất kỳ chỗ trống trên card -> đi tới trang chi tiết
-        document.addEventListener('click', function (e) {
-          const card = e.target.closest('.js-card');
-          if (!card) return;
+	<script>
+		// ========= Card click/keyboard: giữ nguyên hành vi điều hướng chi tiết =========
+		document.addEventListener('click', function (e) {
+			const card = e.target.closest('.js-card');
+			if (!card) return;
+			if (e.target.closest('a, button, input, select, textarea, label, form')) return; // đừng chặn submit form Wishlist
+			const url = card.dataset.url;
+			if (url) window.location.href = url;
+		});
+		document.addEventListener('keydown', function (e) {
+			if (e.key !== 'Enter') return;
+			const card = e.target.closest('.js-card');
+			if (!card) return;
+			const url = card.dataset.url;
+			if (url) window.location.href = url;
+		});
 
-          // Nếu click đúng vào a/button/input... thì thôi
-          if (e.target.closest('a, button, input, select, textarea, label')) return;
+		// ========= AJAX Search + Pagination cho grid =========
+		(function(){
+			const container = document.getElementById('product-container');
 
-          const url = card.dataset.url;
-          if (url) window.location.href = url;
-        });
+			function queryFromUrl(urlStr){
+				const u = new URL(urlStr, window.location.origin);
+				return {
+					q: u.searchParams.get('q') ?? '',
+					page: parseInt(u.searchParams.get('page') || '1'),
+					pageSize: parseInt(u.searchParams.get('pageSize') || '16')
+				};
+			}
 
-        // Hỗ trợ Enter khi focus vào card
-        document.addEventListener('keydown', function (e) {
-          if (e.key !== 'Enter') return;
-          const card = e.target.closest('.js-card');
-          if (!card) return;
-          const url = card.dataset.url;
-          if (url) window.location.href = url;
-        });
-    </script>
+			async function loadGrid({ q = '', page = 1, pageSize = 16 }){
+				const url = `/Home/ProductGrid?q=${encodeURIComponent(q)}&page=${page}&pageSize=${pageSize}`;
+				const res = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' }});
+				const html = await res.text();
+				container.innerHTML = html;
+
+				// cuộn nhẹ tới khu vực sản phẩm
+				const featured = document.getElementById('featured');
+				if (featured) {
+					const top = featured.getBoundingClientRect().top + window.scrollY - 20;
+					window.scrollTo({ top, behavior: 'smooth' });
+				}
+			}
+
+			// --- Intercept pagination trong partial ---
+			container.addEventListener('click', function(e){
+				const a = e.target.closest('a.page-link, a.js-page'); // hỗ trợ cả 2 kiểu class
+				if (!a) return;
+
+				// Nếu link có data-page, ưu tiên dùng
+				const dataPage = a.getAttribute('data-page');
+				const href = a.getAttribute('href') || '';
+				let nextPage = dataPage ? parseInt(dataPage) : queryFromUrl(href).page;
+
+				if (!nextPage || Number.isNaN(nextPage)) return;
+
+				e.preventDefault();
+
+				// Lấy q & pageSize hiện tại từ URL
+				const current = queryFromUrl(window.location.href);
+				loadGrid({ q: current.q, page: nextPage, pageSize: current.pageSize });
+
+				// Cập nhật URL (để back/forward thân thiện)
+				const newUrl = new URL(window.location.href);
+				newUrl.searchParams.set('q', current.q || '');
+				newUrl.searchParams.set('page', String(nextPage));
+				newUrl.searchParams.set('pageSize', String(current.pageSize || 16));
+				window.history.pushState({}, '', newUrl.toString());
+			});
+
+			// --- Intercept search form ở header (giữ nguyên UI của bạn) ---
+			document.addEventListener('submit', function(e){
+				const form = e.target.closest('.header-search .search-wrapper');
+				if (!form) return;
+
+				// Chặn submit full page -> gọi AJAX
+				e.preventDefault();
+
+				const fd = new FormData(form);
+				const q = (fd.get('q') || '').toString();
+				const pageSize = parseInt((fd.get('pageSize') || '16').toString()) || 16;
+
+				// Luôn về trang 1 khi search
+				loadGrid({ q, page: 1, pageSize });
+
+				// Cập nhật URL
+				const newUrl = new URL(window.location.href);
+				newUrl.searchParams.set('q', q);
+				newUrl.searchParams.set('page', '1');
+				newUrl.searchParams.set('pageSize', String(pageSize));
+				window.history.pushState({}, '', newUrl.toString());
+			});
+
+			// --- Handle back/forward (optional thân thiện) ---
+			window.addEventListener('popstate', function(){
+				const { q, page, pageSize } = queryFromUrl(window.location.href);
+				loadGrid({ q, page, pageSize });
+			});
+		})();
+	</script>
 }

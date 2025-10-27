@@ -37,6 +37,10 @@ namespace DAL
             services.AddScoped<IPriceRangeRepository, PriceRangeRepository>();
             services.AddScoped<IPromotionRepository, PromotionRepository>();
 
+            //WishList
+            services.AddScoped<IWishlistRepository, WishlistRepository>();
+
+
             //NOTIFICATION
             services.AddScoped<INotificationRepository, NotificationRepository>();
             services.AddScoped<IUserNotificationRepository, UserNotificationRepository>();
