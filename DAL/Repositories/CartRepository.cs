@@ -22,11 +22,36 @@ namespace DAL.Repositories
                 .FirstOrDefaultAsync(c => c.AccountId == accountId);
         }
 
+        public async Task<Cart> GetOrCreateByAccountIdAsync(int accountId)
+        {
+            var cart = await GetByAccountIdAsync(accountId);
+            if (cart == null)
+            {
+                cart = new Cart { AccountId = accountId, CreatedAt = DateTime.Now };
+                _db.Carts.Add(cart);
+                await _db.SaveChangesAsync();
+                // Reload to include includes
+                cart = await GetByAccountIdAsync(accountId);
+            }
+            return cart!;
+        }
+
+        public async Task<Product?> GetProductByIdAsync(int productId)
+        {
+            return await _db.Products.FirstOrDefaultAsync(p => p.ProductId == productId);
+        }
+
         public async Task<CartItem?> GetCartItemByIdAsync(int cartItemId)
         {
             return await _db.CartItems
                 .Include(ci => ci.Product)
                 .FirstOrDefaultAsync(ci => ci.CartItemId == cartItemId);
+        }
+
+        public async Task AddCartItemAsync(CartItem item)
+        {
+            _db.CartItems.Add(item);
+            await _db.SaveChangesAsync();
         }
 
         public async Task UpdateCartItemAsync(CartItem item)

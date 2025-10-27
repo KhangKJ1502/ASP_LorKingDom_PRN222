@@ -7,7 +7,7 @@ using BLL.DTOs;
 namespace WebUI.Controllers
 {
     [Authorize]
-    [Route("[controller]")]  // Add this to enable attribute routing for the actions
+    [Route("[controller]")]
     public class CartController : Controller
     {
         private readonly ICartService _cartService;
@@ -22,22 +22,65 @@ namespace WebUI.Controllers
             return View();
         }
 
-        [HttpGet("GetCartData")]
-        public async Task<IActionResult> GetCartData()
-        {
-            var accountId = GetAccountId();
-            if (accountId == 0) return Unauthorized("User not authenticated");
+		[HttpGet("GetCartData")]
+		public async Task<IActionResult> GetCartData()
+		{
+			var accountId = GetAccountId();
+			if (accountId == 0)
+				return Unauthorized(new { message = "User not authenticated" });
 
-            var cart = await _cartService.GetByAccountIdAsync(accountId);
-            if (cart == null)
-            {
-                return Ok(new { CartItems = new List<CartItemDto>() });
-            }
+			var cart = await _cartService.GetByAccountIdAsync(accountId);
 
-            return Ok(cart);
-        }
+			if (cart == null || !cart.CartItems.Any())
+			{
+				return Ok(new { cartItems = new List<object>() });
+			}
 
-        [HttpPut("UpdateQuantity/{cartItemId}")]
+			var items = cart.CartItems.Select(i => new
+			{
+				i.CartItemId,
+				i.ProductId,
+				i.ProductName,
+				i.MainImageUrl,
+				i.Quantity,
+				i.PriceAtThatTime,
+				i.CurrentPrice,
+				i.AddedAt
+			}).ToList();
+
+			return Ok(new { cartItems = items });
+		}
+
+		[HttpPost("AddToCart")]
+		public async Task<IActionResult> AddToCart([FromBody] AddToCartRequestDto request)
+		{
+			var accountId = GetAccountId();
+			if (accountId == 0)
+				return Unauthorized(new { message = "User not authenticated" });
+
+			if (request.Id <= 0 || request.Qty < 1)
+				return BadRequest(new { message = "Invalid product or quantity" });
+
+			try
+			{
+				await _cartService.AddToCartAsync(accountId, request.Id, request.Qty);
+				return Ok(new { success = true });
+			}
+			catch (InvalidOperationException ex) when (ex.Message.Contains("not found"))
+			{
+				return BadRequest(new { message = "Sản phẩm không tồn tại." });
+			}
+			catch (InvalidOperationException ex) when (ex.Message.Contains("stock"))
+			{
+				return BadRequest(new { message = "Không đủ hàng trong kho." });
+			}
+			catch (Exception ex)
+			{
+				return BadRequest(new { message = ex.Message });
+			}
+		}
+
+		[HttpPut("UpdateQuantity/{cartItemId}")]
         public async Task<IActionResult> UpdateQuantity(int cartItemId, [FromBody] int newQuantity)
         {
             var accountId = GetAccountId();

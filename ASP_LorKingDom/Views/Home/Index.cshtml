@@ -179,10 +179,10 @@
 		});
 
 		// ========= AJAX Search + Pagination cho grid =========
-		(function(){
+		(function () {
 			const container = document.getElementById('product-container');
 
-			function queryFromUrl(urlStr){
+			function queryFromUrl(urlStr) {
 				const u = new URL(urlStr, window.location.origin);
 				return {
 					q: u.searchParams.get('q') ?? '',
@@ -191,9 +191,9 @@
 				};
 			}
 
-			async function loadGrid({ q = '', page = 1, pageSize = 16 }){
+			async function loadGrid({ q = '', page = 1, pageSize = 16 }) {
 				const url = `/Home/ProductGrid?q=${encodeURIComponent(q)}&page=${page}&pageSize=${pageSize}`;
-				const res = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' }});
+				const res = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
 				const html = await res.text();
 				container.innerHTML = html;
 
@@ -206,7 +206,7 @@
 			}
 
 			// --- Intercept pagination trong partial ---
-			container.addEventListener('click', function(e){
+			container.addEventListener('click', function (e) {
 				const a = e.target.closest('a.page-link, a.js-page'); // hỗ trợ cả 2 kiểu class
 				if (!a) return;
 
@@ -232,7 +232,7 @@
 			});
 
 			// --- Intercept search form ở header (giữ nguyên UI của bạn) ---
-			document.addEventListener('submit', function(e){
+			document.addEventListener('submit', function (e) {
 				const form = e.target.closest('.header-search .search-wrapper');
 				if (!form) return;
 
@@ -255,7 +255,7 @@
 			});
 
 			// --- Handle back/forward (optional thân thiện) ---
-			window.addEventListener('popstate', function(){
+			window.addEventListener('popstate', function () {
 				const { q, page, pageSize } = queryFromUrl(window.location.href);
 				loadGrid({ q, page, pageSize });
 			});
