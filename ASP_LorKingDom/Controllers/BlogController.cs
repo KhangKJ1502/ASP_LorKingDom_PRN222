@@ -31,16 +31,34 @@ namespace WebUI.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Index(string? q, int page = 1, int pageSize = 9)
+        public async Task<IActionResult> Index(string? q, string? category, int page = 1, int pageSize = 6)
         {
-            var blogs = await _blogService.GetAllAsync(q);
+            // Lấy tất cả blogs để tính categoryStats
+            var allBlogs = await _blogService.GetAllAsync(null);
+            var allPublishedBlogs = allBlogs.Where(b => b.IsPublished).OrderByDescending(b => b.BlogPostId).ToList();
 
-            // Filter chỉ blog đã xuất bản
-            var publishedBlogs = blogs.Where(b => b.IsPublished).OrderByDescending(b => b.CreatedAt).ToList();
+            // Lọc theo search query (nếu có)
+            var filteredByQuery = allPublishedBlogs;
+            if (!string.IsNullOrWhiteSpace(q))
+            {
+                filteredByQuery = allPublishedBlogs
+                    .Where(b => (b.BlogTitle?.Contains(q, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                               (b.BlogContent?.Contains(q, StringComparison.OrdinalIgnoreCase) ?? false))
+                    .ToList();
+            }
+
+            // Lọc theo chuyên mục (nếu có)
+            var filteredBlogs = filteredByQuery;
+            if (!string.IsNullOrWhiteSpace(category))
+            {
+                filteredBlogs = filteredByQuery
+                    .Where(b => b.CategoryNames?.Contains(category, StringComparer.OrdinalIgnoreCase) ?? false)
+                    .ToList();
+            }
 
             // Separate featured and recent blogs
-            var featuredBlogs = publishedBlogs.Where(b => b.IsFeatured).Take(4).ToList();
-            var recentBlogs = publishedBlogs.Where(b => !b.IsFeatured).ToList();
+            var featuredBlogs = filteredBlogs.Where(b => b.IsFeatured).Take(4).ToList();
+            var recentBlogs = filteredBlogs.Where(b => !b.IsFeatured).ToList();
 
             // Pagination cho recent posts
             var totalCount = recentBlogs.Count;
@@ -50,12 +68,24 @@ namespace WebUI.Controllers
                 .Take(pageSize)
                 .ToList();
 
+            // Tính số lượng từng chuyên mục từ TẤT CẢ published blogs (không lọc category)
+            var categoryStats = allPublishedBlogs
+                .Where(b => b.CategoryNames != null)
+                .SelectMany(b => b.CategoryNames)
+                .Distinct()
+                .ToDictionary(
+                    cat => cat,
+                    cat => allPublishedBlogs.Count(b => b.CategoryNames?.Contains(cat, StringComparer.OrdinalIgnoreCase) ?? false)
+                );
+
             ViewBag.FeaturedBlogs = featuredBlogs;
             ViewBag.RecentBlogs = pagedRecentBlogs;
             ViewBag.Query = q;
+            ViewBag.Category = category;
             ViewBag.CurrentPage = page;
             ViewBag.TotalPages = totalPages;
             ViewBag.PageSize = pageSize;
+            ViewBag.CategoryStats = categoryStats; // Dictionary chứa count từng category
 
             return View(pagedRecentBlogs);
         }
