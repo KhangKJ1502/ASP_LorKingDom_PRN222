@@ -13,18 +13,39 @@ function getCookie(name) {
 function isUserLoggedIn() {
     return (
         document.body.classList.contains('logged-in') ||
-        document.querySelector('meta[name="user-id"]') !== null ||
+        document.querySelector('meta[name="user-id"]')?.content?.trim() !== '' ||
         !!getCookie('__RequestVerificationToken')
     );
 }
 
+// Lấy Anti-Forgery Token
+function getAntiForgeryToken() {
+    return document.querySelector('input[name="__RequestVerificationToken"]')?.value
+        || document.querySelector('#__AntiForgeryForm input[name="__RequestVerificationToken"]')?.value
+        || '';
+}
+
+// Redirect đến login
+function redirectToLogin() {
+    const returnUrl = encodeURIComponent(window.location.href);
+    window.location.href = `/Auth/Login?returnUrl=${returnUrl}`;
+}
+
+// Cập nhật badge
+function updateBadgeCount(count) {
+    const badge = document.getElementById('cart-badge');
+    if (badge) {
+        badge.textContent = count > 99 ? '99+' : count;
+        badge.style.display = count > 0 ? 'block' : 'none';
+    }
+}
+
+// === THÊM VÀO GIỎ HÀNG ===
 async function addToCart(productId, qty = 1) {
     if (!productId || qty < 1) return;
 
-    // === KIỂM TRA ĐĂNG NHẬP TRƯỚC KHI GỌI API ===
     if (!isUserLoggedIn()) {
-        const returnUrl = encodeURIComponent(window.location.pathname + window.location.search);
-        window.location.href = `/Auth/Login?returnUrl=${returnUrl}`;
+        redirectToLogin();
         return;
     }
 
@@ -33,52 +54,70 @@ async function addToCart(productId, qty = 1) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                'X-Requested-With': 'XMLHttpRequest',
+                'RequestVerificationToken': getAntiForgeryToken()
             },
             body: JSON.stringify({ id: productId, qty: qty })
         });
 
-        // === DỰ PHÒNG: XỬ LÝ 401 (nếu token hết hạn) ===
-        if (response.status === 401) {
-            const returnUrl = encodeURIComponent(window.location.pathname + window.location.search);
-            window.location.href = `/Auth/Login?returnUrl=${returnUrl}`;
+        // Kiểm tra content-type
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            redirectToLogin();
             return;
         }
 
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(errorText || 'Thêm vào giỏ hàng thất bại');
+        const result = await response.json();
+
+        if (result.redirectToLogin || response.status === 401) {
+            redirectToLogin();
+            return;
         }
 
-        const result = await response.json();
         if (result.success) {
             await updateCartBadge();
             showCartToast('success', 'Đã thêm vào giỏ hàng!');
+        } else {
+            showCartToast('error', result.message || 'Thêm thất bại');
         }
     } catch (error) {
         console.error('Add to cart error:', error);
-        showCartToast('error', error.message || 'Lỗi khi thêm vào giỏ');
+        showCartToast('error', 'Lỗi kết nối');
     }
 }
 
+// === CẬP NHẬT BADGE ===
 async function updateCartBadge() {
     try {
-        const response = await fetch('/Cart/GetCartData');
-        let count = 0;
-        if (response.ok) {
-            const data = await response.json();
-            count = data.cartItems?.reduce((sum, item) => sum + (item.quantity || 0), 0) ?? 0;
+        const response = await fetch('/Cart/GetCartData', {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
+
+        if (response.status === 401) {
+            updateBadgeCount(0);
+            return;
         }
-        const badge = document.getElementById('cart-badge');
-        if (badge) {
-            badge.textContent = count;
-            badge.style.display = count > 0 ? 'block' : 'none';
+
+        if (!response.ok) return;
+
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            updateBadgeCount(0);
+            return;
         }
+
+        const data = await response.json();
+        const count = data.cartItems?.reduce((sum, item) => sum + (item.quantity || 0), 0) ?? 0;
+        updateBadgeCount(count);
     } catch (e) {
         console.error('Update cart badge error:', e);
+        updateBadgeCount(0);
     }
 }
 
+// === TOAST ===
 function showCartToast(type, message) {
     if (typeof showToast === 'function') {
         showToast(type, message);

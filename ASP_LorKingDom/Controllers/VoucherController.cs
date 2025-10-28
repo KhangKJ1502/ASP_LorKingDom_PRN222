@@ -22,11 +22,11 @@ namespace WebUI.Controllers
         }
 
         [HttpGet("Voucher/Manage")]
-        public async Task<IActionResult> ManageVouchers(string? q, string? voucherType, string? status, int page = 1, int pageSize = 10)
+        public async Task<IActionResult> ManageVouchers(string? q, string? voucherType, string? status, int page = 1, int pageSize = 10, bool showDeleted = false)
         {
             try
             {
-                var allVouchers = await _voucherService.GetAllVouchersAsync();
+                var allVouchers = await _voucherService.GetAllVouchersAsync(includeDeleted: showDeleted);
 
                 if (!string.IsNullOrWhiteSpace(q))
                 {
@@ -43,6 +43,9 @@ namespace WebUI.Controllers
                 if (!string.IsNullOrWhiteSpace(status))
                     allVouchers = allVouchers.Where(v => v.Status == status).ToList();
 
+                if (!showDeleted)
+                    allVouchers = allVouchers.Where(v => v.Status != "Inactive").ToList();
+
                 allVouchers = allVouchers.OrderByDescending(v => v.CreatedAt).ToList();
 
                 var totalCount = allVouchers.Count;
@@ -54,6 +57,7 @@ namespace WebUI.Controllers
                 ViewBag.StatusFilter = status;
                 ViewBag.CurrentPage = page;
                 ViewBag.TotalPages = totalPages;
+                ViewBag.ShowDeleted = showDeleted;
                 ViewBag.VoucherTypes = await _voucherTypeService.GetAllAsync();
                 ViewBag.Accounts = await _accountService.GetAllAsync();
 
@@ -100,15 +104,33 @@ namespace WebUI.Controllers
 
         [HttpPost("Voucher/Delete/{id}")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteVoucher(int id)
+        public async Task<IActionResult> SoftDeleteVoucher(int id)
         {
             try
             {
-                var success = await _voucherService.DeleteAsync(id);
+                var success = await _voucherService.SoftDeleteAsync(id);
                 if (!success)
                     return BadRequest(new { error = "Không thể xóa voucher" });
 
-                return Json(new { message = "Voucher đã bị xóa vĩnh viễn" });
+                return Json(new { message = "Voucher đã được chuyển vào thùng rác" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
+        [HttpPost("Voucher/Restore/{id}")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RestoreVoucher(int id)
+        {
+            try
+            {
+                var success = await _voucherService.RestoreAsync(id);
+                if (!success)
+                    return BadRequest(new { error = "Không thể khôi phục voucher" });
+
+                return Json(new { message = "Voucher đã được khôi phục" });
             }
             catch (Exception ex)
             {
@@ -138,11 +160,10 @@ namespace WebUI.Controllers
                     minOrderAmount = voucher.MinOrderAmount,
                     usageLimitPerUser = voucher.UsageLimitPerUser,
                     isStackable = voucher.IsStackable,
-                   
                     startDate = voucher.StartDate.ToString("yyyy-MM-ddTHH:mm"),
                     endDate = voucher.EndDate.ToString("yyyy-MM-ddTHH:mm"),
                     status = voucher.Status,
-                    isDeleted = voucher.IsDeleted
+                    isDeleted = voucher.Status == "Inactive"
                 };
 
                 return Json(result);

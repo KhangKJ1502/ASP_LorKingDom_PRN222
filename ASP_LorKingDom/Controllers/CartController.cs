@@ -22,82 +22,83 @@ namespace WebUI.Controllers
             return View();
         }
 
-		[HttpGet("GetCartData")]
-		public async Task<IActionResult> GetCartData()
-		{
-			var accountId = GetAccountId();
-			if (accountId == 0)
-				return Unauthorized(new { message = "User not authenticated" });
+        [HttpGet("GetCartData")]
+        public async Task<IActionResult> GetCartData()
+        {
+            var accountId = GetAccountId();
+            if (accountId == 0)
+                return Json(new { cartItems = new List<object>() }); 
 
-			var cart = await _cartService.GetByAccountIdAsync(accountId);
+            var cart = await _cartService.GetByAccountIdAsync(accountId);
 
-			if (cart == null || !cart.CartItems.Any())
-			{
-				return Ok(new { cartItems = new List<object>() });
-			}
+            if (cart == null || !cart.CartItems.Any())
+            {
+                return Json(new { cartItems = new List<object>() });
+            }
 
-			var items = cart.CartItems.Select(i => new
-			{
-				i.CartItemId,
-				i.ProductId,
-				i.ProductName,
-				i.MainImageUrl,
-				i.Quantity,
-				i.PriceAtThatTime,
-				i.CurrentPrice,
-				i.AddedAt
-			}).ToList();
+            var items = cart.CartItems.Select(i => new
+            {
+                i.CartItemId,
+                i.ProductId,
+                i.ProductName,
+                i.MainImageUrl,
+                i.Quantity,
+                i.PriceAtThatTime,
+                i.CurrentPrice,
+                i.AddedAt
+            }).ToList();
 
-			return Ok(new { cartItems = items });
-		}
+            return Json(new { cartItems = items });
+        }
 
-		[HttpPost("AddToCart")]
-		public async Task<IActionResult> AddToCart([FromBody] AddToCartRequestDto request)
-		{
-			var accountId = GetAccountId();
-			if (accountId == 0)
-				return Unauthorized(new { message = "User not authenticated" });
+        [HttpPost("AddToCart")]
+        public async Task<IActionResult> AddToCart([FromBody] AddToCartRequestDto request)
+        {
+            var accountId = GetAccountId();
+            if (accountId == 0)
+                return Json(new { success = false, redirectToLogin = true }); // Không dùng Unauthorized()
 
-			if (request.Id <= 0 || request.Qty < 1)
-				return BadRequest(new { message = "Invalid product or quantity" });
+            if (request.Id <= 0 || request.Qty < 1)
+                return Json(new { success = false, message = "Invalid product or quantity" });
 
-			try
-			{
-				await _cartService.AddToCartAsync(accountId, request.Id, request.Qty);
-				return Ok(new { success = true });
-			}
-			catch (InvalidOperationException ex) when (ex.Message.Contains("not found"))
-			{
-				return BadRequest(new { message = "Sản phẩm không tồn tại." });
-			}
-			catch (InvalidOperationException ex) when (ex.Message.Contains("stock"))
-			{
-				return BadRequest(new { message = "Không đủ hàng trong kho." });
-			}
-			catch (Exception ex)
-			{
-				return BadRequest(new { message = ex.Message });
-			}
-		}
+            try
+            {
+                await _cartService.AddToCartAsync(accountId, request.Id, request.Qty);
+                return Json(new { success = true });
+            }
+            catch (InvalidOperationException ex) when (ex.Message.Contains("not found"))
+            {
+                return Json(new { success = false, message = "Sản phẩm không tồn tại." });
+            }
+            catch (InvalidOperationException ex) when (ex.Message.Contains("stock"))
+            {
+                return Json(new { success = false, message = "Không đủ hàng trong kho." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
 
-		[HttpPut("UpdateQuantity/{cartItemId}")]
+        [HttpPut("UpdateQuantity/{cartItemId}")]
         public async Task<IActionResult> UpdateQuantity(int cartItemId, [FromBody] int newQuantity)
         {
             var accountId = GetAccountId();
-            if (accountId == 0) return Unauthorized("User not authenticated");
+            if (accountId == 0)
+                return Json(new { success = false, redirectToLogin = true });
 
             var cart = await _cartService.GetByAccountIdAsync(accountId);
             if (cart == null || !cart.CartItems.Any(i => i.CartItemId == cartItemId))
-                return Forbid("Cart item does not belong to user");
+                return Json(new { success = false, message = "Cart item does not belong to user" });
 
             try
             {
                 await _cartService.UpdateCartItemQuantityAsync(cartItemId, newQuantity);
-                return Ok();
+                return Json(new { success = true });
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return Json(new { success = false, message = ex.Message });
             }
         }
 
@@ -105,20 +106,21 @@ namespace WebUI.Controllers
         public async Task<IActionResult> RemoveItem(int cartItemId)
         {
             var accountId = GetAccountId();
-            if (accountId == 0) return Unauthorized("User not authenticated");
+            if (accountId == 0)
+                return Json(new { success = false, redirectToLogin = true });
 
             var cart = await _cartService.GetByAccountIdAsync(accountId);
             if (cart == null || !cart.CartItems.Any(i => i.CartItemId == cartItemId))
-                return Forbid("Cart item does not belong to user");
+                return Json(new { success = false, message = "Cart item does not belong to user" });
 
             try
             {
                 await _cartService.RemoveCartItemAsync(cartItemId);
-                return Ok();
+                return Json(new { success = true });
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return Json(new { success = false, message = ex.Message });
             }
         }
 
@@ -126,16 +128,17 @@ namespace WebUI.Controllers
         public async Task<IActionResult> Clear()
         {
             var accountId = GetAccountId();
-            if (accountId == 0) return Unauthorized("User not authenticated");
+            if (accountId == 0)
+                return Json(new { success = false, redirectToLogin = true });
 
             try
             {
                 await _cartService.ClearCartAsync(accountId);
-                return Ok();
+                return Json(new { success = true });
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return Json(new { success = false, message = ex.Message });
             }
         }
 
