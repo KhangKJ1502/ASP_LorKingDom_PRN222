@@ -21,6 +21,7 @@ namespace DAL.Interfaces
         Task<int> SetIsDeletedByOriginAsync(int originId, bool isDeleted);
         Task<int> SetIsDeletedBySuperCategoryAsync(int superCategoryId, bool isDeleted);
         Task<(List<Product> Items, int Total)> QueryStorefrontPagedAsync(string? keyword, int page, int pageSize);
+        Task<(List<Product> Items, int Total)> QueryAdminPagedAsync(string? keyword, int page, int pageSize);
 
     }
 }
