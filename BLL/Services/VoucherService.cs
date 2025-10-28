@@ -22,7 +22,7 @@ namespace BLL.Services
         {
             var vouchers = await _repo.GetAllAsync();
             return vouchers
-                .Where(v => v.Status != "Deleted")
+                .Where(v => includeDeleted || v.Status != "Inactive")
                 .Select(MapToDto)
                 .ToList();
         }
@@ -66,7 +66,7 @@ namespace BLL.Services
         public async Task<bool> UpdateAsync(int id, VoucherDto dto)
         {
             var existing = await _repo.GetByIdAsync(id);
-            if (existing == null || existing.Status == "Deleted")
+            if (existing == null || existing.Status == "Inactive")
                 return false;
 
             if (await _repo.VoucherCodeExistsAsync(dto.VoucherCode, id))
@@ -86,15 +86,29 @@ namespace BLL.Services
             existing.IsStackable = dto.IsStackable;
             existing.StartDate = dto.StartDate;
             existing.EndDate = dto.EndDate;
-            existing.Status = dto.Status ?? "Active";
             existing.UpdatedAt = DateTime.Now;
 
             return await _repo.UpdateAsync(existing);
         }
 
-        public async Task<bool> DeleteAsync(int id)
+        public async Task<bool> SoftDeleteAsync(int id)
         {
-            return await _repo.DeleteAsync(id); // XÓA CỨNG
+            var voucher = await _repo.GetByIdAsync(id);
+            if (voucher == null || voucher.Status == "Inactive") return false;
+
+            voucher.Status = "Inactive";
+            voucher.UpdatedAt = DateTime.Now;
+            return await _repo.UpdateAsync(voucher);
+        }
+
+        public async Task<bool> RestoreAsync(int id)
+        {
+            var voucher = await _repo.GetByIdAsync(id);
+            if (voucher == null || voucher.Status != "Inactive") return false;
+
+            voucher.Status = (voucher.EndDate < DateTime.Now) ? "Expired" : "Active";
+            voucher.UpdatedAt = DateTime.Now;
+            return await _repo.UpdateAsync(voucher);
         }
 
         private VoucherDto MapToDto(Voucher voucher)
@@ -115,7 +129,7 @@ namespace BLL.Services
                 StartDate = voucher.StartDate,
                 EndDate = voucher.EndDate,
                 Status = voucher.Status,
-                IsDeleted = voucher.Status == "Deleted",
+                IsDeleted = voucher.Status == "Inactive",
                 CreatedAt = voucher.CreatedAt,
                 UpdatedAt = voucher.UpdatedAt
             };

@@ -7,6 +7,7 @@
     var statusFilter = (string?)ViewBag.StatusFilter ?? "";
     var currentPage = (int?)ViewBag.CurrentPage ?? 1;
     var totalPages = (int?)ViewBag.TotalPages ?? 1;
+    var showDeleted = (bool?)ViewBag.ShowDeleted ?? false;
 }
 
 <style>
@@ -79,13 +80,13 @@
         gap: .5rem;
     }
 
-    .section-title .dot {
-        width: 8px;
-        height: 8px;
-        background: #667eea;
-        border-radius: 999px;
-        display: inline-block;
-    }
+        .section-title .dot {
+            width: 8px;
+            height: 8px;
+            background: #667eea;
+            border-radius: 999px;
+            display: inline-block;
+        }
 
     .input-hint {
         font-size: .8rem;
@@ -107,10 +108,10 @@
         font-weight: 600;
     }
 
-    .btn-gradient:hover {
-        filter: brightness(.96);
-        color: #fff;
-    }
+        .btn-gradient:hover {
+            filter: brightness(.96);
+            color: #fff;
+        }
 
     #voucherDetailModal .modal-content {
         border: none;
@@ -136,10 +137,10 @@
         margin-right: 5px;
     }
 
-    .nav-tabs .nav-link.active {
-        background: #667eea;
-        color: #fff;
-    }
+        .nav-tabs .nav-link.active {
+            background: #667eea;
+            color: #fff;
+        }
 
     /* ==================== STYLE TEXTBOX ĐẸP ==================== */
     .form-control,
@@ -153,37 +154,37 @@
         box-shadow: 0 1px 3px rgba(0,0,0,.05);
     }
 
-    .form-control:focus {
-        border-color: #6366f1;
-        box-shadow: 0 0 0 3.5px rgba(99, 102, 241, 0.15), 0 1px 3px rgba(0,0,0,.1);
-        outline: none;
-    }
+        .form-control:focus {
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3.5px rgba(99, 102, 241, 0.15), 0 1px 3px rgba(0,0,0,.1);
+            outline: none;
+        }
 
-    .form-control::placeholder {
-        color: #9ca3af;
-        font-style: italic;
-    }
+        .form-control::placeholder {
+            color: #9ca3af;
+            font-style: italic;
+        }
 
-    /* Input number: ẩn mũi tên mặc định */
-    .form-control[type="number"]::-webkit-inner-spin-button,
-    .form-control[type="number"]::-webkit-outer-spin-button {
-        -webkit-appearance: none;
-        margin: 0;
-    }
+        /* Input number: ẩn mũi tên mặc định */
+        .form-control[type="number"]::-webkit-inner-spin-button,
+        .form-control[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
 
-    .form-control[type="number"] {
-        -moz-appearance: textfield;
-    }
+        .form-control[type="number"] {
+            -moz-appearance: textfield;
+        }
 
-    /* Select: đồng nhất */
-    .form-control.select-styled {
-        appearance: none;
-        background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
-        background-repeat: no-repeat;
-        background-position: right 1rem center;
-        background-size: 16px;
-        padding-right: 2.5rem;
-    }
+        /* Select: đồng nhất */
+        .form-control.select-styled {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 16px;
+            padding-right: 2.5rem;
+        }
 
     /* Datepicker input */
     .datepicker {
@@ -196,11 +197,17 @@
         box-shadow: 0 10px 30px rgba(0,0,0,.15);
         border-radius: 14px;
     }
+
     .flatpickr-day.selected, .flatpickr-day.selected:hover {
         background: #667eea;
         border-color: #667eea;
     }
     /* =========================================================== */
+
+    .deleted-row {
+        opacity: 0.6;
+        background: #f8f9fa;
+    }
 </style>
 
 <div class="container-fluid px-5">
@@ -209,23 +216,30 @@
     <div class="card mb-4 mt-4">
         <div class="card-header d-flex justify-content-between align-items-center">
             <div><i class="fa-solid fa-ticket me-2"></i>Danh Sách Voucher</div>
-            <button class="btn btn-gradient" data-bs-toggle="modal" data-bs-target="#addVoucherModal">
-                <i class="fas fa-plus me-1"></i>Thêm Voucher
-            </button>
+            @if (!showDeleted)
+            {
+                <button class="btn btn-gradient" data-bs-toggle="modal" data-bs-target="#addVoucherModal">
+                    <i class="fas fa-plus me-1"></i>Thêm Voucher
+                </button>
+            }
         </div>
 
         <div class="card-body">
-            <!-- Tab -->
             <ul class="nav nav-tabs mb-4">
                 <li class="nav-item">
-                    <a class="nav-link active" href="@Url.Action("ManageVouchers")">
+                    <a class="nav-link @(showDeleted ? "" : "active")" href="@Url.Action("ManageVouchers", new { q, voucherType = voucherTypeFilter, status = statusFilter, page = 1, showDeleted = false })">
                         Voucher Hoạt Động
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(showDeleted ? "active" : "")" href="@Url.Action("ManageVouchers", new { q, voucherType = voucherTypeFilter, status = "Inactive", page = 1, showDeleted = true })">
+                        Thùng Rác
                     </a>
                 </li>
             </ul>
 
-            <!-- Tìm kiếm -->
             <form class="mb-4" method="get" asp-action="ManageVouchers" asp-controller="Voucher">
+                <input type="hidden" name="showDeleted" value="@showDeleted.ToString().ToLower()" />
                 <div class="row g-2">
                     <div class="col-md-3">
                         <input type="text" name="q" value="@q" class="form-control"
@@ -236,7 +250,7 @@
                             <option value="">Tất cả loại voucher</option>
                             @foreach (var type in ViewBag.VoucherTypes)
                             {
-                                    <option value="@type.VoucherTypeId" selected="@(voucherTypeFilter == type.VoucherTypeId.ToString())">@type.VoucherTypeName</option>
+                                <option value="@type.VoucherTypeId" selected="@(voucherTypeFilter == type.VoucherTypeId.ToString())">@type.VoucherTypeName</option>
                             }
                         </select>
                     </div>
@@ -245,6 +259,10 @@
                             <option value="">Tất cả trạng thái</option>
                             <option value="Active" selected="@(statusFilter == "Active")">Hoạt động</option>
                             <option value="Expired" selected="@(statusFilter == "Expired")">Hết hạn</option>
+                            @if (showDeleted)
+                            {
+                                <option value="Inactive" selected="@(statusFilter == "Inactive")">Đã xóa</option>
+                            }
                         </select>
                     </div>
                     <div class="col-md-2">
@@ -255,7 +273,6 @@
                 </div>
             </form>
 
-            <!-- Bảng -->
             <div class="table-responsive">
                 <table class="table table-bordered table-striped table-hover">
                     <thead class="table-dark">
@@ -276,69 +293,86 @@
                         {
                             @foreach (var voucher in Model)
                             {
-                                        <tr data-voucher-id="@voucher.VoucherId">
-                                            <td><input type="checkbox" class="form-check-input row-checkbox"></td>
-                                            <td><span class="chip"><i class="fa-solid fa-ticket"></i>@voucher.VoucherCode</span></td>
-                                            <td>@voucher.VoucherTypeName</td>
-                                            <td>@voucher.DiscountValue.ToString("N0") VND</td>
-                                            <td>@voucher.StartDate.ToString("dd/MM/yyyy HH:mm")</td>
-                                            <td>@voucher.EndDate.ToString("dd/MM/yyyy HH:mm")</td>
-                                            <td>
-                                        @if (voucher.Status == "Expired")
+                                <tr class="@(voucher.Status == "Inactive" ? "deleted-row" : "")" data-voucher-id="@voucher.VoucherId">
+                                    <td><input type="checkbox" class="form-check-input row-checkbox"></td>
+                                    <td><span class="chip"><i class="fa-solid fa-ticket"></i>@voucher.VoucherCode</span></td>
+                                    <td>@voucher.VoucherTypeName</td>
+                                    <td>@voucher.DiscountValue.ToString("N0") VND</td>
+                                    <td>@voucher.StartDate.ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td>@voucher.EndDate.ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td>
+                                        @if (voucher.Status == "Inactive")
                                         {
-                                                        <span class="badge bg-warning"><i class="fas fa-clock"></i> Hết hạn</span>
+                                            <span class="badge bg-danger"><i class="fas fa-trash"></i> Đã xóa</span>
+                                        }
+                                        else if (voucher.Status == "Expired")
+                                        {
+                                            <span class="badge bg-warning"><i class="fas fa-clock"></i> Hết hạn</span>
                                         }
                                         else
                                         {
-                                                        <span class="badge bg-success"><i class="fas fa-check"></i> Hoạt động</span>
+                                            <span class="badge bg-success"><i class="fas fa-check"></i> Hoạt động</span>
                                         }
-                                            </td>
-                                            <td>@voucher.CreatorName</td>
-                                            <td class="text-center">
-                                                <button type="button" class="btn btn-sm btn-info" onclick="viewVoucherDetail(@voucher.VoucherId)" title="Xem">
-                                                    <i class="fas fa-eye"></i>
-                                                </button>
-                                                <button type="button" class="btn btn-sm btn-primary" onclick="editVoucher(@voucher.VoucherId)" title="Sửa">
-                                                    <i class="fas fa-edit"></i>
-                                                </button>
-                                                <button type="button" class="btn btn-sm btn-danger" onclick="deleteVoucher(@voucher.VoucherId)" title="Xóa vĩnh viễn">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                            </td>
-                                        </tr>
+                                    </td>
+                                    <td>@voucher.CreatorName</td>
+                                    <td class="text-center">
+                                        <button type="button" class="btn btn-sm btn-info" onclick="viewVoucherDetail(@voucher.VoucherId)" title="Xem">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        @if (voucher.Status != "Inactive")
+                                        {
+                                            <button type="button" class="btn btn-sm btn-primary" onclick="editVoucher(@voucher.VoucherId)" title="Sửa">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                        }
+                                        @if (voucher.Status == "Inactive")
+                                        {
+                                            <button type="button" class="btn btn-sm btn-success" onclick="restoreVoucher(@voucher.VoucherId)" title="Khôi phục">
+                                                <i class="fas fa-undo"></i>
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <button type="button" class="btn btn-sm btn-danger" onclick="softDeleteVoucher(@voucher.VoucherId)" title="Xóa">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        }
+                                    </td>
+                                </tr>
                             }
                         }
                         else
                         {
-                                <tr>
-                                    <td colspan="9" class="text-center text-muted">Không có voucher nào.</td>
-                                </tr>
+                            <tr>
+                                <td colspan="9" class="text-center text-muted">
+                                    @(showDeleted ? "Thùng rác trống." : "Không có voucher nào.")
+                                </td>
+                            </tr>
                         }
                     </tbody>
                 </table>
             </div>
 
-            <!-- Pagination -->
             <nav class="mt-4" aria-label="Voucher pagination">
                 <ul class="pagination justify-content-center">
                     <li class="page-item @(currentPage == 1 ? "disabled" : "")">
                         <a class="page-link"
-                           href="@Url.Action("ManageVouchers", new { q, voucherType = voucherTypeFilter, status = statusFilter, page = currentPage - 1 })">
+                           href="@Url.Action("ManageVouchers", new { q, voucherType = voucherTypeFilter, status = statusFilter, page = currentPage - 1, showDeleted })">
                             <i class="fas fa-chevron-left me-1"></i>Trước
                         </a>
                     </li>
                     @for (int i = 1; i <= totalPages; i++)
                     {
-                            <li class="page-item @(i == currentPage ? "active" : "")">
-                                <a class="page-link"
-                                   href="@Url.Action("ManageVouchers", new { q, voucherType = voucherTypeFilter, status = statusFilter, page = i })">
+                        <li class="page-item @(i == currentPage ? "active" : "")">
+                            <a class="page-link"
+                               href="@Url.Action("ManageVouchers", new { q, voucherType = voucherTypeFilter, status = statusFilter, page = i, showDeleted })">
                                 @i
-                                </a>
-                            </li>
+                            </a>
+                        </li>
                     }
                     <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
                         <a class="page-link"
-                           href="@Url.Action("ManageVouchers", new { q, voucherType = voucherTypeFilter, status = statusFilter, page = currentPage + 1 })">
+                           href="@Url.Action("ManageVouchers", new { q, voucherType = voucherTypeFilter, status = statusFilter, page = currentPage + 1, showDeleted })">
                             Sau <i class="fas fa-chevron-right ms-1"></i>
                         </a>
                     </li>
@@ -347,7 +381,6 @@
         </div>
     </div>
 
-    <!-- Modal Chi Tiết -->
     <div class="modal fade" id="voucherDetailModal" tabindex="-1" aria-labelledby="voucherDetailLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content">
@@ -365,7 +398,6 @@
         </div>
     </div>
 
-    <!-- Modal Thêm -->
     <div class="modal fade" id="addVoucherModal" tabindex="-1" aria-labelledby="addVoucherLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content modal-modern">
@@ -389,7 +421,7 @@
                                         <option value="">Chọn loại voucher</option>
                                         @foreach (var type in ViewBag.VoucherTypes)
                                         {
-                                                <option value="@type.VoucherTypeId">@type.VoucherTypeName</option>
+                                            <option value="@type.VoucherTypeId">@type.VoucherTypeName</option>
                                         }
                                     </select>
                                 </div>
@@ -399,7 +431,7 @@
                                         <option value="">Không xác định</option>
                                         @foreach (var account in ViewBag.Accounts)
                                         {
-                                                <option value="@account.Id">@account.AccountName</option>
+                                            <option value="@account.Id">@account.AccountName</option>
                                         }
                                     </select>
                                 </div>
@@ -438,13 +470,6 @@
                                     <input type="text" name="EndDate" class="form-control datepicker" placeholder="Chọn ngày giờ" required />
                                     <div class="input-hint">Phải lớn hơn hoặc bằng ngày bắt đầu.</div>
                                 </div>
-                                <div class="col-md-6">
-                                    <label class="form-label fw-bold">Trạng Thái</label>
-                                    <select name="Status" class="form-control select-styled">
-                                        <option value="Active">Hoạt động</option>
-                                        <option value="Expired">Hết hạn</option>
-                                    </select>
-                                </div>
                             </div>
                         </form>
                     </div>
@@ -459,7 +484,6 @@
         </div>
     </div>
 
-    <!-- Modal Sửa -->
     <div class="modal fade" id="editVoucherModal" tabindex="-1" aria-labelledby="editVoucherLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content modal-modern">
@@ -483,7 +507,7 @@
                                         <option value="">Chọn loại voucher</option>
                                         @foreach (var type in ViewBag.VoucherTypes)
                                         {
-                                                <option value="@type.VoucherTypeId">@type.VoucherTypeName</option>
+                                            <option value="@type.VoucherTypeId">@type.VoucherTypeName</option>
                                         }
                                     </select>
                                 </div>
@@ -493,7 +517,7 @@
                                         <option value="">Không xác định</option>
                                         @foreach (var account in ViewBag.Accounts)
                                         {
-                                                <option value="@account.Id">@account.AccountName</option>
+                                            <option value="@account.Id">@account.AccountName</option>
                                         }
                                     </select>
                                 </div>
@@ -531,13 +555,6 @@
                                     <label class="form-label fw-bold">Ngày Kết Thúc<span class="required-star">*</span></label>
                                     <input type="text" name="EndDate" class="form-control datepicker" placeholder="Chọn ngày giờ" required />
                                 </div>
-                                <div class="col-md-6">
-                                    <label class="form-label fw-bold">Trạng Thái</label>
-                                    <select name="Status" class="form-control select-styled">
-                                        <option value="Active">Hoạt động</option>
-                                        <option value="Expired">Hết hạn</option>
-                                    </select>
-                                </div>
                             </div>
                         </form>
                     </div>
@@ -554,160 +571,190 @@
 </div>
 
 @section Scripts {
-        <script>
-            const vndFormat = new Intl.NumberFormat('vi-VN');
+    <script>
+        const vndFormat = new Intl.NumberFormat('vi-VN');
 
-            // Khởi tạo flatpickr
-            function initDatePickers(modal) {
-                modal.querySelectorAll('.datepicker').forEach(input => {
-                    if (!input._flatpickr) {
-                        flatpickr(input, {
-                            enableTime: true,
-                            dateFormat: "Y-m-d H:i",
-                            time_24hr: true,
-                            locale: { firstDayOfWeek: 1 }
-                        });
-                    }
-                });
-            }
+        function initDatePickers(modal) {
+            modal.querySelectorAll('.datepicker').forEach(input => {
+                if (!input._flatpickr) {
+                    flatpickr(input, {
+                        enableTime: true,
+                        dateFormat: "Y-m-d H:i",
+                        time_24hr: true,
+                        locale: { firstDayOfWeek: 1 }
+                    });
+                }
+            });
+        }
 
-            function bindCurrencyPreview(scopeEl) {
-                const inputs = scopeEl.querySelectorAll('.currency-input');
-                inputs.forEach(input => {
-                    const hint = input.parentElement.querySelector('.currency-preview');
-                    const update = () => {
-                        const val = parseInt(input.value || '0', 10);
-                        if (hint) hint.textContent = vndFormat.format(isNaN(val) ? 0 : val);
-                    };
-                    input.addEventListener('input', update);
-                    update();
-                });
-            }
-
-            function bindDateRangeValidation(scopeEl) {
-                const start = scopeEl.querySelector('input[name="StartDate"]');
-                const end = scopeEl.querySelector('input[name="EndDate"]');
-                if (!start || !end) return;
-
-                const sync = () => {
-                    if (start.value) end._flatpickr.set('minDate', start.value);
-                    if (end.value && start.value && end.value < start.value) {
-                        end._flatpickr.setDate(start.value);
-                    }
+        function bindCurrencyPreview(scopeEl) {
+            const inputs = scopeEl.querySelectorAll('.currency-input');
+            inputs.forEach(input => {
+                const hint = input.parentElement.querySelector('.currency-preview');
+                const update = () => {
+                    const val = parseInt(input.value || '0', 10);
+                    if (hint) hint.textContent = vndFormat.format(isNaN(val) ? 0 : val);
                 };
-                start.addEventListener('change', sync);
-                end.addEventListener('change', sync);
-            }
-
-            document.getElementById('selectAll')?.addEventListener('change', function () {
-                document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = this.checked);
+                input.addEventListener('input', update);
+                update();
             });
+        }
 
-            async function viewVoucherDetail(voucherId) {
-                try {
-                    const response = await fetch(`/Voucher/Details/${voucherId}`);
-                    if (!response.ok) throw new Error('Không thể tải chi tiết');
-                    const voucher = await response.json();
-                    const content = `
-                        <div class="row g-3">
-                            <div class="col-md-6"><p><strong>Mã:</strong> ${voucher.voucherCode}</p></div>
-                            <div class="col-md-6"><p><strong>Loại:</strong> ${voucher.voucherTypeName}</p></div>
-                            <div class="col-md-6"><p><strong>Người tạo:</strong> ${voucher.creatorName}</p></div>
-                            <div class="col-md-6"><p><strong>Giảm:</strong> ${vndFormat.format(voucher.discountValue)} VND</p></div>
-                            <div class="col-md-6"><p><strong>Tối đa:</strong> ${voucher.maxDiscountAmount ? vndFormat.format(voucher.maxDiscountAmount) + ' VND' : 'Không giới hạn'}</p></div>
-                            <div class="col-md-6"><p><strong>Tối thiểu:</strong> ${voucher.minOrderAmount ? vndFormat.format(voucher.minOrderAmount) + ' VND' : 'Không yêu cầu'}</p></div>
-                            <div class="col-md-6"><p><strong>Giới hạn:</strong> ${voucher.usageLimitPerUser || 'Không giới hạn'}</p></div>
-                            <div class="col-md-6"><p><strong>Cộng dồn:</strong> ${voucher.isStackable ? 'Có' : 'Không'}</p></div>
-                            <div class="col-md-6"><p><strong>Bắt đầu:</strong> ${voucher.startDate}</p></div>
-                            <div class="col-md-6"><p><strong>Kết thúc:</strong> ${voucher.endDate}</p></div>
-                            <div class="col-md-6"><p><strong>Trạng thái:</strong> 
-                                ${voucher.status == 'Expired' 
-                                    ? '<span class="badge bg-warning">Hết hạn</span>' 
-                                    : '<span class="badge bg-success">Hoạt động</span>'}
-                            </p></div>
-                        </div>`;
-                    document.getElementById('voucherDetailContent').innerHTML = content;
-                    new bootstrap.Modal(document.getElementById('voucherDetailModal')).show();
-                } catch (error) {
-                    Swal.fire('Lỗi', error.message, 'error');
+        function bindDateRangeValidation(scopeEl) {
+            const start = scopeEl.querySelector('input[name="StartDate"]');
+            const end = scopeEl.querySelector('input[name="EndDate"]');
+            if (!start || !end) return;
+
+            const sync = () => {
+                if (start.value) end._flatpickr.set('minDate', start.value);
+                if (end.value && start.value && end.value < start.value) {
+                    end._flatpickr.setDate(start.value);
                 }
+            };
+            start.addEventListener('change', sync);
+            end.addEventListener('change', sync);
+        }
+
+        document.getElementById('selectAll')?.addEventListener('change', function () {
+            document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = this.checked);
+        });
+
+        async function viewVoucherDetail(voucherId) {
+            try {
+                const response = await fetch(`/Voucher/Details/${voucherId}`);
+                if (!response.ok) throw new Error('Không thể tải chi tiết');
+                const voucher = await response.json();
+                const content = `
+                            <div class="row g-3">
+                                <div class="col-md-6"><p><strong>Mã:</strong> ${voucher.voucherCode}</p></div>
+                                <div class="col-md-6"><p><strong>Loại:</strong> ${voucher.voucherTypeName}</p></div>
+                                <div class="col-md-6"><p><strong>Người tạo:</strong> ${voucher.creatorName}</p></div>
+                                <div class="col-md-6"><p><strong>Giảm:</strong> ${vndFormat.format(voucher.discountValue)} VND</p></div>
+                                <div class="col-md-6"><p><strong>Tối đa:</strong> ${voucher.maxDiscountAmount ? vndFormat.format(voucher.maxDiscountAmount) + ' VND' : 'Không giới hạn'}</p></div>
+                                <div class="col-md-6"><p><strong>Tối thiểu:</strong> ${voucher.minOrderAmount ? vndFormat.format(voucher.minOrderAmount) + ' VND' : 'Không yêu cầu'}</p></div>
+                                <div class="col-md-6"><p><strong>Giới hạn:</strong> ${voucher.usageLimitPerUser || 'Không giới hạn'}</p></div>
+                                <div class="col-md-6"><p><strong>Cộng dồn:</strong> ${voucher.isStackable ? 'Có' : 'Không'}</p></div>
+                                <div class="col-md-6"><p><strong>Bắt đầu:</strong> ${voucher.startDate}</p></div>
+                                <div class="col-md-6"><p><strong>Kết thúc:</strong> ${voucher.endDate}</p></div>
+                                <div class="col-md-6"><p><strong>Trạng thái:</strong>
+                                    ${voucher.status == 'Inactive'
+                        ? '<span class="badge bg-danger">Đã xóa</span>'
+                        : voucher.status == 'Expired'
+                            ? '<span class="badge bg-warning">Hết hạn</span>'
+                            : '<span class="badge bg-success">Hoạt động</span>'}
+                                </p></div>
+                            </div>`;
+                document.getElementById('voucherDetailContent').innerHTML = content;
+                new bootstrap.Modal(document.getElementById('voucherDetailModal')).show();
+            } catch (error) {
+                Swal.fire('Lỗi', error.message, 'error');
             }
+        }
 
-            async function submitAddVoucher() {
-                const form = document.getElementById('addVoucherForm');
-                const formData = new FormData(form);
-                const start = form.querySelector('input[name="StartDate"]').value;
-                const end = form.querySelector('input[name="EndDate"]').value;
-                if (start && end && end < start) {
-                    Swal.fire('Cảnh báo', 'Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu.', 'warning');
-                    return;
-                }
-                try {
-                    const response = await fetch('/Voucher/Create', { method: 'POST', body: formData });
-                    if (response.ok) {
-                        Swal.fire({ icon:'success', title:'Thành công', text:'Đã tạo voucher', timer:1500, showConfirmButton:false })
-                            .then(() => location.reload());
-                    } else {
-                        const error = await response.json();
-                        throw new Error(error.error || 'Lỗi server');
-                    }
-                } catch (error) {
-                    Swal.fire('Lỗi', error.message, 'error');
-                }
+        async function submitAddVoucher() {
+            const form = document.getElementById('addVoucherForm');
+            const formData = new FormData(form);
+            const start = form.querySelector('input[name="StartDate"]').value;
+            const end = form.querySelector('input[name="EndDate"]').value;
+            if (start && end && end < start) {
+                Swal.fire('Cảnh báo', 'Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu.', 'warning');
+                return;
             }
-
-                async function editVoucher(voucherId) {
-                try {
-                    const response = await fetch(`/Voucher/Details/${voucherId}`);
-                    if (!response.ok) throw new Error('Không thể tải chi tiết');
-                    const voucher = await response.json();
-
-                    const form = document.getElementById('editVoucherForm');
-                    if (!form) throw new Error('Form sửa không tồn tại');
-
-                    form.querySelector('#editVoucherId').value = voucherId;
-                    form.querySelector('input[name="VoucherCode"]').value = voucher.voucherCode;
-                    form.querySelector('select[name="VoucherTypeId"]').value = voucher.voucherTypeId;
-                    form.querySelector('select[name="CreateBy"]').value = voucher.createBy?.toString() || '';
-                    form.querySelector('input[name="DiscountValue"]').value = voucher.discountValue;
-                    form.querySelector('input[name="MaxDiscountAmount"]').value = voucher.maxDiscountAmount || '';
-                    form.querySelector('input[name="MinOrderAmount"]').value = voucher.minOrderAmount || '';
-                    form.querySelector('input[name="UsageLimitPerUser"]').value = voucher.usageLimitPerUser || '';
-                    form.querySelector('select[name="IsStackable"]').value = (voucher.isStackable ?? false).toString();
-
-                    const startInput = form.querySelector('input[name="StartDate"]');
-                    const endInput = form.querySelector('input[name="EndDate"]');
-                    if (startInput && startInput._flatpickr) startInput._flatpickr.setDate(voucher.startDate, true);
-                    if (endInput && endInput._flatpickr) endInput._flatpickr.setDate(voucher.endDate, true);
-
-                    form.querySelector('select[name="Status"]').value = voucher.status;
-
-                    const modalEl = document.getElementById('editVoucherModal');
-                    initDatePickers(modalEl);
-                    bindCurrencyPreview(modalEl);
-                    bindDateRangeValidation(modalEl);
-                    new bootstrap.Modal(modalEl).show();
-                } catch (error) {
-                    Swal.fire('Lỗi', error.message, 'error');
+            try {
+                const response = await fetch('/Voucher/Create', { method: 'POST', body: formData });
+                if (response.ok) {
+                    Swal.fire({ icon: 'success', title: 'Thành công', text: 'Đã tạo voucher', timer: 1500, showConfirmButton: false })
+                        .then(() => location.reload());
+                } else {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Lỗi server');
                 }
+            } catch (error) {
+                Swal.fire('Lỗi', error.message, 'error');
             }
+        }
 
-            async function submitEditVoucher() {
+        async function editVoucher(voucherId) {
+            try {
+                const response = await fetch(`/Voucher/Details/${voucherId}`);
+                if (!response.ok) throw new Error('Không thể tải chi tiết');
+                const voucher = await response.json();
+
                 const form = document.getElementById('editVoucherForm');
-                if (!form) return;
+                if (!form) throw new Error('Form sửa không tồn tại');
 
-                const formData = new FormData(form);
-                const voucherId = document.getElementById('editVoucherId').value;
-                const start = form.querySelector('input[name="StartDate"]').value;
-                const end = form.querySelector('input[name="EndDate"]').value;
-                if (start && end && end < start) {
-                    Swal.fire('Cảnh báo', 'Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu.', 'warning');
-                    return;
+                form.querySelector('#editVoucherId').value = voucherId;
+                form.querySelector('input[name="VoucherCode"]').value = voucher.voucherCode;
+                form.querySelector('select[name="VoucherTypeId"]').value = voucher.voucherTypeId;
+                form.querySelector('select[name="CreateBy"]').value = voucher.createBy?.toString() || '';
+                form.querySelector('input[name="DiscountValue"]').value = voucher.discountValue;
+                form.querySelector('input[name="MaxDiscountAmount"]').value = voucher.maxDiscountAmount || '';
+                form.querySelector('input[name="MinOrderAmount"]').value = voucher.minOrderAmount || '';
+                form.querySelector('input[name="UsageLimitPerUser"]').value = voucher.usageLimitPerUser || '';
+                form.querySelector('select[name="IsStackable"]').value = (voucher.isStackable ?? false).toString();
+
+                const startInput = form.querySelector('input[name="StartDate"]');
+                const endInput = form.querySelector('input[name="EndDate"]');
+                if (startInput && startInput._flatpickr) startInput._flatpickr.setDate(voucher.startDate, true);
+                if (endInput && endInput._flatpickr) endInput._flatpickr.setDate(voucher.endDate, true);
+
+                const modalEl = document.getElementById('editVoucherModal');
+                initDatePickers(modalEl);
+                bindCurrencyPreview(modalEl);
+                bindDateRangeValidation(modalEl);
+                new bootstrap.Modal(modalEl).show();
+            } catch (error) {
+                Swal.fire('Lỗi', error.message, 'error');
+            }
+        }
+
+        async function submitEditVoucher() {
+            const form = document.getElementById('editVoucherForm');
+            if (!form) return;
+
+            const formData = new FormData(form);
+            const voucherId = document.getElementById('editVoucherId').value;
+            const start = form.querySelector('input[name="StartDate"]').value;
+            const end = form.querySelector('input[name="EndDate"]').value;
+            if (start && end && end < start) {
+                Swal.fire('Cảnh báo', 'Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu.', 'warning');
+                return;
+            }
+            try {
+                const response = await fetch(`/Voucher/Edit/${voucherId}`, { method: 'POST', body: formData });
+                if (response.ok) {
+                    Swal.fire({ icon: 'success', title: 'Thành công', text: 'Đã cập nhật', timer: 1500, showConfirmButton: false })
+                        .then(() => location.reload());
+                } else {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Lỗi server');
                 }
+            } catch (error) {
+                Swal.fire('Lỗi', error.message, 'error');
+            }
+        }
+
+        async function softDeleteVoucher(voucherId) {
+            const result = await Swal.fire({
+                title: 'Xác nhận xóa',
+                text: 'Voucher sẽ được chuyển vào thùng rác. Bạn có chắc chắn?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Có, chuyển vào thùng rác',
+                cancelButtonText: 'Hủy'
+            });
+
+            if (result.isConfirmed) {
                 try {
-                    const response = await fetch(`/Voucher/Edit/${voucherId}`, { method: 'POST', body: formData });
+                    const formData = new FormData();
+                    const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+                    if (token) formData.append('__RequestVerificationToken', token);
+
+                    const response = await fetch(`/Voucher/Delete/${voucherId}`, { method: 'POST', body: formData });
                     if (response.ok) {
-                        Swal.fire({ icon:'success', title:'Thành công', text:'Đã cập nhật', timer:1500, showConfirmButton:false })
+                        Swal.fire({ icon: 'success', title: 'Đã chuyển', text: 'Vào thùng rác', timer: 1500, showConfirmButton: false })
                             .then(() => location.reload());
                     } else {
                         const error = await response.json();
@@ -717,52 +764,52 @@
                     Swal.fire('Lỗi', error.message, 'error');
                 }
             }
+        }
 
-            async function deleteVoucher(voucherId) {
-                const result = await Swal.fire({
-                    title: 'Xác nhận xóa vĩnh viễn',
-                    text: 'Voucher sẽ bị xóa HOÀN TOÀN và KHÔNG THỂ khôi phục. Bạn có chắc chắn?',
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#d33',
-                    cancelButtonColor: '#6c757d',
-                    confirmButtonText: 'Có, xóa vĩnh viễn',
-                    cancelButtonText: 'Hủy'
-                });
+        async function restoreVoucher(voucherId) {
+            const result = await Swal.fire({
+                title: 'Khôi phục voucher?',
+                text: 'Voucher sẽ được đưa trở lại danh sách hoạt động.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#28a745',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Có, khôi phục',
+                cancelButtonText: 'Hủy'
+            });
 
-                if (result.isConfirmed) {
-                    try {
-                        const formData = new FormData();
-                        const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
-                        if (token) formData.append('__RequestVerificationToken', token);
+            if (result.isConfirmed) {
+                try {
+                    const formData = new FormData();
+                    const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+                    if (token) formData.append('__RequestVerificationToken', token);
 
-                        const response = await fetch(`/Voucher/Delete/${voucherId}`, { method: 'POST', body: formData });
-                        if (response.ok) {
-                            Swal.fire({ icon:'success', title:'Đã xóa', text:'Voucher đã bị xóa vĩnh viễn', timer:1500, showConfirmButton:false })
-                                .then(() => location.reload());
-                        } else {
-                            const error = await response.json();
-                            throw new Error(error.error || 'Lỗi server');
-                        }
-                    } catch (error) {
-                        Swal.fire('Lỗi', error.message, 'error');
+                    const response = await fetch(`/Voucher/Restore/${voucherId}`, { method: 'POST', body: formData });
+                    if (response.ok) {
+                        Swal.fire({ icon: 'success', title: 'Đã khôi phục', timer: 1500, showConfirmButton: false })
+                            .then(() => location.reload());
+                    } else {
+                        const error = await response.json();
+                        throw new Error(error.error || 'Lỗi server');
                     }
+                } catch (error) {
+                    Swal.fire('Lỗi', error.message, 'error');
                 }
             }
+        }
 
-            // Khởi tạo khi mở modal
-            document.getElementById('addVoucherModal')?.addEventListener('shown.bs.modal', () => {
-                const modal = document.getElementById('addVoucherModal');
-                initDatePickers(modal);
-                bindCurrencyPreview(modal);
-                bindDateRangeValidation(modal);
-            });
+        document.getElementById('addVoucherModal')?.addEventListener('shown.bs.modal', () => {
+            const modal = document.getElementById('addVoucherModal');
+            initDatePickers(modal);
+            bindCurrencyPreview(modal);
+            bindDateRangeValidation(modal);
+        });
 
-            document.getElementById('editVoucherModal')?.addEventListener('shown.bs.modal', () => {
-                const modal = document.getElementById('editVoucherModal');
-                initDatePickers(modal);
-                bindCurrencyPreview(modal);
-                bindDateRangeValidation(modal);
-            });
-        </script>
+        document.getElementById('editVoucherModal')?.addEventListener('shown.bs.modal', () => {
+            const modal = document.getElementById('editVoucherModal');
+            initDatePickers(modal);
+            bindCurrencyPreview(modal);
+            bindDateRangeValidation(modal);
+        });
+    </script>
 }
