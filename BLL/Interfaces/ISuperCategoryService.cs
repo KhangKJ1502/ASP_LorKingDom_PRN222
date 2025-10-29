@@ -23,6 +23,6 @@ namespace BLL.Interfaces
 
         // Sửa tên + trạng thái (edit)
         Task<bool> UpdateAsync(int id, string name, bool isDeleted);
-
+        Task<PagedResult<SuperCategoryDto>> GetPagedAsync(string? keyword, int page, int pageSize);
     }
 }

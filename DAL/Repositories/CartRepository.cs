@@ -73,5 +73,12 @@ namespace DAL.Repositories
             await _db.SaveChangesAsync();
             // Có thể xóa cart nếu empty, nhưng giữ lại
         }
+
+        public async Task ClearCartByAccountIdAsync(int accountId)
+        {
+            var items = await _db.CartItems.Where(ci => ci.Cart.AccountId == accountId).ToListAsync();
+            _db.CartItems.RemoveRange(items);
+            await _db.SaveChangesAsync();
+        }
     }
 }

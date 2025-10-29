@@ -23,7 +23,7 @@
 				<div class="featured-post-card">
 					<div class="featured-post-image">
 						<img src="@(featuredBlogs[0].BlogThumbnail ?? "https://via.placeholder.com/800x400?text=Featured+Blog")"
-							 alt="@featuredBlogs[0].BlogTitle" class="img-fluid">
+							alt="@featuredBlogs[0].BlogTitle" class="img-fluid">
 					</div>
 					<div class="featured-post-content">
 						@if (featuredBlogs[0].CategoryNames?.Any() == true)
@@ -38,22 +38,22 @@
 						<h1 class="featured-post-title">@featuredBlogs[0].BlogTitle</h1>
 						<p class="featured-post-overview">
 							@Html.Raw(System.Text.RegularExpressions.Regex.Replace(
-													featuredBlogs[0].BlogContent, "<[^>]*>", ""))
-						</p>
-						<div class="featured-post-meta">
-							<span class="meta-item">
-								<i class="fas fa-user"></i>@featuredBlogs[0].AuthorName
-							</span>
-							<span class="meta-item">
-								<i class="fas fa-calendar"></i> @featuredBlogs[0].CreatedAt.ToString("dd/MM/yyyy")
-							</span>
-						</div>
-						<a href="/Blog/Detail/@featuredBlogs[0].BlogPostId" class="btn btn-primary btn-read-more">
-							Đọc tiếp <i class="fas fa-arrow-right ms-2"></i>
-						</a>
-					</div>
+							featuredBlogs[0].BlogContent, "<[^>]*>", ""))
+				</p>
+				<div class="featured-post-meta">
+					<span class="meta-item">
+						<i class="fas fa-user"></i>@featuredBlogs[0].AuthorName
+					</span>
+					<span class="meta-item">
+						<i class="fas fa-calendar"></i> @featuredBlogs[0].CreatedAt.ToString("dd/MM/yyyy")
+					</span>
 				</div>
-			}
+				<a href="/Blog/Detail/@featuredBlogs[0].BlogPostId" class="btn btn-primary btn-read-more">
+					Đọc tiếp <i class="fas fa-arrow-right ms-2"></i>
+				</a>
+			</div>
+		</div>
+				}
 			else
 			{
 				<!-- Multiple Featured Blogs - 2 Column Layout (60/40) -->
@@ -63,7 +63,7 @@
 						<div class="featured-post-card featured-vertical">
 							<div class="featured-post-image">
 								<img src="@(featuredBlogs[0].BlogThumbnail ?? "https://via.placeholder.com/800x400?text=Featured+Blog")"
-									 alt="@featuredBlogs[0].BlogTitle" class="img-fluid">
+									alt="@featuredBlogs[0].BlogTitle" class="img-fluid">
 							</div>
 							<div class="featured-post-content">
 								@if (featuredBlogs[0].CategoryNames?.Any() == true)
@@ -78,34 +78,35 @@
 								<h2 class="featured-post-title">@featuredBlogs[0].BlogTitle</h2>
 								<p class="featured-post-overview">
 									@Html.Raw(System.Text.RegularExpressions.Regex.Replace(
-																		featuredBlogs[0].BlogContent, "<[^>]*>", "").Substring(0, Math.Min(150,
-																		System.Text.RegularExpressions.Regex.Replace(featuredBlogs[0].BlogContent, "<[^>]*>",
-																		"").Length)) + "...")
-								</p>
-								<div class="featured-post-meta">
-									<span class="meta-item">
-										<i class="fas fa-user"></i><span style="color: #196DB4">@featuredBlogs[0].AuthorName</span>
-									</span>
-									<span class="meta-item">
-										<i class="fas fa-calendar"></i> @featuredBlogs[0].CreatedAt.ToString("dd/MM/yyyy")
-									</span>
-								</div>
-								<a href="/Blog/Detail/@featuredBlogs[0].BlogPostId"
-								   class="btn btn-sm btn-primary btn-read-more">
-									Đọc tiếp <i class="fas fa-arrow-right ms-1"></i>
-								</a>
-							</div>
+									featuredBlogs[0].BlogContent, "<[^>]*>", "").Substring(0, Math.Min(150,
+									System.Text.RegularExpressions.Regex.Replace(featuredBlogs[0].BlogContent, "<[^>]*>",
+									"").Length)) + "...")
+						</p>
+						<div class="featured-post-meta">
+							<span class="meta-item">
+								<i class="fas fa-user"></i><span
+									style="color: #196DB4">@featuredBlogs[0].AuthorName</span>
+							</span>
+							<span class="meta-item">
+								<i class="fas fa-calendar"></i> @featuredBlogs[0].CreatedAt.ToString("dd/MM/yyyy")
+							</span>
 						</div>
+						<a href="/Blog/Detail/@featuredBlogs[0].BlogPostId"
+							class="btn btn-sm btn-primary btn-read-more">
+							Đọc tiếp <i class="fas fa-arrow-right ms-1"></i>
+						</a>
 					</div>
+				</div>
+			</div>
 
-					<!-- Right Column (40%) - Secondary Featured (3 rows) -->
-					<div class="h-100 gap-4 d-flex flex-column">
-						@for (int i = 1; i < featuredBlogs.Count; i++)
+			<!-- Right Column (40%) - Secondary Featured (3 rows) -->
+			<div class="h-100 gap-4 d-flex flex-column">
+				@for (int i = 1; i < featuredBlogs.Count; i++)
 						{
 							<div class="featured-post-row rounded border">
 								<div class="featured-post-row-image">
 									<img src="@(featuredBlogs[i].BlogThumbnail ?? "https://via.placeholder.com/300x200?text=Featured")"
-										 alt="@featuredBlogs[i].BlogTitle" class="img-fluid">
+										alt="@featuredBlogs[i].BlogTitle" class="img-fluid">
 								</div>
 								<div class="featured-post-row-content">
 									@if (featuredBlogs[i].CategoryNames?.Any() == true)
@@ -153,7 +154,7 @@
 							<article class="recent-post-full-row">
 								<div class="recent-post-row-image">
 									<img src="@(blog.BlogThumbnail ?? "https://via.placeholder.com/300x200?text=Blog")"
-										 alt="@blog.BlogTitle" class="img-fluid">
+										alt="@blog.BlogTitle" class="img-fluid">
 								</div>
 								<div class="recent-post-row-content">
 									@if (blog.CategoryNames?.Any() == true)
@@ -198,7 +199,8 @@
 						<nav class="pagination-section mt-5" aria-label="Blog pagination">
 							<ul class="pagination justify-content-center">
 								<li class="page-item @((int?)ViewBag.CurrentPage <= 1 ? "disabled" : "")">
-									<a class="page-link" href="?page=@((int?)ViewBag.CurrentPage - 1)">
+									<a class="page-link"
+										href="?q=@(ViewBag.Query ?? "")&category=@(ViewBag.Category ?? "")&page=@((int?)ViewBag.CurrentPage - 1)">
 										<i class="fas fa-chevron-left"></i> Trang trước
 									</a>
 								</li>
@@ -206,12 +208,15 @@
 								@for (int i = 1; i <= (int?)ViewBag.TotalPages; i++)
 								{
 									<li class="page-item @(i == (int?)ViewBag.CurrentPage ? "active" : "")">
-										<a class="page-link" href="?page=@i">@i</a>
+										<a class="page-link"
+											href="?q=@(ViewBag.Query ?? "")&category=@(ViewBag.Category ?? "")&page=@i">@i</a>
 									</li>
 								}
 
-								<li class="page-item @((int?)ViewBag.CurrentPage >= (int?)ViewBag.TotalPages ? "disabled" : "")">
-									<a class="page-link" href="?page=@((int?)ViewBag.CurrentPage + 1)">
+								<li
+									class="page-item @((int?)ViewBag.CurrentPage >= (int?)ViewBag.TotalPages ? "disabled" : "")">
+									<a class="page-link"
+										href="?q=@(ViewBag.Query ?? "")&category=@(ViewBag.Category ?? "")&page=@((int?)ViewBag.CurrentPage + 1)">
 										Trang sau <i class="fas fa-chevron-right"></i>
 									</a>
 								</li>
@@ -234,9 +239,18 @@
 			<div class="sidebar-widget search-widget">
 				<h5 class="widget-title">Tìm kiếm bài viết</h5>
 				<form method="get" action="/Blog/Index" class="search-form">
-					<div class="input-group">
-						<input type="text" name="q" class="form-control search-input" placeholder="Nhập từ khóa..."
-							   value="@(string.IsNullOrEmpty((string?)ViewBag.Query) ? "" : ViewBag.Query)">
+					<div class="input-group search-input-wrapper">
+						<input type="text" name="q" class="form-control sidebar-search-input"
+							id="blogSearchInput"
+							placeholder="Nhập từ khóa..."
+							value="@(string.IsNullOrEmpty((string?)ViewBag.Query) ? "" : ViewBag.Query)">
+						<!-- Nút clear input -->
+						<button type="button" class="btn-close btn-clear-input" id="clearSearchBtn" style="display: none;"></button>
+						<!-- Giữ lại category filter khi tìm kiếm -->
+						@if (!string.IsNullOrWhiteSpace((string?)ViewBag.Category))
+						{
+							<input type="hidden" name="category" value="@ViewBag.Category">
+						}
 						<button class="btn btn-primary" type="submit">
 							<i class="fas fa-search"></i>
 						</button>
@@ -249,30 +263,27 @@
 				<h5 class="widget-title">Chuyên mục</h5>
 				<ul class="categories-list">
 					@{
-						var allBlogsForCategories = ((List<BLL.DTOs.BlogPostDto>?)ViewBag.FeaturedBlogs ?? new
-						List<BLL.DTOs.BlogPostDto>())
-						.Concat((List<BLL.DTOs.BlogPostDto>?)ViewBag.RecentBlogs ?? new List<BLL.DTOs.BlogPostDto>())
-						.ToList();
+						var categoryStats = (Dictionary<string, int>?)ViewBag.CategoryStats ?? new Dictionary<string, int>();
+						// var currentCategory = (string?)ViewBag.Category ?? "";
+						// var totalPublishedCount = categoryStats.Values.Count; Count unique categories
 					}
-					@if (allBlogsForCategories.Any() == true)
-					{
-						var categories = allBlogsForCategories
-						.Where(b => b.CategoryNames != null)
-						.SelectMany(b => b.CategoryNames)
-						.Distinct()
-						.ToList();
+					<!-- Tất cả chuyên mục -->
+					<li class="category-item">
+						<a href="?" class="category-link">
+							<strong>Tất cả</strong> <span class="category-count">(@categoryStats.Values.Sum())</span>
+						</a>
+					</li>
 
-						@if (categories.Any())
+					@if (categoryStats.Any())
+					{
+						@foreach (var cat in categoryStats.OrderByDescending(c => c.Value).Take(5))
 						{
-							@foreach (var cat in categories.Take(5))
-							{
-								var count = allBlogsForCategories.Count(b => b.CategoryNames.Contains(cat));
-								<li class="category-item">
-									<a href="?q=&category=@Uri.EscapeDataString(cat)" class="category-link">
-										@cat <span class="category-count">(@count)</span>
-									</a>
-								</li>
-							}
+							<li class="category-item">
+								<a href="?category=@Uri.EscapeDataString(cat.Key)"
+									class="category-link">
+									@cat.Key <span class="category-count">(@cat.Value)</span>
+								</a>
+							</li>
 						}
 					}
 				</ul>
@@ -282,14 +293,20 @@
 			<div class="sidebar-widget recent-posts-widget">
 				<h5 class="widget-title">Bài viết gần đây</h5>
 				<ul class="recent-posts-list">
-					@if (allBlogsForCategories.Any() == true)
+					@{
+						var allBlogsForRecentWidget = ((List<BLL.DTOs.BlogPostDto>?)ViewBag.FeaturedBlogs ?? new
+						List<BLL.DTOs.BlogPostDto>())
+						.Concat((List<BLL.DTOs.BlogPostDto>?)ViewBag.RecentBlogs ?? new List<BLL.DTOs.BlogPostDto>())
+						.ToList();
+					}
+					@if (allBlogsForRecentWidget.Any() == true)
 					{
-						@foreach (var blog in allBlogsForCategories.OrderByDescending(b => b.CreatedAt).Take(3))
+						@foreach (var blog in allBlogsForRecentWidget.OrderByDescending(b => b.CreatedAt).Take(3))
 						{
 							<li class="recent-post-item">
 								<div class="recent-post-thumbnail">
 									<img src="@(blog.BlogThumbnail ?? "https://via.placeholder.com/80x80?text=Blog")"
-										 alt="@blog.BlogTitle" class="img-fluid">
+										alt="@blog.BlogTitle" class="img-fluid">
 								</div>
 								<div class="recent-post-info">
 									<a href="/Blog/Detail/@blog.BlogPostId" class="recent-post-title">@blog.BlogTitle</a>
@@ -304,78 +321,112 @@
 	</div>
 </div>
 @section Scripts {
-	@* script sẵn có của bạn *@
 	<script src="~/js/home.js"></script>
 
 	<script>
 		// ===== Config URL & CSRF =====
 		const WL_URLS = {
-		  toggle: '@Url.Action("Toggle", "Wishlist")',
-		  heartSet: '@Url.Action("HeartSet", "Wishlist")'
+			toggle: '@Url.Action("Toggle", "Wishlist")',
+			heartSet: '@Url.Action("HeartSet", "Wishlist")'
 		};
-		function __afToken(){
-		  return document.querySelector("#__afForm input[name='__RequestVerificationToken']")?.value || "";
+		function __afToken() {
+			return document.querySelector("#__afForm input[name='__RequestVerificationToken']")?.value || "";
 		}
 
 		// ===== Module WL siêu gọn dùng cho trang list =====
 		window.WL = window.WL || {};
-		WL.toggle = async function(productId, btn){
-		  // optimistic UI
-		  btn?.classList.toggle('active');
+		WL.toggle = async function (productId, btn) {
+			// optimistic UI
+			btn?.classList.toggle('active');
 
-		  const res = await fetch(WL_URLS.toggle, {
-			method: "POST",
-			headers: {
-			  "Content-Type": "application/json",
-			  "RequestVerificationToken": __afToken()
-			},
-			body: JSON.stringify({ productId })
-		  }).catch(()=>null);
+			const res = await fetch(WL_URLS.toggle, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					"RequestVerificationToken": __afToken()
+				},
+				body: JSON.stringify({ productId })
+			}).catch(() => null);
 
-		  if(!res) return;
-		  const data = await res.json().catch(()=>({}));
+			if (!res) return;
+			const data = await res.json().catch(() => ({}));
 
-		  // đồng bộ lại nếu server nói khác
-		  if(btn){
-			if(data.isLiked) btn.classList.add('active');
-			else btn.classList.remove('active');
-		  }
+			// đồng bộ lại nếu server nói khác
+			if (btn) {
+				if (data.isLiked) btn.classList.add('active');
+				else btn.classList.remove('active');
+			}
 
-		  // cập nhật badge tổng (nếu có ở header)
-		  const badge = document.getElementById('wl-badge');
-		  if (badge && typeof data.count === 'number') {
-			badge.textContent = data.count;
-			badge.classList.toggle('d-none', data.count === 0);
-		  }
+			// cập nhật badge tổng (nếu có ở header)
+			const badge = document.getElementById('wl-badge');
+			if (badge && typeof data.count === 'number') {
+				badge.textContent = data.count;
+				badge.classList.toggle('d-none', data.count === 0);
+			}
 		};
 
 		// ===== Khởi tạo tim đã "đỏ" khi trang load lần đầu =====
-		(async function initHearts(){
-		  try{
-			const res = await fetch(WL_URLS.heartSet, { headers:{ "X-Requested-With":"XMLHttpRequest" }});
-			const set = await res.json(); // ví dụ: [1,2,5]
-			document.querySelectorAll(".wishlist-heart[data-heart]").forEach(el=>{
-			  const pid = parseInt(el.getAttribute("data-heart"),10);
-			  if(set.includes(pid)) el.classList.add('active');
-			});
-		  }catch{}
+		(async function initHearts() {
+			try {
+				const res = await fetch(WL_URLS.heartSet, { headers: { "X-Requested-With": "XMLHttpRequest" } });
+				const set = await res.json(); // ví dụ: [1,2,5]
+				document.querySelectorAll(".wishlist-heart[data-heart]").forEach(el => {
+					const pid = parseInt(el.getAttribute("data-heart"), 10);
+					if (set.includes(pid)) el.classList.add('active');
+				});
+			} catch { }
 		})();
 	</script>
 
 	<script>
 		document.addEventListener('click', function (e) {
-		  const card = e.target.closest('.js-card');
-		  if (!card) return;
-		  if (e.target.closest('a, button, input, select, textarea, label')) return;
-		  const url = card.dataset.url;
-		  if (url) window.location.href = url;
+			const card = e.target.closest('.js-card');
+			if (!card) return;
+			if (e.target.closest('a, button, input, select, textarea, label')) return;
+			const url = card.dataset.url;
+			if (url) window.location.href = url;
 		});
 		document.addEventListener('keydown', function (e) {
-		  if (e.key !== 'Enter') return;
-		  const card = e.target.closest('.js-card');
-		  if (!card) return;
-		  const url = card.dataset.url;
-		  if (url) window.location.href = url;
+			if (e.key !== 'Enter') return;
+			const card = e.target.closest('.js-card');
+			if (!card) return;
+			const url = card.dataset.url;
+			if (url) window.location.href = url;
 		});
+	</script>
+
+	<script>
+		// Clear input functionality
+		const searchInput = document.getElementById('blogSearchInput');
+		const clearBtn = document.getElementById('clearSearchBtn');
+
+		if (searchInput && clearBtn) {
+			// Hiển thị/ẩn nút clear dựa trên nội dung input
+			const toggleClearBtn = () => {
+				clearBtn.style.display = searchInput.value.trim() ? 'block' : 'none';
+			};
+
+			// Gọi hàm khi trang load (để xử lý giá trị khởi đầu)
+			toggleClearBtn();
+
+			// Gọi hàm khi người dùng nhập text
+			searchInput.addEventListener('input', toggleClearBtn);
+
+			// Xoá input khi click nút clear
+			clearBtn.addEventListener('click', (e) => {
+				e.preventDefault();
+				searchInput.value = '';
+				searchInput.focus();
+				toggleClearBtn();
+			});
+
+			// Xoá input khi nhấn Escape
+			searchInput.addEventListener('keydown', (e) => {
+				if (e.key === 'Escape') {
+					searchInput.value = '';
+					toggleClearBtn();
+				}
+			});
+		}
 	</script>
 }

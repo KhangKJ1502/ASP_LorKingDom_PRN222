@@ -50,11 +50,14 @@ namespace BLL
             //Wishlist
             services.AddScoped<IWishlistService, WishlistService>();
 
-			// Nhánh Cart
-			services.AddScoped<ICartService, CartService>();
+            // Nhánh Cart
+            services.AddScoped<ICartService, CartService>();
 
-			// Nhánh ReviewBlog
-			services.AddScoped<IReviewBlogService, ReviewBlogService>();
+            // Nhánh Order
+            services.AddScoped<IOrderService, OrderService>();
+
+            // Nhánh ReviewBlog
+            services.AddScoped<IReviewBlogService, ReviewBlogService>();
             services.AddScoped<IReviewBlogReactionService, ReviewBlogReactionService>();
             services.AddScoped<IReviewBlogReplyService, ReviewBlogReplyService>();
 

@@ -43,12 +43,20 @@ namespace WebUI.Controllers
             _originSvc = originSvc;
         }
 
-        public async Task<IActionResult> Manage(string? q)
+        public async Task<IActionResult> Manage(string? q, int page = 1, int pageSize = 8)
         {
-            var list = await _productSvc.GetAllAsync(q);
+            if (page <= 0) page = 1;
+            if (pageSize <= 0) pageSize = 8;
+
+            var paged = await _productSvc.GetAdminPagedAsync(q, page, pageSize);
             ViewBag.Query = q;
-            return View("~/Views/Admin/ManageProduct.cshtml", list);
+            ViewBag.Page = paged.Page;
+            ViewBag.PageSize = paged.PageSize;
+            ViewBag.Total = paged.Total;
+
+            return View("~/Views/Admin/ManageProduct.cshtml", paged);
         }
+
 
         public async Task<IActionResult> Create()
         {

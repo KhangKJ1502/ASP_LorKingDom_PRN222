@@ -65,11 +65,19 @@
                             @foreach (var s in onlineStaff)
                             {
                                 var isSelected = (!string.IsNullOrEmpty(preSelectedStaffId) && preSelectedStaffId == s.StaffId);
-                                <option value="@s.StaffId"
-                                        data-name="@s.StaffName"
-                                        @@(isSelected ? "selected=\"selected\"" : "")>
-                                    @s.StaffName (@s.StaffId)
-                                </option>
+
+                                if (isSelected)
+                                {
+                                    <option value="@s.StaffId" data-name="@s.StaffName" selected>
+                                        @s.StaffName (@s.StaffId)
+                                    </option>
+                                }
+                                else
+                                {
+                                    <option value="@s.StaffId" data-name="@s.StaffName">
+                                        @s.StaffName (@s.StaffId)
+                                    </option>
+                                }
                             }
                         </select>
                     </div>
