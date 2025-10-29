@@ -73,6 +73,104 @@ namespace WebUI.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateNotification(NotificationSaveDto dto, [FromQuery] NotificationFilterDto f)
+        {
+            f = NormalizeFilter(f);
+
+            try
+            {
+                var validationError = ValidateBasicInput(dto);
+                if (!string.IsNullOrWhiteSpace(validationError))
+                    throw new InvalidOperationException(validationError);
+
+                dto.ScheduledAt = ToUtcFromLocal(dto.ScheduledAt);
+                if (dto.ExpireAt.HasValue)
+                    dto.ExpireAt = ToUtcFromLocal(dto.ExpireAt.Value);
+
+                if (dto.CreatedBy <= 0)
+                    dto.CreatedBy = GetCurrentUserId();
+
+                dto.Type = NormalizeTypeForService(dto.Type);
+                dto.TargetType = NormalizeTargetTypeForService(dto.TargetType);
+
+                await _svc.CreateAsync(new NotificationCreateDto
+                {
+                    CreatedBy = dto.CreatedBy,
+                    Title = dto.Title,
+                    Message = dto.Message,
+                    Type = dto.Type,
+                    TargetType = dto.TargetType,
+                    TargetRoleId = dto.TargetRoleId,
+                    TargetUserId = dto.TargetUserId,
+                    ConditionJson = dto.ConditionJson,
+                    ScheduledAt = dto.ScheduledAt,
+                    ExpireAt = dto.ExpireAt
+                });
+
+                TempData["Success"] = "✅ Thêm thông báo mới thành công.";
+                return RedirectToAction(nameof(Manage), f);
+            }
+            catch (Exception ex)
+            {
+                return await HandleCreateError(ex, dto, f);
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateNotification(NotificationSaveDto dto, [FromQuery] NotificationFilterDto f)
+        {
+            f = NormalizeFilter(f);
+
+            try
+            {
+                if (!dto.NotificationId.HasValue || dto.NotificationId.Value <= 0)
+                    throw new InvalidOperationException("ID thông báo không hợp lệ.");
+
+                var validationError = ValidateBasicInput(dto);
+                if (!string.IsNullOrWhiteSpace(validationError))
+                    throw new InvalidOperationException(validationError);
+
+                dto.ScheduledAt = ToUtcFromLocal(dto.ScheduledAt);
+                if (dto.ExpireAt.HasValue)
+                    dto.ExpireAt = ToUtcFromLocal(dto.ExpireAt.Value);
+
+                if (dto.CreatedBy <= 0)
+                    dto.CreatedBy = GetCurrentUserId();
+
+                dto.Type = NormalizeTypeForService(dto.Type);
+                dto.TargetType = NormalizeTargetTypeForService(dto.TargetType);
+
+                await _svc.UpdateAsync(new NotificationUpdateDto
+                {
+                    NotificationId = dto.NotificationId.Value,
+                    CreatedBy = dto.CreatedBy,
+                    Title = dto.Title,
+                    Message = dto.Message,
+                    Type = dto.Type,
+                    TargetType = dto.TargetType,
+                    TargetRoleId = dto.TargetRoleId,
+                    TargetUserId = dto.TargetUserId,
+                    ConditionJson = dto.ConditionJson,
+                    ScheduledAt = dto.ScheduledAt,
+                    ExpireAt = dto.ExpireAt
+                });
+
+                TempData["Success"] = "✅ Cập nhật thông báo thành công.";
+                return RedirectToAction(nameof(Manage), f);
+            }
+            catch (Exception ex)
+            {
+                return await HandleUpdateError(ex, dto, f);
+            }
+        }
+
+        /// <summary>
+        /// [DEPRECATED] Use CreateNotification() or UpdateNotification() instead
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Obsolete("Use CreateNotification() or UpdateNotification() instead")]
         public async Task<IActionResult> SaveNotification(NotificationSaveDto dto, [FromQuery] NotificationFilterDto f)
         {
             f = NormalizeFilter(f);
@@ -215,6 +313,51 @@ namespace WebUI.Controllers
             if (dto.ExpireAt.HasValue && dto.ExpireAt.Value <= dto.ScheduledAt)
                 return "Thời gian hết hạn phải sau thời gian hiển thị.";
             return string.Empty;
+        }
+
+        private async Task<IActionResult> HandleCreateError(Exception ex, NotificationSaveDto dto, NotificationFilterDto f)
+        {
+            ViewBag.ShowErrorModal = true;
+            ViewBag.ErrorMessage = ex.Message;
+            ViewBag.ShowAddModal = true; // Flag để mở Add Modal
+
+            var list = await _svc.SearchAsync(f);
+            ViewBag.Filter = f;
+            ViewBag.Roles = await _roleRepo.GetAllAsync();
+            ViewBag.EditNotification = null; // Không có edit data
+
+            return View("~/Views/Admin/ManageNotification.cshtml", list);
+        }
+
+        private async Task<IActionResult> HandleUpdateError(Exception ex, NotificationSaveDto dto, NotificationFilterDto f)
+        {
+            ViewBag.ShowErrorModal = true;
+            ViewBag.ErrorMessage = ex.Message;
+
+            var list = await _svc.SearchAsync(f);
+            ViewBag.Filter = f;
+            ViewBag.Roles = await _roleRepo.GetAllAsync();
+
+            // Restore data để hiển thị lại modal edit
+            ViewBag.EditNotification = new NotificationDto
+            {
+                NotificationId = dto.NotificationId ?? 0,
+                CreatedBy = dto.CreatedBy,
+                Title = dto.Title,
+                Message = dto.Message,
+                Type = dto.Type,
+                TargetType = dto.TargetType,
+                TargetRoleId = dto.TargetRoleId,
+                TargetUserId = dto.TargetUserId,
+                ConditionJson = dto.ConditionJson,
+                ScheduledAt = dto.ScheduledAt,
+                ExpireAt = dto.ExpireAt,
+                IsSent = false,
+                IsCanceled = false,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            return View("~/Views/Admin/ManageNotification.cshtml", list);
         }
 
         private async Task<IActionResult> HandleSaveError(Exception ex, NotificationSaveDto dto, NotificationFilterDto f)

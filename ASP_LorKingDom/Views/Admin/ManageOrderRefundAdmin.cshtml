@@ -1,0 +1,775 @@
+﻿@using BLL.DTOs
+@model PagedResult<BLL.DTOs.OrderRefundDto>
+
+@{
+    ViewData["Title"] = "Quản lý hoàn tiền / hoàn trả - ToyLand Admin";
+    Layout = "_AdminLayout";
+
+    var q = (string?)ViewBag.Query ?? "";
+    var statusFilter = (string?)ViewBag.StatusFilter ?? "";
+    var dateFromFilter = (string?)ViewBag.DateFromFilter ?? "";
+    var dateToFilter = (string?)ViewBag.DateToFilter ?? "";
+
+    var currentPage = (int?)ViewBag.CurrentPage ?? 1;
+    var pageSize = (int?)ViewBag.PageSize ?? 10;
+    var totalRecords = (int?)ViewBag.TotalRecords ?? 0;
+    var totalPages = (int?)ViewBag.TotalPages ?? 1;
+}
+
+<style>
+    .status-badge, .refund-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.4rem 0.75rem;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        line-height: 1.2;
+    }
+
+    .refund-requested {
+        background-color: #fff3cd;
+        color: #856404;
+    }
+
+    .refund-approved {
+        background-color: #d1ecf1;
+        color: #0c5460;
+    }
+
+    .refund-rejected {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+
+    .refund-refunded {
+        background-color: #d4edda;
+        color: #155724;
+    }
+
+    .refund-processing {
+        background-color: #cfe2ff;
+        color: #084298;
+    }
+
+    .refund-cancelled {
+        background-color: #e2e3e5;
+        color: #383d41;
+    }
+
+    .refund-unknown {
+        background-color: #e2e3e5;
+        color: #383d41;
+    }
+
+    .order-id, .refund-id {
+        font-weight: 600;
+        color: #667eea;
+        cursor: pointer;
+        text-decoration: none;
+    }
+
+        .order-id:hover, .refund-id:hover {
+            text-decoration: underline;
+        }
+
+    .customer-name {
+        font-weight: 500;
+        margin: 0;
+        color: #1f2937;
+    }
+
+    .account-hint {
+        font-size: .8rem;
+        color: #6b7280;
+    }
+
+    .price-text {
+        font-weight: 600;
+        color: #28a745;
+    }
+
+    #refundDetailModal .modal-content {
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    }
+
+    #refundDetailModal .modal-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 16px 16px 0 0;
+        padding: 1.5rem;
+        border: none;
+    }
+
+    #refundDetailModal .modal-title {
+        font-weight: 600;
+        font-size: 1.25rem;
+    }
+
+    #refundDetailModal .btn-close {
+        filter: brightness(0) invert(1);
+        opacity: 0.8;
+    }
+
+    #refundDetailModal .modal-body {
+        padding: 2rem;
+        background-color: #f8f9fa;
+    }
+
+    .refund-detail-section {
+        background-color: white;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        border: 1px solid #e9ecef;
+    }
+
+        .refund-detail-section h6 {
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #1f2937;
+        }
+
+    .detail-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+    .detail-label {
+        font-weight: 500;
+        color: #6b7280;
+        font-size: 0.9rem;
+    }
+
+    .detail-value {
+        color: #1f2937;
+        font-weight: 500;
+        text-align: right;
+        max-width: 60%;
+        word-break: break-word;
+    }
+
+    .total-section {
+        background-color: #f8f9fa;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-top: 1rem;
+    }
+
+    .total-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.5rem 0;
+        font-weight: 600;
+        color: #1f2937;
+    }
+
+        .total-row.grand {
+            font-size: 1.1rem;
+            color: #667eea;
+            border-top: 2px solid #e9ecef;
+            padding-top: 0.75rem;
+        }
+
+    .modal-spinner {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 200px;
+    }
+
+        .modal-spinner.hide {
+            display: none;
+        }
+</style>
+
+<div class="container-fluid px-5">
+    <h1 class="mt-4">Quản Lý Hoàn Tiền / Hoàn Trả</h1>
+
+    <!-- Success Toast -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="toast-container position-fixed p-3" style="top: 20px; right: 20px; z-index: 2080;">
+            <div class="toast align-items-center text-bg-success border-0 show" role="alert">
+                <div class="d-flex">
+                    <div class="toast-body fs-5 fw-semibold">
+                        <i class="fa-solid fa-circle-check me-2"></i>
+                        @TempData["SuccessMessage"]
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Error Toast -->
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="toast-container position-fixed p-3" style="top: 20px; right: 20px; z-index: 2080;">
+            <div class="toast align-items-center text-bg-danger border-0 show" role="alert">
+                <div class="d-flex">
+                    <div class="toast-body fs-5 fw-semibold">
+                        <i class="fa-solid fa-circle-exclamation me-2"></i>
+                        @TempData["ErrorMessage"]
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                </div>
+            </div>
+        </div>
+    }
+
+    <div class="card mb-4 mt-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <div>
+                <i class="fa-solid fa-rotate-left me-2"></i>Danh Sách Yêu Cầu Hoàn Tiền
+            </div>
+            <span class="badge bg-primary rounded-pill">@totalRecords yêu cầu</span>
+        </div>
+
+        <div class="card-body">
+            <!-- Bộ lọc / tìm kiếm -->
+            <form class="mb-4" method="get" asp-action="Manage" asp-controller="OrderRefundAdmin">
+                <div class="row g-2 mb-3">
+                    <div class="col-md-3">
+                        <input type="text" name="keyword" value="@q" class="form-control"
+                               placeholder="Tìm theo RefundID, OrderID, tên người yêu cầu...">
+                    </div>
+
+                    <div class="col-md-2">
+                        <select name="status" class="form-control">
+                            <option value="">Tất cả trạng thái</option>
+                            <option value="Requested" selected="@(statusFilter == "Requested")">Yêu cầu hoàn tiền</option>
+                            <option value="Approved" selected="@(statusFilter == "Approved")">Đã duyệt</option>
+                            <option value="Rejected" selected="@(statusFilter == "Rejected")">Từ chối</option>
+                            <option value="Processing" selected="@(statusFilter == "Processing")">Đang xử lý</option>
+                            <option value="Refunded" selected="@(statusFilter == "Refunded")">Đã hoàn tiền</option>
+                            <option value="Cancelled" selected="@(statusFilter == "Cancelled")">Đã hủy</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-2">
+                        <input type="date" name="dateFrom" value="@dateFromFilter" class="form-control">
+                    </div>
+                    <div class="col-md-2">
+                        <input type="date" name="dateTo" value="@dateToFilter" class="form-control">
+                    </div>
+
+                    <div class="col-md-2">
+                        <button class="btn btn-primary w-100" type="submit">
+                            <i class="fa-solid fa-magnifying-glass"></i> Tìm kiếm
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Bảng refund -->
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th style="width:100px; text-align:center;">RefundID</th>
+                            <th>Đơn hàng</th>
+                            <th>Người yêu cầu</th>
+                            <th>Người duyệt</th>
+                            <th style="width:120px;">Trạng thái</th>
+                            <th style="width:130px;">Phương thức</th>
+                            <th style="width:160px;">Thời gian tạo</th>
+                            <th style="width:160px;">Duyệt lúc</th>
+                            <th style="width:160px; text-align:center;">Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model?.Items?.Any() == true)
+                        {
+                            foreach (var refund in Model.Items)
+                            {
+                                var refundClass = refund.RefundStatus switch
+                                {
+                                    "Requested" => "refund-requested",
+                                    "Approved" => "refund-approved",
+                                    "Rejected" => "refund-rejected",
+                                    "Refunded" => "refund-refunded",
+                                    "Processing" => "refund-processing",
+                                    "Cancelled" => "refund-cancelled",
+                                    _ => "refund-unknown"
+                                };
+
+                                <tr>
+                                    <td style="text-align:center;">
+                                        <a href="javascript:void(0)"
+                                           class="refund-id"
+                                           onclick="viewRefundDetail(@refund.RefundId)">
+                                            #@refund.RefundId.ToString().PadLeft(6, '0')
+                                        </a>
+                                    </td>
+
+                                    <td>
+                                        <div class="fw-semibold text-dark">
+                                            @(refund.OrderCode ?? $"Order #{refund.OrderId}")
+                                        </div>
+                                        <div class="text-muted small">
+                                            ID: @refund.OrderId
+                                        </div>
+                                    </td>
+
+                                    <td>
+                                        <p class="customer-name mb-0">
+                                            @(refund.RequestedByName ?? $"Account #{refund.RequestedBy}")
+                                        </p>
+                                        <div class="account-hint">
+                                            ID: @refund.RequestedBy
+                                        </div>
+                                    </td>
+
+                                    <td>
+                                        @if (refund.ApprovedBy != null)
+                                        {
+                                            <p class="customer-name mb-0">
+                                                @(refund.ApprovedByName ?? $"Staff #{refund.ApprovedBy}")
+                                            </p>
+                                            <div class="account-hint">
+                                                Đã duyệt
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted small">-</span>
+                                        }
+                                    </td>
+
+                                    <td>
+                                        <span class="refund-badge @refundClass">
+                                            @refund.RefundStatusDisplay
+                                        </span>
+                                    </td>
+
+                                    <td>
+                                        <div class="text-dark fw-semibold">@refund.RefundMode</div>
+                                        @if (refund.WalletTransactionId != null)
+                                        {
+                                            <div class="text-muted small">
+                                                Txn: @refund.WalletTransactionId
+                                            </div>
+                                        }
+                                    </td>
+
+                                    <td>
+                                        <div class="text-dark fw-semibold">
+                                            @refund.CreatedAt.ToString("dd/MM/yyyy HH:mm")
+                                        </div>
+                                        <div class="text-muted small">
+                                            Tạo yêu cầu
+                                        </div>
+                                    </td>
+
+                                    <td>
+                                        @if (refund.ApprovedAt.HasValue)
+                                        {
+                                            <div class="text-dark fw-semibold">
+                                                @refund.ApprovedAt.Value.ToString("dd/MM/yyyy HH:mm")
+                                            </div>
+                                            <div class="text-muted small">
+                                                Duyệt yêu cầu
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted small">-</span>
+                                        }
+                                    </td>
+
+                                    <td style="text-align:center;">
+                                        @if (refund.RefundStatus == "Requested")
+                                        {
+                                            <button type="button" class="btn btn-sm btn-success me-1"
+                                                    onclick="updateRefundStatus(@refund.RefundId, 'Approved')"
+                                                    title="Duyệt">
+                                                <i class="fas fa-check-circle"></i>
+                                            </button>
+
+                                            <button type="button" class="btn btn-sm btn-danger"
+                                                    onclick="updateRefundStatus(@refund.RefundId, 'Rejected')"
+                                                    title="Từ chối">
+                                                <i class="fas fa-times-circle"></i>
+                                            </button>
+                                        }
+                                        else if (refund.RefundStatus == "Approved")
+                                        {
+                                            <button type="button" class="btn btn-sm btn-primary"
+                                                    onclick="updateRefundStatus(@refund.RefundId, 'Refunded')"
+                                                    title="Đánh dấu đã hoàn tiền">
+                                                <i class="fas fa-money-bill-wave"></i>
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <button type="button"
+                                                    class="btn btn-sm btn-secondary"
+                                                    onclick="viewRefundDetail(@refund.RefundId)"
+                                                    title="Xem chi tiết">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="9" class="text-center text-muted py-4">
+                                    <i class="fas fa-inbox me-2"></i>Không có yêu cầu hoàn tiền nào.
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            @if (totalPages > 1)
+            {
+                <nav class="mt-4" aria-label="Refund pagination">
+                    <ul class="pagination justify-content-center">
+                        <li class="page-item @(currentPage <= 1 ? "disabled" : "")">
+                            <a class="page-link"
+                               href="@Url.Action("Manage", new { keyword = q, status = statusFilter, dateFrom = dateFromFilter, dateTo = dateToFilter, page = currentPage - 1, pageSize })">
+                                <i class="fas fa-chevron-left me-1"></i>Trước
+                            </a>
+                        </li>
+
+                        @{
+                            int startPage = Math.Max(1, currentPage - 2);
+                            int endPage = Math.Min(totalPages, currentPage + 2);
+
+                            if (startPage > 1)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link" href="@Url.Action("Manage", new { keyword = q, status = statusFilter, dateFrom = dateFromFilter, dateTo = dateToFilter, page = 1, pageSize })">1</a>
+                                </li>
+                                if (startPage > 2)
+                                {
+                                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                                }
+                            }
+
+                            for (int i = startPage; i <= endPage; i++)
+                            {
+                                <li class="page-item @(i == currentPage ? "active" : "")">
+                                    <a class="page-link"
+                                       href="@Url.Action("Manage", new { keyword = q, status = statusFilter, dateFrom = dateFromFilter, dateTo = dateToFilter, page = i, pageSize })">
+                                        @i
+                                    </a>
+                                </li>
+                            }
+
+                            if (endPage < totalPages)
+                            {
+                                if (endPage < totalPages - 1)
+                                {
+                                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                                }
+                                <li class="page-item">
+                                    <a class="page-link" href="@Url.Action("Manage", new { keyword = q, status = statusFilter, dateFrom = dateFromFilter, dateTo = dateToFilter, page = totalPages, pageSize })">@totalPages</a>
+                                </li>
+                            }
+                        }
+
+                        <li class="page-item @(currentPage >= totalPages ? "disabled" : "")">
+                            <a class="page-link"
+                               href="@Url.Action("Manage", new { keyword = q, status = statusFilter, dateFrom = dateFromFilter, dateTo = dateToFilter, page = currentPage + 1, pageSize })">
+                                Sau <i class="fas fa-chevron-right ms-1"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Modal Chi tiết Refund -->
+<div class="modal fade" id="refundDetailModal" tabindex="-1" aria-labelledby="refundDetailLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="refundDetailLabel">
+                    <i class="fa-solid fa-rotate-left me-2"></i>Chi tiết hoàn tiền
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+            <div class="modal-body" id="refundDetailContent">
+                <div class="modal-spinner" id="modalSpinner">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Đang tải...</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Auto-hide toasts after 5 seconds
+        document.addEventListener('DOMContentLoaded', function() {
+            const toasts = document.querySelectorAll('.toast');
+            toasts.forEach(toast => {
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                }, 5000);
+            });
+        });
+
+        async function viewRefundDetail(refundId) {
+            const id = parseInt(refundId, 10);
+            if (isNaN(id) || id <= 0) {
+                alert('ID hoàn tiền không hợp lệ');
+                return;
+            }
+
+            const modalEl = document.getElementById('refundDetailModal');
+            const modal = new bootstrap.Modal(modalEl);
+            const spinner = document.getElementById('modalSpinner');
+            const content = document.getElementById('refundDetailContent');
+
+            // Show modal with spinner
+            spinner.classList.remove('hide');
+            content.innerHTML = '<div class="modal-spinner" id="modalSpinner"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Đang tải...</span></div></div>';
+            modal.show();
+
+            try {
+                const response = await fetch(`/OrderRefundAdmin/GetRefundDetail/${refundId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || `HTTP ${response.status}`);
+                }
+
+                const r = await response.json();
+
+                // Format dates
+                const createdAtFmt = formatDate(r.createdAt);
+                const approvedAtFmt = r.approvedAt ? formatDate(r.approvedAt) : 'Chưa duyệt';
+                const processedAtFmt = r.processedAt ? formatDate(r.processedAt) : 'Chưa xử lý';
+
+                // Build timeline steps
+                let stepsHtml = '';
+                if (r.steps && r.steps.length > 0) {
+                    stepsHtml = r.steps.map(step => `
+                        <div class="detail-row">
+                            <span class="detail-label">${escapeHtml(step.label)}</span>
+                            <span class="detail-value">${formatDate(step.at)}</span>
+                        </div>
+                    `).join('');
+                } else {
+                    stepsHtml = '<div class="text-muted small">Chưa có hoạt động xử lý nào.</div>';
+                }
+
+                // Build HTML content
+                const htmlContent = `
+                    <div class="row g-3">
+                        <div class="col-md-12">
+                            <div class="refund-detail-section">
+                                <h6><i class="fas fa-info-circle me-2"></i>Thông tin hoàn tiền</h6>
+                                <div class="detail-row">
+                                    <span class="detail-label">Refund ID:</span>
+                                    <span class="detail-value">#${r.refundId.toString().padStart(6,'0')}</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Đơn hàng:</span>
+                                    <span class="detail-value">${escapeHtml(r.orderCode || ("Order #" + r.orderId))}</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Trạng thái:</span>
+                                    <span class="detail-value">${escapeHtml(r.refundStatusDisplay || r.refundStatus)}</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Phương thức hoàn:</span>
+                                    <span class="detail-value">${escapeHtml(r.refundMode || '-')}</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Ví giao dịch:</span>
+                                    <span class="detail-value">${r.walletTransactionId || '-'}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-12">
+                            <div class="refund-detail-section">
+                                <h6><i class="fas fa-user me-2"></i>Người liên quan</h6>
+                                <div class="detail-row">
+                                    <span class="detail-label">Người yêu cầu:</span>
+                                    <span class="detail-value">${escapeHtml(r.requestedByName || 'Không rõ')}</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Người duyệt:</span>
+                                    <span class="detail-value">${escapeHtml(r.approvedByName || '-')}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-12">
+                            <div class="refund-detail-section">
+                                <h6><i class="fas fa-clock me-2"></i>Thời gian xử lý</h6>
+                                <div class="detail-row">
+                                    <span class="detail-label">Tạo yêu cầu:</span>
+                                    <span class="detail-value">${createdAtFmt}</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Duyệt lúc:</span>
+                                    <span class="detail-value">${approvedAtFmt}</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Hoàn tất xử lý:</span>
+                                    <span class="detail-value">${processedAtFmt}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-12">
+                            <div class="refund-detail-section">
+                                <h6><i class="fas fa-comments me-2"></i>Lý do yêu cầu</h6>
+                                <div class="detail-row">
+                                    <span class="detail-value" style="margin-left:auto; text-align:left; max-width:100%;">
+                                        ${escapeHtml(r.reason || 'Không cung cấp lý do')}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-12">
+                            <div class="refund-detail-section">
+                                <h6><i class="fas fa-stream me-2"></i>Timeline xử lý</h6>
+                                ${stepsHtml}
+                            </div>
+                        </div>
+
+                        <div class="col-md-12">
+                            <div class="total-section">
+                                <div class="total-row">
+                                    <span>Số tiền đơn hàng:</span>
+                                    <span>${formatCurrency(r.totalAmount || 0)}đ</span>
+                                </div>
+                                <div class="total-row grand">
+                                    <span>Số tiền hoàn:</span>
+                                    <span>${formatCurrency(r.refundAmount || 0)}đ</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                content.innerHTML = htmlContent;
+
+            } catch (error) {
+                content.innerHTML = `<div class="alert alert-danger"><i class="fas fa-exclamation-circle me-2"></i>Lỗi tải dữ liệu: ${escapeHtml(error.message)}</div>`;
+                console.error('Error loading refund detail:', error);
+            }
+        }
+
+        function updateRefundStatus(refundId, newStatus) {
+            if (!refundId || refundId <= 0 || !newStatus) {
+                alert('Dữ liệu không hợp lệ');
+                return;
+            }
+
+            // Confirm message
+            let confirmMsg = '';
+            switch(newStatus) {
+                case 'Approved':
+                    confirmMsg = 'Bạn có chắc muốn DUYỆT yêu cầu hoàn tiền này?';
+                    break;
+                case 'Rejected':
+                    confirmMsg = 'Bạn có chắc muốn TỪ CHỐI yêu cầu hoàn tiền này?';
+                    break;
+                case 'Refunded':
+                    confirmMsg = 'Xác nhận đã HOÀN TIỀN cho khách hàng?';
+                    break;
+                case 'Cancelled':
+                    confirmMsg = 'Bạn có chắc muốn HỦY yêu cầu hoàn tiền này?';
+                    break;
+                default:
+                    confirmMsg = 'Bạn có chắc muốn thực hiện hành động này?';
+            }
+
+            if (!confirm(confirmMsg)) {
+                return;
+            }
+
+            // Create and submit form
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/OrderRefundAdmin/UpdateStatus';
+
+            // Add refundId
+            const refundIdInput = document.createElement('input');
+            refundIdInput.type = 'hidden';
+            refundIdInput.name = 'refundId';
+            refundIdInput.value = refundId;
+            form.appendChild(refundIdInput);
+
+            // Add newStatus
+            const statusInput = document.createElement('input');
+            statusInput.type = 'hidden';
+            statusInput.name = 'newStatus';
+            statusInput.value = newStatus;
+            form.appendChild(statusInput);
+
+            // Add anti-forgery token
+            const tokenInput = document.createElement('input');
+            tokenInput.type = 'hidden';
+            tokenInput.name = '__RequestVerificationToken';
+            tokenInput.value = '@Html.AntiForgeryToken()'.match(/value="([^"]+)"/)?.[1] || '';
+            form.appendChild(tokenInput);
+
+            document.body.appendChild(form);
+            form.submit();
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function formatCurrency(value) {
+            if (typeof value !== 'number' || value < 0) return '0';
+            return value.toLocaleString('vi-VN');
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '-';
+            try {
+                const date = new Date(dateStr);
+                const day = String(date.getDate()).padStart(2, '0');
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const year = date.getFullYear();
+                const hours = String(date.getHours()).padStart(2, '0');
+                const minutes = String(date.getMinutes()).padStart(2, '0');
+                return `${day}/${month}/${year} ${hours}:${minutes}`;
+            } catch (e) {
+                return dateStr;
+            }
+        }
+    </script>
+}

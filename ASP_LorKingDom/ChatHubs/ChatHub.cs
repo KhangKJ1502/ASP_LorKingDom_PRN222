@@ -255,39 +255,6 @@ public class ChatHub : Hub
         }
     }
 
-    //public async Task SendMessage(string conversationId, string senderId, string text)
-    //{
-    //    try
-    //    {
-    //        if (string.IsNullOrWhiteSpace(text)) return;
-
-    //        _logger.LogInformation("📤 SendMessage - Conv:{Conv}, From:{From}", conversationId, senderId);
-    //        var (message, conversation) = await _chatService.SendAsync(conversationId, senderId, text);
-
-    //        await Clients.Group($"conv:{conversationId}").SendAsync("receive", message);
-
-    //        if (!string.IsNullOrWhiteSpace(conversation.StaffUserId))
-    //        {
-    //            var sid = conversation.StaffUserId!;
-    //            var onPage = IsStaffOnChatPage(sid);
-    //            _logger.LogInformation("📍 Staff {Staff} - OnPage: {OnPage}", sid, onPage ? "YES" : "NO");
-
-    //            await Clients.Group($"user:{sid}").SendAsync("conversationUpdated", conversation);
-
-    //            if (senderId != sid)
-    //            {
-    //                await Clients.Group($"user:{sid}").SendAsync("receive", message);
-    //            }
-    //        }
-
-    //        _logger.LogInformation("✅ Message delivered");
-    //    }
-    //    catch (Exception ex)
-    //    {
-    //        _logger.LogError(ex, "❌ Error sending message");
-    //        throw;
-    //    }
-    //}
     public async Task SendMessage(string conversationId, string senderId, string text)
     {
         try

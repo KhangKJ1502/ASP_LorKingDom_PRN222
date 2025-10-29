@@ -59,10 +59,33 @@
 				<div class="sidebar-body">
 					<ul class="sidebar-body-menu">
 						<li>
-							<a class="active" asp-controller="Admin" asp-action="Dashboard">
-								<span class="icon home" aria-hidden="true">
-								</span>Dashboard
+							<a class="show-cat-btn" href="##">
+								<span class="icon home" aria-hidden="true"></span>Thống Kê
+								<span class="category__btn transparent-btn" title="Open list">
+									<span class="sr-only">Open list</span>
+									<span class="icon arrow-down" aria-hidden="true"></span>
+								</span>
 							</a>
+							<ul class="cat-sub-menu">
+								@* Dashboard Statistics - Admin và Staff *@
+								@if (User.IsInRole("Admin") || User.IsInRole("Staff"))
+								{
+									<li>
+										<a asp-controller="Admin" asp-action="Dashboard">
+											<i class="fas fa-chart-line"></i> Thống Kê Doanh Thu
+										</a>
+									</li>
+								}
+								@* Product Statistics - Admin và Warehouse *@
+								@if (User.IsInRole("Admin") || User.IsInRole("Warehouse"))
+								{
+									<li>
+										<a asp-controller="Product" asp-action="Statistics">
+											<i class="fas fa-chart-bar"></i> Thống Kê Sản Phẩm
+										</a>
+									</li>
+								}
+							</ul>
 						</li>
 						<li>
 							<a class="show-cat-btn" href="##">
@@ -132,12 +155,23 @@
 							</ul>
 						</li>
 						<li>
-							<a href="/Order/Manage">
-								<span class="icon message" aria-hidden="true"></span>
-								Quản lý đơn hàng
+							<a class="show-cat-btn" href="##">
+								<span class="fa-solid fa-file-invoice" aria-hidden="true"></span>  Quản Lí Đơn Hàng
+								<span class="category__btn transparent-btn" title="Open list">
+									<span class="sr-only">Open list</span>
+									<span class="icon arrow-down" aria-hidden="true"></span>
+								</span>
 							</a>
-							@* <span class="msg-counter">7</span> *@
+							<ul class="cat-sub-menu">
+								<li>
+									<a asp-controller="Order" asp-action="Manage">Quản lý đơn hàng</a>
+								</li>
+								<li>
+									<a asp-controller="OrderRefundAdmin" asp-action="Manage">Quản lý huỷ đơn hàng</a>
+								</li>
+							</ul>
 						</li>
+
 						<li>
 							<a class="show-cat-btn" href="##">
 								<span class="icon image" aria-hidden="true"></span>Truyền thông

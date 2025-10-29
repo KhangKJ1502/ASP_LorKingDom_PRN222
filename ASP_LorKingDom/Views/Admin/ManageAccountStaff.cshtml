@@ -600,9 +600,34 @@
             });
           }
 
-          // Tự mở Edit modal nếu server yêu cầu
-          const needShow = '@((edit != null || (ViewBag.ShowErrorModal == true)) ? "true" : "false")';
-          if(needShow === 'true'){
+          // Tự mở modal nếu server yêu cầu
+          const showAddModal = '@((ViewBag.ShowAddModal == true) ? "true" : "false")';
+          const hasEditData = '@((edit != null) ? "true" : "false")';
+          
+          // ✅ Ưu tiên mở Add Modal nếu có flag ShowAddModal
+          if(showAddModal === 'true'){
+            console.log('Opening Add Modal with error data');
+            try{
+              const addDataStr = '@Html.Raw(JsonSerializer.Serialize(ViewBag.AddStaffModel ?? new BLL.DTOs.AccountDto()))';
+              const addData = addDataStr ? JSON.parse(addDataStr) : {};
+              
+              // Restore dữ liệu đã nhập (nếu có)
+              if(addData.AccountName || addData.Email){
+                document.getElementById('add_accountName').value = addData.AccountName || addData.accountName || '';
+                document.getElementById('add_phoneNumber').value = addData.PhoneNumber || addData.phoneNumber || '';
+                document.getElementById('add_roleId').value = addData.RoleId || addData.roleId || '';
+                document.getElementById('add_email').value = addData.Email || addData.email || '';
+                console.log('Restored add form data:', addData);
+              }
+              
+              new bootstrap.Modal(document.getElementById('addStaffModal')).show();
+            }catch(e){ 
+              console.error('Error loading add modal:', e); 
+            }
+          }
+          // ✅ Chỉ mở Edit Modal nếu KHÔNG có ShowAddModal và có edit data
+          else if(hasEditData === 'true'){
+            console.log('Opening Edit Modal');
             try{
               const raw='@Html.Raw(JsonSerializer.Serialize(edit ?? new BLL.DTOs.AccountDto()))';
               const dto = raw ? JSON.parse(raw) : {};
@@ -619,14 +644,14 @@
                 updated: dto.updatedAt || dto.UpdatedAt || ''
               });
               new bootstrap.Modal(document.getElementById('editStaffModal')).show();
-            }catch{}
+            }catch(e){ console.error('Error loading edit modal:', e); }
           }
 
-                 const hasError='@((ViewBag.ShowErrorModal == true) ? "true" : "false")';
-        if(hasError==='true'){
-          const msg = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.ErrorMessage ?? ""));
-          if (msg) showToast(msg, true);
-        }
+          const hasError='@((ViewBag.ShowErrorModal == true) ? "true" : "false")';
+          if(hasError==='true'){
+            const msg = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.ErrorMessage ?? ""));
+            if (msg) showToast(msg, true);
+          }
 
         });
     </script>

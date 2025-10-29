@@ -20,9 +20,6 @@ namespace WebUI.Controllers
             _svc = svc ?? throw new ArgumentNullException(nameof(svc));
         }
 
-        /// <summary>
-        /// Trang danh sách thông báo - hỗ trợ cả View và JSON response
-        /// </summary>
         [HttpGet]
         public async Task<IActionResult> Index(bool? isRead = null, int page = 1, int pageSize = 20)
         {
@@ -34,19 +31,39 @@ namespace WebUI.Controllers
                 var currentUserId = GetCurrentUserId();
                 if (currentUserId <= 0)
                 {
-                    // Kiểm tra nếu request từ AJAX
                     if (Request.Headers["Accept"].ToString().Contains("application/json"))
-                    {
                         return Json(new { success = false, message = "Chưa đăng nhập" });
-                    }
 
                     TempData["Error"] = "Vui lòng đăng nhập để xem thông báo.";
                     return RedirectToAction("Login", "Account");
                 }
 
+                // DỮ LIỆU CHO TAB HIỆN TẠI (có filter isRead, có phân trang)
                 var data = await _svc.GetMyNotificationsAsync(currentUserId, isRead, page, pageSize);
 
-                // Nếu request từ AJAX -> trả JSON
+                // ====== DỮ LIỆU TOÀN CỤC CHO BADGE (LUÔN ĐÚNG BẤT KỂ TAB) ======
+
+                // tổng chưa đọc (có sẵn service)
+                var totalUnread = await _svc.GetUnreadCountAsync(currentUserId);
+
+                // tổng tất cả thông báo của user
+                // gọi pageSize = 1 cho nhẹ, chỉ cần .Total
+                var allPage = await _svc.GetMyNotificationsAsync(currentUserId, null, 1, 1);
+                var totalAll = allPage.Total;
+
+                // tổng đã đọc = tổng tất cả - tổng chưa đọc
+                var totalRead = totalAll - totalUnread;
+                if (totalRead < 0) totalRead = 0;
+
+                // đẩy các số này ra ViewBag để View xài
+                ViewBag.TotalAll = totalAll;
+                ViewBag.TotalUnread = totalUnread;
+                ViewBag.TotalRead = totalRead;
+
+                // giữ filter hiện tại để highlight tab active
+                ViewBag.CurrentFilter = isRead;
+
+                // Nếu request là JSON (AJAX)
                 if (Request.Headers["Accept"].ToString().Contains("application/json"))
                 {
                     return Json(new
@@ -56,22 +73,30 @@ namespace WebUI.Controllers
                         total = data.Total,
                         page = data.Page,
                         pageSize = data.PageSize,
-                        totalPages = data.TotalPages
+                        totalPages = data.TotalPages,
+
+                        totalAll,
+                        totalUnread,
+                        totalRead
                     });
                 }
 
-                // Còn không -> trả View
-                ViewBag.CurrentFilter = isRead;
+                // Render View bình thường
                 return View("~/Views/MyNotifications/Index.cshtml", data);
             }
             catch (Exception ex)
             {
                 if (Request.Headers["Accept"].ToString().Contains("application/json"))
-                {
                     return Json(new { success = false, message = ex.Message });
-                }
 
                 TempData["Error"] = $"Lỗi khi tải thông báo: {ex.Message}";
+
+                // Khi lỗi vẫn nên set ViewBag để View không null
+                ViewBag.TotalAll = 0;
+                ViewBag.TotalUnread = 0;
+                ViewBag.TotalRead = 0;
+                ViewBag.CurrentFilter = isRead;
+
                 return View("~/Views/MyNotifications/Index.cshtml",
                     new PagedResult<UserNotificationDto>
                     {
@@ -83,9 +108,34 @@ namespace WebUI.Controllers
             }
         }
 
-        /// <summary>
-        /// Đánh dấu 1 thông báo là đã đọc - hỗ trợ cả POST và AJAX
-        /// </summary>
+        // --- API cho offcanvas: lấy danh sách 10 thông báo chưa đọc mới nhất ---
+        [HttpGet]
+        public async Task<IActionResult> GetLatestUnread()
+        {
+            var currentUserId = GetCurrentUserId();
+            if (currentUserId <= 0)
+                return Json(new { success = false, message = "Chưa đăng nhập" });
+
+            var unread = await _svc.GetMyNotificationsAsync(currentUserId, false, 1, 10);
+
+            var shaped = unread.Items.Select(n => new
+            {
+                id = n.UserNotificationId,
+                title = n.Title,
+                message = n.Message,
+                at = (n.DeliveredAt ?? n.ScheduledAt).ToLocalTime().ToString("dd/MM/yyyy HH:mm"),
+                timeAgo = GetTimeAgo(n.DeliveredAt ?? n.ScheduledAt),
+            });
+
+            return Json(new
+            {
+                success = true,
+                items = shaped,
+                totalUnread = unread.Total
+            });
+        }
+
+        // đánh dấu 1 thông báo là đã đọc
         [HttpPost]
         public async Task<IActionResult> MarkRead(int id, bool? returnFilter = null)
         {
@@ -110,7 +160,6 @@ namespace WebUI.Controllers
                     return RedirectToAction("Login", "Account");
                 }
 
-                // Bảo mật: confirm notif thuộc về user
                 var notification = await _svc.GetUserNotificationByIdAsync(id);
                 if (notification == null)
                 {
@@ -164,9 +213,31 @@ namespace WebUI.Controllers
             return RedirectToAction(nameof(Index), new { isRead = returnFilter });
         }
 
-        /// <summary>
-        /// Đánh dấu tất cả thông báo là đã đọc
-        /// </summary>
+        // phiên bản AJAX riêng để offcanvas gọi
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> MarkReadAjax(int id)
+        {
+            var currentUserId = GetCurrentUserId();
+            if (currentUserId <= 0)
+                return Json(new { success = false, message = "Chưa đăng nhập" });
+
+            var notification = await _svc.GetUserNotificationByIdAsync(id);
+            if (notification == null || notification.UserId != currentUserId)
+                return Json(new { success = false, message = "Không tìm thấy / Không có quyền" });
+
+            if (!notification.IsRead)
+            {
+                await _svc.MarkReadAsync(id);
+            }
+
+            // cập nhật lại số chưa đọc cho badge
+            var unreadCount = await _svc.GetUnreadCountAsync(currentUserId);
+
+            return Json(new { success = true, unread = unreadCount });
+        }
+
+        // đánh dấu tất cả là đã đọc
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> MarkAllRead()
@@ -187,13 +258,12 @@ namespace WebUI.Controllers
 
                 if (IsAjaxRequest())
                 {
+                    var unreadCount = await _svc.GetUnreadCountAsync(currentUserId);
                     return Json(new
                     {
                         success = true,
                         count = markedCount,
-                        message = markedCount > 0
-                            ? $"Đã đánh dấu {markedCount} thông báo"
-                            : "Không có thông báo chưa đọc"
+                        unread = unreadCount
                     });
                 }
 
@@ -212,9 +282,7 @@ namespace WebUI.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        /// <summary>
-        /// API: lấy số lượng chưa đọc (dùng cho badge header)
-        /// </summary>
+        // API badge đỏ trên header
         [HttpGet]
         [AllowAnonymous]
         public async Task<IActionResult> GetUnreadCount()
@@ -223,9 +291,7 @@ namespace WebUI.Controllers
             {
                 var currentUserId = GetCurrentUserId();
                 if (currentUserId <= 0)
-                {
                     return Json(new { success = false, count = 0, message = "Chưa đăng nhập" });
-                }
 
                 var count = await _svc.GetUnreadCountAsync(currentUserId);
                 return Json(new { success = true, count });
@@ -236,9 +302,7 @@ namespace WebUI.Controllers
             }
         }
 
-        /// <summary>
-        /// API poll: check có thông báo mới chưa đọc hay chưa
-        /// </summary>
+        // polling xem có thông báo mới không
         [HttpGet]
         public async Task<IActionResult> CheckNewNotifications(DateTime? lastCheck = null)
         {
@@ -248,10 +312,9 @@ namespace WebUI.Controllers
                 if (currentUserId <= 0)
                     return Json(new { success = false, hasNew = false });
 
-                // Lấy 10 notif chưa đọc mới nhất
+                // lấy 10 notif chưa đọc mới nhất
                 var unread = await _svc.GetMyNotificationsAsync(currentUserId, false, 1, 10);
 
-                // latestTime = DeliveredAt ưu tiên, fallback ScheduledAt
                 var latestItem = unread.Items.FirstOrDefault();
                 DateTime? latestTime = latestItem != null
                     ? (latestItem.DeliveredAt ?? latestItem.ScheduledAt)
@@ -281,7 +344,7 @@ namespace WebUI.Controllers
             }
         }
 
-        // ==================== HELPER METHODS ====================
+        // ==================== HELPER ====================
 
         private int GetCurrentUserId()
         {
@@ -301,6 +364,19 @@ namespace WebUI.Controllers
         {
             return Request.Headers["X-Requested-With"] == "XMLHttpRequest" ||
                    Request.Headers["Accept"].ToString().Contains("application/json");
+        }
+
+        // helper cho GetLatestUnread()
+        private static string GetTimeAgo(DateTime? dt)
+        {
+            if (!dt.HasValue) return "";
+            var local = dt.Value.Kind == DateTimeKind.Utc ? dt.Value.ToLocalTime() : dt.Value;
+            var span = DateTime.Now - local;
+            if (span.TotalMinutes < 1) return "Vừa xong";
+            if (span.TotalMinutes < 60) return $"{(int)span.TotalMinutes} phút trước";
+            if (span.TotalHours < 24) return $"{(int)span.TotalHours} giờ trước";
+            if (span.TotalDays < 7) return $"{(int)span.TotalDays} ngày trước";
+            return local.ToString("dd/MM/yyyy HH:mm");
         }
     }
 }

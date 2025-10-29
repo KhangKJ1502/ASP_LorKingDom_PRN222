@@ -14,28 +14,24 @@ namespace WebUI.Controllers
         {
             _promotionService = promotionService;
         }
-
+        
         public IActionResult Index() => RedirectToAction(nameof(Manage));
 
-        // GET: /Promotion/Manage?keyword=...&page=1&pageSize=10
+        // ===========================
+        // GET: /Promotion/Manage
+        // ===========================
         public async Task<IActionResult> Manage(string? keyword, int page = 1, int pageSize = 10)
         {
-            var paged = await _promotionService.SearchPagedAsync(keyword, page, pageSize);
+            // chuẩn bị model + ViewBag cho view Manage
+            await PrepareManagePageAsync(keyword, page, pageSize);
 
-            ViewBag.Keyword = keyword ?? "";
-
-            // nếu vừa bấm Edit -> mở modal
-            if (TempData["EditPromotionId"] is int pid && pid > 0)
-            {
-                var edit = await _promotionService.GetByIdAsync(pid);
-                ViewBag.EditPromotion = edit;
-                ViewBag.ShowErrorModal = true; // tái dùng flag để auto-open modal
-            }
-
-            return View("~/Views/Admin/ManagePromotion.cshtml", paged);
+            return View("~/Views/Admin/ManagePromotion.cshtml",
+                ViewData["PagedResult"] as PagedResult<PromotionDto>);
         }
 
-        // GET: /Promotion/Edit/5?keyword=...&page=...&pageSize=...
+        // ===========================
+        // GET: /Promotion/Edit/{id}
+        // ===========================
         [HttpGet]
         public async Task<IActionResult> Edit(int id, string? keyword, int page = 1, int pageSize = 10)
         {
@@ -46,61 +42,71 @@ namespace WebUI.Controllers
                 return RedirectToAction(nameof(Manage), new { keyword, page, pageSize });
             }
 
+            // ghi nhớ id để Manage() biết mở modal edit
             TempData["EditPromotionId"] = id;
+
             return RedirectToAction(nameof(Manage), new { keyword, page, pageSize });
         }
 
-        // POST: /Promotion/SavePromotion
+        // ===========================
+        // POST: /Promotion/CreatePromotion
+        // ===========================
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> SavePromotion(PromotionSaveDto dto, string? keyword, int page = 1, int pageSize = 10)
+        public async Task<IActionResult> CreatePromotion(
+            PromotionSaveDto dto,
+            string? keyword,
+            int page = 1,
+            int pageSize = 10)
         {
             try
             {
-                if (dto.PromotionId > 0)
+                var created = await _promotionService.CreateAsync(new PromotionCreateDto
                 {
-                    var ok = await _promotionService.UpdateAsync(new PromotionUpdateDto
-                    {
-                        PromotionId = dto.PromotionId,
-                        PromotionCode = dto.PromotionCode,
-                        Description = dto.Description,
-                        DiscountPercent = dto.DiscountPercent,
-                        StartDate = dto.StartDate,
-                        EndDate = dto.EndDate,
-                        Status = dto.Status
-                    });
-                    if (!ok) throw new InvalidOperationException("Cập nhật thất bại hoặc không tìm thấy bản ghi.");
+                    PromotionCode = dto.PromotionCode,
+                    Description = dto.Description,
+                    DiscountPercent = dto.DiscountPercent,
+                    StartDate = dto.StartDate,
+                    EndDate = dto.EndDate,
+                    Status = string.IsNullOrWhiteSpace(dto.Status) ? "Active" : dto.Status
+                });
 
-                    TempData["Success"] = "✅ Cập nhật khuyến mãi thành công.";
-                }
-                else
-                {
-                    var created = await _promotionService.CreateAsync(new PromotionCreateDto
-                    {
-                        PromotionCode = dto.PromotionCode,
-                        Description = dto.Description,
-                        DiscountPercent = dto.DiscountPercent,
-                        StartDate = dto.StartDate,
-                        EndDate = dto.EndDate,
-                        Status = string.IsNullOrWhiteSpace(dto.Status) ? "Active" : dto.Status
-                    });
-
-                    TempData["Success"] = "✅ Thêm khuyến mãi mới thành công.";
-                }
-
+                TempData["Success"] = "✅ Thêm khuyến mãi mới thành công.";
                 return RedirectToAction(nameof(Manage), new { keyword, page, pageSize });
             }
             catch (Exception ex)
             {
-                // lỗi form -> load lại list + mở modal với dữ liệu người dùng nhập
-                ViewBag.ShowErrorModal = true;
-                ViewBag.ErrorMessage = ex.Message;
+                // Hiển thị lại trang với Add modal
+                await PrepareManagePageAsync(keyword, page, pageSize,
+                    forceEditDto: BuildPromotionDtoFromForm(dto),
+                    showErrorModal: true,
+                    errorMessage: ex.Message);
 
-                var paged = await _promotionService.SearchPagedAsync(keyword, page, pageSize);
+                ViewBag.ShowAddModal = true; // Flag để mở Add Modal
+                ViewBag.EditPromotion = null; // Clear edit data
 
-                ViewBag.Keyword = keyword ?? "";
+                return View("~/Views/Admin/ManagePromotion.cshtml",
+                    ViewData["PagedResult"] as PagedResult<PromotionDto>);
+            }
+        }
 
-                ViewBag.EditPromotion = new PromotionDto
+        // ===========================
+        // POST: /Promotion/UpdatePromotion
+        // ===========================
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdatePromotion(
+            PromotionSaveDto dto,
+            string? keyword,
+            int page = 1,
+            int pageSize = 10)
+        {
+            try
+            {
+                if (dto.PromotionId <= 0)
+                    throw new InvalidOperationException("ID khuyến mãi không hợp lệ.");
+
+                var ok = await _promotionService.UpdateAsync(new PromotionUpdateDto
                 {
                     PromotionId = dto.PromotionId,
                     PromotionCode = dto.PromotionCode,
@@ -108,52 +114,122 @@ namespace WebUI.Controllers
                     DiscountPercent = dto.DiscountPercent,
                     StartDate = dto.StartDate,
                     EndDate = dto.EndDate,
-                    Status = dto.Status,
-                    IsDeleted = false,
-                    CreatedAt = DateTime.Now,
-                    UpdatedAt = DateTime.Now
-                };
+                    Status = dto.Status
+                });
 
-                return View("~/Views/Admin/ManagePromotion.cshtml", paged);
+                if (!ok)
+                    throw new InvalidOperationException("Cập nhật thất bại hoặc không tìm thấy bản ghi.");
+
+                TempData["Success"] = "✅ Cập nhật khuyến mãi thành công.";
+                return RedirectToAction(nameof(Manage), new { keyword, page, pageSize });
+            }
+            catch (Exception ex)
+            {
+                // Hiển thị lại trang với Edit modal
+                await PrepareManagePageAsync(keyword, page, pageSize,
+                    forceEditDto: BuildPromotionDtoFromForm(dto),
+                    showErrorModal: true,
+                    errorMessage: ex.Message);
+
+                return View("~/Views/Admin/ManagePromotion.cshtml",
+                    ViewData["PagedResult"] as PagedResult<PromotionDto>);
             }
         }
 
+        /// <summary>
+        /// [DEPRECATED] Use CreatePromotion() or UpdatePromotion() instead
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Obsolete("Use CreatePromotion() or UpdatePromotion() instead")]
+        public async Task<IActionResult> SavePromotion(
+            PromotionSaveDto dto,
+            string? keyword,
+            int page = 1,
+            int pageSize = 10)
+        {
+            try
+            {
+                await HandleSavePromotionAsync(dto);
+
+                TempData["Success"] = dto.PromotionId > 0
+                    ? "✅ Cập nhật khuyến mãi thành công."
+                    : "✅ Thêm khuyến mãi mới thành công.";
+
+                return RedirectToAction(nameof(Manage), new { keyword, page, pageSize });
+            }
+            catch (Exception ex)
+            {
+                // nếu lỗi -> hiển thị lại trang + modal + dữ liệu user nhập
+                await PrepareManagePageAsync(keyword, page, pageSize,
+                    forceEditDto: BuildPromotionDtoFromForm(dto),
+                    showErrorModal: true,
+                    errorMessage: ex.Message);
+
+                return View("~/Views/Admin/ManagePromotion.cshtml",
+                    ViewData["PagedResult"] as PagedResult<PromotionDto>);
+            }
+        }
+
+        // ===========================
+        // POST: /Promotion/SoftDelete
+        // ===========================
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SoftDelete(int id, string? keyword, int page = 1, int pageSize = 10)
         {
-            var ok = await _promotionService.SoftDeleteAsync(id);
-            TempData["toast"] = ok ? "🗑️ Đã xóa mềm." : "⚠️ Không tìm thấy.";
+            TempData["toast"] = await DoSoftDeleteAsync(id)
+                ? "🗑️ Đã xóa mềm."
+                : "⚠️ Không tìm thấy.";
+
             return RedirectToAction(nameof(Manage), new { keyword, page, pageSize });
         }
 
+        // ===========================
+        // POST: /Promotion/Restore
+        // ===========================
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Restore(int id, string? keyword, int page = 1, int pageSize = 10)
         {
-            var ok = await _promotionService.RestoreAsync(id);
-            TempData["toast"] = ok ? "♻️ Đã khôi phục." : "⚠️ Không tìm thấy.";
+            TempData["toast"] = await DoRestoreAsync(id)
+                ? "♻️ Đã khôi phục."
+                : "⚠️ Không tìm thấy.";
+
             return RedirectToAction(nameof(Manage), new { keyword, page, pageSize });
         }
 
+        // ===========================
+        // POST: /Promotion/ToggleStatus
+        // ===========================
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ToggleStatus(int id, string? keyword, int page = 1, int pageSize = 10)
         {
-            var ok = await _promotionService.ToggleStatusAsync(id);
-            TempData["toast"] = ok ? "🔁 Đã đổi trạng thái." : "⚠️ Không tìm thấy.";
+            TempData["toast"] = await DoToggleStatusAsync(id)
+                ? "🔁 Đã đổi trạng thái."
+                : "⚠️ Không tìm thấy.";
+
             return RedirectToAction(nameof(Manage), new { keyword, page, pageSize });
         }
 
+        // ===========================
+        // POST: /Promotion/SetStatus
+        // ===========================
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SetStatus(int id, string status, string? keyword, int page = 1, int pageSize = 10)
         {
-            var ok = await _promotionService.SetStatusAsync(id, status);
-            TempData["toast"] = ok ? $"⚙️ Đặt trạng thái: {status}." : "⚠️ Không tìm thấy.";
+            TempData["toast"] = await DoSetStatusAsync(id, status)
+                ? $"⚙️ Đặt trạng thái: {status}."
+                : "⚠️ Không tìm thấy.";
+
             return RedirectToAction(nameof(Manage), new { keyword, page, pageSize });
         }
 
+        // ===========================
+        // GET: /Promotion/Active
+        // ===========================
         [HttpGet]
         public async Task<IActionResult> Active()
         {
@@ -161,6 +237,9 @@ namespace WebUI.Controllers
             return View("~/Views/Admin/PromotionActive.cshtml", list);
         }
 
+        // ===========================
+        // GET: /Promotion/ActiveByProduct/{productId}
+        // ===========================
         [HttpGet]
         public async Task<IActionResult> ActiveByProduct(int productId)
         {
@@ -169,6 +248,10 @@ namespace WebUI.Controllers
             return View("~/Views/Admin/PromotionActive.cshtml", list);
         }
 
+        // ===========================
+        // GET: /Promotion/CheckCodeExists?code=...&excludeId=...
+        // AJAX validate duy nhất mã
+        // ===========================
         [HttpGet]
         public async Task<IActionResult> CheckCodeExists(string code, int? excludeId)
         {
@@ -176,11 +259,165 @@ namespace WebUI.Controllers
             return Json(new { valid = !exists });
         }
 
+        // ===========================
+        // GET: /Promotion/CheckOverlap?startDate=...&endDate=...&excludeId=...
+        // AJAX validate trùng thời gian
+        // ===========================
         [HttpGet]
         public async Task<IActionResult> CheckOverlap(DateTime startDate, DateTime endDate, int? excludeId)
         {
             var overlap = await _promotionService.HasOverlapAsync(0, startDate, endDate, excludeId);
             return Json(new { valid = !overlap });
+        }
+
+        // ============================================================
+        // =============== PRIVATE HELPERS (logic tách riêng) =========
+        // ============================================================
+
+        /// <summary>
+        /// Load danh sách phân trang, set ViewBag và (nếu có) edit dto để modal dùng.
+        /// Kết quả phân trang sẽ đặt trong ViewData["PagedResult"] để action có thể return view.
+        /// </summary>
+        private async Task PrepareManagePageAsync(
+            string? keyword,
+            int page,
+            int pageSize,
+            PromotionDto? forceEditDto = null,
+            bool showErrorModal = false,
+            string? errorMessage = null)
+        {
+            // lấy list phân trang
+            var paged = await _promotionService.SearchPagedAsync(keyword, page, pageSize);
+
+            // ViewBag dùng trong view
+            ViewBag.Keyword = keyword ?? "";
+
+            // Nếu vừa từ Edit quay về (TempData["EditPromotionId"])
+            PromotionDto? editData = forceEditDto;
+            bool shouldOpenModal = showErrorModal;
+
+            if (!shouldOpenModal) // nếu chưa bị ép mở modal do lỗi form
+            {
+                if (TempData["EditPromotionId"] is int pid && pid > 0)
+                {
+                    var edit = await _promotionService.GetByIdAsync(pid);
+                    if (edit != null)
+                    {
+                        editData = edit;
+                        shouldOpenModal = true;
+                    }
+                }
+            }
+
+            if (editData != null)
+            {
+                ViewBag.EditPromotion = editData;
+            }
+
+            if (shouldOpenModal)
+            {
+                ViewBag.ShowErrorModal = true;
+            }
+
+            if (!string.IsNullOrEmpty(errorMessage))
+            {
+                ViewBag.ErrorMessage = errorMessage;
+            }
+
+            // đặt model cho view thông qua ViewData để return View(...) gọn hơn
+            ViewData["PagedResult"] = paged;
+        }
+
+        /// <summary>
+        /// Xử lý lưu khuyến mãi (create / update).
+        /// Ném exception nếu fail để action SavePromotion bắt.
+        /// </summary>
+        private async Task HandleSavePromotionAsync(PromotionSaveDto dto)
+        {
+            if (dto.PromotionId > 0)
+            {
+                // UPDATE
+                var ok = await _promotionService.UpdateAsync(new PromotionUpdateDto
+                {
+                    PromotionId = dto.PromotionId,
+                    PromotionCode = dto.PromotionCode,
+                    Description = dto.Description,
+                    DiscountPercent = dto.DiscountPercent,
+                    StartDate = dto.StartDate,
+                    EndDate = dto.EndDate,
+                    Status = dto.Status
+                });
+
+                if (!ok)
+                    throw new InvalidOperationException("Cập nhật thất bại hoặc không tìm thấy bản ghi.");
+            }
+            else
+            {
+                // CREATE
+                var created = await _promotionService.CreateAsync(new PromotionCreateDto
+                {
+                    PromotionCode = dto.PromotionCode,
+                    Description = dto.Description,
+                    DiscountPercent = dto.DiscountPercent,
+                    StartDate = dto.StartDate,
+                    EndDate = dto.EndDate,
+                    Status = string.IsNullOrWhiteSpace(dto.Status) ? "Active" : dto.Status
+                });
+                // created có thể dùng nếu muốn trả lại data mới tạo
+            }
+        }
+
+        /// <summary>
+        /// Map lại data user nhập (PromotionSaveDto) thành PromotionDto
+        /// để fill vào modal trong trường hợp lỗi form.
+        /// </summary>
+        private static PromotionDto BuildPromotionDtoFromForm(PromotionSaveDto dto)
+        {
+            return new PromotionDto
+            {
+                PromotionId = dto.PromotionId,
+                PromotionCode = dto.PromotionCode,
+                Description = dto.Description,
+                DiscountPercent = dto.DiscountPercent,
+                StartDate = dto.StartDate,
+                EndDate = dto.EndDate,
+                Status = dto.Status ?? "Active",
+                IsDeleted = false,
+                CreatedAt = DateTime.Now,
+                UpdatedAt = DateTime.Now
+            };
+        }
+
+        /// <summary>
+        /// Soft delete promotion và trả về true/false.
+        /// </summary>
+        private async Task<bool> DoSoftDeleteAsync(int id)
+        {
+            return await _promotionService.SoftDeleteAsync(id);
+        }
+
+        /// <summary>
+        /// Restore promotion và trả về true/false.
+        /// </summary>
+        private async Task<bool> DoRestoreAsync(int id)
+        {
+            return await _promotionService.RestoreAsync(id);
+        }
+
+        /// <summary>
+        /// Toggle status (Active <-> Inactive)
+        /// </summary>
+        private async Task<bool> DoToggleStatusAsync(int id)
+        {
+            return await _promotionService.ToggleStatusAsync(id);
+        }
+
+        /// <summary>
+        /// Set status cụ thể ("Active" / "Inactive")
+        /// </summary>
+        private async Task<bool> DoSetStatusAsync(int id, string status)
+        {
+            return await _promotionService.SetStatusAsync(id, status);
         }
     }
 }
