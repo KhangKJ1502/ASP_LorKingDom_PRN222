@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using DAL.Models;
+﻿using DAL.Models;
 
 namespace DAL.Interfaces
 {
@@ -18,5 +12,6 @@ namespace DAL.Interfaces
         Task UpdateCartItemAsync(CartItem item);
         Task RemoveCartItemAsync(CartItem item);
         Task ClearCartAsync(int cartId);
+        Task ClearCartByAccountIdAsync(int accountId);
     }
 }

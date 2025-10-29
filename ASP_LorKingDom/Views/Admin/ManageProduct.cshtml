@@ -1,9 +1,16 @@
-﻿@model IEnumerable<BLL.DTOs.ProductDto>
+﻿@model BLL.DTOs.PagedResult<BLL.DTOs.ProductDto>
 @{
 	Layout = "_AdminLayout";
 	ViewData["Title"] = "Quản Lí Sản Phẩm";
 	var q = (string?)ViewBag.Query ?? "";
+
+	int page = ViewBag.Page is int vp ? vp : (Model?.Page ?? 1);
+	int pageSize = ViewBag.PageSize is int vps ? vps : (Model?.PageSize ?? 20);
+	int total = ViewBag.Total is int vt ? vt : (Model?.Total ?? 0);
+	int totalPages = (int)Math.Ceiling(total / (double)Math.Max(1, pageSize));
+	Func<int, string> PageUrl = p => Url.Action("Manage", "Product", new { q, page = p, pageSize })!;
 }
+
 @section Styles {
 	<link rel="stylesheet"
 		  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
@@ -62,6 +69,58 @@
 		.search-box {
 			margin-bottom: 10px;
 		}
+
+		/* Pagination pill */
+		.pagination-pill .page-item {
+			margin: 0;
+		}
+
+		.pagination-pill .page-link {
+			border: 1px solid #e5e7eb;
+			background: #fff;
+			color: #2563eb;
+			font-weight: 600;
+			min-width: 42px;
+			text-align: center;
+			padding: 8px 14px;
+			border-radius: 0;
+			transition: all .15s ease;
+			margin-left: -1px;
+		}
+
+		.pagination-pill .page-item:first-child .page-link {
+			border-top-left-radius: 12px;
+			border-bottom-left-radius: 12px;
+			margin-left: 0;
+			background: #f3f4f6;
+			color: #6b7280; /* « */
+		}
+
+		.pagination-pill .page-item:last-child .page-link {
+			border-top-right-radius: 12px;
+			border-bottom-right-radius: 12px;
+			background: #f3f4f6;
+			color: #6b7280; /* » */
+		}
+
+		.pagination-pill .page-link:hover {
+			background: #f8fafc;
+			color: #1d4ed8;
+		}
+
+		.pagination-pill .page-item.active .page-link {
+			background: #1677ff;
+			border-color: #1677ff;
+			color: #fff !important;
+		}
+
+		.pagination-pill .page-item.disabled .page-link {
+			background: #f3f4f6;
+			border-color: #e5e7eb;
+			color: #9ca3af !important;
+			pointer-events: none;
+		}
+
 	</style>
 }
 
@@ -132,9 +191,9 @@
 						</tr>
 					</thead>
 					<tbody>
-						@if (Model != null && Model.Any())
+						@if (Model?.Items != null && Model.Items.Any())
 						{
-							foreach (var x in Model)
+							foreach (var x in Model.Items)
 							{
 								<tr class="@(x.IsDeleted ? "deleted-row" : "")">
 									<td>@x.Id</td>
@@ -145,16 +204,15 @@
 										</a>
 									</td>
 									<td class="sku">@x.Sku</td>
-
 									<td>
 										@{
 											var img = string.IsNullOrWhiteSpace(x.MainImageUrl)
-											? Url.Content("~/assets/image/img-product/placeholder.png") // 👈 ảnh mặc định (tạo file nếu cần)
+											? Url.Content("~/assets/image/img-product/placeholder.png")
 											: x.MainImageUrl;
 										}
-										<img src="@img" alt="Ảnh @x.ProductName" style="width:56px;height:56px;object-fit:cover;border-radius:6px;border:1px solid #e5e7eb;" />
+										<img src="@img" alt="Ảnh @x.ProductName"
+											 style="width:56px;height:56px;object-fit:cover;border-radius:6px;border:1px solid #e5e7eb;" />
 									</td>
-
 									<td>@x.ProductName</td>
 									<td>@x.CategoryName</td>
 									<td>@x.BrandName</td>
@@ -162,25 +220,18 @@
 									<td class="text-end">@x.StockQuantity</td>
 									<td>
 										@{
-											var code = (x.ProductStatus ?? "").Trim(); // giữ nguyên dạng gốc: Available/OutOfStock/Discontinued
+											var code = (x.ProductStatus ?? "").Trim();
 											string st, cls;
-
 											switch (code)
 											{
-												case "Available":
-													st = "Hoạt động"; cls = "bg-success"; break;
-												case "OutOfStock":
-													st = "Hết hàng"; cls = "bg-danger"; break;
-												case "Discontinued":
-													st = "Không còn hoạt động"; cls = "bg-secondary"; break;
-												default:
-													st = "Hoạt động"; cls = "bg-success"; break;
+												case "Available": st = "Hoạt động"; cls = "bg-success"; break;
+												case "OutOfStock": st = "Hết hàng"; cls = "bg-danger"; break;
+												case "Discontinued": st = "Không còn hoạt động"; cls = "bg-secondary"; break;
+												default: st = "Hoạt động"; cls = "bg-success"; break;
 											}
 										}
 										<span class="badge @cls">@st</span>
-
 									</td>
-
 									<td>@x.CreatedAt?.ToString("dd/MM/yyyy HH:mm")</td>
 								</tr>
 							}
@@ -188,11 +239,33 @@
 						else
 						{
 							<tr>
-								<td colspan="10" class="text-center text-muted">Không có dữ liệu.</td>
+								<td colspan="11" class="text-center text-muted">Không có dữ liệu.</td>
 							</tr>
 						}
+
 					</tbody>
 				</table>
+				@if (totalPages > 1)
+				{
+					<nav class="mt-3">
+						<ul class="pagination justify-content-center pagination-pill">
+							<li class="page-item @(page <= 1 ? "disabled" : "")">
+								<a class="page-link" href="@PageUrl(page - 1)">«</a>
+							</li>
+							@for (int p = 1; p <= totalPages; p++)
+							{
+								bool isCurrent = p == page;
+								<li class="page-item @(isCurrent ? "active" : "")">
+									<a class="page-link" href="@PageUrl(p)">@p</a>
+								</li>
+							}
+							<li class="page-item @(page >= totalPages ? "disabled" : "")">
+								<a class="page-link" href="@PageUrl(page + 1)">»</a>
+							</li>
+						</ul>
+					</nav>
+				}
+
 			</div>
 		</div>
 	</div>

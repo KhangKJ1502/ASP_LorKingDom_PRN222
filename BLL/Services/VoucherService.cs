@@ -1,21 +1,20 @@
 ﻿using BLL.DTOs;
 using BLL.Interfaces;
+using BLL.Validators;
 using DAL.Interfaces;
 using DAL.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace BLL.Services
 {
     public class VoucherService : IVoucherService
     {
         private readonly IVoucherRepository _repo;
+        private readonly VoucherValidator _validator;
 
         public VoucherService(IVoucherRepository repo)
         {
             _repo = repo;
+            _validator = new VoucherValidator(repo);
         }
 
         public async Task<List<VoucherDto>> GetAllVouchersAsync(bool includeDeleted = false)
@@ -109,6 +108,19 @@ namespace BLL.Services
             voucher.Status = (voucher.EndDate < DateTime.Now) ? "Expired" : "Active";
             voucher.UpdatedAt = DateTime.Now;
             return await _repo.UpdateAsync(voucher);
+        }
+
+        public async Task<(bool isValid, string message, VoucherDto? voucher)> ApplyVoucherAsync(string code, int accountId, decimal orderAmount)
+        {
+            // Sử dụng Validator để validate
+            var (isValid, message, voucherEntity) = await _validator.ValidateForApplyAsync(code, accountId, orderAmount);
+
+            if (!isValid || voucherEntity == null)
+                return (isValid, message, null);
+
+            // Convert entity sang DTO
+            var voucherDto = MapToDto(voucherEntity);
+            return (true, message, voucherDto);
         }
 
         private VoucherDto MapToDto(Voucher voucher)

@@ -1,9 +1,16 @@
-﻿@model IEnumerable<BLL.DTOs.SuperCategoryDto>
+﻿@model BLL.DTOs.PagedResult<BLL.DTOs.SuperCategoryDto>
 @{
 	Layout = "_AdminLayout";
 	ViewData["Title"] = "Quản Lí Danh Mục Tổng";
 	var q = (string?)ViewBag.Query ?? "";
+
+	int page = ViewBag.Page is int vp ? vp : (Model?.Page ?? 1);
+	int pageSize = ViewBag.PageSize is int vps ? vps : (Model?.PageSize ?? 20);
+	int total = ViewBag.Total is int vt ? vt : (Model?.Total ?? 0);
+	int totalPages = (int)Math.Ceiling(total / (double)Math.Max(1, pageSize));
+	Func<int, string> PageUrl = p => Url.Action("Manage", "SuperCategory", new { q, page = p, pageSize })!;
 }
+
 <style>
 	/* Tạo viền đen cho ô tìm kiếm */
 	.search-box .form-control {
@@ -36,6 +43,58 @@
 		font-weight: 600;
 		word-break: break-word; /* xuống dòng gọn khi quá dài */
 	}
+
+	/* Pagination pill */
+	.pagination-pill .page-item {
+		margin: 0;
+	}
+
+	.pagination-pill .page-link {
+		border: 1px solid #e5e7eb;
+		background: #fff;
+		color: #2563eb;
+		font-weight: 600;
+		min-width: 42px;
+		text-align: center;
+		padding: 8px 14px;
+		border-radius: 0;
+		transition: all .15s ease;
+		margin-left: -1px;
+	}
+
+	.pagination-pill .page-item:first-child .page-link {
+		border-top-left-radius: 12px;
+		border-bottom-left-radius: 12px;
+		margin-left: 0;
+		background: #f3f4f6;
+		color: #6b7280; /* « mũi tên trái xám nhạt */
+	}
+
+	.pagination-pill .page-item:last-child .page-link {
+		border-top-right-radius: 12px;
+		border-bottom-right-radius: 12px;
+		background: #f3f4f6;
+		color: #6b7280; /* » mũi tên phải xám nhạt */
+	}
+
+	.pagination-pill .page-link:hover {
+		background: #f8fafc;
+		color: #1d4ed8;
+	}
+
+	.pagination-pill .page-item.active .page-link {
+		background: #1677ff;
+		border-color: #1677ff;
+		color: #fff !important;
+	}
+
+	.pagination-pill .page-item.disabled .page-link {
+		background: #f3f4f6;
+		border-color: #e5e7eb;
+		color: #9ca3af !important;
+		pointer-events: none;
+	}
+
 
 </style>
 <div class="container-fluid px-5">
@@ -88,9 +147,9 @@
 						</tr>
 					</thead>
 					<tbody>
-							@if (Model.Any())
+						@if (Model?.Items != null && Model.Items.Any())
 							{
-								@foreach (var x in Model)
+							@foreach (var x in Model.Items)
 								{
 								<tr class="@(x.IsDeleted ? "deleted-row" : "")">
 									<td>@x.Id</td>
@@ -130,6 +189,27 @@
 							}
 					</tbody>
 				</table>
+				@if (totalPages > 1)
+				{
+					<nav class="mt-3">
+						<ul class="pagination justify-content-center pagination-pill">
+							<li class="page-item @(page <= 1 ? "disabled" : "")">
+								<a class="page-link" href="@PageUrl(page - 1)">«</a>
+							</li>
+							@for (int p = 1; p <= totalPages; p++)
+							{
+								bool isCurrent = p == page;
+								<li class="page-item @(isCurrent ? "active" : "")">
+									<a class="page-link" href="@PageUrl(p)">@p</a>
+								</li>
+							}
+							<li class="page-item @(page >= totalPages ? "disabled" : "")">
+								<a class="page-link" href="@PageUrl(page + 1)">»</a>
+							</li>
+						</ul>
+					</nav>
+				}
+
 			</div>
 		</div>
 	</div>

@@ -79,6 +79,7 @@ namespace BLL.Services
             {
                 await _categoryRepo.SetIsDeletedBySuperCategoryAsync(id, true);
                 await _productRepo.SetIsDeletedBySuperCategoryAsync(id, true);
+
             }
 
             return true;
@@ -91,5 +92,17 @@ namespace BLL.Services
             IsDeleted = x.IsDeleted,
             CreatedAt = x.CreatedAt
         };
+        public async Task<PagedResult<SuperCategoryDto>> GetPagedAsync(string? keyword, int page, int pageSize)
+        {
+            var (items, total) = await _repo.QueryPagedAsync(keyword, page, pageSize);
+            return new PagedResult<SuperCategoryDto>
+            {
+                Items = items.Select(Map).ToList(),
+                Total = total,
+                Page = page,
+                PageSize = pageSize
+            };
+        }
+
     }
 }

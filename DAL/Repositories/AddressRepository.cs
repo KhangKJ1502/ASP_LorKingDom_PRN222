@@ -5,57 +5,71 @@ using Microsoft.EntityFrameworkCore;
 namespace DAL.Repositories;
 public class AddressRepository : IAddressRepository
 {
-    private readonly AspLorKingDomContext _ctx;
-    public AddressRepository(AspLorKingDomContext ctx) => _ctx = ctx;
+    private readonly AspLorKingDomContext _context;
+    public AddressRepository(AspLorKingDomContext context)
+    {
+        _context = context;
+    }
 
-    public Task<List<Address>> GetByAccountIdAsync(int accountId) =>
-        _ctx.Addresses
-            .AsNoTracking()
-            .Where(x => x.AccountId == accountId && !x.IsDeleted)
-            .OrderByDescending(x => x.IsDefault)
-            .ThenByDescending(x => x.CreatedAt)
+    public async Task<List<Address>> ListAsync(int accountId, string? keyword)
+    {
+        var query = _context.Addresses
+            .Where(a => a.AccountId == accountId); // ⬅️ bỏ lọc IsDeleted
+
+        if (!string.IsNullOrWhiteSpace(keyword))
+        {
+            var kw = keyword.Trim().ToLower();
+            query = query.Where(a =>
+                a.AddressLine.ToLower().Contains(kw) ||
+                a.City.ToLower().Contains(kw) ||
+                (a.Ward ?? string.Empty).ToLower().Contains(kw));
+        }
+
+        return await query
+            .OrderByDescending(a => a.CreatedAt)
             .ToListAsync();
+    }
 
-    public Task<Address?> GetByIdAsync(int id, int accountId) =>
-        _ctx.Addresses.FirstOrDefaultAsync(x => x.AddressId == id && x.AccountId == accountId && !x.IsDeleted);
-
-    public Task<int> CountByAccountAsync(int accountId) =>
-        _ctx.Addresses.CountAsync(x => x.AccountId == accountId && !x.IsDeleted);
+    public async Task<Address?> GetAsync(int accountId, int addressId)
+    {
+        return await _context.Addresses
+            .FirstOrDefaultAsync(a => a.AccountId == accountId && a.AddressId == addressId);
+    }
 
     public async Task AddAsync(Address entity)
     {
-        await _ctx.Addresses.AddAsync(entity);
+        await _context.Addresses.AddAsync(entity);
+        await _context.SaveChangesAsync();
     }
 
-    public Task UpdateAsync(Address entity)
+    public async Task UpdateAsync(Address entity)
     {
-        _ctx.Addresses.Update(entity);
-        return Task.CompletedTask;
+        _context.Addresses.Update(entity);
+        await _context.SaveChangesAsync();
     }
 
-    public async Task SoftDeleteAsync(int id, int accountId)
+    public async Task DeleteAsync(Address entity) // ⬅️ xóa cứng
     {
-        var a = await GetByIdAsync(id, accountId);
-        if (a == null) return;
-        a.IsDeleted = true;
-        a.UpdatedAt = DateTime.UtcNow;
-        _ctx.Addresses.Update(a);
+        _context.Addresses.Remove(entity);
+        await _context.SaveChangesAsync();
     }
 
-    public async Task ClearDefaultAsync(int accountId)
+    public async Task<int> CountActiveAsync(int accountId)
     {
-        await _ctx.Addresses
-            .Where(x => x.AccountId == accountId && !x.IsDeleted && x.IsDefault)
-            .ExecuteUpdateAsync(setters => setters.SetProperty(a => a.IsDefault, false));
+        return await _context.Addresses
+            .CountAsync(a => a.AccountId == accountId); // ⬅️ không lọc IsDeleted
     }
 
-    public async Task SetDefaultAsync(int id, int accountId)
+    public async Task<Address?> GetDefaultAsync(int accountId)
     {
-        await ClearDefaultAsync(accountId);
-        await _ctx.Addresses
-            .Where(x => x.AccountId == accountId && x.AddressId == id && !x.IsDeleted)
-            .ExecuteUpdateAsync(setters => setters.SetProperty(a => a.IsDefault, true));
+        return await _context.Addresses
+            .FirstOrDefaultAsync(a => a.AccountId == accountId && a.IsDefault);
     }
 
-    public Task SaveChangesAsync() => _ctx.SaveChangesAsync();
+    public async Task<List<Address>> GetAllForAccountAsync(int accountId)
+    {
+        return await _context.Addresses
+            .Where(a => a.AccountId == accountId)
+            .ToListAsync();
+    }
 }

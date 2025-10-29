@@ -60,6 +60,31 @@ namespace DAL.Repositories
             _context.SuperCategories.Update(entity);
             await _context.SaveChangesAsync();
         }
+
+        public async Task<(List<SuperCategory> Items, int Total)> QueryPagedAsync(string? keyword, int page, int pageSize)
+        {
+            if (page <= 0) page = 1;
+            if (pageSize <= 0) pageSize = 20;
+
+            var q = _context.SuperCategories
+                .AsNoTracking()
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(keyword))
+                q = q.Where(x => x.SuperCategoryName.Contains(keyword));
+
+            var total = await q.CountAsync();
+
+            var items = await q
+                .OrderByDescending(x => x.CreatedAt)
+                .ThenByDescending(x => x.SuperCategoryId)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return (items, total);
+        }
+
     }
 }
 
