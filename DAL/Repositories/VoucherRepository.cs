@@ -1,9 +1,6 @@
 ﻿using DAL.Interfaces;
 using DAL.Models;
 using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace DAL.Repositories
 {
@@ -31,6 +28,14 @@ namespace DAL.Repositories
                 .Include(v => v.VoucherType)
                 .Include(v => v.CreateByNavigation)
                 .FirstOrDefaultAsync(v => v.VoucherId == voucherId);
+        }
+
+        public async Task<Voucher?> GetByCodeAsync(string code)
+        {
+            return await _context.Vouchers
+                .Include(v => v.VoucherType)
+                .Include(v => v.CreateByNavigation)
+                .FirstOrDefaultAsync(v => v.VoucherCode == code);
         }
 
         public async Task<int> CreateAsync(Voucher voucher)
@@ -66,6 +71,13 @@ namespace DAL.Repositories
             _context.Vouchers.Remove(voucher);
             await _context.SaveChangesAsync();
             return true;
+        }
+
+        public async Task<int> CountByVoucherAndAccountAsync(int voucherId, int accountId)
+        {
+            return await _context.Orders
+                .Where(o => o.VoucherId == voucherId && o.AccountId == accountId)
+                .CountAsync();
         }
     }
 }

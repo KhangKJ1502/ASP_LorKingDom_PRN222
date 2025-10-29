@@ -2,9 +2,7 @@
 using BLL.Interfaces;
 using BLL.Services;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
+using System.Security.Claims;
 
 namespace WebUI.Controllers
 {
@@ -19,6 +17,57 @@ namespace WebUI.Controllers
             _voucherService = voucherService;
             _voucherTypeService = voucherTypeService;
             _accountService = accountService;
+        }
+
+        [HttpPost("Voucher/ApplyVoucher")]
+        public async Task<IActionResult> ApplyVoucher(string code, decimal orderAmount)
+        {
+            var accountId = GetAccountId();
+            if (accountId == 0)
+                return Json(new { success = false, message = "Vui lòng đăng nhập" });
+
+            try
+            {
+                var (isValid, message, voucher) = await _voucherService.ApplyVoucherAsync(code, accountId, orderAmount);
+
+                if (isValid && voucher != null)
+                {
+                    // Tính số tiền giảm giá
+                    decimal discountAmount = 0;
+
+                    // Kiểm tra loại voucher: Percentage (%) hoặc Fixed Amount
+                    var voucherTypeName = voucher.VoucherTypeName?.ToLower() ?? "fixed";
+
+                    if (voucherTypeName.Contains("percent") || voucherTypeName.Contains("%"))
+                    {
+                        // Giảm theo phần trăm
+                        discountAmount = orderAmount * (voucher.DiscountValue / 100);
+                        if (voucher.MaxDiscountAmount.HasValue && discountAmount > voucher.MaxDiscountAmount.Value)
+                        {
+                            discountAmount = voucher.MaxDiscountAmount.Value;
+                        }
+                    }
+                    else
+                    {
+                        // Giảm giá cố định
+                        discountAmount = voucher.DiscountValue;
+                    }
+
+                    return Json(new
+                    {
+                        success = true,
+                        message = message,
+                        discount = discountAmount,
+                        voucherCode = voucher.VoucherCode
+                    });
+                }
+
+                return Json(new { success = false, message = message });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Lỗi khi kiểm tra mã giảm giá: " + ex.Message });
+            }
         }
 
         [HttpGet("Voucher/Manage")]
@@ -172,6 +221,12 @@ namespace WebUI.Controllers
             {
                 return BadRequest(new { error = ex.Message });
             }
+        }
+
+        private int GetAccountId()
+        {
+            var accountIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            return int.TryParse(accountIdClaim, out int id) ? id : 0;
         }
     }
 }

@@ -1,6 +1,4 @@
 ﻿using DAL.Models;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace DAL.Interfaces
 {
@@ -8,9 +6,11 @@ namespace DAL.Interfaces
     {
         Task<List<Voucher>> GetAllAsync();
         Task<Voucher?> GetByIdAsync(int voucherId);
+        Task<Voucher?> GetByCodeAsync(string code);
         Task<int> CreateAsync(Voucher voucher);
         Task<bool> UpdateAsync(Voucher voucher);
         Task<bool> VoucherCodeExistsAsync(string voucherCode, int? excludeVoucherId = null);
-        Task<bool> DeleteAsync(int voucherId); 
+        Task<bool> DeleteAsync(int voucherId);
+        Task<int> CountByVoucherAndAccountAsync(int voucherId, int accountId);
     }
 }
