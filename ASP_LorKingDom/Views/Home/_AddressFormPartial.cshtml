@@ -1,0 +1,116 @@
+﻿@model BLL.DTOs.AddressDto
+@{
+	var isEdit = Model != null;
+	var action = isEdit ? Url.Action("UpdateAjax", "Address")
+						: Url.Action("CreateAjax", "Address");
+	var btnText = isEdit ? "Lưu thay đổi" : "Thêm địa chỉ";
+	var cities = ViewBag.Cities as List<string> ?? new();
+}
+<style>
+	/* Trường nhập: bo tròn + viền xám */
+	#addr-scope form.space-y-4 input:not([type="checkbox"]),
+	#addr-scope form.space-y-4 select {
+		border: 2px solid #d1d5db;
+		border-radius: 1rem;
+		padding: 0.8rem 1rem;
+		font-size: 1rem;
+		color: #374151;
+		background: #fff;
+		width: 100%;
+		transition: all .25s ease;
+		appearance: none;
+		-webkit-appearance: none;
+		-moz-appearance: none;
+	}
+
+		#addr-scope form.space-y-4 input:not([type="checkbox"]):focus,
+		#addr-scope form.space-y-4 select:focus {
+			outline: none;
+			border-color: #9ca3af;
+			box-shadow: 0 0 0 3px rgba(156,163,175,.2);
+		}
+
+	/* Label */
+	#addr-scope label {
+		font-weight: 600;
+		color: #374151;
+		margin-bottom: 6px;
+		display: block;
+	}
+
+	/* Nút cam có viền xám nhẹ */
+	#addr-scope .btn-orange {
+		background-color: #f97316;
+		color: #fff;
+		border: 1px solid #e5e7eb;
+		border-radius: .75rem;
+		padding: .7rem 1.5rem;
+		font-weight: 600;
+		font-size: .95rem;
+		box-shadow: 0 3px 6px rgba(249,115,22,.15);
+		transition: all .2s ease;
+	}
+
+		#addr-scope .btn-orange:hover:enabled {
+			background-color: #ea580c;
+			transform: translateY(-1px);
+		}
+
+	/* Nút hủy */
+	#addr-scope .addr-form-cancel {
+		border: 2px solid #e5e7eb;
+		color: #6b7280;
+		padding: .7rem 1.5rem;
+		border-radius: .75rem;
+		background: #fff;
+	}
+</style>
+
+
+
+<div id="toast-root" class="fixed top-4 right-1 z-[9999] space-y-3 pointer-events-none"></div>
+<div id="addr-scope">
+	<form id="@(isEdit ? "addr-form-edit" : "addr-form-create")"
+		  action="@action" method="post" class="space-y-4">
+
+		@if (isEdit)
+		{
+			<input type="hidden" name="id" value="@Model.Id" />
+		}
+
+		<!-- Thành phố -->
+		<div class="grid grid-cols-1 gap-3">
+			<label>Thành phố</label>
+			<select name="city">
+				@foreach (var c in cities)
+				{
+					<option value="@c" selected="@(isEdit && string.Equals(Model.City, c, System.StringComparison.CurrentCultureIgnoreCase))">@c</option>
+				}
+			</select>
+		</div>
+
+		<!-- Phường/Xã/Thị trấn -->
+		<div class="grid grid-cols-1 gap-3">
+			<label>Phường/Xã/Thị trấn</label>
+			<input name="ward" value="@(isEdit ? Model!.Ward : "")" placeholder="Nhập phường, xã hoặc thị trấn..." />
+		</div>
+
+		<!-- Địa chỉ chi tiết -->
+		<div class="grid grid-cols-1 gap-3">
+			<label>Địa chỉ chi tiết</label>
+			<input name="addressLine" value="@(isEdit ? Model!.AddressLine : "")" placeholder="Số nhà, đường, thôn/xóm..." />
+		</div>
+
+		<!-- Đặt làm mặc định -->
+		<div class="flex items-center gap-2">
+			<input id="setAsDefault" type="checkbox" name="setAsDefault" @(isEdit && Model!.IsDefault ? "checked" : "") />
+			<label for="setAsDefault">Đặt làm địa chỉ mặc định</label>
+		</div>
+
+		<!-- Nút hành động -->
+		<div class="flex justify-end gap-2 pt-2">
+			<button type="button" class="addr-form-cancel">Hủy</button>
+			<button type="submit" class="btn-orange">@btnText</button>
+		</div>
+	</form>
+</div>
