@@ -216,6 +216,18 @@ namespace BLL.Services
                 PageSize = pageSize
             };
         }
+        public async Task<PagedResult<ProductDto>> GetAdminPagedAsync(string? keyword, int page, int pageSize)
+        {
+            var (items, total) = await _repo.QueryAdminPagedAsync(keyword, page, pageSize);
+            return new PagedResult<ProductDto>
+            {
+                Items = items.Select(Map).ToList(),
+                Total = total,
+                Page = page,
+                PageSize = pageSize
+            };
+        }
+
 
     }
 }

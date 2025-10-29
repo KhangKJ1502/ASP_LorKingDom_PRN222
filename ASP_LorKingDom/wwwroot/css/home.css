@@ -2421,7 +2421,7 @@ img {
         background: rgba(255, 255, 255, 0.1);
     }
 
-.promotion-cards {
+/*.promotion-cards {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 1rem;
@@ -2457,3 +2457,4 @@ img {
     font-size: 0.875rem;
     opacity: 0.8;
 }
+*/

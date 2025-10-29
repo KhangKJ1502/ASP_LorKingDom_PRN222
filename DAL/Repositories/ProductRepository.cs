@@ -211,6 +211,41 @@ namespace DAL.Repositories
             await _ctx.SaveChangesAsync();
             return items.Count;
         }
+        public async Task<(List<Product> Items, int Total)> QueryAdminPagedAsync(string? keyword, int page, int pageSize)
+        {
+            if (page <= 0) page = 1;
+            if (pageSize <= 0) pageSize = 20;
+
+            var q = _ctx.Products
+                .AsNoTracking()
+                .Include(p => p.Category)
+                .Include(p => p.Brand)
+                .Include(p => p.ProductImages) // để có ảnh chính
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(keyword))
+            {
+                var k = keyword.Trim();
+                q = q.Where(p =>
+                    p.ProductName.Contains(k) ||
+                    (p.Sku != null && p.Sku.Contains(k)) ||
+                    (p.Brand != null && p.Brand.BrandName.Contains(k)) ||
+                    (p.Category != null && p.Category.CategoryName.Contains(k))
+                );
+            }
+
+            var total = await q.CountAsync();
+
+            var items = await q
+                .OrderByDescending(p => p.CreatedAt)
+                .ThenByDescending(p => p.ProductId)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return (items, total);
+        }
+
     }
 
 }
