@@ -105,18 +105,26 @@
         gap: .5rem;
         cursor: pointer;
         text-decoration: none;
+        transition: all 0.3s ease;
     }
 
         .mark-all-btn[disabled] {
             opacity: .5;
             cursor: not-allowed;
             box-shadow: none;
+            background: #9ca3af;
         }
 
         .mark-all-btn:hover:not([disabled]) {
             transform: translateY(-2px);
             box-shadow: 0 12px 24px rgba(16,185,129,.5);
         }
+
+    .mark-read-btn[disabled] {
+        opacity: 0.5;
+        cursor: not-allowed;
+        background: #9ca3af !important;
+    }
 
     .notifications-wrapper {
         background: rgba(255, 255, 255, 0.95);
@@ -406,6 +414,47 @@
             transform: translateY(-8px);
         }
     }
+
+    /* Responsive Design */
+    @@media (max-width: 768px) {
+        .filter-tabs {
+            flex-direction: column;
+        }
+
+        .filter-left, .filter-right {
+            width: 100%;
+        }
+
+        .filter-right {
+            margin-left: 0;
+            margin-top: 0.5rem;
+        }
+
+        .mark-all-btn {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .notification-content {
+            grid-template-columns: auto 1fr;
+            gap: 1rem;
+        }
+
+        .notification-icon {
+            width: 40px;
+            height: 40px;
+            font-size: 1.2rem;
+        }
+
+        .notification-actions {
+            grid-column: 1 / -1;
+            margin-top: 1rem;
+        }
+
+        .action-btn {
+            width: 100%;
+        }
+    }
 </style>
 
 <div class="notification-page">
@@ -630,20 +679,73 @@
                     card.style.transform = 'translateY(0)';
                 }, index * 100);
             });
+
+            // Handle mark read buttons with better UX
+            const markReadForms = document.querySelectorAll('form[asp-action="MarkRead"]');
+            markReadForms.forEach(form => {
+                form.addEventListener('submit', function(e) {
+                    const button = this.querySelector('.mark-read-btn');
+                    if (button) {
+                        button.disabled = true;
+                        button.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang xử lý...';
+                    }
+                });
+            });
+
+            // Handle mark all read with better UX
+            const markAllForm = document.querySelector('form[asp-action="MarkAllRead"]');
+            if (markAllForm) {
+                markAllForm.addEventListener('submit', function(e) {
+                    const button = this.querySelector('.mark-all-btn');
+                    if (button && !button.disabled) {
+                        button.disabled = true;
+                        button.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang xử lý...';
+                    }
+                });
+            }
         });
 
-        // Auto refresh mỗi 30s cho tab "Tất cả" hoặc "Chưa đọc"
+        // Auto refresh mỗi 60s cho tab "Tất cả" hoặc "Chưa đọc" (tăng từ 30s lên 60s để giảm load)
         const isReadParam = new URLSearchParams(window.location.search).get('isRead');
         if (isReadParam !== 'true') {
             let refreshInterval = setInterval(() => {
                 if (!document.hidden) {
-                    location.reload();
+                    // Soft reload - check if there are new notifications first
+                    fetch('/MyNotifications/CheckNewNotifications?lastCheck=' + new Date().toISOString())
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.success && data.hasNew) {
+                                // Show notification and reload
+                                const currentPage = new URLSearchParams(window.location.search).get('page') || '1';
+                                if (currentPage === '1') {
+                                    location.reload();
+                                }
+                            }
+                        })
+                        .catch(err => console.error('Check new notifications error:', err));
                 }
-            }, 30000);
+            }, 60000);
 
             document.addEventListener('visibilitychange', function () {
                 if (document.hidden) {
                     clearInterval(refreshInterval);
+                } else {
+                    // Refresh when tab becomes visible again
+                    refreshInterval = setInterval(() => {
+                        if (!document.hidden) {
+                            fetch('/MyNotifications/CheckNewNotifications?lastCheck=' + new Date().toISOString())
+                                .then(res => res.json())
+                                .then(data => {
+                                    if (data.success && data.hasNew) {
+                                        const currentPage = new URLSearchParams(window.location.search).get('page') || '1';
+                                        if (currentPage === '1') {
+                                            location.reload();
+                                        }
+                                    }
+                                })
+                                .catch(err => console.error('Check new notifications error:', err));
+                        }
+                    }, 60000);
                 }
             });
         }

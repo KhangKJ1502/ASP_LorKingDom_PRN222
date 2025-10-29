@@ -35,7 +35,7 @@ namespace WebUI.Controllers
                         return Json(new { success = false, message = "Chưa đăng nhập" });
 
                     TempData["Error"] = "Vui lòng đăng nhập để xem thông báo.";
-                    return RedirectToAction("Login", "Account");
+                    return RedirectToAction("Login", "Auth");
                 }
 
                 // DỮ LIỆU CHO TAB HIỆN TẠI (có filter isRead, có phân trang)
@@ -137,6 +137,7 @@ namespace WebUI.Controllers
 
         // đánh dấu 1 thông báo là đã đọc
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> MarkRead(int id, bool? returnFilter = null)
         {
             try
@@ -157,7 +158,7 @@ namespace WebUI.Controllers
                         return Json(new { success = false, message = "Chưa đăng nhập" });
 
                     TempData["Error"] = "Vui lòng đăng nhập.";
-                    return RedirectToAction("Login", "Account");
+                    return RedirectToAction("Login", "Auth");
                 }
 
                 var notification = await _svc.GetUserNotificationByIdAsync(id);
@@ -190,8 +191,11 @@ namespace WebUI.Controllers
 
                 await _svc.MarkReadAsync(id);
 
+                // Get updated count for badge
+                var unreadCount = await _svc.GetUnreadCountAsync(currentUserId);
+
                 if (IsAjaxRequest())
-                    return Json(new { success = true, message = "Đã đánh dấu đọc" });
+                    return Json(new { success = true, message = "Đã đánh dấu đọc", unreadCount });
 
                 TempData["Success"] = "Đã đánh dấu thông báo là đã đọc.";
             }
@@ -251,7 +255,7 @@ namespace WebUI.Controllers
                         return Json(new { success = false, message = "Chưa đăng nhập" });
 
                     TempData["Error"] = "Vui lòng đăng nhập.";
-                    return RedirectToAction("Login", "Account");
+                    return RedirectToAction("Login", "Auth");
                 }
 
                 var markedCount = await _svc.MarkAllReadAsync(currentUserId);

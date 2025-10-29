@@ -111,18 +111,23 @@
 							</svg>
 						</button>
 						<!-- Nút thông báo -->
-						<button class="header-action-btn" id="notificationBtn" type="button" data-bs-toggle="offcanvas"
-								data-bs-target="#notificationOffcanvas" aria-controls="notificationOffcanvas"
-								title="Thông báo">
-							<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-								 stroke-width="2">
-								<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-								<path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-							</svg>
-							<span class="action-badge action-badge-danger">5</span>
-						</button>
+					
+					<!-- NOTIFICATION BUTTON - Chuyển sang link để click được -->
+					<a href="@Url.Action("Index", "MyNotifications")" 
+					   class="header-action-btn position-relative"
+					   id="notificationBtn"
+					   title="Thông báo">
+						<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+							<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+							<path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+						</svg>
 
-						<!-- GIỎ HÀNG: DÙNG ID ĐỂ JS CẬP NHẬT -->
+						<span id="unreadBadge"
+							  class="action-badge action-badge-danger"
+							  style="position:absolute; top:-6px; right:-6px; font-size:12px; min-width:18px; height:18px; border-radius:50%; display:none; align-items:center; justify-content:center; background:#dc3545; color:white; font-weight:bold; padding:2px;">
+							0
+						</span>
+					</a>						<!-- GIỎ HÀNG: DÙNG ID ĐỂ JS CẬP NHẬT -->
 						<a asp-controller="Home" asp-action="Cart" class="header-action-btn" id="cart-link">
 							<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
 								 stroke-width="2">
@@ -373,96 +378,110 @@
 		document.addEventListener('DOMContentLoaded', function () {
 			if (window.lucide) lucide.createIcons();
 
-			// === TẠO VÀ CẬP NHẬT BADGE GIỎ HÀNG ===
-			let badge = document.querySelector('#cart-badge');
-			const cartLink = document.getElementById('cart-link');
-			if (cartLink && !badge) {
-				badge = document.createElement('span');
-				badge.id = 'cart-badge';
-				badge.className = 'action-badge action-badge-primary';
-				badge.style.cssText = 'position: absolute; top: -8px; right: -8px; font-size: 12px; min-width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; border-radius: 50%;';
-				cartLink.style.position = 'relative';
-				cartLink.appendChild(badge);
-			}
-
-			// Cập nhật badge ngay khi load
-			if (typeof updateCartBadge === 'function') {
-				updateCartBadge();
-			}
-		});
-	</script>
-	@await RenderSectionAsync("Scripts", required: false)
-	<script>
-		// Lấy số thông báo chưa đọc
-		async function updateNotificationBadge() {
-			try {
-				const response = await fetch('/MyNotifications/GetUnreadCount');
-				const data = await response.json();
-            // ==== CART BADGE ====
-            let badgeCart = document.querySelector('#cart-badge');
-            const cartLink = document.getElementById('cart-link');
-            if (cartLink && !badgeCart) {
-                badgeCart = document.createElement('span');
-                badgeCart.id = 'cart-badge';
-                badgeCart.className = 'action-badge action-badge-primary';
-                badgeCart.style.cssText = 'position:absolute;top:-8px;right:-8px;font-size:12px;min-width:18px;height:18px;display:flex;align-items:center;justify-content:center;border-radius:50%;';
-                cartLink.style.position = 'relative';
-                cartLink.appendChild(badgeCart);
-            }
-            if (typeof updateCartBadge === 'function') {
-                updateCartBadge();
-            }
-
-            // ==== NOTIFICATION BADGE (không offcanvas) ====
-            const unreadBadgeEl = document.getElementById('unreadBadge');
-            const notificationBtn = document.getElementById('notificationBtn');
-
-            async function updateNotificationBadge() {
-                try {
-                    const res = await fetch('/MyNotifications/GetUnreadCount');
-                    const data = await res.json();
-
-                    if (!unreadBadgeEl) return;
-
-				const badge = document.getElementById('unreadBadge');
-				if (data.success && data.count > 0) {
-					badge.textContent = data.count > 99 ? '99+' : data.count;
-					badge.style.display = 'block';
-				} else {
-					badge.style.display = 'none';
+			// === CART BADGE ===
+			function ensureCartBadge() {
+				let badge = document.querySelector('#cart-badge');
+				const cartLink = document.getElementById('cart-link');
+				if (cartLink && !badge) {
+					badge = document.createElement('span');
+					badge.id = 'cart-badge';
+					badge.className = 'action-badge action-badge-primary';
+					badge.style.cssText = `
+						position:absolute;
+						top:-8px;
+						right:-8px;
+						font-size:12px;
+						min-width:18px;
+						height:18px;
+						display:flex;
+						align-items:center;
+						justify-content:center;
+						border-radius:50%;
+					`;
+					cartLink.style.position = 'relative';
+					cartLink.appendChild(badge);
 				}
-			} catch (error) {
-				console.error('Error:', error);
 			}
-		}
-                    if (data.success && data.count > 0) {
-                        unreadBadgeEl.textContent = data.count > 99 ? '99+' : data.count;
-                        unreadBadgeEl.style.display = 'flex';
-                    } else {
-                        unreadBadgeEl.style.display = 'none';
-                    }
-                } catch (err) {
-                    console.error('updateNotificationBadge error:', err);
-                }
-            }
+		document.addEventListener('DOMContentLoaded', function () {
+				 if (window.lucide) lucide.createIcons();
 
-            // Khi bấm chuông -> đi tới trang MyNotifications
-            if (notificationBtn) {
-                notificationBtn.addEventListener('click', function () {
-                    window.location.href = '/MyNotifications/Index';
-                });
-            }
+				 // ==== CART BADGE ====
+				 let badgeCart = document.querySelector('#cart-badge');
+				 const cartLink = document.getElementById('cart-link');
+				 if (cartLink && !badgeCart) {
+					 badgeCart = document.createElement('span');
+					 badgeCart.id = 'cart-badge';
+					 badgeCart.className = 'action-badge action-badge-primary';
+					 badgeCart.style.cssText = 'position:absolute;top:-8px;right:-8px;font-size:12px;min-width:18px;height:18px;display:flex;align-items:center;justify-content:center;border-radius:50%;';
+					 cartLink.style.position = 'relative';
+					 cartLink.appendChild(badgeCart);
+				 }
+				 if (typeof updateCartBadge === 'function') {
+					 updateCartBadge();
+				 }
 
-            // load lần đầu + poll 30s
-            updateNotificationBadge();
-            setInterval(() => {
-                if (!document.hidden) {
-                    updateNotificationBadge();
-                }
-            }, 30000);
-        });
-    </script>
+				 // ==== NOTIFICATION BADGE (không offcanvas) ====
+				 const unreadBadgeEl = document.getElementById('unreadBadge');
+				 const notificationBtn = document.getElementById('notificationBtn');
 
-    @await RenderSectionAsync("Scripts", required: false)
+				 async function updateNotificationBadge() {
+					 try {
+						 const res = await fetch('/MyNotifications/GetUnreadCount');
+						 if (!res.ok) {
+							 console.warn('Failed to fetch notification count:', res.status);
+							 return;
+						 }
+
+						 const data = await res.json();
+
+						 if (!unreadBadgeEl) return;
+
+						 if (data.success && data.count > 0) {
+							 unreadBadgeEl.textContent = data.count > 99 ? '99+' : data.count;
+							 unreadBadgeEl.style.display = 'flex';
+						 } else {
+							 unreadBadgeEl.textContent = '0';
+							 unreadBadgeEl.style.display = 'none';
+						 }
+					 } catch (err) {
+						 console.error('updateNotificationBadge error:', err);
+					 }
+				 }
+
+			 // Notification button đã là link <a> rồi nên không cần addEventListener nữa
+			 // Nhưng giữ lại để có thể add logic khác nếu cần (VD: mark all as read trước khi chuyển trang)
+			 if (notificationBtn) {
+				 // Link tự động navigate, không cần JS
+				 // notificationBtn.addEventListener('click', function (e) {
+				 //     window.location.href = '/MyNotifications/Index';
+				 // });
+			 }				 // load lần đầu + poll 30s
+				 updateNotificationBadge();
+				 
+				 // Auto refresh notification badge
+				 let notificationInterval = setInterval(() => {
+					 if (!document.hidden) {
+						 updateNotificationBadge();
+					 }
+				 }, 30000);
+
+				 // Clear interval when page is hidden to save resources
+				 document.addEventListener('visibilitychange', function() {
+					 if (document.hidden) {
+						 clearInterval(notificationInterval);
+					 } else {
+						 updateNotificationBadge();
+						 notificationInterval = setInterval(() => {
+							 if (!document.hidden) {
+								 updateNotificationBadge();
+							 }
+						 }, 30000);
+					 }
+				 });
+			 });
+	</script>
+
+	@await RenderSectionAsync("Scripts", required: false)
+
 </body>
 </html>
