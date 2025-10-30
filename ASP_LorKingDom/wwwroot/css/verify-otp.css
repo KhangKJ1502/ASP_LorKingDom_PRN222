@@ -88,20 +88,58 @@
     font-weight: 600;
     box-shadow: 0 6px 16px rgba(255,122,42,.3);
     transition: all 0.3s;
+    color: white !important;
 }
 
     .btn-primary:hover {
         transform: translateY(-2px);
         box-shadow: 0 10px 22px rgba(255,122,42,.4);
+        background: linear-gradient(135deg, #ff8c1a 0%, #ff7811 100%) !important;
+        color: white !important;
+    }
+
+    .btn-primary:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
     }
 
 #resendBtn {
     color: #ff7a2a;
     font-weight: 600;
     cursor: pointer;
+    text-decoration: none;
 }
+
+    #resendBtn:hover {
+        color: #ff8c1a;
+        text-decoration: underline;
+    }
 
     #resendBtn[disabled] {
         opacity: 0.5;
         cursor: not-allowed;
+        color: #9ca3af;
     }
+
+    #resendBtn[disabled]:hover {
+        text-decoration: none;
+    }
+
+/* ===== Loading Spinner ===== */
+.spinner-border {
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    vertical-align: text-bottom;
+    border: 0.15em solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: spinner-border .75s linear infinite;
+}
+
+@keyframes spinner-border {
+    to {
+        transform: rotate(360deg);
+    }
+}
