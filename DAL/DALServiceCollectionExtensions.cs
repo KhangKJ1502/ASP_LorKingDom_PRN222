@@ -71,6 +71,12 @@ namespace DAL
             // Nhánh Order
             services.AddScoped<IOrderRepository, OrderRepository>();
 
+            //Order 
+            services.AddScoped<IOrderRefundRepository, OrderRefundRepository>();
+
+            //Statistics
+            services.AddScoped<IStatisticsRepository, StatisticsRepository>();
+
             return services;
         }
     }

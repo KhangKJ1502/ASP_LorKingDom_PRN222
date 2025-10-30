@@ -70,6 +70,12 @@ namespace BLL
             services.AddScoped<IVoucherService, VoucherService>();
             services.AddScoped<IVoucherTypeService, VoucherTypeService>();
 
+            //OrderRefund
+            services.AddScoped<IOrderRefundService, OrderRefundService>();
+
+            //Statistics
+            services.AddScoped<IStatisticsService, StatisticsService>();
+
             return services;
         }
     }

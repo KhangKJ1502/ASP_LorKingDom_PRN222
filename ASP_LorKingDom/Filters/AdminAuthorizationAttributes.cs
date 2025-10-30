@@ -53,6 +53,30 @@ namespace WebUI.Filters
     }
 
     /// <summary>
+    /// Custom Authorization Attribute cho Admin và Warehouse
+    /// Staff không có quyền (dùng cho Product Statistics)
+    /// </summary>
+    public class AdminAndWarehouseOnlyAttribute : AuthorizeAttribute, IAuthorizationFilter
+    {
+        public void OnAuthorization(AuthorizationFilterContext context)
+        {
+            var user = context.HttpContext.User;
+
+            if (!user.Identity?.IsAuthenticated ?? true)
+            {
+                context.Result = new RedirectToActionResult("Login", "AdminAuth", null);
+                return;
+            }
+
+            var role = user.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+            if (role != "Admin" && role != "Warehouse")
+            {
+                context.Result = new RedirectToActionResult("AccessDenied", "AdminAuth", null);
+            }
+        }
+    }
+
+    /// <summary>
     /// Custom Authorization Attribute cho tất cả role quản lý
     /// Admin, Staff, Warehouse đều có quyền
     /// </summary>

@@ -1,10 +1,262 @@
-﻿@page
+﻿@model BLL.DTOs.DashboardStatisticsDto
 @{
-// ViewData["Title"] = "Dashboard";
-Layout = "_AdminLayout"; // Razor sẽ tự tìm ở Views/Shared
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Dashboard";
 }
 
-<div class="container">
-    <h2>Dashboard</h2>
-    <p>Đây là nội dung chính của admin dashboard</p>
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="mb-0">📊 Dashboard - Venue Statistics</h2>
+            <p class="text-muted">Overview of your store performance</p>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-2">Total Revenue</h6>
+                            <h3 class="mb-0">@Model.TotalRevenue.ToString("N0") đ</h3>
+                            <small class="text-success">This Month: @Model.RevenueThisMonth.ToString("N0") đ</small>
+                        </div>
+                        <div class="text-success">
+                            <i class="fas fa-dollar-sign fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-2">Total Orders</h6>
+                            <h3 class="mb-0">@Model.TotalOrders</h3>
+                            <small class="text-info">Today: @Model.OrdersToday</small>
+                        </div>
+                        <div class="text-info">
+                            <i class="fas fa-shopping-cart fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-2">Total Customers</h6>
+                            <h3 class="mb-0">@Model.TotalCustomers</h3>
+                            <small class="text-primary">New this month: @Model.NewCustomersThisMonth</small>
+                        </div>
+                        <div class="text-primary">
+                            <i class="fas fa-users fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-2">Total Products</h6>
+                            <h3 class="mb-0">@Model.TotalProducts</h3>
+                            <small class="text-warning">Low Stock: @Model.LowStockProducts</small>
+                        </div>
+                        <div class="text-warning">
+                            <i class="fas fa-box fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <!-- Revenue Trend Chart -->
+        <div class="col-xl-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">📈 Daily Revenue (Last 7 Days)</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="dailyRevenueChart" height="80"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Orders by Status -->
+        <div class="col-xl-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">📦 Orders by Status</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="orderStatusChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <!-- Monthly Revenue Trend -->
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">💰 Monthly Revenue (Last 12 Months)</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="monthlyRevenueChart" height="60"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <!-- Top Selling Products -->
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">🏆 Top 5 Selling Products</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Image</th>
+                                    <th>Product Name</th>
+                                    <th>Total Sold</th>
+                                    <th>Revenue</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var product in Model.TopSellingProducts)
+                                {
+                                    <tr>
+                                        <td>
+                                            <img src="@(product.MainImageUrl ?? "/Assets/placeholder.jpg")" 
+                                                 alt="@product.ProductName" 
+                                                 style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;">
+                                        </td>
+                                        <td>@product.ProductName</td>
+                                        <td><span class="badge bg-success">@product.TotalSold</span></td>
+                                        <td><strong>@product.TotalRevenue.ToString("N0") đ</strong></td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script>
+        // Daily Revenue Chart
+        const dailyCtx = document.getElementById('dailyRevenueChart').getContext('2d');
+        new Chart(dailyCtx, {
+            type: 'line',
+            data: {
+                labels: @Html.Raw(Json.Serialize(Model.DailyRevenues.Select(d => d.DateLabel))),
+                datasets: [{
+                    label: 'Revenue (đ)',
+                    data: @Html.Raw(Json.Serialize(Model.DailyRevenues.Select(d => d.Revenue))),
+                    borderColor: 'rgb(75, 192, 192)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: true },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return 'Revenue: ' + context.parsed.y.toLocaleString() + ' đ';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+
+        // Order Status Chart
+        const statusCtx = document.getElementById('orderStatusChart').getContext('2d');
+        const statusData = @Html.Raw(Json.Serialize(Model.OrdersByStatus));
+        new Chart(statusCtx, {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(statusData),
+                datasets: [{
+                    data: Object.values(statusData),
+                    backgroundColor: [
+                        'rgb(255, 99, 132)',
+                        'rgb(54, 162, 235)',
+                        'rgb(255, 205, 86)',
+                        'rgb(75, 192, 192)',
+                        'rgb(153, 102, 255)',
+                        'rgb(255, 159, 64)'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
+            }
+        });
+
+        // Monthly Revenue Chart
+        const monthlyCtx = document.getElementById('monthlyRevenueChart').getContext('2d');
+        new Chart(monthlyCtx, {
+            type: 'bar',
+            data: {
+                labels: @Html.Raw(Json.Serialize(Model.MonthlyRevenues.Select(m => m.MonthName))),
+                datasets: [{
+                    label: 'Revenue (đ)',
+                    data: @Html.Raw(Json.Serialize(Model.MonthlyRevenues.Select(m => m.Revenue))),
+                    backgroundColor: 'rgba(54, 162, 235, 0.8)',
+                    borderColor: 'rgb(54, 162, 235)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: true },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return 'Revenue: ' + context.parsed.y.toLocaleString() + ' đ';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+    </script>
+}

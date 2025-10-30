@@ -19,7 +19,6 @@ namespace WebUI.Controllers
             return int.TryParse(s, out accountId);
         }
 
-        // ==================== AJAX: Danh sách partial ====================
         [HttpGet("Wishlist/ListPartial")]
         [IgnoreAntiforgeryToken] // GET nên bỏ check token
         public async Task<IActionResult> ListPartial(string? wq)
@@ -32,7 +31,6 @@ namespace WebUI.Controllers
             return PartialView("_WishlistListPartial", items);
         }
 
-        // ==================== AJAX: Xóa từng sản phẩm ====================
         [HttpPost("Wishlist/Remove")]
         [IgnoreAntiforgeryToken]
         public async Task<IActionResult> Remove(int productId)
@@ -44,7 +42,6 @@ namespace WebUI.Controllers
             return Ok(); // 200
         }
 
-        // ==================== AJAX: Xóa tất cả ====================
         [HttpPost("Wishlist/Clear")]
         [IgnoreAntiforgeryToken]
         public async Task<IActionResult> Clear()
@@ -56,7 +53,6 @@ namespace WebUI.Controllers
             return Ok();
         }
 
-        // ==================== Toggle từ icon trái tim (vẫn giữ logic cũ) ====================
         [HttpPost("Wishlist/Toggle")]
         public async Task<IActionResult> Toggle(int productId, string? returnUrl)
         {

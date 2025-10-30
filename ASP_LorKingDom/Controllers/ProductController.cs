@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BLL.DTOs;
 using BLL.Interfaces;
+using WebUI.Filters;
 
 
 namespace WebUI.Controllers
@@ -22,6 +23,7 @@ namespace WebUI.Controllers
         private readonly IAgeService _ageSvc;
         private readonly IMaterialService _materialSvc;
         private readonly IOriginService _originSvc;
+        private readonly IStatisticsService _statisticsService;
 
         public ProductController(
             IProductService productSvc,
@@ -31,7 +33,8 @@ namespace WebUI.Controllers
             IBrandService brandSvc,
             IAgeService ageSvc,
             IMaterialService materialSvc,
-            IOriginService originSvc)
+            IOriginService originSvc,
+            IStatisticsService statisticsService)
         {
             _productSvc = productSvc;
             _categorySvc = categorySvc;
@@ -41,6 +44,7 @@ namespace WebUI.Controllers
             _ageSvc = ageSvc;
             _materialSvc = materialSvc;
             _originSvc = originSvc;
+            _statisticsService = statisticsService;
         }
 
         public async Task<IActionResult> Manage(string? q, int page = 1, int pageSize = 8)
@@ -199,5 +203,15 @@ namespace WebUI.Controllers
 
             return "/" + Path.Combine(subFolder, name).Replace("\\", "/");
         }
-    }   
+
+        // ===== PRODUCT STATISTICS =====
+        // Admin và Warehouse được xem Product Statistics (sản phẩm), Staff không được xem
+        [HttpGet]
+        //[AdminAndWarehouseOnly]
+        public async Task<IActionResult> Statistics()
+        {
+            var stats = await _statisticsService.GetProductStatisticsAsync();
+            return View("~/Views/Admin/ProductStatistics.cshtml", stats);
+        }
+    }
 }

@@ -262,15 +262,16 @@
                                     <td>
                                         @if (x.IsDeleted)
                                         {
-                                            <span class="badge bg-secondary">Đã vô hiệu</span>
+                                            <span class="badge bg-secondary">Đã xóa mềm</span>
                                         }
                                         else
                                         {
                                             <span class="badge bg-@(x.Status == "Active" ? "success" : "warning")">
-                                                @x.Status
+                                                @(x.Status == "Active" ? "Đang hoạt động" : "Ngừng hoạt động")
                                             </span>
                                         }
                                     </td>
+
                                     <td>@x.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
                                 </tr>
                             }
@@ -473,7 +474,7 @@
                                        onchange="updateStatus(this.value)"
                                        autocomplete="off">
                                 <label class="btn btn-outline-success" for="statusActive">
-                                    <i class="fa-solid fa-circle-check me-1"></i>Active
+                                    <i class="fa-solid fa-circle-check me-1"></i>Đang hoạt động
                                 </label>
 
                                 <input type="radio"
@@ -485,10 +486,11 @@
                                        onchange="updateStatus(this.value)"
                                        autocomplete="off">
                                 <label class="btn btn-outline-danger" for="statusInactive">
-                                    <i class="fa-solid fa-circle-xmark me-1"></i>Inactive
+                                    <i class="fa-solid fa-circle-xmark me-1"></i>Ngừng hoạt động
                                 </label>
                             </div>
                         </div>
+
 
                         <div class="col-lg-6">
                             <label class="form-label">

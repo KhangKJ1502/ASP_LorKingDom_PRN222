@@ -42,6 +42,10 @@ namespace WebUI.Controllers
             try
             {
                 await LoadRolesAsync();
+                
+                // CRITICAL: Force Id = 0 để đảm bảo đây là Create, không phải Update
+                model.Id = 0;
+                
                 var v = AccountValidator.ValidateCreateStaff(
                     model.AccountName, model.Email, model.PhoneNumber, model.RoleId, model.Password, ConfirmPassword ?? "");
 
@@ -53,12 +57,27 @@ namespace WebUI.Controllers
                     if (role == null) ModelState.AddModelError(nameof(model.RoleId), "Vai trò không tồn tại.");
                 }
 
+                // Kiểm tra email đã tồn tại - KHÔNG cho phép trùng khi tạo mới
                 if (!string.IsNullOrWhiteSpace(model.Email) &&
                     await _accountService.ExistsByEmailAsync(model.Email))
-                    ModelState.AddModelError(nameof(model.Email), "Email đã tồn tại.");
+                {
+                    ModelState.AddModelError(nameof(model.Email), "Email đã tồn tại trong hệ thống.");
+                    ViewBag.ShowErrorModal = true;
+                    ViewBag.ErrorMessage = "Email đã tồn tại trong hệ thống.";
+                    ViewBag.ShowAddModal = true; // Flag để mở lại Add Modal
+                    return await ReloadManagePage(q, model);
+                }
+                
+                // Kiểm tra phone đã tồn tại - KHÔNG cho phép trùng khi tạo mới
                 if (!string.IsNullOrWhiteSpace(model.PhoneNumber) &&
                     await _accountService.ExistsByPhoneNumberAsync(model.PhoneNumber))
-                    ModelState.AddModelError(nameof(model.PhoneNumber), "Số điện thoại đã tồn tại.");
+                {
+                    ModelState.AddModelError(nameof(model.PhoneNumber), "Số điện thoại đã tồn tại trong hệ thống.");
+                    ViewBag.ShowErrorModal = true;
+                    ViewBag.ErrorMessage = "Số điện thoại đã tồn tại trong hệ thống.";
+                    ViewBag.ShowAddModal = true; // Flag để mở lại Add Modal
+                    return await ReloadManagePage(q, model);
+                }
 
                 if (AvatarFile is { Length: > 0 })
                 {
@@ -70,10 +89,11 @@ namespace WebUI.Controllers
                 {
                     ViewBag.ShowErrorModal = true;
                     ViewBag.ErrorMessage = FirstModelStateError();
+                    ViewBag.ShowAddModal = true; // Flag để mở lại Add Modal
+                    ViewBag.AddStaffModel = model; // Giữ lại data đã nhập
                     return await ReloadManagePage(q, model);
                 }
 
-                model.Id = 0;
                 model.Status = model.IsDeleted ? "Inactive" : "Active";
                 model.CreatedAt = DateTime.Now;
                 model.UpdatedAt = null;
@@ -85,19 +105,32 @@ namespace WebUI.Controllers
                     {
                         ViewBag.ShowErrorModal = true;
                         ViewBag.ErrorMessage = pathOrErr;
+                        ViewBag.ShowAddModal = true;
+                        ViewBag.AddStaffModel = model;
                         return await ReloadManagePage(q, model);
                     }
                     model.Image = pathOrErr;
                 }
 
                 var newId = await _accountService.CreateAsync(model);
-                TempData["Success"] = newId > 0 ? "Thêm nhân viên thành công!" : "Thêm nhân viên thất bại!";
+                
+                if (newId > 0)
+                {
+                    TempData["Success"] = "✅ Thêm nhân viên thành công!";
+                }
+                else
+                {
+                    TempData["Error"] = "❌ Thêm nhân viên thất bại! Vui lòng thử lại.";
+                }
+                
                 return RedirectToAction(nameof(Manage), new { q });
             }
             catch (Exception ex)
             {
                 ViewBag.ShowErrorModal = true;
                 ViewBag.ErrorMessage = $"Lỗi hệ thống: {ex.Message}";
+                ViewBag.ShowAddModal = true;
+                ViewBag.AddStaffModel = model;
                 return await ReloadManagePage(q, model);
             }
         }
@@ -123,14 +156,23 @@ namespace WebUI.Controllers
             {
                 await LoadRolesAsync();
 
+                // CRITICAL: Id phải > 0 để đảm bảo đây là Update, không phải Create
                 if (Id <= 0)
                 {
-                    TempData["Error"] = "Thiếu Id nhân viên.";
+                    TempData["Error"] = "❌ ID nhân viên không hợp lệ. Không thể cập nhật.";
+                    return RedirectToAction(nameof(Manage), new { q });
+                }
+                
+                // Kiểm tra staff có tồn tại không
+                var existing = await _accountService.GetByIdAsync(Id);
+                if (existing == null)
+                {
+                    TempData["Error"] = "❌ Không tìm thấy nhân viên cần cập nhật!";
                     return RedirectToAction(nameof(Manage), new { q });
                 }
 
                 var v = AccountValidator.ValidateUpdateStaff(
-                    AccountName, Email, PhoneNumber, RoleId, Status, NewPassword ?? "", ConfirmNewPassword ?? "");
+                    AccountName, Email, PhoneNumber ?? "", RoleId, Status, NewPassword ?? "", ConfirmNewPassword ?? "");
                 if (!v.IsValid) AddModelErrors(v.Errors);
 
                 if (RoleId.HasValue && RoleId.Value > 0)
@@ -139,9 +181,12 @@ namespace WebUI.Controllers
                     if (role == null) ModelState.AddModelError(nameof(RoleId), "Vai trò không tồn tại.");
                 }
 
+                // Kiểm tra phone trùng - loại trừ chính staff hiện tại
                 if (!string.IsNullOrWhiteSpace(PhoneNumber) &&
                     await _accountService.ExistsByPhoneNumberAsync(PhoneNumber, Id))
-                    ModelState.AddModelError(nameof(PhoneNumber), "Số điện thoại đã tồn tại.");
+                {
+                    ModelState.AddModelError(nameof(PhoneNumber), "Số điện thoại đã được sử dụng bởi nhân viên khác.");
+                }
 
                 if (AvatarFile is { Length: > 0 })
                 {
@@ -168,14 +213,8 @@ namespace WebUI.Controllers
                     return await ReloadManagePage(q, temp);
                 }
 
-                var existing = await _accountService.GetByIdAsync(Id);
-                if (existing == null)
-                {
-                    TempData["Error"] = "Không tìm thấy nhân viên!";
-                    return RedirectToAction(nameof(Manage), new { q });
-                }
-
-                existing.AccountName = AccountName?.Trim();
+                // Update existing staff info
+                existing.AccountName = AccountName?.Trim() ?? existing.AccountName;
                 existing.PhoneNumber = PhoneNumber;
                 existing.RoleId = RoleId;
                 existing.IsDeleted = IsDeleted;
@@ -205,17 +244,17 @@ namespace WebUI.Controllers
                 }
 
                 var success = await _accountService.UpdateAsync(existing.Id, existing);
-                TempData["Success"] = success ? "Cập nhật nhân viên thành công!" : "Cập nhật thất bại!";
+                TempData["Success"] = success ? "✅ Cập nhật nhân viên thành công!" : "❌ Cập nhật thất bại!";
                 return RedirectToAction(nameof(Manage), new { q });
             }
             catch (DbUpdateConcurrencyException)
             {
-                TempData["Error"] = "Dữ liệu đã bị thay đổi bởi người dùng khác. Vui lòng thử lại.";
+                TempData["Error"] = "⚠️ Dữ liệu đã bị thay đổi bởi người dùng khác. Vui lòng thử lại.";
                 return RedirectToAction(nameof(Manage), new { q });
             }
             catch (Exception ex)
             {
-                TempData["Error"] = $"Lỗi: {ex.Message}";
+                TempData["Error"] = $"❌ Lỗi: {ex.Message}";
                 return RedirectToAction(nameof(Manage), new { q });
             }
         }

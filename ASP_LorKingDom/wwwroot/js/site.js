@@ -41,3 +41,26 @@ document.addEventListener("DOMContentLoaded", () => {
         lastScroll = currentScroll
     })
 })
+function showToast(type, message, timeout = 4000) {
+    const root = document.getElementById('toast-root');
+    if (!root) return;
+
+    const div = document.createElement('div');
+    div.className = `toast toast-${type}`;
+    div.innerHTML = `
+    <span style="font-weight:700; font-size:14px;">${message}</span>
+    <button class="toast-close" aria-label="Close">✕</button>
+  `;
+    root.appendChild(div);
+
+    // show
+    requestAnimationFrame(() => div.classList.add('show'));
+
+    // close handlers
+    const close = () => {
+        div.classList.remove('show');
+        setTimeout(() => div.remove(), 200);
+    };
+    div.querySelector('.toast-close').addEventListener('click', close);
+    if (timeout > 0) setTimeout(close, timeout);
+}

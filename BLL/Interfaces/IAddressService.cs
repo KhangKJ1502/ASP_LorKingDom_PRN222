@@ -3,10 +3,10 @@ using BLL.DTOs;
 
 public interface IAddressService
 {
-    Task<List<AddressDto>> GetByAccountIdAsync(int accountId);
-    Task<AddressDto?> GetAsync(int id, int accountId);
-    Task<int> AddAsync(int accountId, string addressLine, string city, string? ward, bool? setDefault);
-    Task UpdateAsync(int id, int accountId, string addressLine, string city, string? ward, bool? setDefault);
-    Task DeleteAsync(int id, int accountId);
-    Task SetDefaultAsync(int id, int accountId);
+    Task<List<AddressDto>> ListAsync(int accountId, string? keyword);
+    Task<AddressDto?> GetAsync(int accountId, int addressId);
+    Task<int> CreateAsync(int accountId, string city, string ward, string addressLine, bool setAsDefault);
+    Task<bool> UpdateAsync(int accountId, int addressId, string city, string ward, string addressLine, bool setAsDefault);
+    Task<bool> DeleteAsync(int accountId, int addressId); // xóa cứng
+    Task<bool> SetDefaultAsync(int accountId, int addressId);
 }

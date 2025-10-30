@@ -79,6 +79,7 @@ namespace BLL.Services
             {
                 await _categoryRepo.SetIsDeletedBySuperCategoryAsync(id, true);
                 await _productRepo.SetIsDeletedBySuperCategoryAsync(id, true);
+
             }
 
             return true;
