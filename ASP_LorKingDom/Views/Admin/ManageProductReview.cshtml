@@ -109,6 +109,12 @@
             background-color: #667eea;
             color: white;
         }
+
+    /* Nút refresh loading state */
+    .btn-refresh[aria-busy="true"] {
+        pointer-events: none;
+        opacity: .8;
+    }
 </style>
 
 <div class="container-fluid px-5">
@@ -117,27 +123,34 @@
     <div class="card mb-4 mt-4">
         <div class="card-header d-flex justify-content-between align-items-center">
             <div><i class="fa-solid fa-star me-2"></i>Danh Sách Đánh Giá</div>
+
+            <!-- Nút Refresh ở header: RESET toàn bộ filter + search và load mặc định -->
+            <div class="d-flex align-items-center gap-2">
+                <button id="btnRefreshHeader" type="button" class="btn btn-outline-secondary btn-sm btn-refresh" title="Đặt lại bộ lọc và làm mới dữ liệu">
+                    <i class="fa-solid fa-rotate-right me-1"></i> Refresh
+                </button>
+            </div>
         </div>
 
         <div class="card-body">
-            <!-- Tabs for Active Reviews and Recycle Bin -->
+            <!-- Tabs -->
             <ul class="nav nav-tabs mb-4">
                 <li class="nav-item">
-                    <a class="nav-link @(showDeleted ? "" : "active")" href="@Url.Action("ManageProductReview", new { q, product = productFilter, deleteStatus = deleteStatusFilter, replyStatus = replyStatusFilter, page = 1, showDeleted = false })">
+                    <a class="nav-link @(showDeleted ? "" : "active")" href="@Url.Action("ManageProductReview", new { q = "", product = "", deleteStatus = "", replyStatus = "", page = 1, showDeleted = false })">
                         Đánh Giá Hoạt Động
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link @(showDeleted ? "active" : "")" href="@Url.Action("ManageProductReview", new { q, product = productFilter, deleteStatus = "deleted", replyStatus = replyStatusFilter, page = 1, showDeleted = true })">
+                    <a class="nav-link @(showDeleted ? "active" : "")" href="@Url.Action("ManageProductReview", new { q = "", product = "", deleteStatus = "deleted", replyStatus = "", page = 1, showDeleted = true })">
                         Thùng Rác
                     </a>
                 </li>
             </ul>
 
             <!-- Tìm kiếm và Lọc -->
-            <form class="mb-4" method="get" asp-action="ManageProductReview" asp-controller="ReviewProduct">
+            <form id="filterForm" class="mb-4" method="get" asp-action="ManageProductReview" asp-controller="ReviewProduct">
                 <input type="hidden" name="showDeleted" value="@showDeleted.ToString().ToLower()" />
-                <div class="row g-2">
+                <div class="row g-2 align-items-stretch">
                     <div class="col-md-3">
                         <input type="text" name="q" value="@q" class="form-control"
                                placeholder="Tìm theo người đánh giá, sản phẩm hoặc nội dung...">
@@ -165,8 +178,8 @@
                             <option value="unreplied" selected="@(replyStatusFilter == "unreplied")">Chưa hồi</option>
                         </select>
                     </div>
-                    <div class="col-md-2">
-                        <button class="btn btn-primary w-100" type="submit">
+                    <div class="col-md-3 d-flex">
+                        <button class="btn btn-primary flex-fill" type="submit">
                             <i class="fa-solid fa-magnifying-glass"></i> Tìm kiếm
                         </button>
                     </div>
@@ -178,9 +191,7 @@
                 <table class="table table-bordered table-striped table-hover">
                     <thead class="table-dark">
                         <tr>
-                            <th style="width: 40px;">
-                                <input type="checkbox" id="selectAll" class="form-check-input">
-                            </th>
+                            <th style="width: 40px;"><input type="checkbox" id="selectAll" class="form-check-input"></th>
                             <th>Nội dung đánh giá</th>
                             <th style="width: 150px;">Người đánh giá</th>
                             <th style="width: 180px;">Sản phẩm</th>
@@ -199,15 +210,9 @@
                             {
                                 <tr class="@(review.IsDeleted ? "deleted-row" : "")" data-review-id="@review.ReviewProductId">
                                     <td><input type="checkbox" class="form-check-input row-checkbox"></td>
-                                    <td>
-                                        <p class="review-content mb-0">@review.Comment</p>
-                                    </td>
-                                    <td>
-                                        <span class="author-badge">@review.AuthorName</span>
-                                    </td>
-                                    <td>
-                                        <span class="product-title-ellipsis" title="@review.ProductName">@review.ProductName</span>
-                                    </td>
+                                    <td><p class="review-content mb-0">@review.Comment</p></td>
+                                    <td><span class="author-badge">@review.AuthorName</span></td>
+                                    <td><span class="product-title-ellipsis" title="@review.ProductName">@review.ProductName</span></td>
                                     <td>
                                         <span class="rating-stars">
                                             @for (int i = 1; i <= 5; i++)
@@ -249,25 +254,21 @@
                                     </td>
                                     <td>@review.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
                                     <td style="text-align: center;">
-                                        <button type="button" class="btn btn-sm btn-info"
-                                                onclick="viewReviewDetail(@review.ReviewProductId)" title="Xem">
+                                        <button type="button" class="btn btn-sm btn-info" onclick="viewReviewDetail(@review.ReviewProductId)" title="Xem">
                                             <i class="fas fa-eye"></i>
                                         </button>
-                                        <button type="button" class="btn btn-sm btn-primary"
-                                                onclick="editReview(@review.ReviewProductId)" title="Sửa">
+                                        <button type="button" class="btn btn-sm btn-primary" onclick="editReview(@review.ReviewProductId)" title="Sửa">
                                             <i class="fas fa-edit"></i>
                                         </button>
                                         @if (review.IsDeleted)
                                         {
-                                            <button type="button" class="btn btn-sm btn-success"
-                                                    onclick="restoreReview(@review.ReviewProductId)" title="Khôi phục">
+                                            <button type="button" class="btn btn-sm btn-success" onclick="restoreReview(@review.ReviewProductId)" title="Khôi phục">
                                                 <i class="fas fa-undo"></i>
                                             </button>
                                         }
                                         else
                                         {
-                                            <button type="button" class="btn btn-sm btn-danger"
-                                                    onclick="deleteReview(@review.ReviewProductId)" title="Xóa">
+                                            <button type="button" class="btn btn-sm btn-danger" onclick="deleteReview(@review.ReviewProductId)" title="Xóa">
                                                 <i class="fas fa-trash"></i>
                                             </button>
                                         }
@@ -277,11 +278,7 @@
                         }
                         else
                         {
-                            <tr>
-                                <td colspan="10" style="text-align: center; color: #999;">
-                                    @(showDeleted ? "Thùng rác trống." : "Không có đánh giá nào.")
-                                </td>
-                            </tr>
+                            <tr><td colspan="10" style="text-align: center; color: #999;">@(showDeleted ? "Thùng rác trống." : "Không có đánh giá nào.")</td></tr>
                         }
                     </tbody>
                 </table>
@@ -321,14 +318,10 @@
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="reviewDetailLabel">
-                        Chi tiết đánh giá
-                    </h5>
+                    <h5 class="modal-title" id="reviewDetailLabel">Chi tiết đánh giá</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body" id="reviewDetailContent">
-                    <!-- Content sẽ được load bằng JS -->
-                </div>
+                <div class="modal-body" id="reviewDetailContent"></div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
                 </div>
@@ -341,9 +334,7 @@
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="editReviewLabel">
-                        <i class="fas fa-edit me-2"></i>Chỉnh sửa đánh giá
-                    </h5>
+                    <h5 class="modal-title" id="editReviewLabel"><i class="fas fa-edit me-2"></i>Chỉnh sửa đánh giá</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
@@ -373,35 +364,81 @@
 
 @section Scripts {
     <script>
+        // =========================
+        // Helper: Busy state
+        // =========================
+        function setBusy(el, busy) {
+            if (!el) return;
+            el.setAttribute('aria-busy', busy ? 'true' : 'false');
+            el.querySelector('i')?.classList.toggle('fa-spin', !!busy);
+        }
+
+        // =========================
+        // Refresh về MẶC ĐỊNH (reset filter + search + tab)
+        // =========================
+        function resetFiltersUIToDefault() {
+            const form = document.getElementById('filterForm');
+            if (!form) return;
+
+            // Reset các input về mặc định
+            const q = form.querySelector('[name="q"]');
+            const product = form.querySelector('[name="product"]');
+            const deleteStatus = form.querySelector('[name="deleteStatus"]');
+            const replyStatus = form.querySelector('[name="replyStatus"]');
+            const showDeleted = form.querySelector('[name="showDeleted"]');
+
+            if (q) q.value = '';
+            if (product) product.value = '';
+            if (deleteStatus) deleteStatus.value = '';
+            if (replyStatus) replyStatus.value = '';
+            if (showDeleted) showDeleted.value = 'false';
+        }
+
+        function refreshToDefault(triggerEl = null) {
+            if (triggerEl) setBusy(triggerEl, true);
+
+            // Reset UI ngay lập tức để thấy hiệu ứng
+            resetFiltersUIToDefault();
+
+            // Điều hướng về URL mặc định: trang 1, showDeleted=false, các filter rỗng
+            const basePath = '@Url.Action("ManageProductReview", "ReviewProduct")'; // ví dụ: /ReviewProduct/ManageProductReview
+            const url = new URL(basePath, window.location.origin);
+            url.searchParams.set('page', '1');
+            url.searchParams.set('showDeleted', 'false');
+            url.searchParams.set('q', '');
+            url.searchParams.set('product', '');
+            url.searchParams.set('deleteStatus', '');
+            url.searchParams.set('replyStatus', '');
+            window.location.assign(url.toString());
+        }
+
+        // =========================
+        // Bind: chỉ nút header (Reset all)
+        // =========================
+        document.getElementById('btnRefreshHeader')?.addEventListener('click', function () {
+            refreshToDefault(this);
+        });
+
+        // =========================
         // Select All
+        // =========================
         document.getElementById('selectAll')?.addEventListener('change', function () {
             document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = this.checked);
         });
 
+        // =========================
         // View Review Detail
+        // =========================
         async function viewReviewDetail(reviewId) {
             try {
-                // 1. GỌI API LẤY CHI TIẾT ĐÁNH GIÁ + COOKIE
-                const response = await fetch(`/ReviewProduct/Details/${reviewId}`, {
-                    credentials: 'include' // Gửi cookie đăng nhập
-                });
-
-                if (!response.ok) {
-                    const err = await response.text();
-                    throw new Error(`Không thể tải chi tiết đánh giá: ${response.status}`);
-                }
+                const response = await fetch(`/ReviewProduct/Details/${reviewId}`, { credentials: 'include' });
+                if (!response.ok) throw new Error(`Không thể tải chi tiết đánh giá: ${response.status}`);
 
                 const review = await response.json();
+                const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+                    || document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+                if (!token) throw new Error('Không tìm thấy token bảo mật. Vui lòng tải lại trang.');
 
-                // 2. LẤY TOKEN CHỐNG CSRF TỪ LAYOUT
-                const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ||
-                    document.querySelector('input[name="__RequestVerificationToken"]')?.value;
-
-                if (!token) {
-                    throw new Error('Không tìm thấy token bảo mật. Vui lòng tải lại trang.');
-                }
-
-                // 3. RENDER DANH SÁCH PHẢN HỒI
                 let repliesHtml = '';
                 if (review.replies && review.replies.length > 0) {
                     repliesHtml = `
@@ -413,28 +450,23 @@
                                         <small class="text-muted">${r.createdAt}</small>
                                     </div>
                                 `).join('')}
-                            </div>
-                        `;
+                            </div>`;
                 } else {
                     repliesHtml = '<div class="alert alert-info mb-3">Chưa có phản hồi nào</div>';
                 }
 
-                // 4. RENDER HÌNH ẢNH
                 let imagesHtml = '';
                 if (review.imageUrls && review.imageUrls.length > 0) {
                     imagesHtml = review.imageUrls.map(url => `
                             <img src="${url}" alt="Review Image"
                                  style="max-width:100px;height:auto;margin-right:8px;border-radius:6px;box-shadow:0 2px 8px rgba(0,0,0,0.1);cursor:pointer;"
-                                 onclick="window.open(this.src, '_blank')">
-                        `).join('');
+                                 onclick="window.open(this.src, '_blank')">`).join('');
                 } else {
                     imagesHtml = '<p class="text-muted fst-italic">Không có hình ảnh</p>';
                 }
 
-                // 5. TẠO NỘI DUNG MODAL
                 const content = `
                         <div class="row g-3">
-                            <!-- Sản phẩm -->
                             <div class="col-md-12">
                                 <p class="mb-1"><strong>Sản phẩm:</strong></p>
                                 <a href="/Product/Detail/${review.productId}" target="_blank" class="text-decoration-none text-primary fw-medium">
@@ -442,7 +474,6 @@
                                 </a>
                             </div>
 
-                            <!-- Nội dung đánh giá -->
                             <div class="col-md-12">
                                 <p class="mb-1"><strong>Nội dung:</strong></p>
                                 <div style="background:#fff;padding:1rem;border:1px solid #e0e0e0;border-radius:8px;font-size:0.95rem;line-height:1.5;">
@@ -450,11 +481,9 @@
                                 </div>
                             </div>
 
-                            <!-- Thông tin người đánh giá -->
                             <div class="col-md-6"><p><strong>Người đánh giá:</strong> <span class="fw-medium">${review.authorName}</span></p></div>
                             <div class="col-md-6"><p><strong>Email:</strong> <span class="text-muted">${review.authorEmail || 'N/A'}</span></p></div>
 
-                            <!-- Điểm & Tương tác -->
                             <div class="col-md-6">
                                 <p><strong>Điểm:</strong>
                                     <span class="text-warning fw-bold">${review.rating}</span>
@@ -469,7 +498,6 @@
                                 </p>
                             </div>
 
-                            <!-- Xác minh & Trạng thái -->
                             <div class="col-md-6">
                                 <p><strong>Xác minh:</strong>
                                     <span class="badge ${review.isVerifiedPurchase ? 'bg-success' : 'bg-secondary'}">
@@ -485,31 +513,21 @@
                                 </p>
                             </div>
 
-                            <!-- Ngày đánh giá -->
                             <div class="col-md-12"><p><strong>Ngày đánh giá:</strong> <span class="text-muted">${review.createdAt}</span></p></div>
 
-                            <!-- Hình ảnh -->
                             <div class="col-md-12">
                                 <p class="mb-1"><strong>Hình ảnh:</strong></p>
-                                <div class="d-flex flex-wrap gap-2">
-                                    ${imagesHtml}
-                                </div>
+                                <div class="d-flex flex-wrap gap-2">${imagesHtml}</div>
                             </div>
 
-                            <!-- PHẢN HỒI -->
                             <div class="col-md-12">
                                 <h6 class="mb-3 mt-2"><strong>Phản hồi từ quản trị viên:</strong></h6>
-                                <div class="replies-container mb-3">
-                                    ${repliesHtml}
-                                </div>
+                                <div class="replies-container mb-3">${repliesHtml}</div>
 
-                                <!-- Form phản hồi -->
                                 <form id="replyForm" style="margin-top:1rem;">
                                     <input type="hidden" name="__RequestVerificationToken" value="${token}" />
                                     <div class="mb-2">
-                                        <textarea name="replyContent" class="form-control" rows="2"
-                                                  placeholder="Nhập nội dung phản hồi..."
-                                                  style="resize:none;font-size:0.9rem;"></textarea>
+                                        <textarea name="replyContent" class="form-control" rows="2" placeholder="Nhập nội dung phản hồi..." style="resize:none;font-size:0.9rem;"></textarea>
                                     </div>
                                     <button type="button" class="btn btn-primary btn-sm" onclick="submitReply(${review.reviewId})">
                                         <i class="fas fa-paper-plane me-1"></i> Gửi phản hồi
@@ -519,11 +537,9 @@
                         </div>
                     `;
 
-                // 6. HIỂN THỊ MODAL
                 const modalBody = document.getElementById('reviewDetailContent');
                 modalBody.innerHTML = content;
 
-                // Hiệu ứng fade-in cho replies cũ
                 setTimeout(() => {
                     modalBody.querySelectorAll('.replies-list > div').forEach((el, i) => {
                         el.style.animationDelay = `${i * 0.1}s`;
@@ -531,25 +547,18 @@
                     });
                 }, 100);
 
-                // Mở modal
-                const modal = new bootstrap.Modal(document.getElementById('reviewDetailModal'), {
-                    backdrop: 'static',
-                    keyboard: false
-                });
+                const modal = new bootstrap.Modal(document.getElementById('reviewDetailModal'), { backdrop: 'static', keyboard: false });
                 modal.show();
 
             } catch (error) {
                 console.error('Lỗi viewReviewDetail:', error);
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Lỗi',
-                    text: error.message || 'Không thể tải chi tiết đánh giá',
-                    confirmButtonText: 'Đóng'
-                });
+                Swal.fire({ icon: 'error', title: 'Lỗi', text: error.message || 'Không thể tải chi tiết đánh giá', confirmButtonText: 'Đóng' });
             }
         }
 
-        // Edit Review
+        // =========================
+        // Edit / Submit Edit
+        // =========================
         async function editReview(reviewId) {
             try {
                 const response = await fetch(`/ReviewProduct/Details/${reviewId}`);
@@ -567,28 +576,21 @@
             }
         }
 
-        // Submit Edit Review
         async function submitEditReview() {
             const form = document.getElementById('editReviewForm');
             const formData = new FormData(form);
             const reviewId = document.getElementById('editReviewId').value;
 
             try {
-                const response = await fetch(`/ReviewProduct/Edit/${reviewId}`, {
-                    method: 'POST',
-                    body: formData
-                });
+                const response = await fetch(`/ReviewProduct/Edit/${reviewId}`, { method: 'POST', body: formData });
 
                 if (response.ok) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Thành công',
-                        text: 'Đã cập nhật đánh giá',
-                        timer: 1500,
-                        showConfirmButton: false
-                    }).then(() => {
-                        location.reload();
-                    });
+                    Swal.fire({ icon: 'success', title: 'Thành công', text: 'Đã cập nhật đánh giá', timer: 1200, showConfirmButton: false })
+                        .then(() => {
+                            // Giữ nguyên filter hiện tại sau khi chỉnh sửa
+                            const url = new URL(window.location.href);
+                            window.location.assign(url.toString());
+                        });
                 } else {
                     const error = await response.json();
                     throw new Error(error.error || 'Lỗi server');
@@ -598,42 +600,29 @@
             }
         }
 
-        // Delete Review (Soft Delete)
+        // =========================
+        // Delete / Restore
+        // =========================
         async function deleteReview(reviewId) {
             const result = await Swal.fire({
                 title: 'Xác nhận xóa',
                 text: 'Đánh giá sẽ được chuyển vào thùng rác. Bạn có chắc chắn muốn tiếp tục?',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#6c757d',
-                confirmButtonText: 'Có, chuyển vào thùng rác',
-                cancelButtonText: 'Hủy'
+                icon: 'warning', showCancelButton: true,
+                confirmButtonColor: '#d33', cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Có, chuyển vào thùng rác', cancelButtonText: 'Hủy'
             });
 
             if (result.isConfirmed) {
                 try {
                     const formData = new FormData();
                     const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
-                    if (token) {
-                        formData.append('__RequestVerificationToken', token);
-                    }
+                    if (token) formData.append('__RequestVerificationToken', token);
 
-                    const response = await fetch(`/ReviewProduct/Delete/${reviewId}`, {
-                        method: 'POST',
-                        body: formData
-                    });
+                    const response = await fetch(`/ReviewProduct/Delete/${reviewId}`, { method: 'POST', body: formData });
 
                     if (response.ok) {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Thành công',
-                            text: 'Đánh giá đã được chuyển vào thùng rác',
-                            timer: 1500,
-                            showConfirmButton: false
-                        }).then(() => {
-                            location.reload();
-                        });
+                        Swal.fire({ icon: 'success', title: 'Thành công', text: 'Đánh giá đã được chuyển vào thùng rác', timer: 1200, showConfirmButton: false })
+                            .then(() => { window.location.assign(new URL(window.location.href).toString()); });
                     } else {
                         const error = await response.json();
                         throw new Error(error.error || 'Lỗi server');
@@ -644,42 +633,25 @@
             }
         }
 
-        // Restore Review
         async function restoreReview(reviewId) {
             const result = await Swal.fire({
-                title: 'Xác nhận khôi phục',
-                text: 'Bạn có chắc chắn muốn khôi phục đánh giá này?',
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#28a745',
-                cancelButtonColor: '#6c757d',
-                confirmButtonText: 'Có, khôi phục',
-                cancelButtonText: 'Hủy'
+                title: 'Xác nhận khôi phục', text: 'Bạn có chắc chắn muốn khôi phục đánh giá này?',
+                icon: 'question', showCancelButton: true,
+                confirmButtonColor: '#28a745', cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Có, khôi phục', cancelButtonText: 'Hủy'
             });
 
             if (result.isConfirmed) {
                 try {
                     const formData = new FormData();
                     const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
-                    if (token) {
-                        formData.append('__RequestVerificationToken', token);
-                    }
+                    if (token) formData.append('__RequestVerificationToken', token);
 
-                    const response = await fetch(`/ReviewProduct/Restore/${reviewId}`, {
-                        method: 'POST',
-                        body: formData
-                    });
+                    const response = await fetch(`/ReviewProduct/Restore/${reviewId}`, { method: 'POST', body: formData });
 
                     if (response.ok) {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Thành công',
-                            text: 'Đánh giá đã được khôi phục',
-                            timer: 1500,
-                            showConfirmButton: false
-                        }).then(() => {
-                            location.reload();
-                        });
+                        Swal.fire({ icon: 'success', title: 'Thành công', text: 'Đánh giá đã được khôi phục', timer: 1200, showConfirmButton: false })
+                            .then(() => { window.location.assign(new URL(window.location.href).toString()); });
                     } else {
                         const error = await response.json();
                         throw new Error(error.error || 'Lỗi server');
@@ -690,63 +662,43 @@
             }
         }
 
+        // =========================
+        // Reply
+        // =========================
         async function submitReply(reviewId) {
             const textarea = document.querySelector('#replyForm textarea[name="replyContent"]');
             const content = textarea?.value.trim();
-            if (!content) {
-                Swal.fire('Cảnh báo', 'Vui lòng nhập phản hồi', 'warning');
-                return;
-            }
+            if (!content) { Swal.fire('Cảnh báo', 'Vui lòng nhập phản hồi', 'warning'); return; }
 
             const formData = new FormData(document.getElementById('replyForm'));
 
             try {
-                const response = await fetch(`/ReviewProduct/Reply/${reviewId}`, {
-                    method: 'POST',
-                    body: formData,
-                    credentials: 'include'
-                });
-
+                const response = await fetch(`/ReviewProduct/Reply/${reviewId}`, { method: 'POST', body: formData, credentials: 'include' });
                 const text = await response.text();
-                let data;
-                try { data = JSON.parse(text); } catch { }
+                let data; try { data = JSON.parse(text); } catch { }
 
                 if (response.ok && data?.success) {
-                    // 1. LẤY THÔNG TIN ADMIN HIỆN TẠI
-                    const adminName = "@User.FindFirst("AccountName")?.Value" ||
-                        "@User.Identity?.Name" ||
-                        "Quản trị viên";
-
+                    const adminName = "@User.FindFirst("AccountName")?.Value" || "@User.Identity?.Name" || "Quản trị viên";
                     const now = new Date();
                     const createdAt = now.toLocaleDateString('vi-VN') + ' ' + now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
 
-                    // 2. TẠO HTML PHẢN HỒI MỚI
                     const newReplyHtml = `
                             <div style="background:white;padding:0.75rem;margin-bottom:0.5rem;border-left:3px solid #667eea;border-radius:4px;animation:fadeIn 0.3s;">
                                 <p class="mb-1"><strong>${adminName}</strong></p>
                                 <p class="mb-1">${content}</p>
                                 <small class="text-muted">${createdAt}</small>
-                            </div>
-                        `;
+                            </div>`;
 
-                    // 3. TÌM VÀ CẬP NHẬT DANH SÁCH PHẢN HỒI
-                    const repliesContainer = document.querySelector('#reviewDetailContent .replies-container') ||
-                        document.querySelector('#reviewDetailContent > div > div:last-child > div:last-child');
+                    const repliesContainer = document.querySelector('#reviewDetailContent .replies-container')
+                        || document.querySelector('#reviewDetailContent > div > div:last-child > div:last-child');
 
                     let repliesList = repliesContainer.querySelector('.replies-list');
                     if (!repliesList) {
-                        // Nếu chưa có phản hồi nào → xóa "Chưa có phản hồi"
-                        const noReplyAlert = repliesContainer.querySelector('.alert');
-                        if (noReplyAlert) noReplyAlert.remove();
-
-                        repliesList = document.createElement('div');
-                        repliesList.className = 'replies-list';
-                        repliesContainer.appendChild(repliesList);
+                        const noReplyAlert = repliesContainer.querySelector('.alert'); if (noReplyAlert) noReplyAlert.remove();
+                        repliesList = document.createElement('div'); repliesList.className = 'replies-list'; repliesContainer.appendChild(repliesList);
                     }
-
                     repliesList.insertAdjacentHTML('beforeend', newReplyHtml);
 
-                    // 4. CẬP NHẬT SỐ LƯỢNG PHẢN HỒI TRÊN BẢNG
                     const row = document.querySelector(`tr[data-review-id="${reviewId}"]`);
                     if (row) {
                         const replyBadge = row.querySelector('td:nth-child(7) .badge');
@@ -755,17 +707,8 @@
                         replyBadge.className = 'badge bg-success';
                     }
 
-                    // 5. RESET FORM + HIỆN THÔNG BÁO
                     textarea.value = '';
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Thành công!',
-                        text: 'Phản hồi đã được gửi',
-                        timer: 1500,
-                        showConfirmButton: false,
-                        toast: true,
-                        position: 'top-end'
-                    });
+                    Swal.fire({ icon: 'success', title: 'Thành công!', text: 'Phản hồi đã được gửi', timer: 1500, showConfirmButton: false, toast: true, position: 'top-end' });
 
                 } else {
                     throw new Error(data?.error || 'Không thể gửi phản hồi');
