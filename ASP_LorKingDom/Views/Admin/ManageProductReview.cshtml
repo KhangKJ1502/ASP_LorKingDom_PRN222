@@ -319,10 +319,10 @@
     <!-- Modal Chi Tiết Đánh Giá -->
     <div class="modal fade" id="reviewDetailModal" tabindex="-1" aria-labelledby="reviewDetailLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered">
-            <div class="modal-content" id="reviewDetailModal">
+            <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="reviewDetailLabel">
-                        <i class="fa-solid fa-star me-2"></i>Chi tiết đánh giá
+                        Chi tiết đánh giá
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
@@ -381,88 +381,171 @@
         // View Review Detail
         async function viewReviewDetail(reviewId) {
             try {
-                const response = await fetch(`/ReviewProduct/Details/${reviewId}`);
-                if (!response.ok) throw new Error('Không thể tải chi tiết đánh giá');
+                // 1. GỌI API LẤY CHI TIẾT ĐÁNH GIÁ + COOKIE
+                const response = await fetch(`/ReviewProduct/Details/${reviewId}`, {
+                    credentials: 'include' // Gửi cookie đăng nhập
+                });
 
-                const review = await response.json();
-                let repliesHtml = '';
-                if (review.replies && review.replies.length > 0) {
-                    repliesHtml = review.replies.map(reply => `
-                                <div style="background: white; padding: 0.75rem; margin-bottom: 0.5rem; border-left: 3px solid #667eea; border-radius: 4px;">
-                                    <p class="mb-1"><strong>${reply.authorName}</strong></p>
-                                    <p class="mb-1">${reply.content}</p>
-                                    <small class="text-muted">${reply.createdAt}</small>
-                                </div>
-                            `).join('');
-                } else {
-                    repliesHtml = '<div class="alert alert-info">Chưa có phản hồi nào</div>';
+                if (!response.ok) {
+                    const err = await response.text();
+                    throw new Error(`Không thể tải chi tiết đánh giá: ${response.status}`);
                 }
 
+                const review = await response.json();
+
+                // 2. LẤY TOKEN CHỐNG CSRF TỪ LAYOUT
+                const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ||
+                    document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+
+                if (!token) {
+                    throw new Error('Không tìm thấy token bảo mật. Vui lòng tải lại trang.');
+                }
+
+                // 3. RENDER DANH SÁCH PHẢN HỒI
+                let repliesHtml = '';
+                if (review.replies && review.replies.length > 0) {
+                    repliesHtml = `
+                            <div class="replies-list">
+                                ${review.replies.map(r => `
+                                    <div style="background:white;padding:0.75rem;margin-bottom:0.5rem;border-left:3px solid #667eea;border-radius:4px;opacity:0;animation:fadeIn 0.4s forwards;">
+                                        <p class="mb-1"><strong>${r.authorName}</strong></p>
+                                        <p class="mb-1">${r.content}</p>
+                                        <small class="text-muted">${r.createdAt}</small>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        `;
+                } else {
+                    repliesHtml = '<div class="alert alert-info mb-3">Chưa có phản hồi nào</div>';
+                }
+
+                // 4. RENDER HÌNH ẢNH
                 let imagesHtml = '';
                 if (review.imageUrls && review.imageUrls.length > 0) {
                     imagesHtml = review.imageUrls.map(url => `
-                                <img src="${url}" alt="Review Image" style="max-width: 100px; margin-right: 10px;" />
-                            `).join('');
+                            <img src="${url}" alt="Review Image"
+                                 style="max-width:100px;height:auto;margin-right:8px;border-radius:6px;box-shadow:0 2px 8px rgba(0,0,0,0.1);cursor:pointer;"
+                                 onclick="window.open(this.src, '_blank')">
+                        `).join('');
                 } else {
-                    imagesHtml = '<p>Không có hình ảnh</p>';
+                    imagesHtml = '<p class="text-muted fst-italic">Không có hình ảnh</p>';
                 }
 
+                // 5. TẠO NỘI DUNG MODAL
                 const content = `
-                            <div class="row g-3">
-                                <div class="col-md-12">
-                                    <p><strong>Sản phẩm:</strong> <a href="/Product/Detail/${review.productId}" target="_blank" class="text-decoration-none">${review.productName}</a></p>
-                                </div>
-                                <div class="col-md-12">
-                                    <p><strong>Nội dung:</strong></p>
-                                    <div style="background: white; padding: 0.75rem; border: 1px solid #e0e0e0; border-radius: 4px; margin-bottom: 1rem;">
-                                        ${review.content || 'Không có nội dung'}
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <p><strong>Người đánh giá:</strong> ${review.authorName}</p>
-                                </div>
-                                <div class="col-md-6">
-                                    <p><strong>Email:</strong> ${review.authorEmail || 'N/A'}</p>
-                                </div>
-                                <div class="col-md-6">
-                                    <p><strong>Điểm:</strong> ${review.rating} <i class="fas fa-star rating-stars"></i></p>
-                                </div>
-                                <div class="col-md-6">
-                                    <p><strong>Tương tác:</strong> 👍 ${review.likeCount} | 👎 ${review.dislikeCount}</p>
-                                </div>
-                                <div class="col-md-6">
-                                    <p><strong>Xác minh mua hàng:</strong> ${review.isVerifiedPurchase ? 'Đã xác minh' : 'Chưa xác minh'}</p>
-                                </div>
-                                <div class="col-md-6">
-                                    <p><strong>Trạng thái:</strong> ${review.isDeleted
-                        ? '<span class="badge bg-danger"><i class="fas fa-trash"></i> Đã xóa</span>'
-                        : '<span class="badge bg-secondary"><i class="fas fa-check"></i> Bình thường</span>'}</p>
-                                </div>
-                                <div class="col-md-12">
-                                    <p><strong>Ngày đánh giá:</strong> ${review.createdAt}</p>
-                                </div>
-                                <div class="col-md-12">
-                                    <p><strong>Hình ảnh:</strong></p>
-                                    ${imagesHtml}
-                                </div>
-                                <div class="col-md-12">
-                                    <h6 class="mb-2"><strong>Phản hồi:</strong></h6>
-                                    ${repliesHtml}
-                                    <form id="replyForm" style="margin-top: 1rem;">
-                                        <textarea name="replyContent" class="form-control" rows="2" placeholder="Nhập phản hồi..."></textarea>
-                                        <button type="button" class="btn btn-primary btn-sm mt-2" onclick="submitReply(${review.reviewId})">
-                                            <i class="fas fa-paper-plane me-1"></i>Gửi phản hồi
-                                        </button>
-                                    </form>
+                        <div class="row g-3">
+                            <!-- Sản phẩm -->
+                            <div class="col-md-12">
+                                <p class="mb-1"><strong>Sản phẩm:</strong></p>
+                                <a href="/Product/Detail/${review.productId}" target="_blank" class="text-decoration-none text-primary fw-medium">
+                                    ${review.productName}
+                                </a>
+                            </div>
+
+                            <!-- Nội dung đánh giá -->
+                            <div class="col-md-12">
+                                <p class="mb-1"><strong>Nội dung:</strong></p>
+                                <div style="background:#fff;padding:1rem;border:1px solid #e0e0e0;border-radius:8px;font-size:0.95rem;line-height:1.5;">
+                                    ${review.content || '<em class="text-muted">Không có nội dung</em>'}
                                 </div>
                             </div>
-                        `;
 
-                document.getElementById('reviewDetailContent').innerHTML = content;
-                const modal = new bootstrap.Modal(document.getElementById('reviewDetailModal'));
+                            <!-- Thông tin người đánh giá -->
+                            <div class="col-md-6"><p><strong>Người đánh giá:</strong> <span class="fw-medium">${review.authorName}</span></p></div>
+                            <div class="col-md-6"><p><strong>Email:</strong> <span class="text-muted">${review.authorEmail || 'N/A'}</span></p></div>
+
+                            <!-- Điểm & Tương tác -->
+                            <div class="col-md-6">
+                                <p><strong>Điểm:</strong>
+                                    <span class="text-warning fw-bold">${review.rating}</span>
+                                    ${'<i class="fas fa-star text-warning"></i>'.repeat(review.rating)}
+                                    ${'<i class="far fa-star text-muted"></i>'.repeat(5 - review.rating)}
+                                </p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Tương tác:</strong>
+                                    <span class="text-success"><i class="fas fa-thumbs-up"></i> ${review.likeCount}</span> |
+                                    <span class="text-danger"><i class="fas fa-thumbs-down"></i> ${review.dislikeCount}</span>
+                                </p>
+                            </div>
+
+                            <!-- Xác minh & Trạng thái -->
+                            <div class="col-md-6">
+                                <p><strong>Xác minh:</strong>
+                                    <span class="badge ${review.isVerifiedPurchase ? 'bg-success' : 'bg-secondary'}">
+                                        ${review.isVerifiedPurchase ? 'Đã xác minh' : 'Chưa xác minh'}
+                                    </span>
+                                </p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Trạng thái:</strong>
+                                    <span class="badge ${review.isDeleted ? 'bg-danger' : 'bg-secondary'}">
+                                        ${review.isDeleted ? 'Đã xóa' : 'Bình thường'}
+                                    </span>
+                                </p>
+                            </div>
+
+                            <!-- Ngày đánh giá -->
+                            <div class="col-md-12"><p><strong>Ngày đánh giá:</strong> <span class="text-muted">${review.createdAt}</span></p></div>
+
+                            <!-- Hình ảnh -->
+                            <div class="col-md-12">
+                                <p class="mb-1"><strong>Hình ảnh:</strong></p>
+                                <div class="d-flex flex-wrap gap-2">
+                                    ${imagesHtml}
+                                </div>
+                            </div>
+
+                            <!-- PHẢN HỒI -->
+                            <div class="col-md-12">
+                                <h6 class="mb-3 mt-2"><strong>Phản hồi từ quản trị viên:</strong></h6>
+                                <div class="replies-container mb-3">
+                                    ${repliesHtml}
+                                </div>
+
+                                <!-- Form phản hồi -->
+                                <form id="replyForm" style="margin-top:1rem;">
+                                    <input type="hidden" name="__RequestVerificationToken" value="${token}" />
+                                    <div class="mb-2">
+                                        <textarea name="replyContent" class="form-control" rows="2"
+                                                  placeholder="Nhập nội dung phản hồi..."
+                                                  style="resize:none;font-size:0.9rem;"></textarea>
+                                    </div>
+                                    <button type="button" class="btn btn-primary btn-sm" onclick="submitReply(${review.reviewId})">
+                                        <i class="fas fa-paper-plane me-1"></i> Gửi phản hồi
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    `;
+
+                // 6. HIỂN THỊ MODAL
+                const modalBody = document.getElementById('reviewDetailContent');
+                modalBody.innerHTML = content;
+
+                // Hiệu ứng fade-in cho replies cũ
+                setTimeout(() => {
+                    modalBody.querySelectorAll('.replies-list > div').forEach((el, i) => {
+                        el.style.animationDelay = `${i * 0.1}s`;
+                        el.style.opacity = '1';
+                    });
+                }, 100);
+
+                // Mở modal
+                const modal = new bootstrap.Modal(document.getElementById('reviewDetailModal'), {
+                    backdrop: 'static',
+                    keyboard: false
+                });
                 modal.show();
+
             } catch (error) {
-                Swal.fire('Lỗi', error.message, 'error');
+                console.error('Lỗi viewReviewDetail:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi',
+                    text: error.message || 'Không thể tải chi tiết đánh giá',
+                    confirmButtonText: 'Đóng'
+                });
             }
         }
 
@@ -607,43 +690,88 @@
             }
         }
 
-        // Submit Reply
         async function submitReply(reviewId) {
-            const replyContent = document.querySelector('textarea[name="replyContent"]')?.value.trim();
-            if (!replyContent) {
-                Swal.fire('Thông báo', 'Vui lòng nhập phản hồi', 'warning');
+            const textarea = document.querySelector('#replyForm textarea[name="replyContent"]');
+            const content = textarea?.value.trim();
+            if (!content) {
+                Swal.fire('Cảnh báo', 'Vui lòng nhập phản hồi', 'warning');
                 return;
             }
 
-            try {
-                const formData = new FormData();
-                formData.append('replyContent', replyContent);
-                const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
-                if (token) {
-                    formData.append('__RequestVerificationToken', token);
-                }
+            const formData = new FormData(document.getElementById('replyForm'));
 
+            try {
                 const response = await fetch(`/ReviewProduct/Reply/${reviewId}`, {
                     method: 'POST',
-                    body: formData
+                    body: formData,
+                    credentials: 'include'
                 });
 
-                if (response.ok) {
+                const text = await response.text();
+                let data;
+                try { data = JSON.parse(text); } catch { }
+
+                if (response.ok && data?.success) {
+                    // 1. LẤY THÔNG TIN ADMIN HIỆN TẠI
+                    const adminName = "@User.FindFirst("AccountName")?.Value" ||
+                        "@User.Identity?.Name" ||
+                        "Quản trị viên";
+
+                    const now = new Date();
+                    const createdAt = now.toLocaleDateString('vi-VN') + ' ' + now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+
+                    // 2. TẠO HTML PHẢN HỒI MỚI
+                    const newReplyHtml = `
+                            <div style="background:white;padding:0.75rem;margin-bottom:0.5rem;border-left:3px solid #667eea;border-radius:4px;animation:fadeIn 0.3s;">
+                                <p class="mb-1"><strong>${adminName}</strong></p>
+                                <p class="mb-1">${content}</p>
+                                <small class="text-muted">${createdAt}</small>
+                            </div>
+                        `;
+
+                    // 3. TÌM VÀ CẬP NHẬT DANH SÁCH PHẢN HỒI
+                    const repliesContainer = document.querySelector('#reviewDetailContent .replies-container') ||
+                        document.querySelector('#reviewDetailContent > div > div:last-child > div:last-child');
+
+                    let repliesList = repliesContainer.querySelector('.replies-list');
+                    if (!repliesList) {
+                        // Nếu chưa có phản hồi nào → xóa "Chưa có phản hồi"
+                        const noReplyAlert = repliesContainer.querySelector('.alert');
+                        if (noReplyAlert) noReplyAlert.remove();
+
+                        repliesList = document.createElement('div');
+                        repliesList.className = 'replies-list';
+                        repliesContainer.appendChild(repliesList);
+                    }
+
+                    repliesList.insertAdjacentHTML('beforeend', newReplyHtml);
+
+                    // 4. CẬP NHẬT SỐ LƯỢNG PHẢN HỒI TRÊN BẢNG
+                    const row = document.querySelector(`tr[data-review-id="${reviewId}"]`);
+                    if (row) {
+                        const replyBadge = row.querySelector('td:nth-child(7) .badge');
+                        const currentCount = parseInt(replyBadge?.textContent.match(/\d+/)?.[0] || '0');
+                        replyBadge.innerHTML = `<i class="fas fa-check"></i> ${currentCount + 1}`;
+                        replyBadge.className = 'badge bg-success';
+                    }
+
+                    // 5. RESET FORM + HIỆN THÔNG BÁO
+                    textarea.value = '';
                     Swal.fire({
                         icon: 'success',
-                        title: 'Thành công',
+                        title: 'Thành công!',
                         text: 'Phản hồi đã được gửi',
                         timer: 1500,
-                        showConfirmButton: false
-                    }).then(() => {
-                        location.reload();
+                        showConfirmButton: false,
+                        toast: true,
+                        position: 'top-end'
                     });
+
                 } else {
-                    const error = await response.json();
-                    throw new Error(error.error || 'Lỗi server');
+                    throw new Error(data?.error || 'Không thể gửi phản hồi');
                 }
             } catch (error) {
-                Swal.fire('Lỗi', 'Không thể gửi phản hồi', 'error');
+                Swal.fire('Lỗi', error.message, 'error');
             }
         }
     </script>
