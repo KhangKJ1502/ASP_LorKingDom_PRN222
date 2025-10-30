@@ -36,8 +36,10 @@ namespace DAL.Repositories
             if (isRead.HasValue)
                 q = q.Where(x => x.IsRead == isRead.Value);
 
-            // ưu tiên cái nào vừa gửi gần đây
-            q = q.OrderByDescending(x => x.DeliveredAt ?? x.Notification!.ScheduledAt);
+            // ưu tiên cái nào vừa gửi gần đây - sử dụng DeliveredAt trước
+            q = q.OrderByDescending(x => x.DeliveredAt)
+                 .ThenByDescending(x => x.Notification!.ScheduledAt)
+                 .ThenByDescending(x => x.UserNotificationId);
 
             var total = await q.CountAsync();
             var items = await q.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
@@ -64,7 +66,10 @@ namespace DAL.Repositories
         public async Task MarkReadAsync(int userNotificationId, DateTime readAtUtc)
         {
             var un = await _db.UserNotifications.FindAsync(userNotificationId);
-            if (un == null) return;
+            if (un == null)
+            {
+                throw new KeyNotFoundException($"UserNotification with ID {userNotificationId} not found.");
+            }
 
             if (!un.IsRead)
             {
@@ -101,9 +106,11 @@ namespace DAL.Repositories
             return list.Count;
         }
 
-        public Task<int> GetUnreadCountAsync(int userId)
+        public async Task<int> GetUnreadCountAsync(int userId)
         {
-            return _db.UserNotifications
+            if (userId <= 0) return 0;
+
+            return await _db.UserNotifications
                 .AsNoTracking()
                 .Where(x => x.UserId == userId && !x.IsRead)
                 .CountAsync();

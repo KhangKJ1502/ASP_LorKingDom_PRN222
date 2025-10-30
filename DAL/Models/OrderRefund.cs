@@ -1,4 +1,7 @@
-﻿namespace DAL.Models;
+﻿using System;
+using System.Collections.Generic;
+
+namespace DAL.Models;
 
 public partial class OrderRefund
 {
@@ -12,11 +15,17 @@ public partial class OrderRefund
 
     public int? ApprovedBy { get; set; }
 
+    public long? WalletTransactionId { get; set; }
+
     public string RefundMode { get; set; } = null!;
 
     public string RefundStatus { get; set; } = null!;
 
-    public long? WalletTransactionId { get; set; }
+    public decimal TotalAmount { get; set; }
+
+    public decimal RefundAmount { get; set; }
+
+    public string? Reason { get; set; }
 
     public DateTime CreatedAt { get; set; }
 

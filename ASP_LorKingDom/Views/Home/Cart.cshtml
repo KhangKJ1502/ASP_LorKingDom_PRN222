@@ -33,20 +33,12 @@
 
                     <div class="space-y-4">
                         <div class="flex justify-between text-gray-700">
-                            <span>Subtotal (<span id="summary-item-count">0</span> items)</span>
+                            <span>Tổng tiền sản phẩm (<span id="summary-item-count">0</span> items)</span>
                             <span class="font-semibold" id="subtotal">0 ₫</span>
-                        </div>
-                        <div class="flex justify-between text-gray-700">
-                            <span>Shipping</span>
-                            <span class="font-semibold" id="shipping-cost">MIỄN PHÍ</span>
-                        </div>
-                        <div class="flex justify-between text-gray-700">
-                            <span>Tax</span>
-                            <span class="font-semibold" id="tax">0 ₫</span>
                         </div>
                         <div class="border-t border-orange-100 pt-4"></div>
                         <div class="flex justify-between text-xl font-bold">
-                            <span>Total</span>
+                            <span>Tạm tính</span>
                             <span class="text-orange-600" id="total">0 ₫</span>
                         </div>
                     </div>
@@ -56,7 +48,7 @@
                         <button id="checkout-btn"
                                 class="w-full bg-gradient-to-r from-orange-400 to-orange-500 text-white text-lg py-4 rounded-xl font-semibold hover:opacity-90 hover:scale-105 transition shadow-lg"
                                 disabled>
-                            Proceed to Checkout
+                            Tiến hành thanh toán
                         </button>
                         <button class="w-full border-2 border-orange-300 hover:bg-orange-50 rounded-xl py-3 transition flex items-center justify-center gap-2 text-orange-600 font-medium">
                             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -67,19 +59,19 @@
                         </button>
                     </div>
 
-                    <!-- Promo code -->
-                    <div class="pt-2">
-                        <h4 class="font-semibold mb-3 text-gray-700">Have a promo code?</h4>
-                        <div class="flex gap-2">
-                            <input type="text" id="promo-code-input"
-                                   class="flex-1 px-4 py-2 border-2 border-orange-200 rounded-xl focus:outline-none focus:border-orange-400 transition"
-                                   placeholder="Enter code" />
-                            <button id="apply-promo-btn"
-                                    class="border-2 border-orange-300 text-orange-600 font-medium px-5 rounded-xl hover:bg-orange-50 transition">
-                                Apply
-                            </button>
-                        </div>
-                    </div>
+                    @* <!-- Promo code --> *@
+                    @* <div class="pt-2"> *@
+                    @*     <h4 class="font-semibold mb-3 text-gray-700">Have a promo code?</h4> *@
+                    @*     <div class="flex gap-2"> *@
+                    @*         <input type="text" id="promo-code-input" *@
+                    @*                class="flex-1 px-4 py-2 border-2 border-orange-200 rounded-xl focus:outline-none focus:border-orange-400 transition" *@
+                    @*                placeholder="Enter code" /> *@
+                    @*         <button id="apply-promo-btn" *@
+                    @*                 class="border-2 border-orange-300 text-orange-600 font-medium px-5 rounded-xl hover:bg-orange-50 transition"> *@
+                    @*             Apply *@
+                    @*         </button> *@
+                    @*     </div> *@
+                    @* </div> *@
 
                     <!-- Trust badges -->
                     <div class="pt-4 border-t border-orange-100 flex items-center justify-center gap-4 text-sm text-gray-500">
@@ -353,7 +345,11 @@
                 if (checkoutBtn) {
                     checkoutBtn.disabled = false;
                     checkoutBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-                }
+
+                    checkoutBtn.addEventListener('click', function () {
+                        window.location.href = '/Home/Checkout';
+                    });
+                }           
             } catch (error) {
                 console.error('Load cart error:', error);
                 const container = document.getElementById('cart-items-container');

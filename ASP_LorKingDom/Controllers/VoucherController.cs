@@ -2,9 +2,7 @@
 using BLL.Interfaces;
 using BLL.Services;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
+using System.Security.Claims;
 
 namespace WebUI.Controllers
 {
@@ -19,6 +17,141 @@ namespace WebUI.Controllers
             _voucherService = voucherService;
             _voucherTypeService = voucherTypeService;
             _accountService = accountService;
+        }
+
+        [HttpGet("Voucher/GetActiveVouchers")]
+        public async Task<IActionResult> GetActiveVouchers(decimal orderAmount)
+        {
+            var accountId = GetAccountId();
+            if (accountId == 0)
+                return Json(new { success = false, message = "Vui lòng đăng nhập" });
+
+            try
+            {
+                var allVouchers = await _voucherService.GetAllVouchersAsync(includeDeleted: false);
+                var now = DateTime.Now;
+
+                // Lọc voucher đang hoạt động
+                var activeVouchers = allVouchers
+                    .Where(v => v.Status == "Active" && v.StartDate <= now && v.EndDate >= now)
+                    .OrderByDescending(v => v.DiscountValue)
+                    .ToList();
+
+                var result = new List<object>();
+
+                foreach (var voucher in activeVouchers)
+                {
+                    // Kiểm tra điều kiện áp dụng
+                    bool isEligible = true;
+                    string ineligibleReason = "";
+
+                    // Kiểm tra số tiền tối thiểu
+                    if (voucher.MinOrderAmount.HasValue && orderAmount < voucher.MinOrderAmount.Value)
+                    {
+                        isEligible = false;
+                        ineligibleReason = $"Đơn hàng tối thiểu {voucher.MinOrderAmount.Value:N0} ₫";
+                    }
+
+                    // Kiểm tra số lần sử dụng
+                    if (isEligible && voucher.UsageLimitPerUser.HasValue)
+                    {
+                        var (isValid, message, _) = await _voucherService.ApplyVoucherAsync(voucher.VoucherCode, accountId, orderAmount);
+                        if (!isValid)
+                        {
+                            isEligible = false;
+                            ineligibleReason = message;
+                        }
+                    }
+
+                    // Tính số tiền giảm giá
+                    decimal discountAmount = 0;
+                    var voucherTypeName = voucher.VoucherTypeName?.ToLower() ?? "fixed";
+
+                    if (voucherTypeName.Contains("percent") || voucherTypeName.Contains("%"))
+                    {
+                        discountAmount = orderAmount * (voucher.DiscountValue / 100);
+                        if (voucher.MaxDiscountAmount.HasValue && discountAmount > voucher.MaxDiscountAmount.Value)
+                        {
+                            discountAmount = voucher.MaxDiscountAmount.Value;
+                        }
+                    }
+                    else
+                    {
+                        discountAmount = voucher.DiscountValue;
+                    }
+
+                    result.Add(new
+                    {
+                        voucherCode = voucher.VoucherCode,
+                        voucherTypeName = voucher.VoucherTypeName,
+                        discountValue = voucher.DiscountValue,
+                        maxDiscountAmount = voucher.MaxDiscountAmount,
+                        minOrderAmount = voucher.MinOrderAmount,
+                        startDate = voucher.StartDate,
+                        endDate = voucher.EndDate,
+                        isEligible = isEligible,
+                        ineligibleReason = ineligibleReason,
+                        discountAmount = discountAmount
+                    });
+                }
+
+                return Json(new { success = true, vouchers = result });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Lỗi khi tải danh sách voucher: " + ex.Message });
+            }
+        }
+
+        [HttpPost("Voucher/ApplyVoucher")]
+        public async Task<IActionResult> ApplyVoucher(string code, decimal orderAmount)
+        {
+            var accountId = GetAccountId();
+            if (accountId == 0)
+                return Json(new { success = false, message = "Vui lòng đăng nhập" });
+
+            try
+            {
+                var (isValid, message, voucher) = await _voucherService.ApplyVoucherAsync(code, accountId, orderAmount);
+
+                if (isValid && voucher != null)
+                {
+                    // Tính số tiền giảm giá
+                    decimal discountAmount = 0;
+
+                    // Kiểm tra loại voucher: Percentage (%) hoặc Fixed Amount
+                    var voucherTypeName = voucher.VoucherTypeName?.ToLower() ?? "fixed";
+
+                    if (voucherTypeName.Contains("percent") || voucherTypeName.Contains("%"))
+                    {
+                        // Giảm theo phần trăm
+                        discountAmount = orderAmount * (voucher.DiscountValue / 100);
+                        if (voucher.MaxDiscountAmount.HasValue && discountAmount > voucher.MaxDiscountAmount.Value)
+                        {
+                            discountAmount = voucher.MaxDiscountAmount.Value;
+                        }
+                    }
+                    else
+                    {
+                        // Giảm giá cố định
+                        discountAmount = voucher.DiscountValue;
+                    }
+
+                    return Json(new
+                    {
+                        success = true,
+                        message = message,
+                        discount = discountAmount,
+                        voucherCode = voucher.VoucherCode
+                    });
+                }
+
+                return Json(new { success = false, message = message });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Lỗi khi kiểm tra mã giảm giá: " + ex.Message });
+            }
         }
 
         [HttpGet("Voucher/Manage")]
@@ -172,6 +305,12 @@ namespace WebUI.Controllers
             {
                 return BadRequest(new { error = ex.Message });
             }
+        }
+
+        private int GetAccountId()
+        {
+            var accountIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            return int.TryParse(accountIdClaim, out int id) ? id : 0;
         }
     }
 }

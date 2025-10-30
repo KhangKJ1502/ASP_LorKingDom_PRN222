@@ -2,22 +2,29 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using WebUI.Filters;
 
 namespace ASP_LorKingDom.Controllers
 {
-    [Authorize(AuthenticationSchemes = "AdminScheme", Roles = "Admin,Staff,Warehouse")]
+    //[Authorize(AuthenticationSchemes = "AdminScheme", Roles = "Admin,Staff,Warehouse")]
     public class AdminController : Controller
     {
         private readonly IAccountService _accountService;
+        private readonly IStatisticsService _statisticsService;
 
-        public AdminController(IAccountService accountService)
+        public AdminController(IAccountService accountService, IStatisticsService statisticsService)
         {
             _accountService = accountService;
+            _statisticsService = statisticsService;
         }
 
-        public IActionResult Dashboard()
+        // Admin và Staff được xem Dashboard (doanh thu), Warehouse không được xem
+        [HttpGet]
+        //[AdminAndStaffOnly]
+        public async Task<IActionResult> Dashboard()
         {
-            return View(); // tìm Views/Admin/Dashboard.cshtml
+            var stats = await _statisticsService.GetDashboardStatisticsAsync();
+            return View(stats);
         }
 
         [HttpGet]

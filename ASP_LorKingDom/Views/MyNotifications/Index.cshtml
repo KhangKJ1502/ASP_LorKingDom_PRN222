@@ -2,7 +2,14 @@
 @{
     ViewData["Title"] = "Thông Báo Của Tôi";
     Layout = "_Layout";
+
+    // Lấy thông tin tab active
     bool? currentFilter = ViewBag.CurrentFilter as bool?;
+
+    // Lấy số badge global từ ViewBag
+    var totalAll = ViewBag.TotalAll is int ? (int)ViewBag.TotalAll : 0;
+    var totalUnread = ViewBag.TotalUnread is int ? (int)ViewBag.TotalUnread : 0;
+    var totalRead = ViewBag.TotalRead is int ? (int)ViewBag.TotalRead : 0;
 }
 
 <style>
@@ -18,7 +25,6 @@
         padding: 0 1rem;
     }
 
-    /* Header / Filter Section shared styling */
     .filter-section {
         background: rgba(255, 255, 255, 0.95);
         backdrop-filter: blur(10px);
@@ -99,14 +105,27 @@
         gap: .5rem;
         cursor: pointer;
         text-decoration: none;
+        transition: all 0.3s ease;
     }
 
-        .mark-all-btn:hover {
+        .mark-all-btn[disabled] {
+            opacity: .5;
+            cursor: not-allowed;
+            box-shadow: none;
+            background: #9ca3af;
+        }
+
+        .mark-all-btn:hover:not([disabled]) {
             transform: translateY(-2px);
             box-shadow: 0 12px 24px rgba(16,185,129,.5);
         }
 
-    /* Notifications wrapper */
+    .mark-read-btn[disabled] {
+        opacity: 0.5;
+        cursor: not-allowed;
+        background: #9ca3af !important;
+    }
+
     .notifications-wrapper {
         background: rgba(255, 255, 255, 0.95);
         backdrop-filter: blur(10px);
@@ -296,7 +315,6 @@
             box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
         }
 
-    /* Empty state */
     .empty-state {
         text-align: center;
         padding: 4rem 2rem;
@@ -321,7 +339,6 @@
         font-size: 1rem;
     }
 
-    /* Pagination */
     .pagination-wrapper {
         margin-top: 2rem;
         display: flex;
@@ -375,33 +392,68 @@
     }
 
     @@keyframes pulse {
-        0%
+        0% {
+            box-shadow: 0 0 0 4px rgba(102,126,234,0.3);
+        }
 
-    {
-        box-shadow: 0 0 0 4px rgba(102,126,234,0.3);
-    }
+        70% {
+            box-shadow: 0 0 0 8px rgba(102,126,234,0);
+        }
 
-    70% {
-        box-shadow: 0 0 0 8px rgba(102,126,234,0);
-    }
-
-    100% {
-        box-shadow: 0 0 0 4px rgba(102,126,234,0);
-    }
-
+        100% {
+            box-shadow: 0 0 0 4px rgba(102,126,234,0);
+        }
     }
 
     @@keyframes float {
-        0%,100%
+        0%, 100% {
+            transform: translateY(0);
+        }
 
-    {
-        transform: translateY(0);
+        50% {
+            transform: translateY(-8px);
+        }
     }
 
-    50% {
-        transform: translateY(-8px);
-    }
+    /* Responsive Design */
+    @@media (max-width: 768px) {
+        .filter-tabs {
+            flex-direction: column;
+        }
 
+        .filter-left, .filter-right {
+            width: 100%;
+        }
+
+        .filter-right {
+            margin-left: 0;
+            margin-top: 0.5rem;
+        }
+
+        .mark-all-btn {
+            width: 100%;
+            justify-content: center;
+        }
+
+        .notification-content {
+            grid-template-columns: auto 1fr;
+            gap: 1rem;
+        }
+
+        .notification-icon {
+            width: 40px;
+            height: 40px;
+            font-size: 1.2rem;
+        }
+
+        .notification-actions {
+            grid-column: 1 / -1;
+            margin-top: 1rem;
+        }
+
+        .action-btn {
+            width: 100%;
+        }
     }
 </style>
 
@@ -417,28 +469,34 @@
                        class="filter-tab @(currentFilter == null ? "active" : "")">
                         <i class="fa-solid fa-list"></i>
                         <span>Tất cả</span>
-                        <span class="tab-count">@Model.Total</span>
+                        <span class="tab-count">@totalAll</span>
                     </a>
 
                     <a href="@Url.Action("Index", new { isRead = false, page = 1, pageSize = Model.PageSize })"
                        class="filter-tab @(currentFilter == false ? "active" : "")">
                         <i class="fa-solid fa-envelope"></i>
                         <span>Chưa đọc</span>
-                        <span class="tab-count">@Model.Items.Count(n => !n.IsRead)</span>
+                        <span class="tab-count">@totalUnread</span>
                     </a>
 
                     <a href="@Url.Action("Index", new { isRead = true, page = 1, pageSize = Model.PageSize })"
                        class="filter-tab @(currentFilter == true ? "active" : "")">
                         <i class="fa-solid fa-envelope-open"></i>
                         <span>Đã đọc</span>
-                        <span class="tab-count">@Model.Items.Count(n => n.IsRead)</span>
+                        <span class="tab-count">@totalRead</span>
                     </a>
                 </div>
 
                 <div class="filter-right">
-                    <form method="post" asp-action="MarkAllRead" asp-controller="MyNotifications" style="display:inline;">
+                    <form method="post"
+                          asp-action="MarkAllRead"
+                          asp-controller="MyNotifications"
+                          style="display:inline;">
                         @Html.AntiForgeryToken()
-                        <button type="submit" class="mark-all-btn" title="Đánh dấu tất cả là đã đọc">
+                        <button type="submit"
+                                class="mark-all-btn"
+                                title="Đánh dấu tất cả là đã đọc"
+                                @(totalUnread == 0 ? "disabled" : null)>
                             <i class="fa-solid fa-check-double"></i>
                             Đánh dấu tất cả đã đọc
                         </button>
@@ -521,7 +579,9 @@
                                             @Html.AntiForgeryToken()
                                             <input type="hidden" name="id" value="@notification.UserNotificationId" />
                                             <input type="hidden" name="returnFilter" value="@(currentFilter?.ToString().ToLower() ?? "")" />
-                                            <button type="submit" class="action-btn mark-read-btn" title="Đánh dấu đã đọc">
+                                            <button type="submit"
+                                                    class="action-btn mark-read-btn"
+                                                    title="Đánh dấu đã đọc">
                                                 <i class="fa-solid fa-check"></i>
                                                 Đã đọc
                                             </button>
@@ -619,27 +679,80 @@
                     card.style.transform = 'translateY(0)';
                 }, index * 100);
             });
+
+            // Handle mark read buttons with better UX
+            const markReadForms = document.querySelectorAll('form[asp-action="MarkRead"]');
+            markReadForms.forEach(form => {
+                form.addEventListener('submit', function(e) {
+                    const button = this.querySelector('.mark-read-btn');
+                    if (button) {
+                        button.disabled = true;
+                        button.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang xử lý...';
+                    }
+                });
+            });
+
+            // Handle mark all read with better UX
+            const markAllForm = document.querySelector('form[asp-action="MarkAllRead"]');
+            if (markAllForm) {
+                markAllForm.addEventListener('submit', function(e) {
+                    const button = this.querySelector('.mark-all-btn');
+                    if (button && !button.disabled) {
+                        button.disabled = true;
+                        button.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang xử lý...';
+                    }
+                });
+            }
         });
 
-        // Auto refresh every 30s (for tab != 'true', tức là Tất cả hoặc Chưa đọc)
-        const isRead = new URLSearchParams(window.location.search).get('isRead');
-        if (isRead !== 'true') {
+        // Auto refresh mỗi 60s cho tab "Tất cả" hoặc "Chưa đọc" (tăng từ 30s lên 60s để giảm load)
+        const isReadParam = new URLSearchParams(window.location.search).get('isRead');
+        if (isReadParam !== 'true') {
             let refreshInterval = setInterval(() => {
                 if (!document.hidden) {
-                    location.reload();
+                    // Soft reload - check if there are new notifications first
+                    fetch('/MyNotifications/CheckNewNotifications?lastCheck=' + new Date().toISOString())
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.success && data.hasNew) {
+                                // Show notification and reload
+                                const currentPage = new URLSearchParams(window.location.search).get('page') || '1';
+                                if (currentPage === '1') {
+                                    location.reload();
+                                }
+                            }
+                        })
+                        .catch(err => console.error('Check new notifications error:', err));
                 }
-            }, 30000);
+            }, 60000);
 
             document.addEventListener('visibilitychange', function () {
                 if (document.hidden) {
                     clearInterval(refreshInterval);
+                } else {
+                    // Refresh when tab becomes visible again
+                    refreshInterval = setInterval(() => {
+                        if (!document.hidden) {
+                            fetch('/MyNotifications/CheckNewNotifications?lastCheck=' + new Date().toISOString())
+                                .then(res => res.json())
+                                .then(data => {
+                                    if (data.success && data.hasNew) {
+                                        const currentPage = new URLSearchParams(window.location.search).get('page') || '1';
+                                        if (currentPage === '1') {
+                                            location.reload();
+                                        }
+                                    }
+                                })
+                                .catch(err => console.error('Check new notifications error:', err));
+                        }
+                    }, 60000);
                 }
             });
         }
     </script>
 
-    <!-- Font Awesome (nếu layout chưa có) -->
     <link rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
-          crossorigin="anonymous" referrerpolicy="no-referrer" />
+          crossorigin="anonymous"
+          referrerpolicy="no-referrer" />
 }

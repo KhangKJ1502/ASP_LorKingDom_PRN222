@@ -8,14 +8,14 @@ namespace BLL.Validators
 
         public static void ValidateLogin(string email, string password)
         {
-            if (string.IsNullOrWhiteSpace(email))
-                throw new ArgumentException("Email không được để trống.");
+            //if (string.IsNullOrWhiteSpace(email))
+            //    throw new ArgumentException("Email không được để trống.");
 
-            if (!EmailRegex.IsMatch(email))
-                throw new ArgumentException("Email không hợp lệ.");
+            //if (!EmailRegex.IsMatch(email))
+            //    throw new ArgumentException("Email không hợp lệ.");
 
-            if (string.IsNullOrWhiteSpace(password) || password.Length < 6)
-                throw new ArgumentException("Mật khẩu phải ít nhất 6 ký tự.");
+            //if (string.IsNullOrWhiteSpace(password) || password.Length < 6)
+            //    throw new ArgumentException("Mật khẩu phải ít nhất 6 ký tự.");
         }
     }
 }

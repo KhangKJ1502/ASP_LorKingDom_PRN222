@@ -114,6 +114,82 @@ namespace WebUI.Controllers
         }
 
         [HttpPost]
+        public async Task<IActionResult> BlockAccount(int id, string? q)
+        {
+            try
+            {
+                var c = await _accountService.GetByIdAsync(id);
+                if (c == null)
+                {
+                    TempData["Error"] = "Không tìm thấy khách hàng!";
+                    return RedirectToAction(nameof(Manage), new { q });
+                }
+
+                if (c.IsDeleted)
+                {
+                    TempData["Error"] = "Khách hàng đã bị chặn rồi!";
+                    return RedirectToAction(nameof(Manage), new { q });
+                }
+
+                c.IsDeleted = true;
+                c.Status = "Inactive";
+                c.UpdatedAt = DateTime.Now;
+
+                var success = await _accountService.UpdateAsync(id, c);
+                TempData["Success"] = success
+                    ? "🚫 Đã chặn khách hàng thành công!"
+                    : "⚠️ Chặn khách hàng thất bại!";
+
+                return RedirectToAction(nameof(Manage), new { q });
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Lỗi: {ex.Message}";
+                return RedirectToAction(nameof(Manage), new { q });
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> UnblockAccount(int id, string? q)
+        {
+            try
+            {
+                var c = await _accountService.GetByIdAsync(id);
+                if (c == null)
+                {
+                    TempData["Error"] = "Không tìm thấy khách hàng!";
+                    return RedirectToAction(nameof(Manage), new { q });
+                }
+
+                if (!c.IsDeleted)
+                {
+                    TempData["Error"] = "Khách hàng chưa bị chặn!";
+                    return RedirectToAction(nameof(Manage), new { q });
+                }
+
+                c.IsDeleted = false;
+                c.Status = "Active";
+                c.UpdatedAt = DateTime.Now;
+
+                var success = await _accountService.UpdateAsync(id, c);
+                TempData["Success"] = success
+                    ? "✅ Đã bỏ chặn khách hàng thành công!"
+                    : "⚠️ Bỏ chặn khách hàng thất bại!";
+
+                return RedirectToAction(nameof(Manage), new { q });
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Lỗi: {ex.Message}";
+                return RedirectToAction(nameof(Manage), new { q });
+            }
+        }
+
+        /// <summary>
+        /// [DEPRECATED] Sử dụng BlockAccount() hoặc UnblockAccount() thay thế
+        /// </summary>
+        [HttpPost]
+        [Obsolete("Use BlockAccount() or UnblockAccount() instead")]
         public async Task<IActionResult> ToggleStatus(int id, string? q)
         {
             try

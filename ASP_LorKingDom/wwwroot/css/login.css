@@ -171,6 +171,7 @@ body {
 /* Buttons */
 .btn-primary {
     width: 100%;
+    margin: 10px 0 0 0;
     padding: 0.875rem;
     background: linear-gradient(135deg, #f97316 0%, #fb923c 100%);
     color: white;
@@ -564,6 +565,7 @@ body {
     .btn-primary:hover {
         transform: translateY(-2px);
         box-shadow: 0 6px 20px rgba(249, 115, 22, 0.4);
+        background: linear-gradient(135deg, #ff8c1a 0%, #ff7811 100%) !important;
     }
 
     .btn-primary:active {
@@ -924,11 +926,20 @@ body {
     background: linear-gradient(135deg,#ff7a2a 0%,#ff9b50 100%);
     box-shadow: 0 10px 22px rgba(255,122,42,.30);
     border-radius: 14px;
+    color: white !important;
 }
 
     .btn-primary:hover {
         transform: translateY(-1px);
         box-shadow: 0 14px 28px rgba(255,122,42,.38);
+        background: linear-gradient(135deg,#ff8c1a 0%,#ffab6b 100%) !important;
+        color: white !important;
+    }
+
+    .btn-primary:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
     }
 
 /* Divider mảnh */

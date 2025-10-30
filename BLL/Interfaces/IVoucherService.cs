@@ -1,6 +1,4 @@
 ﻿using BLL.DTOs;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace BLL.Interfaces
 {
@@ -12,5 +10,6 @@ namespace BLL.Interfaces
         Task<bool> UpdateAsync(int id, VoucherDto dto);
         Task<bool> SoftDeleteAsync(int id);
         Task<bool> RestoreAsync(int id);
+        Task<(bool isValid, string message, VoucherDto? voucher)> ApplyVoucherAsync(string code, int accountId, decimal orderAmount);
     }
 }

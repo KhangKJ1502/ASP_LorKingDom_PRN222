@@ -1,48 +1,73 @@
 ﻿@model List<BLL.DTOs.WishlistItemDto>
 
 @functions {
-	string FormatPrice(decimal v) => v.ToString("C0");
-	string BadgeClass(string status) =>
-		status == "OutOfStock" ? "out-stock" :
-		status == "Discontinued" ? "discontinued" : "in-stock";
-	string BadgeText(string status) =>
-		status == "OutOfStock" ? "Hết hàng" :
-		status == "Discontinued" ? "Ngừng bán" : "Còn hàng";
+    string FormatPrice(decimal v) => v.ToString("C0");
+    string BadgeClass(string status) =>
+        status == "OutOfStock" ? "out-stock" :
+        status == "Discontinued" ? "discontinued" : "in-stock";
+    string BadgeText(string status) =>
+        status == "OutOfStock" ? "Hết hàng" :
+        status == "Discontinued" ? "Ngừng bán" : "Còn hàng";
 }
 
 @if (!Model.Any())
 {
-	<div class="text-muted mx-3">Danh sách yêu thích của bạn đang trống.</div>
+    <div class="text-muted mx-3">Danh sách yêu thích của bạn đang trống.</div>
 }
 else
 {
-	foreach (var x in Model)
-	{
-		<div class="wl-card" data-id="@x.ProductId">
-			<div class="wl-row">
-				<img class="wl-thumb"
-					 src="@(string.IsNullOrWhiteSpace(x.MainImageUrl)
-                        ? Url.Content("~/images/placeholder.png")
-                        : x.MainImageUrl)"
-					 alt="@x.ProductName" />
-				<div class="wl-info">
-					<h6 class="wl-name" title="@x.ProductName">@x.ProductName</h6>
-					<div class="d-flex align-items-center gap-2 mb-2">
-						<span class="wl-price">@FormatPrice(x.Price)</span>
-					</div>
-					<span class="wl-badge @BadgeClass(x.ProductStatus ?? "") mb-2 d-inline-block">
-						@BadgeText(x.ProductStatus ?? "")
-					</span>
-					<div class="wl-actions">
-						<button type="button" class="wl-add btn-cart" data-id="@x.ProductId">
-							<i class="fa-solid fa-cart-shopping me-2"></i> Thêm vào giỏ
-						</button>
-						<button type="button" class="wl-trash btn-remove" data-id="@x.ProductId" title="Xóa">
-							<i class="fa-solid fa-trash"></i>
-						</button>
-					</div>
-				</div>
-			</div>
-		</div>
-	}
+    foreach (var x in Model)
+    {
+        var detailsUrl = Url.Action("ProductDetails", "Home", new { id = x.ProductId });
+
+
+        <div class="wl-card cursor-pointer transition-all hover:shadow-lg hover:-translate-y-0.5"
+             data-href="@detailsUrl">
+            <div class="wl-row flex gap-3">
+                <img class="wl-thumb w-24 h-24 object-cover rounded-lg border"
+                     src="@(string.IsNullOrWhiteSpace(x.MainImageUrl)
+                                                             ? Url.Content("~/images/placeholder.png")
+                                                             : x.MainImageUrl)"
+             alt="@x.ProductName" />
+
+                <div class="wl-info flex-1">
+                    <h6 class="wl-name font-semibold mb-1">@x.ProductName</h6>
+
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="wl-price text-orange-600 font-bold">@FormatPrice(x.Price)</span>
+                    </div>
+
+                    <span class="wl-badge @BadgeClass(x.ProductStatus ?? "") mb-2 inline-block px-2 py-1 rounded-full text-xs font-medium">
+                        @BadgeText(x.ProductStatus ?? "")
+                    </span>
+
+                    <div class="wl-actions flex gap-2 mt-2">
+                        <button type="button" class="wl-add btn-cart btn btn-sm btn-warning d-flex align-items-center gap-1"
+                                data-id="@x.ProductId">
+                            <i class="fa-solid fa-cart-shopping"></i> Thêm vào giỏ
+                        </button>
+
+                        <button type="button" class="wl-trash btn-remove btn btn-sm btn-danger"
+                                data-id="@x.ProductId" title="Xóa">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
 }
+<script>
+    document.addEventListener("click", function (e) {
+        // 🔹 Nếu click vào nút hành động thì không làm gì
+        if (e.target.closest(".wl-actions")) return;
+
+        const card = e.target.closest(".wl-card");
+        if (card) {
+            const url = card.dataset.href;
+            if (url) {
+                window.location.href = url;
+            }
+        }
+    });
+</script>

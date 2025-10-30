@@ -1,5 +1,7 @@
 ﻿using BLL.DTOs;
 using BLL.Interfaces;
+using Microsoft.AspNetCore.Antiforgery;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Linq;
@@ -8,6 +10,7 @@ using System.Threading.Tasks;
 
 namespace WebUI.Controllers
 {
+    [Authorize(AuthenticationSchemes = "AdminScheme")]
     public class ReviewProductController : Controller
     {
         private readonly IReviewProductService _reviewProductService;
@@ -217,36 +220,34 @@ namespace WebUI.Controllers
 
         [HttpPost("ReviewProduct/Reply/{reviewId}")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ReplyToReview(int reviewId, string replyContent)
+        public async Task<IActionResult> ReplyToReview(int reviewId, [FromForm] string replyContent)
         {
             try
             {
-                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                if (userId == null)
-                    return BadRequest(new { error = "You need to be logged in" });
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+                if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out int accountId))
+                    return Json(new { success = false, error = "Phiên đăng nhập hết hạn." });
 
                 if (string.IsNullOrWhiteSpace(replyContent))
-                    return BadRequest(new { error = "Reply content cannot be empty" });
-
-                var accountId = int.Parse(userId);
+                    return Json(new { success = false, error = "Vui lòng nhập nội dung phản hồi." });
 
                 var review = await _reviewProductService.GetByIdAsync(reviewId);
                 if (review == null)
-                    return BadRequest(new { error = "Review not found" });
+                    return Json(new { success = false, error = "Không tìm thấy đánh giá." });
 
                 var dto = new ReviewProductReplyDto
                 {
                     ReviewProductId = reviewId,
                     AccountId = accountId,
-                    Content = replyContent
+                    Content = replyContent.Trim()
                 };
 
                 await _replyService.CreateAsync(dto);
-                return Json(new { message = "Reply added successfully" });
+                return Json(new { success = true, message = "Phản hồi đã được gửi thành công!" });
             }
             catch (Exception ex)
             {
-                return BadRequest(new { error = ex.Message });
+                return Json(new { success = false, error = "Lỗi hệ thống: " + ex.Message });
             }
         }
 
