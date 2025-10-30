@@ -8,11 +8,12 @@ public class CategoryService : ICategoryService
 {
     private readonly ICategoryRepository _repo;
     private readonly ISuperCategoryRepository _superRepo; // nếu cần validate
-
-    public CategoryService(ICategoryRepository repo, ISuperCategoryRepository superRepo)
+    private readonly IProductRepository _productRepo;
+    public CategoryService(ICategoryRepository repo, ISuperCategoryRepository superRepo, IProductRepository productRepo)
     {
         _repo = repo;
         _superRepo = superRepo;
+        _productRepo = productRepo;
     }
 
     private static CategoryDto Map(Category x) => new()
@@ -39,6 +40,11 @@ public class CategoryService : ICategoryService
 
     public async Task<int> CreateAsync(int superCategoryId, string name, bool isDeleted = false)
     {
+        var super = await _superRepo.GetByIdAsync(superCategoryId)
+            ?? throw new InvalidOperationException("Nhóm danh mục tổng không tồn tại.");
+        if (!isDeleted && super.IsDeleted)
+            throw new InvalidOperationException("Không thể tạo danh mục hoạt động vì Nhóm danh mục tổng đang không hoạt động.");
+
         // optional: validate superCategoryId tồn tại
         var entity = new Category
         {
@@ -57,6 +63,11 @@ public class CategoryService : ICategoryService
 
     public async Task<bool> UpdateAsync(int id, int superCategoryId, string name, bool isDeleted)
     {
+        var super = await _superRepo.GetByIdAsync(superCategoryId)
+            ?? throw new InvalidOperationException("Nhóm danh mục tổng không tồn tại.");
+        if (!isDeleted && super.IsDeleted)
+            throw new InvalidOperationException("Không thể đặt hoạt động vì Nhóm danh mục tổng đang không hoạt động.");
+
         var e = await _repo.GetByIdAsync(id);
         if (e == null) return false;
 
@@ -69,6 +80,11 @@ public class CategoryService : ICategoryService
         e.IsDeleted = isDeleted;
 
         await _repo.UpdateAsync(e);
+        if (isDeleted)
+        {
+            await _productRepo.SetIsDeletedByCategoryAsync(id, true);
+            // Quy ước: bật lại Category không tự bật Product (giữ như trước)
+        }
         return true;
     }
 
@@ -85,3 +101,5 @@ public class CategoryService : ICategoryService
         };
     }
 }
+
+

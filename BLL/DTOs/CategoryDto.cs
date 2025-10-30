@@ -14,6 +14,6 @@ namespace BLL.DTOs
         public bool IsDeleted { get; set; }
         public DateTime? CreatedAt { get; set; }
 
-        public string? SuperCategoryName { get; set; } // dùng để hiển thị trong bảng
+        public string? SuperCategoryName { get; set; } 
     }
 }
