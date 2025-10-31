@@ -13,10 +13,11 @@ namespace BLL.Services
     public class PriceRangeService : IPriceRangeService
     {
         private readonly IPriceRangeRepository _repo;
-
-        public PriceRangeService(IPriceRangeRepository repo)
+        private readonly IProductRepository _productRepo;
+        public PriceRangeService(IPriceRangeRepository repo, IProductRepository productRepo)
         {
             _repo = repo;
+            _productRepo = productRepo;
         }
 
         public async Task<List<PriceRangeDto>> GetAllAsync(string? keyword = null)
@@ -72,6 +73,10 @@ namespace BLL.Services
             e.IsDeleted = isDeleted;
 
             await _repo.UpdateAsync(e);
+            if (isDeleted)
+            {
+                await _productRepo.SetIsDeletedByPriceRangeAsync(id, true);
+            }
             return true;
         }
 
