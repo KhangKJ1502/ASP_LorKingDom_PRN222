@@ -54,20 +54,24 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         o.AccessDeniedPath = "/Home/Error";
         o.Cookie.HttpOnly = true;
         o.Cookie.IsEssential = true;
+        o.Cookie.SameSite = SameSiteMode.Lax;
+        o.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
         o.ExpireTimeSpan = TimeSpan.FromDays(7);
         o.SlidingExpiration = false;
     })
     .AddCookie("AdminScheme", o =>
     {
-        o.LoginPath = "/AdminAuth/Login"; // Admin login
+        o.LoginPath = "/AdminAuth/Login";
         o.LogoutPath = "/AdminAuth/Logout";
         o.AccessDeniedPath = "/AdminAuth/AccessDenied";
         o.Cookie.HttpOnly = true;
         o.Cookie.IsEssential = true;
+        o.Cookie.Name = "AdminAuth";
+        o.Cookie.SameSite = SameSiteMode.Lax; 
+        o.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
         o.ExpireTimeSpan = TimeSpan.FromDays(7);
         o.SlidingExpiration = false;
-        o.Cookie.Name = "AdminAuth"; // Cookie riêng cho admin
-    }); 
+    });
 
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();

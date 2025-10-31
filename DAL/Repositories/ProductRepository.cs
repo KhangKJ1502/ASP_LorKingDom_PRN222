@@ -104,8 +104,6 @@ namespace DAL.Repositories
         // ✅ NEW: cascade Category → Product
         public async Task<int> SetIsDeletedByCategoryAsync(int categoryId, bool isDeleted)
         {
-            // Nếu dùng EF Core 7+/8 có thể dùng ExecuteUpdateAsync cho nhanh;
-            // ở đây dùng cách tương thích rộng:
             var items = await _ctx.Products
                 .Where(p => p.CategoryId == categoryId)
                 .ToListAsync();
