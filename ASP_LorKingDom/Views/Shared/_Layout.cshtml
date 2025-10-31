@@ -111,23 +111,22 @@
 							</svg>
 						</button>
 						<!-- Nút thông báo -->
-					
-					<!-- NOTIFICATION BUTTON - Chuyển sang link để click được -->
-					<a href="@Url.Action("Index", "MyNotifications")" 
-					   class="header-action-btn position-relative"
-					   id="notificationBtn"
-					   title="Thông báo">
-						<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-							<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-							<path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-						</svg>
+						<!-- NOTIFICATION BUTTON - Chuyển sang link để click được -->
+						<a href="@Url.Action("Index", "MyNotifications")"
+						   class="header-action-btn position-relative"
+						   id="notificationBtn"
+						   title="Thông báo">
+							<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+								<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+								<path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+							</svg>
 
-						<span id="unreadBadge"
-							  class="action-badge action-badge-danger"
-							  style="position:absolute; top:-6px; right:-6px; font-size:12px; min-width:18px; height:18px; border-radius:50%; display:none; align-items:center; justify-content:center; background:#dc3545; color:white; font-weight:bold; padding:2px;">
-							0
-						</span>
-					</a>						<!-- GIỎ HÀNG: DÙNG ID ĐỂ JS CẬP NHẬT -->
+							<span id="unreadBadge"
+								  class="action-badge action-badge-danger"
+								  style="position:absolute; top:-6px; right:-6px; font-size:12px; min-width:18px; height:18px; border-radius:50%; display:none; align-items:center; justify-content:center; background:#dc3545; color:white; font-weight:bold; padding:2px;">
+								0
+							</span>
+						</a>						<!-- GIỎ HÀNG: DÙNG ID ĐỂ JS CẬP NHẬT -->
 						<a asp-controller="Home" asp-action="Cart" class="header-action-btn" id="cart-link">
 							<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
 								 stroke-width="2">
@@ -211,15 +210,6 @@
 							@* 					<li><a href="#" class="dropdown-item">Smart Toys</a></li> *@
 							@* 					<li><a href="#" class="dropdown-item">Remote Control</a></li> *@
 							@* 					<li><a href="#" class="dropdown-item">Interactive Toys</a></li> *@
-							@* 				</ul> *@
-							@* 			</div> *@
-							@* 			<div class="dropdown-column"> *@
-							@* 				<h4 class="dropdown-title">Outdoor & Sports</h4> *@
-							@* 				<ul class="dropdown-list"> *@
-							@* 					<li><a href="#" class="dropdown-item">Bikes & Scooters</a></li> *@
-							@* 					<li><a href="#" class="dropdown-item">Sports Equipment</a></li> *@
-							@* 					<li><a href="#" class="dropdown-item">Water Toys</a></li> *@
-							@* 					<li><a href="#" class="dropdown-item">Playground Sets</a></li> *@
 							@* 				</ul> *@
 							@* 			</div> *@
 							@* 		</div> *@
@@ -402,83 +392,59 @@
 					cartLink.appendChild(badge);
 				}
 			}
-		document.addEventListener('DOMContentLoaded', function () {
-				 if (window.lucide) lucide.createIcons();
 
-				 // ==== CART BADGE ====
-				 let badgeCart = document.querySelector('#cart-badge');
-				 const cartLink = document.getElementById('cart-link');
-				 if (cartLink && !badgeCart) {
-					 badgeCart = document.createElement('span');
-					 badgeCart.id = 'cart-badge';
-					 badgeCart.className = 'action-badge action-badge-primary';
-					 badgeCart.style.cssText = 'position:absolute;top:-8px;right:-8px;font-size:12px;min-width:18px;height:18px;display:flex;align-items:center;justify-content:center;border-radius:50%;';
-					 cartLink.style.position = 'relative';
-					 cartLink.appendChild(badgeCart);
-				 }
-				 if (typeof updateCartBadge === 'function') {
-					 updateCartBadge();
-				 }
+			ensureCartBadge();
+			if (typeof updateCartBadge === 'function') {
+				updateCartBadge();
+			}
 
-				 // ==== NOTIFICATION BADGE (không offcanvas) ====
-				 const unreadBadgeEl = document.getElementById('unreadBadge');
-				 const notificationBtn = document.getElementById('notificationBtn');
+			// ==== NOTIFICATION BADGE (không offcanvas) ====
+			const unreadBadgeEl = document.getElementById('unreadBadge');
 
-				 async function updateNotificationBadge() {
-					 try {
-						 const res = await fetch('/MyNotifications/GetUnreadCount');
-						 if (!res.ok) {
-							 console.warn('Failed to fetch notification count:', res.status);
-							 return;
-						 }
+			async function updateNotificationBadge() {
+				try {
+					const res = await fetch('/MyNotifications/GetUnreadCount');
+					if (!res.ok) {
+						console.warn('Failed to fetch notification count:', res.status);
+						return;
+					}
+					const data = await res.json();
+					if (!unreadBadgeEl) return;
 
-						 const data = await res.json();
+					if (data.success && data.count > 0) {
+						unreadBadgeEl.textContent = data.count > 99 ? '99+' : data.count;
+						unreadBadgeEl.style.display = 'flex';
+					} else {
+						unreadBadgeEl.textContent = '0';
+						unreadBadgeEl.style.display = 'none';
+					}
+				} catch (err) {
+					console.error('updateNotificationBadge error:', err);
+				}
+			}
 
-						 if (!unreadBadgeEl) return;
+			// load lần đầu + poll 30s (chỉ khi tab active)
+			updateNotificationBadge();
+			let notificationInterval = setInterval(() => {
+				if (!document.hidden) {
+					updateNotificationBadge();
+				}
+			}, 30000);
 
-						 if (data.success && data.count > 0) {
-							 unreadBadgeEl.textContent = data.count > 99 ? '99+' : data.count;
-							 unreadBadgeEl.style.display = 'flex';
-						 } else {
-							 unreadBadgeEl.textContent = '0';
-							 unreadBadgeEl.style.display = 'none';
-						 }
-					 } catch (err) {
-						 console.error('updateNotificationBadge error:', err);
-					 }
-				 }
-
-			 // Notification button đã là link <a> rồi nên không cần addEventListener nữa
-			 // Nhưng giữ lại để có thể add logic khác nếu cần (VD: mark all as read trước khi chuyển trang)
-			 if (notificationBtn) {
-				 // Link tự động navigate, không cần JS
-				 // notificationBtn.addEventListener('click', function (e) {
-				 //     window.location.href = '/MyNotifications/Index';
-				 // });
-			 }				 // load lần đầu + poll 30s
-				 updateNotificationBadge();
-				 
-				 // Auto refresh notification badge
-				 let notificationInterval = setInterval(() => {
-					 if (!document.hidden) {
-						 updateNotificationBadge();
-					 }
-				 }, 30000);
-
-				 // Clear interval when page is hidden to save resources
-				 document.addEventListener('visibilitychange', function() {
-					 if (document.hidden) {
-						 clearInterval(notificationInterval);
-					 } else {
-						 updateNotificationBadge();
-						 notificationInterval = setInterval(() => {
-							 if (!document.hidden) {
-								 updateNotificationBadge();
-							 }
-						 }, 30000);
-					 }
-				 });
-			 });
+			// Clear / resume interval theo visibility
+			document.addEventListener('visibilitychange', function () {
+				if (document.hidden) {
+					clearInterval(notificationInterval);
+				} else {
+					updateNotificationBadge();
+					notificationInterval = setInterval(() => {
+						if (!document.hidden) {
+							updateNotificationBadge();
+						}
+					}, 30000);
+				}
+			});
+		});
 	</script>
 
 	@await RenderSectionAsync("Scripts", required: false)
