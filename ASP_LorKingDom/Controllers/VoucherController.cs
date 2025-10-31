@@ -3,6 +3,8 @@ using BLL.Interfaces;
 using BLL.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using DAL.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace WebUI.Controllers
 {
@@ -11,12 +13,18 @@ namespace WebUI.Controllers
         private readonly IVoucherService _voucherService;
         private readonly IVoucherTypeService _voucherTypeService;
         private readonly IAccountService _accountService;
+        private readonly AspLorKingDomContext _context;
 
-        public VoucherController(IVoucherService voucherService, IVoucherTypeService voucherTypeService, IAccountService accountService)
+        public VoucherController(
+            IVoucherService voucherService,
+            IVoucherTypeService voucherTypeService,
+            IAccountService accountService,
+            AspLorKingDomContext context)
         {
             _voucherService = voucherService;
             _voucherTypeService = voucherTypeService;
             _accountService = accountService;
+            _context = context;
         }
 
         [HttpGet("Voucher/GetActiveVouchers")]
@@ -25,33 +33,27 @@ namespace WebUI.Controllers
             var accountId = GetAccountId();
             if (accountId == 0)
                 return Json(new { success = false, message = "Vui lòng đăng nhập" });
-
             try
             {
                 var allVouchers = await _voucherService.GetAllVouchersAsync(includeDeleted: false);
                 var now = DateTime.Now;
-
                 // Lọc voucher đang hoạt động
                 var activeVouchers = allVouchers
                     .Where(v => v.Status == "Active" && v.StartDate <= now && v.EndDate >= now)
                     .OrderByDescending(v => v.DiscountValue)
                     .ToList();
-
                 var result = new List<object>();
-
                 foreach (var voucher in activeVouchers)
                 {
                     // Kiểm tra điều kiện áp dụng
                     bool isEligible = true;
                     string ineligibleReason = "";
-
                     // Kiểm tra số tiền tối thiểu
                     if (voucher.MinOrderAmount.HasValue && orderAmount < voucher.MinOrderAmount.Value)
                     {
                         isEligible = false;
                         ineligibleReason = $"Đơn hàng tối thiểu {voucher.MinOrderAmount.Value:N0} ₫";
                     }
-
                     // Kiểm tra số lần sử dụng
                     if (isEligible && voucher.UsageLimitPerUser.HasValue)
                     {
@@ -62,11 +64,9 @@ namespace WebUI.Controllers
                             ineligibleReason = message;
                         }
                     }
-
                     // Tính số tiền giảm giá
                     decimal discountAmount = 0;
                     var voucherTypeName = voucher.VoucherTypeName?.ToLower() ?? "fixed";
-
                     if (voucherTypeName.Contains("percent") || voucherTypeName.Contains("%"))
                     {
                         discountAmount = orderAmount * (voucher.DiscountValue / 100);
@@ -79,7 +79,6 @@ namespace WebUI.Controllers
                     {
                         discountAmount = voucher.DiscountValue;
                     }
-
                     result.Add(new
                     {
                         voucherCode = voucher.VoucherCode,
@@ -94,7 +93,6 @@ namespace WebUI.Controllers
                         discountAmount = discountAmount
                     });
                 }
-
                 return Json(new { success = true, vouchers = result });
             }
             catch (Exception ex)
@@ -109,19 +107,15 @@ namespace WebUI.Controllers
             var accountId = GetAccountId();
             if (accountId == 0)
                 return Json(new { success = false, message = "Vui lòng đăng nhập" });
-
             try
             {
                 var (isValid, message, voucher) = await _voucherService.ApplyVoucherAsync(code, accountId, orderAmount);
-
                 if (isValid && voucher != null)
                 {
                     // Tính số tiền giảm giá
                     decimal discountAmount = 0;
-
                     // Kiểm tra loại voucher: Percentage (%) hoặc Fixed Amount
                     var voucherTypeName = voucher.VoucherTypeName?.ToLower() ?? "fixed";
-
                     if (voucherTypeName.Contains("percent") || voucherTypeName.Contains("%"))
                     {
                         // Giảm theo phần trăm
@@ -136,7 +130,6 @@ namespace WebUI.Controllers
                         // Giảm giá cố định
                         discountAmount = voucher.DiscountValue;
                     }
-
                     return Json(new
                     {
                         success = true,
@@ -145,7 +138,6 @@ namespace WebUI.Controllers
                         voucherCode = voucher.VoucherCode
                     });
                 }
-
                 return Json(new { success = false, message = message });
             }
             catch (Exception ex)
@@ -160,7 +152,6 @@ namespace WebUI.Controllers
             try
             {
                 var allVouchers = await _voucherService.GetAllVouchersAsync(includeDeleted: showDeleted);
-
                 if (!string.IsNullOrWhiteSpace(q))
                 {
                     allVouchers = allVouchers
@@ -169,18 +160,13 @@ namespace WebUI.Controllers
                                     (v.CreatorName?.Contains(q, StringComparison.OrdinalIgnoreCase) ?? false))
                         .ToList();
                 }
-
                 if (!string.IsNullOrWhiteSpace(voucherType) && int.TryParse(voucherType, out int typeId))
                     allVouchers = allVouchers.Where(v => v.VoucherTypeId == typeId).ToList();
-
                 if (!string.IsNullOrWhiteSpace(status))
                     allVouchers = allVouchers.Where(v => v.Status == status).ToList();
-
                 if (!showDeleted)
                     allVouchers = allVouchers.Where(v => v.Status != "Inactive").ToList();
-
                 allVouchers = allVouchers.OrderByDescending(v => v.CreatedAt).ToList();
-
                 var totalCount = allVouchers.Count;
                 var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
                 var pagedVouchers = allVouchers.Skip((page - 1) * pageSize).Take(pageSize).ToList();
@@ -192,7 +178,23 @@ namespace WebUI.Controllers
                 ViewBag.TotalPages = totalPages;
                 ViewBag.ShowDeleted = showDeleted;
                 ViewBag.VoucherTypes = await _voucherTypeService.GetAllAsync();
-                ViewBag.Accounts = await _accountService.GetAllAsync();
+               
+                var allAccounts = await _accountService.GetAllAsync();
+
+                var adminRoleId = await _context.Roles
+                    .Where(r => r.RoleName == "Admin")
+                    .Select(r => r.RoleId)  
+                    .FirstOrDefaultAsync();
+
+                var staffRoleId = await _context.Roles
+                    .Where(r => r.RoleName == "Staff")
+                    .Select(r => r.RoleId) 
+                    .FirstOrDefaultAsync();
+
+                ViewBag.AdminStaffAccounts = allAccounts
+                    .Where(a => a.RoleId == adminRoleId || a.RoleId == staffRoleId)
+                    .Select(a => new { a.Id, a.AccountName })
+                    .ToList();
 
                 return View("~/Views/Admin/ManageVouchers.cshtml", pagedVouchers);
             }
@@ -226,7 +228,6 @@ namespace WebUI.Controllers
                 var success = await _voucherService.UpdateAsync(id, dto);
                 if (!success)
                     return BadRequest(new { error = "Failed to update voucher" });
-
                 return Json(new { message = "Voucher updated successfully" });
             }
             catch (Exception ex)
@@ -244,7 +245,6 @@ namespace WebUI.Controllers
                 var success = await _voucherService.SoftDeleteAsync(id);
                 if (!success)
                     return BadRequest(new { error = "Không thể xóa voucher" });
-
                 return Json(new { message = "Voucher đã được chuyển vào thùng rác" });
             }
             catch (Exception ex)
@@ -262,7 +262,6 @@ namespace WebUI.Controllers
                 var success = await _voucherService.RestoreAsync(id);
                 if (!success)
                     return BadRequest(new { error = "Không thể khôi phục voucher" });
-
                 return Json(new { message = "Voucher đã được khôi phục" });
             }
             catch (Exception ex)
@@ -279,7 +278,6 @@ namespace WebUI.Controllers
                 var voucher = await _voucherService.GetByIdAsync(id);
                 if (voucher == null)
                     return NotFound();
-
                 var result = new
                 {
                     voucherId = voucher.VoucherId,
@@ -298,7 +296,6 @@ namespace WebUI.Controllers
                     status = voucher.Status,
                     isDeleted = voucher.Status == "Inactive"
                 };
-
                 return Json(result);
             }
             catch (Exception ex)

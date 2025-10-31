@@ -9,7 +9,6 @@
     var totalPages = (int?)ViewBag.TotalPages ?? 1;
     var showDeleted = (bool?)ViewBag.ShowDeleted ?? false;
 }
-
 <style>
     .chip {
         display: inline-flex;
@@ -141,7 +140,6 @@
             background: #667eea;
             color: #fff;
         }
-
     /* ==================== STYLE TEXTBOX ==================== */
     .form-control, .form-control:focus {
         border: 1.5px solid #d1d5db;
@@ -201,17 +199,14 @@
         opacity: 0.6;
         background: #f8f9fa;
     }
-
     /* Nút refresh loading state */
     .btn-refresh[aria-busy="true"] {
         pointer-events: none;
         opacity: .8;
     }
 </style>
-
 <div class="container-fluid px-5">
     <h1 class="mt-4">Quản Lý Voucher</h1>
-
     <div class="card mb-4 mt-4">
         <div class="card-header d-flex justify-content-between align-items-center">
             <div><i class="fa-solid fa-ticket me-2"></i>Danh Sách Voucher</div>
@@ -220,7 +215,6 @@
                 <button id="btnRefreshHeader" type="button" class="btn btn-outline-secondary btn-sm btn-refresh" title="Đặt lại bộ lọc và làm mới dữ liệu">
                     <i class="fa-solid fa-rotate-right me-1"></i> Refresh
                 </button>
-
                 @if (!showDeleted)
                 {
                     <button class="btn btn-gradient" data-bs-toggle="modal" data-bs-target="#addVoucherModal">
@@ -229,7 +223,6 @@
                 }
             </div>
         </div>
-
         <div class="card-body">
             <ul class="nav nav-tabs mb-4">
                 <li class="nav-item">
@@ -245,7 +238,6 @@
                     </a>
                 </li>
             </ul>
-
             <form id="filterForm" class="mb-4" method="get" asp-action="ManageVouchers" asp-controller="Voucher">
                 <input type="hidden" name="showDeleted" value="@showDeleted.ToString().ToLower()" />
                 <div class="row g-2">
@@ -280,7 +272,6 @@
                     </div>
                 </div>
             </form>
-
             <div class="table-responsive">
                 <table class="table table-bordered table-striped table-hover">
                     <thead class="table-dark">
@@ -360,7 +351,6 @@
                     </tbody>
                 </table>
             </div>
-
             <nav class="mt-4" aria-label="Voucher pagination">
                 <ul class="pagination justify-content-center">
                     <li class="page-item @(currentPage == 1 ? "disabled" : "")">
@@ -388,7 +378,6 @@
             </nav>
         </div>
     </div>
-
     <div class="modal fade" id="voucherDetailModal" tabindex="-1" aria-labelledby="voucherDetailLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content">
@@ -405,7 +394,6 @@
             </div>
         </div>
     </div>
-
     <div class="modal fade" id="addVoucherModal" tabindex="-1" aria-labelledby="addVoucherLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content modal-modern">
@@ -437,7 +425,7 @@
                                     <label class="form-label fw-bold">Người Tạo</label>
                                     <select name="CreateBy" class="form-control select-styled">
                                         <option value="">Không xác định</option>
-                                        @foreach (var account in ViewBag.Accounts)
+                                        @foreach (var account in ViewBag.AdminStaffAccounts)
                                         {
                                             <option value="@account.Id">@account.AccountName</option>
                                         }
@@ -491,7 +479,6 @@
             </div>
         </div>
     </div>
-
     <div class="modal fade" id="editVoucherModal" tabindex="-1" aria-labelledby="editVoucherLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content modal-modern">
@@ -523,7 +510,7 @@
                                     <label class="form-label fw-bold">Người Tạo</label>
                                     <select name="CreateBy" class="form-control select-styled">
                                         <option value="">Không xác định</option>
-                                        @foreach (var account in ViewBag.Accounts)
+                                        @foreach (var account in ViewBag.AdminStaffAccounts)
                                         {
                                             <option value="@account.Id">@account.AccountName</option>
                                         }
@@ -577,18 +564,15 @@
         </div>
     </div>
 </div>
-
 @section Scripts {
     <script>
         const vndFormat = new Intl.NumberFormat('vi-VN');
-
         // ========= Refresh về MẶC ĐỊNH (reset filter + search + tab) =========
         function setBusy(el, busy) {
             if (!el) return;
             el.setAttribute('aria-busy', busy ? 'true' : 'false');
             el.querySelector('i')?.classList.toggle('fa-spin', !!busy);
         }
-
         function resetFiltersUIToDefault() {
             const form = document.getElementById('filterForm');
             if (!form) return;
@@ -601,11 +585,9 @@
             if (status) status.value = '';
             if (showDeleted) showDeleted.value = 'false';
         }
-
         function refreshToDefault(triggerEl = null) {
             if (triggerEl) setBusy(triggerEl, true);
             resetFiltersUIToDefault();
-
             const basePath = '@Url.Action("ManageVouchers", "Voucher")';
             const url = new URL(basePath, window.location.origin);
             url.searchParams.set('page', '1');
@@ -615,11 +597,9 @@
             url.searchParams.set('status', '');
             window.location.assign(url.toString());
         }
-
         document.getElementById('btnRefreshHeader')?.addEventListener('click', function () {
             refreshToDefault(this);
         });
-
         // ========= Datepicker / helpers =========
         function initDatePickers(modal) {
             modal.querySelectorAll('.datepicker').forEach(input => {
@@ -633,7 +613,6 @@
                 }
             });
         }
-
         function bindCurrencyPreview(scopeEl) {
             const inputs = scopeEl.querySelectorAll('.currency-input');
             inputs.forEach(input => {
@@ -646,12 +625,10 @@
                 update();
             });
         }
-
         function bindDateRangeValidation(scopeEl) {
             const start = scopeEl.querySelector('input[name="StartDate"]');
             const end = scopeEl.querySelector('input[name="EndDate"]');
             if (!start || !end) return;
-
             const sync = () => {
                 if (start.value && end._flatpickr) end._flatpickr.set('minDate', start.value);
                 if (end.value && start.value && end.value < start.value && end._flatpickr) {
@@ -661,12 +638,10 @@
             start.addEventListener('change', sync);
             end.addEventListener('change', sync);
         }
-
         // ========= Bulk checkbox =========
         document.getElementById('selectAll')?.addEventListener('change', function () {
             document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = this.checked);
         });
-
         // ========= View =========
         async function viewVoucherDetail(voucherId) {
             try {
@@ -699,7 +674,6 @@
                 Swal.fire('Lỗi', error.message, 'error');
             }
         }
-
         // ========= Create =========
         async function submitAddVoucher() {
             const form = document.getElementById('addVoucherForm');
@@ -723,17 +697,14 @@
                 Swal.fire('Lỗi', error.message, 'error');
             }
         }
-
         // ========= Edit =========
         async function editVoucher(voucherId) {
             try {
                 const response = await fetch(`/Voucher/Details/${voucherId}`);
                 if (!response.ok) throw new Error('Không thể tải chi tiết');
                 const voucher = await response.json();
-
                 const form = document.getElementById('editVoucherForm');
                 if (!form) throw new Error('Form sửa không tồn tại');
-
                 form.querySelector('#editVoucherId').value = voucherId;
                 form.querySelector('input[name="VoucherCode"]').value = voucher.voucherCode;
                 form.querySelector('select[name="VoucherTypeId"]').value = voucher.voucherTypeId;
@@ -743,12 +714,10 @@
                 form.querySelector('input[name="MinOrderAmount"]').value = voucher.minOrderAmount || '';
                 form.querySelector('input[name="UsageLimitPerUser"]').value = voucher.usageLimitPerUser || '';
                 form.querySelector('select[name="IsStackable"]').value = (voucher.isStackable ?? false).toString();
-
                 const startInput = form.querySelector('input[name="StartDate"]');
                 const endInput = form.querySelector('input[name="EndDate"]');
                 if (startInput && startInput._flatpickr) startInput._flatpickr.setDate(voucher.startDate, true);
                 if (endInput && endInput._flatpickr) endInput._flatpickr.setDate(voucher.endDate, true);
-
                 const modalEl = document.getElementById('editVoucherModal');
                 initDatePickers(modalEl);
                 bindCurrencyPreview(modalEl);
@@ -758,11 +727,9 @@
                 Swal.fire('Lỗi', error.message, 'error');
             }
         }
-
         async function submitEditVoucher() {
             const form = document.getElementById('editVoucherForm');
             if (!form) return;
-
             const formData = new FormData(form);
             const voucherId = document.getElementById('editVoucherId').value;
             const start = form.querySelector('input[name="StartDate"]').value;
@@ -784,7 +751,6 @@
                 Swal.fire('Lỗi', error.message, 'error');
             }
         }
-
         // ========= Delete / Restore =========
         async function softDeleteVoucher(voucherId) {
             const result = await Swal.fire({
@@ -797,13 +763,11 @@
                 confirmButtonText: 'Có, chuyển vào thùng rác',
                 cancelButtonText: 'Hủy'
             });
-
             if (result.isConfirmed) {
                 try {
                     const formData = new FormData();
                     const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
                     if (token) formData.append('__RequestVerificationToken', token);
-
                     const response = await fetch(`/Voucher/Delete/${voucherId}`, { method: 'POST', body: formData });
                     if (response.ok) {
                         Swal.fire({ icon: 'success', title: 'Đã chuyển', text: 'Vào thùng rác', timer: 1500, showConfirmButton: false })
@@ -817,7 +781,6 @@
                 }
             }
         }
-
         async function restoreVoucher(voucherId) {
             const result = await Swal.fire({
                 title: 'Khôi phục voucher?',
@@ -829,27 +792,24 @@
                 confirmButtonText: 'Có, khôi phục',
                 cancelButtonText: 'Hủy'
             });
-
             if (result.isConfirmed) {
                 try {
                     const formData = new FormData();
                     const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
                     if (token) formData.append('__RequestVerificationToken', token);
-
                     const response = await fetch(`/Voucher/Restore/${voucherId}`, { method: 'POST', body: formData });
                     if (response.ok) {
                         Swal.fire({ icon: 'success', title: 'Đã khôi phục', timer: 1500, showConfirmButton: false })
                             .then(() => location.reload());
                     } else {
                         const error = await response.json();
-                        throw new Error(error.error || 'Lỗi server');
+                        throw new Error(error.error || 'Lớiserver');
                     }
                 } catch (error) {
                     Swal.fire('Lỗi', error.message, 'error');
                 }
             }
         }
-
         // ========= Init modals =========
         document.getElementById('addVoucherModal')?.addEventListener('shown.bs.modal', () => {
             const modal = document.getElementById('addVoucherModal');
@@ -857,7 +817,6 @@
             bindCurrencyPreview(modal);
             bindDateRangeValidation(modal);
         });
-
         document.getElementById('editVoucherModal')?.addEventListener('shown.bs.modal', () => {
             const modal = document.getElementById('editVoucherModal');
             initDatePickers(modal);
