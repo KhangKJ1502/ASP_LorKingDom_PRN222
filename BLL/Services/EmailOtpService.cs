@@ -29,8 +29,8 @@ namespace BLL.Services
         public async Task SendOtpAsync(string email, string purpose = "Register")
         {
             // Kiểm tra nếu đã có OTP active
-            if (await _emailOtpRepo.ExistsActiveOtpAsync(email, purpose))
-                throw new InvalidOperationException("OTP đã được gửi. Vui lòng chờ hoặc gửi lại sau.");
+            //if (await _emailOtpRepo.ExistsActiveOtpAsync(email, purpose))
+            //    throw new InvalidOperationException("OTP đã được gửi. Vui lòng chờ hoặc gửi lại sau.");
 
             // Tạo OTP ngẫu nhiên (6 chữ số)
             var otpCode = new Random().Next(100000, 999999).ToString();

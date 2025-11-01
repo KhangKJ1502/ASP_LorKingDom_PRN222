@@ -1,6 +1,5 @@
 ﻿using BLL.DTOs;
 using BLL.Interfaces;
-using BLL.Validators;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
@@ -37,7 +36,7 @@ namespace WebUI.Controllers
         {
             try
             {
-                AuthValidator.ValidateLogin(email, password);
+                //AuthValidator.ValidateLogin(email, password);
                 var user = await _accountService.AuthenticateAsync(email, password);
                 if (user == null)
                     return Json(new { success = false, message = "Email hoặc mật khẩu không đúng." });

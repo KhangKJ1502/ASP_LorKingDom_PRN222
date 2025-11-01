@@ -80,6 +80,13 @@
 
             formData.set('otpCode', otpCode);
 
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+
+            // Show loading state
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border me-2"></span>Đang xác minh...';
+
             try {
                 const response = await fetch('@Url.Action("VerifyOtp", "Auth")', {
                     method: 'POST',
@@ -106,6 +113,9 @@
                         confirmButtonColor: '#f97316',
                         timer: 5000
                     });
+                    // Reset button state
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalText;
                 }
             } catch (error) {
                 Swal.fire({
@@ -114,6 +124,9 @@
                     text: 'Đã xảy ra lỗi khi xác minh OTP',
                     confirmButtonColor: '#f97316'
                 });
+                // Reset button state
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
             }
         });
 
@@ -141,20 +154,7 @@
                     });
 
                     // Reset countdown
-                    let countdown = 30;
-                    document.getElementById('resendBtn').disabled = true;
-                    document.getElementById('countdown').textContent = countdown;
-
-                    const interval = setInterval(() => {
-                        countdown--;
-                        document.getElementById('countdown').textContent = countdown;
-
-                        if (countdown === 0) {
-                            clearInterval(interval);
-                            document.getElementById('resendBtn').disabled = false;
-                            document.getElementById('countdown').textContent = '30';
-                        }
-                    }, 1000);
+                    startCountdown();
                 } else {
                     Swal.fire({
                         icon: 'error',
@@ -174,24 +174,32 @@
             }
         });
 
-        // Countdown timer on load
-        document.addEventListener('DOMContentLoaded', function () {
+        // Countdown function
+        function startCountdown() {
             let countdown = 30;
             const resendBtn = document.getElementById('resendBtn');
-            const countdownSpan = document.getElementById('countdown');
 
             resendBtn.disabled = true;
+            resendBtn.innerHTML = 'Gửi lại mã sau <span id="countdown">' + countdown + '</span>s';
 
             const interval = setInterval(() => {
                 countdown--;
-                countdownSpan.textContent = countdown;
+                const countdownSpan = document.getElementById('countdown');
+                if (countdownSpan) {
+                    countdownSpan.textContent = countdown;
+                }
 
                 if (countdown === 0) {
                     clearInterval(interval);
                     resendBtn.disabled = false;
-                    countdownSpan.textContent = '30';
+                    resendBtn.innerHTML = 'Gửi lại mã';
                 }
             }, 1000);
+        }
+
+        // Countdown timer on load
+        document.addEventListener('DOMContentLoaded', function () {
+            startCountdown();
         });
     </script>
 }

@@ -202,9 +202,13 @@ namespace BLL.Services
             var acc = await _accountRepo.GetByEmailAsync(NormalizeEmail(email));
             if (acc == null) return null;
 
-            if (acc.IsDeleted) throw new InvalidOperationException("Tài khoản đã bị khóa.");
+            // Kiểm tra tài khoản đã bị xóa mềm
+            if (acc.IsDeleted)
+                throw new InvalidOperationException("Tài khoản đã bị xóa.");
+
+            // Kiểm tra trạng thái tài khoản (Active/Inactive)
             if (!string.Equals(acc.Status, AccountConstants.StatusActive, StringComparison.OrdinalIgnoreCase))
-                throw new InvalidOperationException("Tài khoản chưa được kích hoạt.");
+                throw new InvalidOperationException("Tài khoản đã bị khóa.");
 
             if (!BCrypt.Net.BCrypt.Verify(password, acc.Password)) return null;
 

@@ -219,9 +219,17 @@
                         <label for="promoCode" class="form-label">Mã giảm giá</label>
                         <div class="input-group">
                             <input type="text" class="form-control promo-input" id="promoCode" name="promoCode"
-                                placeholder="Nhập mã giảm giá" />
-                            <button class="btn btn-outline-primary" type="button">Áp dụng</button>
+                                placeholder="Chọn ưu đãi" readonly />
+                            <button class="btn btn-outline-primary" type="button" id="openVoucherModal"
+                                style=" padding: 0.75rem 1.35rem;">
+                                <i class="fas fa-ticket-alt me-1"></i>Ưu đãi
+                            </button>
+                            <button class="btn btn-outline-danger" type="button" id="clearVoucherBtn"
+                                style="display: none; padding: 0.75rem 1rem;">
+                                <i class="fas fa-times"></i>Hủy
+                            </button>
                         </div>
+                        <small class="text-muted" id="appliedVoucherText"></small>
                     </div>
 
                     <!-- Tính toán giá -->
@@ -250,8 +258,8 @@
                     <div class="alert alert-info mt-3" role="alert">
                         <i class="fas fa-info-circle me-2"></i>
                         <small>
-                            Đơn hàng của bạn sẽ được xử lý ngay sau khi thanh toán thành công.
-                            Bạn sẽ nhận được thông báo xác nhận qua email.
+                            Đơn hàng của bạn sẽ được xử lý ngay sau khi thanh toán thành công!
+                            // Bạn sẽ nhận được thông báo xác nhận qua email.
                         </small>
                     </div>
 
@@ -260,6 +268,31 @@
                         <a href="/" class="text-primary fw-medium text-decoration-none">
                             <i class="fas fa-arrow-left me-2"></i>Tiếp tục mua sắm
                         </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Ưu đãi -->
+<div class="modal fade" id="voucherModal" tabindex="-1" aria-labelledby="voucherModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="voucherModalLabel">
+                    <i class="fas fa-ticket-alt me-2 text-primary"></i>Chọn ưu đãi
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="voucherListContainer">
+                    <!-- Voucher list will be loaded here -->
+                    <div class="text-center py-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Đang tải...</span>
+                        </div>
+                        <p class="mt-2 text-muted">Đang tải danh sách ưu đãi...</p>
                     </div>
                 </div>
             </div>
@@ -344,80 +377,185 @@
             updateAddressForm();
             updateTotal(); // Tính lại tổng tiền khi load trang
 
-            // 🎯 Nút áp dụng mã khuyến mãi
-            $('.input-group button').on('click', function () {
-                const promoCode = $('#promoCode').val().trim();
+            // 🎯 Mở modal ưu đãi
+            $('#openVoucherModal').on('click', function () {
+                const voucherModal = new bootstrap.Modal(document.getElementById('voucherModal'));
+                voucherModal.show();
+                loadVouchers();
+            });
 
-                if (!promoCode) {
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Thiếu thông tin',
-                        text: 'Vui lòng nhập mã giảm giá',
-                        confirmButtonColor: '#e67e4b'
-                    });
-                    return;
-                }
+            // Tải danh sách voucher
+            function loadVouchers() {
+                $('#voucherListContainer').html(`
+                        <div class="text-center py-4">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Đang tải...</span>
+                            </div>
+                            <p class="mt-2 text-muted">Đang tải danh sách ưu đãi...</p>
+                        </div>
+                    `);
 
-                // Hiển thị loading
-                Swal.fire({
-                    title: 'Đang kiểm tra mã giảm giá...',
-                    didOpen: () => Swal.showLoading(),
-                    allowOutsideClick: false,
-                    showConfirmButton: false
-                });
-
-                // Gọi API validate voucher
                 $.ajax({
-                    url: '@Url.Action("ApplyVoucher", "Voucher")',
-                    type: 'POST',
-                    data: {
-                        code: promoCode,
-                        orderAmount: subtotal
-                    },
+                    url: '@Url.Action("GetActiveVouchers", "Voucher")',
+                    type: 'GET',
+                    data: { orderAmount: subtotal },
                     success: function (result) {
-                        Swal.close();
-
-                        if (result.success) {
-                            // Áp dụng thành công
-                            currentDiscount = result.discount;
-                            appliedVoucherCode = result.voucherCode;
-
-                            // Cập nhật UI
-                            $('.list-group-item:contains("Giảm giá") strong').text('-' + currentDiscount.toLocaleString('vi-VN') + ' ₫');
-                            updateTotal();
-
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Thành công!',
-                                html: `<p>${result.message}</p><p class="fw-bold text-success">Giảm giá: ${currentDiscount.toLocaleString('vi-VN')} ₫</p>`,
-                                confirmButtonColor: '#e67e4b'
-                            });
-
-                            // Disable input và button sau khi áp dụng
-                            $('#promoCode').prop('disabled', true);
-                            $('.input-group button').prop('disabled', true).text('Đã áp dụng');
+                        if (result.success && result.vouchers.length > 0) {
+                            renderVouchers(result.vouchers);
                         } else {
-                            // Thất bại
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Không thể áp dụng',
-                                text: result.message,
-                                confirmButtonColor: '#e67e4b'
-                            });
+                            $('#voucherListContainer').html(`
+                                    <div class="text-center py-5">
+                                        <i class="fas fa-ticket-alt fa-3x text-muted mb-3"></i>
+                                        <p class="text-muted">Không có ưu đãi nào khả dụng</p>
+                                    </div>
+                                `);
                         }
                     },
-                    error: function (xhr, status, error) {
-                        console.error('Validate voucher error:', error);
-                        Swal.close();
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Lỗi',
-                            text: 'Không thể kiểm tra mã giảm giá. Vui lòng thử lại.',
-                            confirmButtonColor: '#e67e4b'
-                        });
+                    error: function () {
+                        $('#voucherListContainer').html(`
+                                <div class="alert alert-danger">
+                                    <i class="fas fa-exclamation-circle me-2"></i>
+                                    Không thể tải danh sách ưu đãi. Vui lòng thử lại.
+                                </div>
+                            `);
                     }
                 });
+            }
+
+            // Render danh sách voucher
+            function renderVouchers(vouchers) {
+                let html = '<div class="voucher-list">';
+
+                vouchers.forEach(function (voucher) {
+                    const isEligible = voucher.isEligible;
+                    const isSelected = appliedVoucherCode === voucher.voucherCode;
+                    const cardClass = isEligible ? (isSelected ? 'voucher-card selected' : 'voucher-card') : 'voucher-card disabled';
+
+                    const voucherTypeName = voucher.voucherTypeName.toLowerCase();
+                    const isPercentage = voucherTypeName.includes('percent') || voucherTypeName.includes('%');
+
+                    let discountText = '';
+                    if (isPercentage) {
+                        discountText = `Giảm ${voucher.discountValue}%`;
+                        if (voucher.maxDiscountAmount) {
+                            discountText += `<br><small>Tối đa ${voucher.maxDiscountAmount.toLocaleString('vi-VN')} ₫</small>`;
+                        }
+                    } else {
+                        discountText = `Giảm ${voucher.discountValue.toLocaleString('vi-VN')} ₫`;
+                    }
+
+                    const minOrderText = voucher.minOrderAmount
+                        ? `Đơn tối thiểu ${voucher.minOrderAmount.toLocaleString('vi-VN')} ₫`
+                        : 'Không giới hạn';
+
+                    const endDate = new Date(voucher.endDate);
+                    const endDateText = `HSD: ${endDate.toLocaleDateString('vi-VN')}`;
+
+                    html += `
+                            <div class="${cardClass}" data-voucher-code="${voucher.voucherCode}" data-discount="${voucher.discountAmount}">                          
+                                <div class="voucher-card-right">
+                                    <div class="voucher-code-badge">${voucher.voucherCode}</div>
+                                    <div class="voucher-discount">
+                                        ${discountText}
+                                    </div>
+                                    <div class="voucher-details">
+                                        <div><i class="fas fa-shopping-cart me-1"></i>${minOrderText}</div>
+                                        <div><i class="far fa-clock me-1"></i>${endDateText}</div>
+                                    </div>
+                                    ${!isEligible ? `<div class="voucher-ineligible-reason"><i class="fas fa-info-circle me-1"></i>${voucher.ineligibleReason}</div>` : ''}                
+                                </div>
+                                <div class="voucher-card-left">
+                                    ${isEligible ? `
+                                        <button class="btn btn-sm btn-apply-voucher ${isSelected ? 'btn-success' : 'btn-primary'}"
+                                                data-voucher-code="${voucher.voucherCode}"
+                                                data-discount="${voucher.discountAmount}">
+                                            ${isSelected ? '<i class="fas fa-check me-1"></i>Đã áp dụng' : '<i class="fas fa-plus me-1"></i>Áp dụng'}
+                                        </button>
+                                    ` : ''}                              
+                                </div>
+                            </div>
+                        `;
+                });
+
+                html += '</div>';
+                $('#voucherListContainer').html(html);
+
+                // Xử lý sự kiện click áp dụng voucher
+                $('.btn-apply-voucher').on('click', function () {
+                    const voucherCode = $(this).data('voucher-code');
+                    const discount = $(this).data('discount');
+                    applyVoucher(voucherCode, discount);
+                });
+            }
+
+            // Áp dụng voucher
+            function applyVoucher(voucherCode, discount) {
+                currentDiscount = discount;
+                appliedVoucherCode = voucherCode;
+
+                // Cập nhật UI
+                $('#promoCode').val(voucherCode);
+                $('#appliedVoucherText').html(`<i class="fas fa-check-circle text-success me-1"></i>Đã áp dụng voucher ${voucherCode}`);
+                $('.list-group-item:contains("Giảm giá") strong').text('-' + currentDiscount.toLocaleString('vi-VN') + ' ₫');
+                updateTotal();
+
+                // Hiển thị nút hủy
+                $('#clearVoucherBtn').show();
+
+                // Cập nhật trạng thái các nút trong modal
+                $('.btn-apply-voucher').removeClass('btn-success').addClass('btn-primary')
+                    .html('<i class="fas fa-plus me-1"></i>Áp dụng');
+                $('.voucher-card').removeClass('selected');
+
+                $(`.btn-apply-voucher[data-voucher-code="${voucherCode}"]`)
+                    .removeClass('btn-primary').addClass('btn-success')
+                    .html('<i class="fas fa-check me-1"></i>Đã áp dụng');
+                $(`.voucher-card[data-voucher-code="${voucherCode}"]`).addClass('selected');
+
+                // Đóng modal và thông báo
+                bootstrap.Modal.getInstance(document.getElementById('voucherModal')).hide();
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Thành công!',
+                    html: `<p>Đã áp dụng voucher <strong>${voucherCode}</strong></p><p class="fw-bold text-success">Giảm giá: ${currentDiscount.toLocaleString('vi-VN')} ₫</p>`,
+                    confirmButtonColor: '#e67e4b',
+                    timer: 2000
+                });
+            }
+
+            // Hủy ưu đãi
+            $('#clearVoucherBtn').on('click', function (e) {
+                e.preventDefault();
+
+                currentDiscount = 0;
+                appliedVoucherCode = '';
+
+                // Cập nhật UI
+                $('#promoCode').val('');
+                $('#appliedVoucherText').html('');
+                $('.list-group-item:contains("Giảm giá") strong').text('-0 ₫');
+                updateTotal();
+
+                // Ẩn nút hủy
+                $('#clearVoucherBtn').hide();
+
+                // Cập nhật trạng thái các nút trong modal
+                $('.btn-apply-voucher').removeClass('btn-success').addClass('btn-primary')
+                    .html('<i class="fas fa-plus me-1"></i>Áp dụng');
+                $('.voucher-card').removeClass('selected');
+
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Đã hủy',
+                    text: 'Ưu đãi đã được hủy',
+                    confirmButtonColor: '#e67e4b',
+                    timer: 1500
+                });
             });
+
+            // 🎯 Nút áp dụng mã khuyến mãi (giữ lại để backward compatible, nhưng đã thay bằng modal)
+            // Đã được thay thế bằng modal, code này không còn được sử dụng
 
             // Submit form checkout bằng AJAX
             $('#checkoutForm').on('submit', function (e) {
