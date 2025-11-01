@@ -1,0 +1,352 @@
+﻿@model BLL.DTOs.WalletDto
+
+<!-- ============ WALLET CARD ============ -->
+<div id="wallet-content" class="p-6 space-y-6">
+
+    @* ĐÃ có ví *@
+    @if (Model != null)
+    {
+        <div class="relative overflow-hidden rounded-2xl border border-orange-200/70 bg-gradient-to-br from-amber-50 via-orange-50 to-white shadow-xl">
+            <div class="pointer-events-none absolute -top-10 -right-10 h-40 w-40 rotate-12 rounded-full bg-orange-200/30 blur-2xl"></div>
+            <div class="pointer-events-none absolute -bottom-16 -left-10 h-44 w-44 -rotate-6 rounded-full bg-pink-200/30 blur-2xl"></div>
+
+            <div class="p-6 sm:p-8">
+                <!-- Header -->
+                <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-orange-500 to-pink-500 text-white shadow-md">
+                            <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2v5a2 2 0 002 2h8a2 2 0 002-2v-5a2 2 0 002-2V6a2 2 0 00-2-2H4z" />
+                                <path fill-rule="evenodd" d="M8 9a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-2xl font-extrabold tracking-tight text-gray-900">Ví LorKingDom</h3>
+                            <p class="text-sm text-gray-500">Quản lý số dư & giao dịch của bạn</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <span class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-medium
+                            @(Model.Status == "Active" ? "bg-green-100 text-green-700" : "bg-rose-100 text-rose-700")">
+                            <span class="inline-block h-2 w-2 rounded-full @(Model.Status == "Active" ? "bg-green-500" : "bg-rose-500")"></span>
+                            @Model.Status
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Balance -->
+                <div class="mb-6 rounded-xl border border-orange-200/60 bg-white/60 p-5 shadow-sm backdrop-blur">
+                    <div class="flex items-end justify-between gap-4">
+                        <div>
+                            <p class="text-sm uppercase tracking-wider text-gray-500">Số dư hiện tại</p>
+                            <div class="mt-1 text-4xl font-extrabold text-orange-600">
+                                @Model.Balance.ToString("N0") <sup class="text-lg align-super">đ</sup>
+                            </div>
+                        </div>
+                        <div class="text-right text-sm text-gray-500">
+                            <p>
+                                Cập nhật:
+                                <span class="font-medium text-gray-700">
+                                    @(Model.LastTransactionAt?.ToString("dd/MM/yyyy HH:mm") ?? "Chưa có giao dịch")
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Actions (KHÔNG có Tạo ví mới khi đã có ví) -->
+                <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <button type="button" data-action="topup-wallet"
+                            class="inline-flex items-center justify-center gap-2 rounded-xl border-0 bg-orange-500 px-5 py-3 font-semibold text-white shadow-md transition-all duration-200 hover:bg-orange-600 hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-orange-200 active:scale-[0.98]">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                        Nạp tiền
+                    </button>
+
+                    <button type="button" data-action="view-transactions"
+                            class="inline-flex items-center justify-center gap-2 rounded-xl border-0 bg-orange-500 px-5 py-3 font-semibold text-white shadow-md transition-all duration-200 hover:bg-orange-600 hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-orange-200 active:scale-[0.98]">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                        </svg>
+                        Lịch sử
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
+    @* CHƯA có ví *@
+    else
+    {
+        <div class="rounded-2xl border border-orange-200/60 bg-white p-10 text-center shadow-xl">
+            <div class="mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-orange-100 to-amber-100 shadow-inner">
+                <svg class="h-12 w-12 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </div>
+            <h3 class="mb-2 text-2xl font-bold text-gray-900">Bạn chưa có ví</h3>
+            <p class="mx-auto mb-8 max-w-md text-gray-600">Tạo ví để thanh toán nhanh, nhận hoàn tiền và quản lý tài chính dễ dàng!</p>
+            <button type="button" data-action="show-create-wallet"
+                    class="inline-flex items-center justify-center gap-2 rounded-xl bg-orange-500 px-8 py-3 font-semibold text-white shadow-md transition-all duration-200 hover:bg-orange-600 hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-orange-200 active:scale-[0.98]">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+                Tạo ví ngay
+            </button>
+        </div>
+    }
+</div>
+
+<!-- ============ CREATE WALLET FORM (CHỈ render khi CHƯA có ví) ============ -->
+@if (Model == null)
+{
+    <div id="create-wallet-form" class="hidden rounded-2xl border border-orange-200/70 bg-white p-6 shadow-xl">
+        <h3 class="mb-4 flex items-center gap-2 text-xl font-bold text-gray-800">
+            <svg class="h-6 w-6 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+            Tạo ví mới
+        </h3>
+        <form id="walletForm" class="space-y-5">
+            @Html.AntiForgeryToken()
+            <div>
+                <label class="mb-2 block text-sm font-medium text-gray-700">Tên ví (tùy chọn)</label>
+                <input type="text" name="WalletName"
+                       class="w-full rounded-xl border border-gray-300 px-4 py-3 text-gray-800 shadow-sm transition focus:border-orange-400 focus:ring-2 focus:ring-orange-200"
+                       placeholder="Ví cá nhân, ví mua sắm...">
+            </div>
+            <div>
+                <label class="mb-2 block text-sm font-medium text-gray-700">Loại tiền tệ</label>
+                <select name="Currency" class="w-full cursor-not-allowed rounded-xl border border-gray-300 bg-gray-100 px-4 py-3 text-gray-500" disabled>
+                    <option value="VND">VND - Việt Nam Đồng</option>
+                </select>
+            </div>
+            <div class="flex gap-3">
+                <button type="submit" id="btnCreateWallet"
+                        class="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-orange-500 px-4 py-3 font-semibold text-white shadow-md transition-all duration-200 hover:bg-orange-600 hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-orange-200 active:scale-[0.98]">
+                    <span class="inline-flex items-center gap-2">
+                        <svg class="h-5 w-5" id="iconCreateWallet" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                        </svg>
+                        <span>Tạo ví</span>
+                    </span>
+                </button>
+                <button type="button" data-action="hide-create-wallet"
+                        class="flex-1 rounded-xl border border-gray-300 bg-white px-4 py-3 font-medium text-gray-700 shadow-sm transition hover:bg-gray-50 hover:shadow focus:outline-none focus:ring-4 focus:ring-gray-200 active:scale-[0.98]">
+                    Hủy
+                </button>
+            </div>
+        </form>
+    </div>
+}
+
+<!-- ============ TOASTS ============ -->
+<div id="toast-wrap" class="pointer-events-none fixed right-4 top-4 z-[60] flex max-w-[92vw] flex-col gap-3"></div>
+<style>
+    .toast {
+        pointer-events: auto;
+        display: flex;
+        gap: .75rem;
+        align-items: flex-start;
+        min-width: 280px;
+        max-width: 420px;
+        padding: .875rem 1rem;
+        border-radius: 14px;
+        box-shadow: 0 12px 28px rgba(0,0,0,.15);
+        transform: translateY(-6px);
+        opacity: 0;
+        transition: opacity .18s ease, transform .18s ease;
+        color: #0f172a;
+        background: #fff;
+        border: 1px solid rgba(0,0,0,.06);
+    }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .toast .badge {
+            display: inline-flex;
+            width: 10px;
+            height: 10px;
+            border-radius: 9999px;
+            margin-top: .3rem
+        }
+
+        .toast.success .badge {
+            background: #16a34a
+        }
+
+        .toast.error .badge {
+            background: #ef4444
+        }
+
+        .toast.info .badge {
+            background: #3b82f6
+        }
+
+        .toast .title {
+            font-weight: 700;
+            font-size: .95rem
+        }
+
+        .toast .msg {
+            font-size: .9rem;
+            color: #334155
+        }
+
+        .toast .close {
+            margin-left: auto;
+            background: transparent;
+            border: 0;
+            opacity: .7;
+            cursor: pointer
+        }
+
+            .toast .close:hover {
+                opacity: 1
+            }
+</style>
+
+<script>
+    // ===== Helpers =====
+    function showToast(type, title, message, timeout = 2800) {
+        const wrap = document.getElementById('toast-wrap');
+        if (!wrap) return;
+        const el = document.createElement('div');
+        el.className = `toast ${type}`;
+        el.innerHTML = `
+          <span class="badge"></span>
+          <div class="content">
+            <div class="title">${title || (type === 'success' ? 'Thành công' : type === 'error' ? 'Lỗi' : 'Thông báo')}</div>
+            ${message ? `<div class="msg">${message}</div>` : ''}
+          </div>
+          <button class="close" aria-label="Close">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        `;
+        wrap.appendChild(el);
+        requestAnimationFrame(() => el.classList.add('show'));
+        const remove = () => { el.classList.remove('show'); setTimeout(() => el.remove(), 180); };
+        const t = setTimeout(remove, timeout);
+        el.querySelector('.close').addEventListener('click', () => { clearTimeout(t); remove(); });
+    }
+
+    function setBtnLoading(btn, isLoading) {
+        if (!btn) return;
+        btn.disabled = !!isLoading;
+        const icon = btn.querySelector('#iconCreateWallet');
+        if (isLoading) {
+            btn.classList.add('cursor-wait', 'opacity-90');
+            if (icon) {
+                icon.setAttribute('viewBox','0 0 24 24');
+                icon.innerHTML = '<circle cx="12" cy="12" r="10" stroke-width="2" stroke="currentColor" fill="none"></circle>';
+                icon.style.animation = 'spin 0.8s linear infinite';
+            }
+        } else {
+            btn.classList.remove('cursor-wait', 'opacity-90');
+            if (icon) {
+                icon.style.animation = '';
+                icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />';
+            }
+        }
+    }
+    (function(){const s=document.createElement('style');s.innerHTML='@@keyframes spin{to{transform:rotate(360deg)}}';document.head.appendChild(s)})();
+
+    // ===== Wallet events (delegation) =====
+    if (!window.__walletScriptBound) {
+        window.__walletScriptBound = true;
+
+        document.addEventListener("click", (e) => {
+            const btn = e.target.closest("[data-action]");
+            if (!btn) return;
+            const action = btn.dataset.action;
+
+            if (action === "show-create-wallet") {
+                const formWrap = document.getElementById("create-wallet-form");
+                const firstBlock = document.querySelector("#wallet-content > div");
+                if (formWrap) formWrap.classList.remove("hidden");
+                if (firstBlock) firstBlock.classList.add("hidden");
+            }
+            if (action === "hide-create-wallet") {
+                const formWrap = document.getElementById("create-wallet-form");
+                const firstBlock = document.querySelector("#wallet-content > div");
+                if (formWrap) formWrap.classList.add("hidden");
+                if (firstBlock) firstBlock.classList.remove("hidden");
+            }
+            if (action === "topup-wallet") {
+                showToast('info', 'Sắp có!', 'Tính năng nạp tiền đang được phát triển.');
+            }
+            if (action === "view-transactions") {
+                showToast('info', 'Sắp có!', 'Lịch sử giao dịch sẽ hiển thị ở đây.');
+            }
+        });
+
+        document.addEventListener("submit", async (e) => {
+            const form = e.target;
+            if (!form || form.id !== "walletForm") return;
+            e.preventDefault();
+
+            const btn = document.getElementById('btnCreateWallet');
+            setBtnLoading(btn, true);
+
+            const formData = new FormData(form);
+            const data = { WalletName: formData.get("WalletName") || null };
+
+            const token =
+                form.querySelector('input[name="__RequestVerificationToken"]')?.value ||
+                document.querySelector('input[name="__RequestVerificationToken"]')?.value ||
+                "";
+
+            try {
+                const res = await fetch("/Wallet/Create", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "RequestVerificationToken": token
+                    },
+                    credentials: "same-origin",
+                    body: JSON.stringify(data)
+                });
+
+                if (res.status === 401) {
+                    window.location.href = '/Account/Login?returnUrl=' + encodeURIComponent(location.pathname + location.search);
+                    return;
+                }
+
+                const result = await res.json().catch(() => null);
+                if (!result) {
+                    showToast('error', 'Lỗi dữ liệu', 'Máy chủ không trả về JSON hợp lệ.');
+                    return;
+                }
+
+                if (result.success) {
+                    const host = document.getElementById("profile-content");
+                    host.innerHTML = result.html;
+
+                    // kích hoạt script trong HTML trả về (nếu profile.js chưa auto-run)
+                    const tmp = document.createElement("div");
+                    tmp.innerHTML = result.html;
+                    const scripts = tmp.querySelectorAll("script");
+                    scripts.forEach(oldScript => {
+                        const s = document.createElement("script");
+                        for (const attr of oldScript.attributes) s.setAttribute(attr.name, attr.value);
+                        s.textContent = oldScript.textContent;
+                        document.body.appendChild(s);
+                    });
+
+                    showToast('success', 'Tạo ví thành công', 'Ví của bạn đã sẵn sàng!');
+                } else {
+                    showToast('error', 'Không thể tạo ví', result.message || 'Vui lòng thử lại.');
+                }
+            } catch (err) {
+                console.error(err);
+                showToast('error', 'Lỗi hệ thống', 'Có lỗi xảy ra, vui lòng thử lại.');
+            } finally {
+                setBtnLoading(btn, false);
+            }
+        });
+    }
+</script>

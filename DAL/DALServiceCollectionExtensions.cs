@@ -77,6 +77,9 @@ namespace DAL
             //Statistics
             services.AddScoped<IStatisticsRepository, StatisticsRepository>();
 
+            // Nhánh Wallets
+            services.AddScoped<IWalletRepository, WalletRepository>();
+
             return services;
         }
     }
