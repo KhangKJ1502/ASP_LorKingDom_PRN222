@@ -1,9 +1,13 @@
 ﻿using BLL.DTOs;
 using BLL.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using WebUI.Filters;
 
 namespace WebUI.Controllers
 {
+    [Authorize(AuthenticationSchemes = "AdminScheme")]
+    [AdminAndStaffOnly] // Staff: Customer Management
     [AutoValidateAntiforgeryToken]
     public class AccountCustomerController : Controller
     {
@@ -16,10 +20,10 @@ namespace WebUI.Controllers
         {
             var allItems = await _accountService.GetAllCustomerForAdminAsync();
             var orderedItems = allItems.OrderByDescending(c => c.CreatedAt).ToList();
-            
+
             var pagedResult = GetPagedResult(orderedItems, page, pageSize);
             ViewBag.Query = null;
-            
+
             return View("~/Views/Admin/ManageAccountCustomer.cshtml", pagedResult);
         }
 
@@ -30,10 +34,10 @@ namespace WebUI.Controllers
             var allItems = await _accountService.GetAllCustomerForAdminAsync();
             var filteredItems = Filter(allItems, q);
             var orderedItems = filteredItems.OrderByDescending(c => c.CreatedAt).ToList();
-            
+
             var pagedResult = GetPagedResult(orderedItems, page, pageSize);
             ViewBag.Query = q;
-            
+
             return View("~/Views/Admin/ManageAccountCustomer.cshtml", pagedResult);
         }
 
@@ -44,10 +48,10 @@ namespace WebUI.Controllers
             var allItems = await _accountService.GetAllCustomerForAdminAsync();
             var filteredItems = Filter(allItems, q);
             var orderedItems = filteredItems.OrderByDescending(c => c.CreatedAt).ToList();
-            
+
             var pagedResult = GetPagedResult(orderedItems, page, pageSize);
             ViewBag.Query = q;
-            
+
             return View("~/Views/Admin/ManageAccountCustomer.cshtml", pagedResult);
         }
 
@@ -58,8 +62,8 @@ namespace WebUI.Controllers
             if (customer == null)
             {
                 TempData["Error"] = "Không tìm thấy khách hàng!";
-                return string.IsNullOrWhiteSpace(q) 
-                    ? RedirectToAction(nameof(Index), new { page, pageSize }) 
+                return string.IsNullOrWhiteSpace(q)
+                    ? RedirectToAction(nameof(Index), new { page, pageSize })
                     : RedirectToAction(nameof(Search), new { q, page, pageSize });
             }
 
@@ -69,7 +73,7 @@ namespace WebUI.Controllers
             var all = await _accountService.GetAllCustomerForAdminAsync();
             var filtered = Filter(all, q);
             var ordered = filtered.OrderByDescending(c => c.CreatedAt).ToList();
-            
+
             var pagedResult = GetPagedResult(ordered, page, pageSize);
             return View("~/Views/Admin/ManageAccountCustomer.cshtml", pagedResult);
         }
@@ -82,8 +86,8 @@ namespace WebUI.Controllers
                 if (model.Id == 0)
                 {
                     TempData["Error"] = "Không thể thêm khách hàng từ dashboard!";
-                    return string.IsNullOrWhiteSpace(q) 
-                        ? RedirectToAction(nameof(Index), new { pageSize }) 
+                    return string.IsNullOrWhiteSpace(q)
+                        ? RedirectToAction(nameof(Index), new { pageSize })
                         : RedirectToAction(nameof(Search), new { q, pageSize });
                 }
 
@@ -110,8 +114,8 @@ namespace WebUI.Controllers
                 if (existing == null)
                 {
                     TempData["Error"] = "Không tìm thấy khách hàng!";
-                    return string.IsNullOrWhiteSpace(q) 
-                        ? RedirectToAction(nameof(Index), new { pageSize }) 
+                    return string.IsNullOrWhiteSpace(q)
+                        ? RedirectToAction(nameof(Index), new { pageSize })
                         : RedirectToAction(nameof(Search), new { q, pageSize });
                 }
 
@@ -123,8 +127,8 @@ namespace WebUI.Controllers
 
                 var success = await _accountService.UpdateAsync(model.Id, existing);
                 TempData["Success"] = success ? "Cập nhật thành công!" : "Cập nhật thất bại!";
-                return string.IsNullOrWhiteSpace(q) 
-                    ? RedirectToAction(nameof(Index), new { pageSize }) 
+                return string.IsNullOrWhiteSpace(q)
+                    ? RedirectToAction(nameof(Index), new { pageSize })
                     : RedirectToAction(nameof(Search), new { q, pageSize });
             }
             catch (Exception ex)
@@ -146,16 +150,16 @@ namespace WebUI.Controllers
                 if (c == null)
                 {
                     TempData["Error"] = "Không tìm thấy khách hàng!";
-                    return string.IsNullOrWhiteSpace(q) 
-                        ? RedirectToAction(nameof(Index), new { pageSize }) 
+                    return string.IsNullOrWhiteSpace(q)
+                        ? RedirectToAction(nameof(Index), new { pageSize })
                         : RedirectToAction(nameof(Search), new { q, pageSize });
                 }
 
                 if (c.IsDeleted)
                 {
                     TempData["Error"] = "Khách hàng đã bị chặn rồi!";
-                    return string.IsNullOrWhiteSpace(q) 
-                        ? RedirectToAction(nameof(Index), new { pageSize }) 
+                    return string.IsNullOrWhiteSpace(q)
+                        ? RedirectToAction(nameof(Index), new { pageSize })
                         : RedirectToAction(nameof(Search), new { q, pageSize });
                 }
 
@@ -168,15 +172,15 @@ namespace WebUI.Controllers
                     ? "🚫 Đã chặn khách hàng thành công!"
                     : "⚠️ Chặn khách hàng thất bại!";
 
-                return string.IsNullOrWhiteSpace(q) 
-                    ? RedirectToAction(nameof(Index), new { pageSize }) 
+                return string.IsNullOrWhiteSpace(q)
+                    ? RedirectToAction(nameof(Index), new { pageSize })
                     : RedirectToAction(nameof(Search), new { q, pageSize });
             }
             catch (Exception ex)
             {
                 TempData["Error"] = $"Lỗi: {ex.Message}";
-                return string.IsNullOrWhiteSpace(q) 
-                    ? RedirectToAction(nameof(Index), new { pageSize }) 
+                return string.IsNullOrWhiteSpace(q)
+                    ? RedirectToAction(nameof(Index), new { pageSize })
                     : RedirectToAction(nameof(Search), new { q, pageSize });
             }
         }
@@ -190,16 +194,16 @@ namespace WebUI.Controllers
                 if (c == null)
                 {
                     TempData["Error"] = "Không tìm thấy khách hàng!";
-                    return string.IsNullOrWhiteSpace(q) 
-                        ? RedirectToAction(nameof(Index), new { pageSize }) 
+                    return string.IsNullOrWhiteSpace(q)
+                        ? RedirectToAction(nameof(Index), new { pageSize })
                         : RedirectToAction(nameof(Search), new { q, pageSize });
                 }
 
                 if (!c.IsDeleted)
                 {
                     TempData["Error"] = "Khách hàng chưa bị chặn!";
-                    return string.IsNullOrWhiteSpace(q) 
-                        ? RedirectToAction(nameof(Index), new { pageSize }) 
+                    return string.IsNullOrWhiteSpace(q)
+                        ? RedirectToAction(nameof(Index), new { pageSize })
                         : RedirectToAction(nameof(Search), new { q, pageSize });
                 }
 
@@ -212,15 +216,15 @@ namespace WebUI.Controllers
                     ? "✅ Đã bỏ chặn khách hàng thành công!"
                     : "⚠️ Bỏ chặn khách hàng thất bại!";
 
-                return string.IsNullOrWhiteSpace(q) 
-                    ? RedirectToAction(nameof(Index), new { pageSize }) 
+                return string.IsNullOrWhiteSpace(q)
+                    ? RedirectToAction(nameof(Index), new { pageSize })
                     : RedirectToAction(nameof(Search), new { q, pageSize });
             }
             catch (Exception ex)
             {
                 TempData["Error"] = $"Lỗi: {ex.Message}";
-                return string.IsNullOrWhiteSpace(q) 
-                    ? RedirectToAction(nameof(Index), new { pageSize }) 
+                return string.IsNullOrWhiteSpace(q)
+                    ? RedirectToAction(nameof(Index), new { pageSize })
                     : RedirectToAction(nameof(Search), new { q, pageSize });
             }
         }

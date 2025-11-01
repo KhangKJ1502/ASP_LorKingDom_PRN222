@@ -97,7 +97,7 @@
                             <th>Tên Chuyên Mục</th>
                             <th>Mô tả</th>
                             <th style="width: 130px;">Ngày Cập nhật</th>
-                            <th style="width: 130px;">Ngày Tạo</th>                        
+                            <th style="width: 130px;">Ngày Tạo</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -109,11 +109,11 @@
                                     <td>@x.BlogCategoryId</td>
                                     <td style="text-align: center;">
                                         <button type="button" class="btn btn-sm btn-warning"
-                                                onclick="editBlogCategory(@x.BlogCategoryId)" title="Cập nhật">
+                                            onclick="editBlogCategory(@x.BlogCategoryId)" title="Cập nhật">
                                             <i class="fa-solid fa-pen-to-square"></i>
                                         </button>
                                         <button type="button" class="btn btn-sm btn-danger"
-                                                onclick="confirmDelete(@x.BlogCategoryId)" title="Xóa">
+                                            onclick="confirmDelete(@x.BlogCategoryId)" title="Xóa">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </td>
@@ -121,7 +121,7 @@
                                     <td>@(x.Description ?? "-")</td>
                                     <td>@(x.UpdatedAt?.ToString("dd/MM/yyyy HH:mm") ?? x.CreatedAt.ToString("dd/MM/yyyy HH:mm"))
                                     </td>
-                                    <td>@x.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>                                  
+                                    <td>@x.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
                                 </tr>
                             }
                         }
@@ -211,55 +211,91 @@
 @section Scripts {
     <script>
         // Add Category Form Submit
-        document.getElementById('addCategoryForm').addEventListener('submit', async function (e) {
+        document.getElementById('addCategoryForm').addEventListener('submit', function (e) {
             e.preventDefault();
 
-            const formData = new FormData(this);
+            const form = $(this);
+            const token = $('input[name="__RequestVerificationToken"]').val();
 
-            try {
-                const response = await fetch('@Url.Action("SaveBlogCategory", "BlogCategory")', {
-                    method: 'POST',
-                    body: formData
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    Swal.fire('Thành công', data.message, 'success').then(() => {
-                        location.reload();
+            $.ajax({
+                url: '@Url.Action("SaveBlogCategory", "BlogCategory")',
+                type: 'POST',
+                data: form.serialize(),
+                headers: {
+                    'RequestVerificationToken': token
+                },
+                success: function (data) {
+                    if (data.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Thành công',
+                            text: data.message,
+                            confirmButtonColor: '#10b981'
+                        }).then(() => {
+                            location.reload();
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Lỗi',
+                            text: data.message,
+                            confirmButtonColor: '#dc2626'
+                        });
+                    }
+                },
+                error: function (xhr) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Lỗi',
+                        text: 'Đã xảy ra lỗi khi thêm chuyên mục',
+                        confirmButtonColor: '#dc2626'
                     });
-                } else {
-                    Swal.fire('Lỗi', data.message, 'error');
                 }
-            } catch (error) {
-                Swal.fire('Lỗi', 'Đã xảy ra lỗi khi thêm chuyên mục', 'error');
-            }
+            });
         });
 
         // Edit Form Submit (Modal)
-        document.getElementById('editForm').addEventListener('submit', async function (e) {
+        document.getElementById('editForm').addEventListener('submit', function (e) {
             e.preventDefault();
 
-            const formData = new FormData(this);
+            const form = $(this);
+            const token = $('input[name="__RequestVerificationToken"]').val();
 
-            try {
-                const response = await fetch('@Url.Action("SaveBlogCategory", "BlogCategory")', {
-                    method: 'POST',
-                    body: formData
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    Swal.fire('Thành công', data.message, 'success').then(() => {
-                        location.reload();
+            $.ajax({
+                url: '@Url.Action("SaveBlogCategory", "BlogCategory")',
+                type: 'POST',
+                data: form.serialize(),
+                headers: {
+                    'RequestVerificationToken': token
+                },
+                success: function (data) {
+                    if (data.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Thành công',
+                            text: data.message,
+                            confirmButtonColor: '#10b981'
+                        }).then(() => {
+                            location.reload();
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Lỗi',
+                            text: data.message,
+                            confirmButtonColor: '#dc2626'
+                        });
+                    }
+                },
+                error: function (xhr) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Lỗi',
+                        text: 'Đã xảy ra lỗi khi cập nhật chuyên mục',
+                        confirmButtonColor: '#dc2626'
                     });
-                } else {
-                    Swal.fire('Lỗi', data.message, 'error');
                 }
-            } catch (error) {
-                Swal.fire('Lỗi', 'Đã xảy ra lỗi khi cập nhật chuyên mục', 'error');
-            }
+            });
         });
 
         // Edit BlogCategory
@@ -284,19 +320,24 @@
                 const modal = new bootstrap.Modal(document.getElementById('editModal'));
                 modal.show();
             } catch (error) {
-                Swal.fire('Lỗi', error.message, 'error');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi',
+                    text: error.message,
+                    confirmButtonColor: '#dc2626'
+                });
             }
         }
 
         // Confirm Delete
         function confirmDelete(id) {
             Swal.fire({
-                title: 'Xác nhận xóa?',
-                text: 'Bạn có chắc chắn muốn xóa chuyên mục blog này? Hành động này không thể hoàn tác.',
+                title: 'Xác nhận xóa',
+                text: 'Bạn có chắc chắn muốn xóa chuyên mục này?',
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonColor: '#dc3545',
-                cancelButtonColor: '#6c757d',
+                confirmButtonColor: '#dc2626',
+                cancelButtonColor: '#6b7280',
                 confirmButtonText: 'Xóa',
                 cancelButtonText: 'Hủy'
             }).then((result) => {
@@ -307,29 +348,43 @@
         }
 
         // Delete BlogCategory
-        async function deleteBlogCategory(id) {
-            try {
-                const formData = new FormData();
-                formData.append('id', id);
-                formData.append('__RequestVerificationToken', document.querySelector('input[name="__RequestVerificationToken"]')?.value);
+        function deleteBlogCategory(id) {
+            const token = $('input[name="__RequestVerificationToken"]').val();
 
-                const response = await fetch(`/BlogCategory/Delete/${id}`, {
-                    method: 'POST',
-                    body: formData
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    Swal.fire('Thành công', data.message, 'success').then(() => {
-                        location.reload();
+            $.ajax({
+                url: `/BlogCategory/Delete/${id}`,
+                type: 'POST',
+                headers: {
+                    'RequestVerificationToken': token
+                },
+                success: function (data) {
+                    if (data.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Thành công',
+                            text: data.message,
+                            confirmButtonColor: '#10b981'
+                        }).then(() => {
+                            location.reload();
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Lỗi',
+                            text: data.message,
+                            confirmButtonColor: '#dc2626'
+                        });
+                    }
+                },
+                error: function (xhr) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Lỗi',
+                        text: 'Đã xảy ra lỗi khi xóa chuyên mục',
+                        confirmButtonColor: '#dc2626'
                     });
-                } else {
-                    Swal.fire('Lỗi', data.message, 'error');
                 }
-            } catch (error) {
-                Swal.fire('Lỗi', error.message, 'error');
-            }
+            });
         }
     </script>
 }

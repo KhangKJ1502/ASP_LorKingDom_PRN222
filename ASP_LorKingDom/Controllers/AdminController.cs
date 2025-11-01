@@ -6,7 +6,7 @@ using WebUI.Filters;
 
 namespace ASP_LorKingDom.Controllers
 {
-    //[Authorize(AuthenticationSchemes = "AdminScheme", Roles = "Admin,Staff,Warehouse")]
+    [Authorize(AuthenticationSchemes = "AdminScheme")]
     public class AdminController : Controller
     {
         private readonly IAccountService _accountService;
@@ -20,7 +20,7 @@ namespace ASP_LorKingDom.Controllers
 
         // Admin và Staff được xem Dashboard (doanh thu), Warehouse không được xem
         [HttpGet]
-        //[AdminAndStaffOnly]
+        [AdminAndStaffOnly]
         public async Task<IActionResult> Dashboard()
         {
             var stats = await _statisticsService.GetDashboardStatisticsAsync();
@@ -28,6 +28,7 @@ namespace ASP_LorKingDom.Controllers
         }
 
         [HttpGet]
+        [ManagementOnly] // All roles: Profile
         public IActionResult Profile()
         {
             return View();
@@ -35,6 +36,7 @@ namespace ASP_LorKingDom.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [ManagementOnly] // All roles: Update Profile
         public async Task<IActionResult> UpdateProfile(string accountName, string phoneNumber, bool changePassword = false,
             string? currentPassword = null, string? newPassword = null, IFormFile? avatar = null)
         {

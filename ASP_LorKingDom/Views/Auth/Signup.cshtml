@@ -84,7 +84,7 @@
 
                 <div class="form-checkbox">
                     <label asp-for="AgreeTerms" class="checkbox-label">
-                        <input asp-for="AgreeTerms" />
+                        <input asp-for="AgreeTerms" type="checkbox" value="true" />
                         <span>
                             Tôi đồng ý với
                             <a href="/terms">Điều khoản dịch vụ</a>
@@ -154,16 +154,16 @@
                 }
 
                 // Kiểm tra checkbox AgreeTerms riêng
-                const agreeTerms = $('input[name="AgreeTerms"]').is(':checked');
-                if (!agreeTerms) {
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Thiếu thông tin',
-                        text: 'Bạn phải đồng ý với Điều khoản dịch vụ và Chính sách bảo mật.',
-                        confirmButtonColor: '#f97316'
-                    });
-                    return;
-                }
+                // const agreeTerms = $('input[name="AgreeTerms"]').is(':checked');
+                // if (!agreeTerms) {
+                //     Swal.fire({
+                //         icon: 'warning',
+                //         title: 'Thiếu thông tin',
+                //         text: 'Bạn phải đồng ý với Điều khoản dịch vụ và Chính sách bảo mật.',
+                //         confirmButtonColor: '#f97316'
+                //     });
+                //     return;
+                // }
 
                 const submitBtn = form.find('button[type="submit"]');
                 const originalText = submitBtn.html();

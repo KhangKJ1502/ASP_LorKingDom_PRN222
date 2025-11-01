@@ -18,7 +18,8 @@ namespace BLL.DTOs
         [Compare("Password", ErrorMessage = "Mật khẩu và Mật khẩu xác nhận không khớp.")]
         public string? ConfirmPassword { get; set; }
 
-        [Range(typeof(bool), "true", "true", ErrorMessage = "Bạn phải đồng ý với Điều khoản dịch vụ và Chính sách bảo mật.")]
+        [Required(ErrorMessage = "Bạn phải đồng ý với Điều khoản dịch vụ và Chính sách bảo mật.")]
+        [Display(Name = "AgreeTerms")]
         public bool AgreeTerms { get; set; }
     }
 }

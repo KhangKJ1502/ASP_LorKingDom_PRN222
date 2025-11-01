@@ -6,10 +6,12 @@ using BLL.DTOs;
 using BLL.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using WebUI.Filters;
 
 namespace WebUI.Controllers
 {
-    //[Authorize(Roles = "Admin,Staff")] // Bỏ comment nếu cần giới hạn quyền truy cập
+    [Authorize(AuthenticationSchemes = "AdminScheme")]
+    [AdminAndStaffOnly] // Staff: Refund Management
     [Route("OrderRefundAdmin")]
     public class OrderRefundAdminController : Controller
     {
@@ -55,7 +57,7 @@ namespace WebUI.Controllers
             string? status,
             DateTime? dateFrom,
             DateTime? dateTo,
-            int page = 1,   
+            int page = 1,
             int pageSize = 10)
         {
             return await LoadRefundListAsync(keyword, status, dateFrom, dateTo, page, pageSize);

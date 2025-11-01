@@ -1,8 +1,12 @@
 ﻿using BLL.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using WebUI.Filters;
 
 namespace WebUI.Controllers
 {
+    [Authorize(AuthenticationSchemes = "AdminScheme")]
+    [AdminAndWarehouseOnly] // Warehouse: Origin Management
     public class OriginController : Controller
     {
         private readonly IOriginService _service;

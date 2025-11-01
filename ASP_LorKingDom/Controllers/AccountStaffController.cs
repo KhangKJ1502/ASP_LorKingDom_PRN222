@@ -2,11 +2,15 @@
 using BLL.Interfaces;
 using BLL.Validators;
 using DAL.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using WebUI.Filters;
 
 namespace WebUI.Controllers
 {
+    [Authorize(AuthenticationSchemes = "AdminScheme")]
+    [AdminOnly] // Only Admin: Staff Management
     [AutoValidateAntiforgeryToken]
     [RequestSizeLimit(5 * 1024 * 1024)] // 5MB
     public class AccountStaffController : Controller
@@ -27,10 +31,10 @@ namespace WebUI.Controllers
             await LoadRolesAsync();
             var allItems = await _accountService.GetAllStaffForAdminAsync();
             var orderedItems = allItems.OrderByDescending(c => c.CreatedAt).ToList();
-            
+
             var pagedResult = GetPagedResult(orderedItems, page, pageSize);
             ViewBag.Query = null;
-            
+
             return View("~/Views/Admin/ManageAccountStaff.cshtml", pagedResult);
         }
 
@@ -42,10 +46,10 @@ namespace WebUI.Controllers
             var allItems = await _accountService.GetAllStaffForAdminAsync();
             var filteredItems = Filter(allItems, q);
             var orderedItems = filteredItems.OrderByDescending(c => c.CreatedAt).ToList();
-            
+
             var pagedResult = GetPagedResult(orderedItems, page, pageSize);
             ViewBag.Query = q;
-            
+
             return View("~/Views/Admin/ManageAccountStaff.cshtml", pagedResult);
         }
 
@@ -57,10 +61,10 @@ namespace WebUI.Controllers
             var allItems = await _accountService.GetAllStaffForAdminAsync();
             var filteredItems = Filter(allItems, q);
             var orderedItems = filteredItems.OrderByDescending(c => c.CreatedAt).ToList();
-            
+
             var pagedResult = GetPagedResult(orderedItems, page, pageSize);
             ViewBag.Query = q;
-            
+
             return View("~/Views/Admin/ManageAccountStaff.cshtml", pagedResult);
         }
 
@@ -76,10 +80,10 @@ namespace WebUI.Controllers
             try
             {
                 await LoadRolesAsync();
-                
+
                 // CRITICAL: Force Id = 0 để đảm bảo đây là Create, không phải Update
                 model.Id = 0;
-                
+
                 var v = AccountValidator.ValidateCreateStaff(
                     model.AccountName, model.Email, model.PhoneNumber ?? "", model.RoleId, model.Password ?? "", ConfirmPassword ?? "");
 
@@ -101,7 +105,7 @@ namespace WebUI.Controllers
                     ViewBag.ShowAddModal = true;
                     return await ReloadManagePage(q, 1, pageSize, model);
                 }
-                
+
                 // Kiểm tra phone đã tồn tại - KHÔNG cho phép trùng khi tạo mới
                 if (!string.IsNullOrWhiteSpace(model.PhoneNumber) &&
                     await _accountService.ExistsByPhoneNumberAsync(model.PhoneNumber))
@@ -147,7 +151,7 @@ namespace WebUI.Controllers
                 }
 
                 var newId = await _accountService.CreateAsync(model);
-                
+
                 if (newId > 0)
                 {
                     TempData["Success"] = "✅ Thêm nhân viên thành công!";
@@ -156,10 +160,10 @@ namespace WebUI.Controllers
                 {
                     TempData["Error"] = "❌ Thêm nhân viên thất bại! Vui lòng thử lại.";
                 }
-                
+
                 // Redirect về Search nếu có query, về Index nếu không
-                return string.IsNullOrWhiteSpace(q) 
-                    ? RedirectToAction(nameof(Index), new { pageSize }) 
+                return string.IsNullOrWhiteSpace(q)
+                    ? RedirectToAction(nameof(Index), new { pageSize })
                     : RedirectToAction(nameof(Search), new { q, pageSize });
             }
             catch (Exception ex)
@@ -198,18 +202,18 @@ namespace WebUI.Controllers
                 if (Id <= 0)
                 {
                     TempData["Error"] = "❌ ID nhân viên không hợp lệ. Không thể cập nhật.";
-                    return string.IsNullOrWhiteSpace(q) 
-                        ? RedirectToAction(nameof(Index), new { pageSize }) 
+                    return string.IsNullOrWhiteSpace(q)
+                        ? RedirectToAction(nameof(Index), new { pageSize })
                         : RedirectToAction(nameof(Search), new { q, pageSize });
                 }
-                
+
                 // Kiểm tra staff có tồn tại không
                 var existing = await _accountService.GetByIdAsync(Id);
                 if (existing == null)
                 {
                     TempData["Error"] = "❌ Không tìm thấy nhân viên cần cập nhật!";
-                    return string.IsNullOrWhiteSpace(q) 
-                        ? RedirectToAction(nameof(Index), new { pageSize }) 
+                    return string.IsNullOrWhiteSpace(q)
+                        ? RedirectToAction(nameof(Index), new { pageSize })
                         : RedirectToAction(nameof(Search), new { q, pageSize });
                 }
 
@@ -287,22 +291,22 @@ namespace WebUI.Controllers
 
                 var success = await _accountService.UpdateAsync(existing.Id, existing);
                 TempData["Success"] = success ? "✅ Cập nhật nhân viên thành công!" : "❌ Cập nhật thất bại!";
-                return string.IsNullOrWhiteSpace(q) 
-                    ? RedirectToAction(nameof(Index), new { pageSize }) 
+                return string.IsNullOrWhiteSpace(q)
+                    ? RedirectToAction(nameof(Index), new { pageSize })
                     : RedirectToAction(nameof(Search), new { q, pageSize });
             }
             catch (DbUpdateConcurrencyException)
             {
                 TempData["Error"] = "⚠️ Dữ liệu đã bị thay đổi bởi người dùng khác. Vui lòng thử lại.";
-                return string.IsNullOrWhiteSpace(q) 
-                    ? RedirectToAction(nameof(Index), new { pageSize }) 
+                return string.IsNullOrWhiteSpace(q)
+                    ? RedirectToAction(nameof(Index), new { pageSize })
                     : RedirectToAction(nameof(Search), new { q, pageSize });
             }
             catch (Exception ex)
             {
                 TempData["Error"] = $"❌ Lỗi: {ex.Message}";
-                return string.IsNullOrWhiteSpace(q) 
-                    ? RedirectToAction(nameof(Index), new { pageSize }) 
+                return string.IsNullOrWhiteSpace(q)
+                    ? RedirectToAction(nameof(Index), new { pageSize })
                     : RedirectToAction(nameof(Search), new { q, pageSize });
             }
         }
@@ -317,8 +321,8 @@ namespace WebUI.Controllers
                 if (staff == null)
                 {
                     TempData["Error"] = "Không tìm thấy nhân viên!";
-                    return string.IsNullOrWhiteSpace(q) 
-                        ? RedirectToAction(nameof(Index), new { pageSize }) 
+                    return string.IsNullOrWhiteSpace(q)
+                        ? RedirectToAction(nameof(Index), new { pageSize })
                         : RedirectToAction(nameof(Search), new { q, pageSize });
                 }
                 staff.IsDeleted = true;
@@ -332,8 +336,8 @@ namespace WebUI.Controllers
             {
                 TempData["Error"] = $"Lỗi khi xoá: {ex.Message}";
             }
-            return string.IsNullOrWhiteSpace(q) 
-                ? RedirectToAction(nameof(Index), new { pageSize }) 
+            return string.IsNullOrWhiteSpace(q)
+                ? RedirectToAction(nameof(Index), new { pageSize })
                 : RedirectToAction(nameof(Search), new { q, pageSize });
         }
 
@@ -346,8 +350,8 @@ namespace WebUI.Controllers
                 if (staff == null)
                 {
                     TempData["Error"] = "Không tìm thấy nhân viên!";
-                    return string.IsNullOrWhiteSpace(q) 
-                        ? RedirectToAction(nameof(Index), new { pageSize }) 
+                    return string.IsNullOrWhiteSpace(q)
+                        ? RedirectToAction(nameof(Index), new { pageSize })
                         : RedirectToAction(nameof(Search), new { q, pageSize });
                 }
 
@@ -362,8 +366,8 @@ namespace WebUI.Controllers
             {
                 TempData["Error"] = $"Lỗi khi khôi phục: {ex.Message}";
             }
-            return string.IsNullOrWhiteSpace(q) 
-                ? RedirectToAction(nameof(Index), new { pageSize }) 
+            return string.IsNullOrWhiteSpace(q)
+                ? RedirectToAction(nameof(Index), new { pageSize })
                 : RedirectToAction(nameof(Search), new { q, pageSize });
         }
 

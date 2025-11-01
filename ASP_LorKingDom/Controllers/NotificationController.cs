@@ -1,15 +1,18 @@
 ﻿using BLL.DTOs;
 using BLL.Interfaces;
 using DAL.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using WebUI.Filters;
 
 namespace WebUI.Controllers
 {
-    // [Authorize(Roles = "Admin")]
+    [Authorize(AuthenticationSchemes = "AdminScheme")]
+    [AdminAndStaffOnly] // Staff: Notification Management
     [AutoValidateAntiforgeryToken]
     public class NotificationController : Controller
     {

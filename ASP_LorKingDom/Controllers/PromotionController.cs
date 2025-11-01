@@ -1,11 +1,15 @@
 ﻿using BLL.DTOs;
 using BLL.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Threading.Tasks;
+using WebUI.Filters;
 
 namespace WebUI.Controllers
 {
+    [Authorize(AuthenticationSchemes = "AdminScheme")]
+    [AdminAndStaffOnly] // Staff: Promotion Management
     public class PromotionController : Controller
     {
         private readonly IPromotionService _promotionService;
@@ -14,7 +18,7 @@ namespace WebUI.Controllers
         {
             _promotionService = promotionService;
         }
-        
+
         // ===== INDEX - View List (Không filter) =====
         [HttpGet]
         public async Task<IActionResult> Index(int page = 1, int pageSize = 10)
@@ -91,7 +95,7 @@ namespace WebUI.Controllers
             {
                 // Hiển thị lại trang với Add modal và hiển thị lỗi
                 TempData["ErrorMessage"] = $"❌ {ex.Message}";
-                
+
                 await PrepareManagePageAsync(keyword, page, pageSize,
                     forceEditDto: BuildPromotionDtoFromForm(dto),
                     showErrorModal: true,
@@ -142,7 +146,7 @@ namespace WebUI.Controllers
             {
                 // Hiển thị lại trang với Edit modal và hiển thị lỗi
                 TempData["ErrorMessage"] = $"❌ {ex.Message}";
-                
+
                 await PrepareManagePageAsync(keyword, page, pageSize,
                     forceEditDto: BuildPromotionDtoFromForm(dto),
                     showErrorModal: true,
@@ -179,7 +183,7 @@ namespace WebUI.Controllers
             {
                 // nếu lỗi -> hiển thị lại trang + modal + dữ liệu user nhập + hiển thị lỗi
                 TempData["ErrorMessage"] = $"❌ {ex.Message}";
-                
+
                 await PrepareManagePageAsync(keyword, page, pageSize,
                     forceEditDto: BuildPromotionDtoFromForm(dto),
                     showErrorModal: true,

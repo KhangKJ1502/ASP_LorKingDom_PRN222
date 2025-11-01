@@ -1,10 +1,14 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using BLL.Interfaces;
+using WebUI.Filters;
 
 namespace WebUI.Controllers
 {
+    [Authorize(AuthenticationSchemes = "AdminScheme")]
+    [AdminAndWarehouseOnly] // Warehouse: Price Range Management
     public class PriceRangeController : Controller
     {
         private readonly IPriceRangeService _service;

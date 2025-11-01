@@ -67,7 +67,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         o.Cookie.HttpOnly = true;
         o.Cookie.IsEssential = true;
         o.Cookie.Name = "AdminAuth";
-        o.Cookie.SameSite = SameSiteMode.Lax; 
+        o.Cookie.SameSite = SameSiteMode.Lax;
         o.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
         o.ExpireTimeSpan = TimeSpan.FromDays(7);
         o.SlidingExpiration = false;
@@ -78,6 +78,47 @@ builder.Logging.AddConsole();
 builder.Logging.SetMinimumLevel(LogLevel.Debug);
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var accountService = scope.ServiceProvider.GetRequiredService<IAccountService>();
+
+    var admin = await accountService.GetByEmailAsync("admin@gmail.com");
+    if (admin == null)
+    {
+        await accountService.CreateAsync(new BLL.DTOs.AccountDto
+        {
+            AccountName = "Admin",
+            Email = "admin@gmail.com",
+            Password = "123456",
+            RoleId = 1
+        });
+    }
+
+    var staff = await accountService.GetByEmailAsync("staff@gmail.com");
+    if (staff == null)
+    {
+        await accountService.CreateAsync(new BLL.DTOs.AccountDto
+        {
+            AccountName = "Staff",
+            Email = "staff@gmail.com",
+            Password = "123456",
+            RoleId = 2
+        });
+    }
+
+    var warehouse = await accountService.GetByEmailAsync("warehouse@gmail.com");
+    if (warehouse == null)
+    {
+        await accountService.CreateAsync(new BLL.DTOs.AccountDto
+        {
+            AccountName = "Warehouse",
+            Email = "warehouse@gmail.com",
+            Password = "123456",
+            RoleId = 3
+        });
+    }
+}
 
 // ===== Pipeline =====
 if (!app.Environment.IsDevelopment())

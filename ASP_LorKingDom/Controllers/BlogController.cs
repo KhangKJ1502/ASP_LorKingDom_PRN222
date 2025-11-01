@@ -1,10 +1,14 @@
 ﻿using BLL.DTOs;
 using BLL.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using WebUI.Filters;
 
 namespace WebUI.Controllers
 {
+    [Authorize(AuthenticationSchemes = "AdminScheme")]
+    [AdminAndStaffOnly] // Staff: Blog Management
     public class BlogController : Controller
     {
         private readonly IBlogService _blogService;
@@ -357,21 +361,20 @@ namespace WebUI.Controllers
         [HttpPost("Blog/Delete/{id}")]
         //[Authorize(Roles = "Admin")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Delete(int id)
+        public async Task<JsonResult> Delete(int id)
         {
             try
             {
                 var success = await _blogService.SoftDeleteAsync(id);
                 if (!success)
-                    throw new InvalidOperationException("Không thể xóa bài viết.");
+                    return Json(new { success = false, message = "Không thể xóa bài viết." });
 
-                TempData["Success"] = "Xóa bài viết thành công!";
+                return Json(new { success = true, message = "Xóa bài viết thành công!" });
             }
             catch (Exception ex)
             {
-                TempData["Error"] = ex.Message;
+                return Json(new { success = false, message = ex.Message });
             }
-            return RedirectToAction("Manage");
         }
 
         //[HttpGet("BlogReview/Manage")]
