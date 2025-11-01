@@ -173,19 +173,39 @@
 
         <div class="card-body">
 
-            <!-- Search -->
-            <form class="mb-4" method="get" asp-action="Manage" asp-controller="Notification">
-                <div class="input-group search-box">
-                    <input type="text"
-                           name="Keyword"
-                           value="@(f?.Keyword ?? "")"
-                           class="form-control"
-                           placeholder="Tìm theo tiêu đề/nội dung..." />
-                    <button class="btn btn-outline-secondary" type="submit">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                    </button>
+            <div class="row mb-4">
+                <div class="col-md-8">
+                    <form method="get" asp-action="Search" asp-controller="Notification" id="searchForm">
+                        <div class="input-group search-box">
+                            <input type="text" name="Keyword" value="@(f?.Keyword ?? "")" class="form-control" placeholder="Tìm theo tiêu đề/nội dung...">
+                            <input type="hidden" name="PageSize" value="@(Model?.PageSize ?? 10)" />
+                            <button class="btn btn-outline-secondary" type="submit"><i class="fa-solid fa-magnifying-glass"></i></button>
+                            @if (!string.IsNullOrWhiteSpace(f?.Keyword))
+                            {
+                                <a href="@Url.Action("Index", "Notification", new { pageSize = Model?.PageSize ?? 10 })" class="btn btn-outline-danger" title="Xóa tìm kiếm">
+                                    <i class="fa-solid fa-times"></i>
+                                </a>
+                            }
+                        </div>
+                    </form>
                 </div>
-            </form>
+                <div class="col-md-4">
+                    <div class="d-flex align-items-center justify-content-end">
+                        <label class="me-2 mb-0">Hiển thị:</label>
+                        <select class="form-select form-select-sm" style="width: auto;" id="pageSizeSelector" onchange="changePageSize(this.value)">
+                            @{
+                                var currentPageSize = Model?.PageSize ?? 10;
+                            }
+                            <option value="5" selected="@(currentPageSize == 5)">5</option>
+                            <option value="10" selected="@(currentPageSize == 10)">10</option>
+                            <option value="20" selected="@(currentPageSize == 20)">20</option>
+                            <option value="50" selected="@(currentPageSize == 50)">50</option>
+                            <option value="100" selected="@(currentPageSize == 100)">100</option>
+                        </select>
+                        <span class="ms-2 text-muted">mục/trang</span>
+                    </div>
+                </div>
+            </div>
 
             @if (TempData["Error"] is string e)
             {
@@ -285,7 +305,7 @@
                                         }
                                         else if (n.TargetRoleId.HasValue)
                                         {
-                                            <span class="text-muted ms-1">(Role @n.TargetRoleId)</span>
+                                            <span class="text-muted ms-1">(@(n.TargetRoleName ?? $"Role {n.TargetRoleId}"))</span>
                                         }
                                     </td>
 
@@ -345,7 +365,10 @@
                 Func<int, IHtmlContent> renderPageItem = (int pageNum) =>
                 {
                     var liClass = pageNum == currentPage ? "page-item active" : "page-item";
-                    var url = Url.Action("Manage", "Notification", new { page = pageNum, pageSize = pageSize, keyword = keyword });
+                    var action = string.IsNullOrWhiteSpace(keyword) ? "Index" : "Search";
+                    var url = string.IsNullOrWhiteSpace(keyword)
+                        ? Url.Action(action, "Notification", new { page = pageNum, pageSize = pageSize })
+                        : Url.Action(action, "Notification", new { Keyword = keyword, page = pageNum, pageSize = pageSize });
 
                     return new HtmlString($@"
                         <li class=""{liClass}"">
@@ -374,9 +397,12 @@
                         @{
                             var prevDisabled = currentPage <= 1;
                             var prevPage = currentPage > 1 ? currentPage - 1 : 1;
+                            var action = string.IsNullOrWhiteSpace(keyword) ? "Index" : "Search";
                             var prevUrl = prevDisabled
                             ? "#"
-                            : Url.Action("Manage", "Notification", new { page = prevPage, pageSize = pageSize, keyword = keyword });
+                            : string.IsNullOrWhiteSpace(keyword)
+                                ? Url.Action(action, "Notification", new { page = prevPage, pageSize = pageSize })
+                                : Url.Action(action, "Notification", new { Keyword = keyword, page = prevPage, pageSize = pageSize });
                         }
                         <li class="page-item @(prevDisabled ? "disabled" : "")">
                             <a class="page-link"
@@ -435,9 +461,12 @@
                         @{
                             var nextDisabled = currentPage >= totalPages;
                             var nextPage = currentPage < totalPages ? currentPage + 1 : totalPages;
+                            var nextAction = string.IsNullOrWhiteSpace(keyword) ? "Index" : "Search";
                             var nextUrl = nextDisabled
                             ? "#"
-                            : Url.Action("Manage", "Notification", new { page = nextPage, pageSize = pageSize, keyword = keyword });
+                            : string.IsNullOrWhiteSpace(keyword)
+                                ? Url.Action(nextAction, "Notification", new { page = nextPage, pageSize = pageSize })
+                                : Url.Action(nextAction, "Notification", new { Keyword = keyword, page = nextPage, pageSize = pageSize });
                         }
                         <li class="page-item @(nextDisabled ? "disabled" : "")">
                             <a class="page-link"
@@ -758,7 +787,24 @@
         }
 
         function closeModal() {
-            window.location.href = '@Url.Action("Manage", "Notification", new { Keyword = f?.Keyword, Page = f?.Page, PageSize = f?.PageSize })';
+            const keyword = '@Html.Raw(f?.Keyword ?? "")';
+            const pageSize = @(f?.PageSize ?? 10);
+            
+            if (keyword) {
+                window.location.href = '@Url.Action("Search", "Notification")' + '?Keyword=' + encodeURIComponent(keyword) + '&PageSize=' + pageSize;
+            } else {
+                window.location.href = '@Url.Action("Index", "Notification")' + '?PageSize=' + pageSize;
+            }
+        }
+
+        function changePageSize(newPageSize) {
+            const keyword = '@Html.Raw(f?.Keyword ?? "")';
+            
+            if (keyword) {
+                window.location.href = '@Url.Action("Search", "Notification")' + '?Keyword=' + encodeURIComponent(keyword) + '&page=1&PageSize=' + newPageSize;
+            } else {
+                window.location.href = '@Url.Action("Index", "Notification")' + '?page=1&PageSize=' + newPageSize;
+            }
         }
 
         function toggleTargetFields() {

@@ -87,7 +87,7 @@ namespace BLL.Services
             return await _repo.UpdateAsync(toUpdate);
         }
 
-        public Task<bool> SoftDeleteAsync(int id) => _repo.DeleteAsync(id);
+        public Task<bool> DeleteAsync(int id) => _repo.DeleteAsync(id);
         public Task<bool> RestoreAsync(int id) => _repo.RestoreAsync(id);
 
         public Task<bool> ToggleStatusAsync(int id) => _repo.ToggleStatusAsync(id);

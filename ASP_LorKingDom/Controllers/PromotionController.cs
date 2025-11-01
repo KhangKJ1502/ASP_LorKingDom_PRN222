@@ -15,16 +15,29 @@ namespace WebUI.Controllers
             _promotionService = promotionService;
         }
         
-        public IActionResult Index() => RedirectToAction(nameof(Manage));
+        // ===== INDEX - View List (Không filter) =====
+        [HttpGet]
+        public async Task<IActionResult> Index(int page = 1, int pageSize = 10)
+        {
+            await PrepareManagePageAsync(null, page, pageSize);
+            return View("~/Views/Admin/ManagePromotion.cshtml",
+                ViewData["PagedResult"] as PagedResult<PromotionDto>);
+        }
 
-        // ===========================
-        // GET: /Promotion/Manage
-        // ===========================
+        // ===== SEARCH - Tìm kiếm với keyword =====
+        [HttpGet]
+        public async Task<IActionResult> Search(string? keyword, int page = 1, int pageSize = 10)
+        {
+            await PrepareManagePageAsync(keyword, page, pageSize);
+            return View("~/Views/Admin/ManagePromotion.cshtml",
+                ViewData["PagedResult"] as PagedResult<PromotionDto>);
+        }
+
+        // ===== MANAGE - Xử lý cả list và search =====
+        [HttpGet]
         public async Task<IActionResult> Manage(string? keyword, int page = 1, int pageSize = 10)
         {
-            // chuẩn bị model + ViewBag cho view Manage
             await PrepareManagePageAsync(keyword, page, pageSize);
-
             return View("~/Views/Admin/ManagePromotion.cshtml",
                 ViewData["PagedResult"] as PagedResult<PromotionDto>);
         }
@@ -38,7 +51,7 @@ namespace WebUI.Controllers
             var data = await _promotionService.GetByIdAsync(id);
             if (data == null)
             {
-                TempData["Error"] = "Không tìm thấy khuyến mãi cần sửa.";
+                TempData["ErrorMessage"] = "❌ Không tìm thấy khuyến mãi cần sửa.";
                 return RedirectToAction(nameof(Manage), new { keyword, page, pageSize });
             }
 
@@ -71,12 +84,14 @@ namespace WebUI.Controllers
                     Status = string.IsNullOrWhiteSpace(dto.Status) ? "Active" : dto.Status
                 });
 
-                TempData["Success"] = "✅ Thêm khuyến mãi mới thành công.";
+                TempData["SuccessMessage"] = "✅ Thêm khuyến mãi mới thành công!";
                 return RedirectToAction(nameof(Manage), new { keyword, page, pageSize });
             }
             catch (Exception ex)
             {
-                // Hiển thị lại trang với Add modal
+                // Hiển thị lại trang với Add modal và hiển thị lỗi
+                TempData["ErrorMessage"] = $"❌ {ex.Message}";
+                
                 await PrepareManagePageAsync(keyword, page, pageSize,
                     forceEditDto: BuildPromotionDtoFromForm(dto),
                     showErrorModal: true,
@@ -120,12 +135,14 @@ namespace WebUI.Controllers
                 if (!ok)
                     throw new InvalidOperationException("Cập nhật thất bại hoặc không tìm thấy bản ghi.");
 
-                TempData["Success"] = "✅ Cập nhật khuyến mãi thành công.";
+                TempData["SuccessMessage"] = "✅ Cập nhật khuyến mãi thành công!";
                 return RedirectToAction(nameof(Manage), new { keyword, page, pageSize });
             }
             catch (Exception ex)
             {
-                // Hiển thị lại trang với Edit modal
+                // Hiển thị lại trang với Edit modal và hiển thị lỗi
+                TempData["ErrorMessage"] = $"❌ {ex.Message}";
+                
                 await PrepareManagePageAsync(keyword, page, pageSize,
                     forceEditDto: BuildPromotionDtoFromForm(dto),
                     showErrorModal: true,
@@ -152,15 +169,17 @@ namespace WebUI.Controllers
             {
                 await HandleSavePromotionAsync(dto);
 
-                TempData["Success"] = dto.PromotionId > 0
-                    ? "✅ Cập nhật khuyến mãi thành công."
-                    : "✅ Thêm khuyến mãi mới thành công.";
+                TempData["SuccessMessage"] = dto.PromotionId > 0
+                    ? "✅ Cập nhật khuyến mãi thành công!"
+                    : "✅ Thêm khuyến mãi mới thành công!";
 
                 return RedirectToAction(nameof(Manage), new { keyword, page, pageSize });
             }
             catch (Exception ex)
             {
-                // nếu lỗi -> hiển thị lại trang + modal + dữ liệu user nhập
+                // nếu lỗi -> hiển thị lại trang + modal + dữ liệu user nhập + hiển thị lỗi
+                TempData["ErrorMessage"] = $"❌ {ex.Message}";
+                
                 await PrepareManagePageAsync(keyword, page, pageSize,
                     forceEditDto: BuildPromotionDtoFromForm(dto),
                     showErrorModal: true,
@@ -178,9 +197,11 @@ namespace WebUI.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SoftDelete(int id, string? keyword, int page = 1, int pageSize = 10)
         {
-            TempData["toast"] = await DoSoftDeleteAsync(id)
-                ? "🗑️ Đã xóa mềm."
-                : "⚠️ Không tìm thấy.";
+            var result = await DoSoftDeleteAsync(id);
+            if (result)
+                TempData["SuccessMessage"] = "🗑️ Đã xóa mềm khuyến mãi thành công!";
+            else
+                TempData["ErrorMessage"] = "❌ Không tìm thấy khuyến mãi cần xóa.";
 
             return RedirectToAction(nameof(Manage), new { keyword, page, pageSize });
         }
@@ -192,9 +213,11 @@ namespace WebUI.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Restore(int id, string? keyword, int page = 1, int pageSize = 10)
         {
-            TempData["toast"] = await DoRestoreAsync(id)
-                ? "♻️ Đã khôi phục."
-                : "⚠️ Không tìm thấy.";
+            var result = await DoRestoreAsync(id);
+            if (result)
+                TempData["SuccessMessage"] = "♻️ Đã khôi phục khuyến mãi thành công!";
+            else
+                TempData["ErrorMessage"] = "❌ Không tìm thấy khuyến mãi cần khôi phục.";
 
             return RedirectToAction(nameof(Manage), new { keyword, page, pageSize });
         }
@@ -206,9 +229,11 @@ namespace WebUI.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ToggleStatus(int id, string? keyword, int page = 1, int pageSize = 10)
         {
-            TempData["toast"] = await DoToggleStatusAsync(id)
-                ? "🔁 Đã đổi trạng thái."
-                : "⚠️ Không tìm thấy.";
+            var result = await DoToggleStatusAsync(id);
+            if (result)
+                TempData["SuccessMessage"] = "🔁 Đã đổi trạng thái khuyến mãi thành công!";
+            else
+                TempData["ErrorMessage"] = "❌ Không tìm thấy khuyến mãi cần đổi trạng thái.";
 
             return RedirectToAction(nameof(Manage), new { keyword, page, pageSize });
         }
@@ -220,9 +245,11 @@ namespace WebUI.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SetStatus(int id, string status, string? keyword, int page = 1, int pageSize = 10)
         {
-            TempData["toast"] = await DoSetStatusAsync(id, status)
-                ? $"⚙️ Đặt trạng thái: {status}."
-                : "⚠️ Không tìm thấy.";
+            var result = await DoSetStatusAsync(id, status);
+            if (result)
+                TempData["SuccessMessage"] = $"⚙️ Đã đặt trạng thái khuyến mãi thành '{status}' thành công!";
+            else
+                TempData["ErrorMessage"] = "❌ Không tìm thấy khuyến mãi cần đặt trạng thái.";
 
             return RedirectToAction(nameof(Manage), new { keyword, page, pageSize });
         }
@@ -295,6 +322,7 @@ namespace WebUI.Controllers
             // Nếu vừa từ Edit quay về (TempData["EditPromotionId"])
             PromotionDto? editData = forceEditDto;
             bool shouldOpenModal = showErrorModal;
+            bool hasError = showErrorModal && !string.IsNullOrEmpty(errorMessage);
 
             if (!shouldOpenModal) // nếu chưa bị ép mở modal do lỗi form
             {
@@ -314,9 +342,15 @@ namespace WebUI.Controllers
                 ViewBag.EditPromotion = editData;
             }
 
+            // Chỉ set ShowErrorModal = true khi thực sự có lỗi
             if (shouldOpenModal)
             {
-                ViewBag.ShowErrorModal = true;
+                ViewBag.ShowModal = true; // Để JavaScript biết cần mở modal
+            }
+
+            if (hasError)
+            {
+                ViewBag.ShowErrorModal = true; // Chỉ set khi có lỗi thực sự
             }
 
             if (!string.IsNullOrEmpty(errorMessage))
@@ -393,7 +427,7 @@ namespace WebUI.Controllers
         /// </summary>
         private async Task<bool> DoSoftDeleteAsync(int id)
         {
-            return await _promotionService.SoftDeleteAsync(id);
+            return await _promotionService.DeleteAsync(id);
         }
 
         /// <summary>

@@ -173,33 +173,70 @@
         </div>
 
         <div class="card-body">
-            <!-- Search -->
-            <form class="mb-4" method="get" asp-action="Manage" asp-controller="Promotion">
-                <input type="hidden" name="page" value="1" />
-                <input type="hidden" name="pageSize" value="@pageSize" />
-                <div class="input-group search-box">
-                    <input type="text"
-                           name="keyword"
-                           value="@keyword"
-                           class="form-control"
-                           placeholder="Tìm theo mã/mô tả..." />
-                    <button class="btn btn-outline-secondary" type="submit">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                    </button>
+            <div class="row mb-4">
+                <div class="col-md-8">
+                    <form method="get" asp-action="Search" asp-controller="Promotion" id="searchForm">
+                        <div class="input-group search-box">
+                            <input type="text" name="keyword" value="@keyword" class="form-control" placeholder="Tìm theo mã/mô tả...">
+                            <input type="hidden" name="pageSize" value="@(Model?.PageSize ?? 10)" />
+                            <button class="btn btn-outline-secondary" type="submit"><i class="fa-solid fa-magnifying-glass"></i></button>
+                            @if (!string.IsNullOrWhiteSpace(keyword))
+                            {
+                                <a href="@Url.Action("Index", "Promotion", new { pageSize = Model?.PageSize ?? 10 })" class="btn btn-outline-danger" title="Xóa tìm kiếm">
+                                    <i class="fa-solid fa-times"></i>
+                                </a>
+                            }
+                        </div>
+                    </form>
                 </div>
-            </form>
+                <div class="col-md-4">
+                    <div class="d-flex align-items-center justify-content-end">
+                        <label class="me-2 mb-0">Hiển thị:</label>
+                        <select class="form-select form-select-sm" style="width: auto;" id="pageSizeSelector" onchange="changePageSize(this.value)">
+                            @{
+                                var currentPageSize = Model?.PageSize ?? 10;
+                            }
+                            <option value="5" selected="@(currentPageSize == 5)">5</option>
+                            <option value="10" selected="@(currentPageSize == 10)">10</option>
+                            <option value="20" selected="@(currentPageSize == 20)">20</option>
+                            <option value="50" selected="@(currentPageSize == 50)">50</option>
+                            <option value="100" selected="@(currentPageSize == 100)">100</option>
+                        </select>
+                        <span class="ms-2 text-muted">mục/trang</span>
+                    </div>
+                </div>
+            </div>
 
-            @if (TempData["Error"] is string e)
+            <!-- Success Toast -->
+            @if (TempData["SuccessMessage"] != null)
             {
-                <div class="alert alert-danger">@e</div>
+                <div class="toast-container position-fixed p-3" style="top: 20px; right: 20px; z-index: 2080;">
+                    <div class="toast align-items-center text-bg-success border-0 show" role="alert">
+                        <div class="d-flex">
+                            <div class="toast-body fs-5 fw-semibold">
+                                <i class="fa-solid fa-circle-check me-2"></i>
+                                @TempData["SuccessMessage"]
+                            </div>
+                            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                        </div>
+                    </div>
+                </div>
             }
-            @if (TempData["Success"] is string s)
+
+            <!-- Error Toast -->
+            @if (TempData["ErrorMessage"] != null)
             {
-                <div class="alert alert-success">@s</div>
-            }
-            @if (TempData["toast"] is string t)
-            {
-                <div class="alert alert-info">@t</div>
+                <div class="toast-container position-fixed p-3" style="top: 20px; right: 20px; z-index: 2080;">
+                    <div class="toast align-items-center text-bg-danger border-0 show" role="alert">
+                        <div class="d-flex">
+                            <div class="toast-body fs-5 fw-semibold">
+                                <i class="fa-solid fa-circle-exclamation me-2"></i>
+                                @TempData["ErrorMessage"]
+                            </div>
+                            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                        </div>
+                    </div>
+                </div>
             }
 
             <div class="table-responsive">
@@ -470,7 +507,7 @@
                                        name="statusRadio"
                                        id="statusActive"
                                        value="Active"
-                                       checked="@(((edit?.Status ?? "Active") == "Active") ? "checked" : null)"
+                                       @(((edit?.Status ?? "Active") == "Active") ? "checked" : "")
                                        onchange="updateStatus(this.value)"
                                        autocomplete="off">
                                 <label class="btn btn-outline-success" for="statusActive">
@@ -482,7 +519,7 @@
                                        name="statusRadio"
                                        id="statusInactive"
                                        value="Inactive"
-                                       checked="@(edit?.Status == "Inactive" ? "checked" : null)"
+                                       @((edit?.Status == "Inactive") ? "checked" : "")
                                        onchange="updateStatus(this.value)"
                                        autocomplete="off">
                                 <label class="btn btn-outline-danger" for="statusInactive">
@@ -596,26 +633,36 @@
 
 @section Scripts {
     <script>
-        function updateStatus(value) {
-            document.getElementById('status').value = value;
-        }
+        // Auto-hide toasts after 5 seconds
+        document.addEventListener('DOMContentLoaded', function() {
+            const toasts = document.querySelectorAll('.toast');
+            toasts.forEach(toast => {
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                }, 5000);
+            });
 
-        document.addEventListener('DOMContentLoaded', function () {
-            const hasError = '@(ViewBag.ShowErrorModal == true ? "true" : "false")';
-            if (hasError === "true") {
-                const toastEl = document.getElementById('liveToast');
-                if (toastEl) {
-                    const toast = new bootstrap.Toast(toastEl, { delay: 5000 });
-                    toast.show();
-                }
-            }
-
-            const needShow = '@((edit != null || (ViewBag.ShowErrorModal == true)) ? "true" : "false")';
+            // Chỉ mở modal khi cần (có data edit hoặc được yêu cầu mở)
+            const needShow = '@((edit != null || (ViewBag.ShowModal == true)) ? "true" : "false")';
             if (needShow === "true") {
+                // Đồng bộ radio button với giá trị Status hiện tại
+                const currentStatus = document.getElementById('status').value;
+                if (currentStatus === 'Active') {
+                    document.getElementById('statusActive').checked = true;
+                    document.getElementById('statusInactive').checked = false;
+                } else if (currentStatus === 'Inactive') {
+                    document.getElementById('statusActive').checked = false;
+                    document.getElementById('statusInactive').checked = true;
+                }
+
                 const modalEl = document.getElementById('promotionModal');
                 if (modalEl) new bootstrap.Modal(modalEl).show();
             }
         });
+
+        function updateStatus(value) {
+            document.getElementById('status').value = value;
+        }
 
         function openAddModal() {
             const form = document.getElementById('promotionForm');
@@ -635,7 +682,24 @@
         }
 
         function closeModal() {
-            window.location.href = '@Url.Action("Manage", "Promotion", new { keyword = keyword, page = currentPage, pageSize = pageSize })';
+            const keyword = '@Html.Raw(keyword ?? "")';
+            const pageSize = @pageSize;
+            
+            if (keyword) {
+                window.location.href = '@Url.Action("Search", "Promotion")' + '?keyword=' + encodeURIComponent(keyword) + '&pageSize=' + pageSize;
+            } else {
+                window.location.href = '@Url.Action("Index", "Promotion")' + '?pageSize=' + pageSize;
+            }
+        }
+
+        function changePageSize(newPageSize) {
+          const keyword = '@Html.Raw(keyword ?? "")';
+          
+          if (keyword) {
+            window.location.href = '@Url.Action("Search", "Promotion")' + '?keyword=' + encodeURIComponent(keyword) + '&page=1&pageSize=' + newPageSize;
+          } else {
+            window.location.href = '@Url.Action("Index", "Promotion")' + '?page=1&pageSize=' + newPageSize;
+          }
         }
     </script>
 }

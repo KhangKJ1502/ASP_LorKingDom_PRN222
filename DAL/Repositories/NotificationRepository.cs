@@ -75,6 +75,9 @@ namespace DAL.Repositories
             var total = await q.CountAsync();
 
             var items = await q
+                .Include(x => x.TargetRole)
+                .Include(x => x.TargetUser)
+                .Include(x => x.CreatedByNavigation)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();

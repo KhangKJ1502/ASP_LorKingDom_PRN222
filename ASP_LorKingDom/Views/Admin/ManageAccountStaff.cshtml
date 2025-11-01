@@ -1,30 +1,37 @@
 ﻿@using System.Linq
 @using System.Text.Json
-@model IEnumerable<BLL.DTOs.AccountDto>
+@using Microsoft.AspNetCore.Html
+@using BLL.DTOs
+@model BLL.DTOs.PagedResult<BLL.DTOs.AccountDto>
 @{
     Layout = "_AdminLayout";
     ViewData["Title"] = "Quản Lý Nhân Viên";
     var query = (string?)ViewBag.Query ?? "";
     var edit = ViewBag.EditStaff as BLL.DTOs.AccountDto;
     var roles = ViewBag.Roles as IEnumerable<dynamic> ?? Enumerable.Empty<dynamic>();
+    
+    // ✅ Fixed: Dùng Page/Total thay vì CurrentPage/TotalItems
+    var currentPage = Model?.Page ?? 1;
+    var pageSize = Model?.PageSize ?? 10;
+    var totalRows = Model?.Total ?? 0;
+    var totalPages = Model?.TotalPages ?? 1;
+    if (totalPages < 1) totalPages = 1;
 }
 
+<!-- Giữ nguyên phần CSS -->
 <style>
     .search-box .form-control {
         border: 1px solid #000 !important;
         box-shadow: none !important
     }
-
     .search-box .btn {
         border: 1px solid #000 !important;
         border-left: none !important
     }
-
     .deleted-row {
         opacity: .6;
         background: #f8f9fa
     }
-
     .modal-header-gradient {
         background: linear-gradient(135deg,#667eea 0%,#764ba2 100%);
         color: #fff;
@@ -32,7 +39,6 @@
         padding: 1.25rem;
         border: none
     }
-
     .avatar-preview {
         width: 100px;
         height: 100px;
@@ -41,7 +47,6 @@
         box-shadow: 0 4px 12px rgba(0,0,0,.1);
         object-fit: cover
     }
-
     .avatar-placeholder, .avatar-placeholder-small {
         border-radius: 50%;
         display: inline-flex;
@@ -52,14 +57,12 @@
         background: linear-gradient(135deg,#667eea 0%,#764ba2 100%);
         box-shadow: 0 4px 12px rgba(0,0,0,.1)
     }
-
     .avatar-placeholder {
         width: 100px;
         height: 100px;
         font-size: 2.5rem;
         border: 3px solid #667eea
     }
-
     .staff-avatar {
         width: 45px;
         height: 45px;
@@ -67,14 +70,12 @@
         object-fit: cover;
         border: 2px solid #e9ecef
     }
-
     .avatar-placeholder-small {
         width: 45px;
         height: 45px;
         font-size: 1rem;
         border: 2px solid #e9ecef
     }
-
     .info-box {
         background: #e7f3ff;
         border-left: 4px solid #667eea;
@@ -82,7 +83,6 @@
         border-radius: 6px;
         margin-top: .5rem
     }
-
     .toast-top-right {
         top: 120px !important;
         right: 24px !important;
@@ -102,12 +102,39 @@
             </button>
         </div>
         <div class="card-body">
-            <form class="mb-4" method="get" asp-action="Manage" asp-controller="AccountStaff">
-                <div class="input-group search-box">
-                    <input type="text" name="q" value="@query" class="form-control" placeholder="Tìm theo tên, email, số điện thoại...">
-                    <button class="btn btn-outline-secondary" type="submit"><i class="fa-solid fa-magnifying-glass"></i></button>
+            <div class="row mb-4">
+                <div class="col-md-8">
+                    <form method="get" asp-action="Search" asp-controller="AccountStaff" id="searchForm">
+                        <div class="input-group search-box">
+                            <input type="text" name="q" value="@query" class="form-control" placeholder="Tìm theo tên, email, số điện thoại...">
+                            <input type="hidden" name="pageSize" value="@(Model?.PageSize ?? 10)" />
+                            <button class="btn btn-outline-secondary" type="submit"><i class="fa-solid fa-magnifying-glass"></i></button>
+                            @if (!string.IsNullOrWhiteSpace(query))
+                            {
+                                <a href="@Url.Action(action: "Index", controller: "AccountStaff", new { pageSize = Model?.PageSize ?? 10 })" class="btn btn-outline-danger" title="Xóa tìm kiếm">
+                                    <i class="fa-solid fa-times"></i>
+                                </a>
+                            }
+                        </div>
+                    </form>
                 </div>
-            </form>
+                <div class="col-md-4">
+                    <div class="d-flex align-items-center justify-content-end">
+                        <label class="me-2 mb-0">Hiển thị:</label>
+                        <select class="form-select form-select-sm" style="width: auto;" id="pageSizeSelector" onchange="changePageSize(this.value)">
+                            @{
+                                var currentPageSize = Model?.PageSize ?? 10;
+                            }
+                            <option value="5" selected="@(currentPageSize == 5)">5</option>
+                            <option value="10" selected="@(currentPageSize == 10)">10</option>
+                            <option value="20" selected="@(currentPageSize == 20)">20</option>
+                            <option value="50" selected="@(currentPageSize == 50)">50</option>
+                            <option value="100" selected="@(currentPageSize == 100)">100</option>
+                        </select>
+                        <span class="ms-2 text-muted">mục/trang</span>
+                    </div>
+                </div>
+            </div>
 
             @if (TempData["Error"] is string e)
             {
@@ -124,6 +151,7 @@
                 </div>
             }
 
+            <!-- Table list trực tiếp -->
             <div class="table-responsive">
                 <table class="table table-bordered table-striped table-hover">
                     <thead class="table-dark">
@@ -140,9 +168,9 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @if (Model != null && Model.Any())
+                        @if (Model != null && Model.Items != null && Model.Items.Any())
                         {
-                            foreach (var staff in Model)
+                            foreach (var staff in Model.Items)
                             {
                                 var roleName = "";
                                 if (staff.RoleId.HasValue)
@@ -176,6 +204,7 @@
                                                 @Html.AntiForgeryToken()
                                                 <input type="hidden" name="id" value="@staff.Id" />
                                                 <input type="hidden" name="q" value="@query" />
+                                                <input type="hidden" name="pageSize" value="@pageSize" />
                                                 <button class="btn btn-sm btn-danger" title="Xoá" type="submit" onclick="return confirm('Bạn có chắc chắn muốn xoá nhân viên này?')">
                                                     <i class="fa-solid fa-trash-can"></i>
                                                 </button>
@@ -187,6 +216,7 @@
                                                 @Html.AntiForgeryToken()
                                                 <input type="hidden" name="id" value="@staff.Id" />
                                                 <input type="hidden" name="q" value="@query" />
+                                                <input type="hidden" name="pageSize" value="@pageSize" />
                                                 <button class="btn btn-sm btn-success" title="Khôi phục" type="submit">
                                                     <i class="fa-solid fa-undo"></i>
                                                 </button>
@@ -234,11 +264,99 @@
                     </tbody>
                 </table>
             </div>
+
+            @* PAGINATION *@
+            @if (totalPages > 1)
+            {
+                Func<int, IHtmlContent> PageItem = (int p) =>
+                {
+                    var active = p == currentPage ? "active" : "";
+                    var action = string.IsNullOrWhiteSpace(query) ? "Index" : "Search";
+                    var url = string.IsNullOrWhiteSpace(query)
+                        ? Url.Action(action, "AccountStaff", new { page = p, pageSize = pageSize })
+                        : Url.Action(action, "AccountStaff", new { q = query, page = p, pageSize = pageSize });
+                    return new HtmlString($@"
+                        <li class=""page-item {active}"">
+                        <a class=""page-link"" href=""{url}"">{p}</a>
+                        </li>
+                        ");
+                };
+
+                Func<string, IHtmlContent> DisabledDots = (string text) =>
+                {
+                    return new HtmlString($@"
+                        <li class=""page-item disabled"">
+                        <span class=""page-link"">{text}</span>
+                        </li>
+                        ");
+                };
+
+                var prevDisabled = currentPage <= 1;
+                var nextDisabled = currentPage >= totalPages;
+                var prevPage = prevDisabled ? 1 : currentPage - 1;
+                var nextPage = nextDisabled ? totalPages : currentPage + 1;
+
+                var action = string.IsNullOrWhiteSpace(query) ? "Index" : "Search";
+                var prevUrl = prevDisabled
+                    ? "#"
+                    : string.IsNullOrWhiteSpace(query)
+                        ? Url.Action(action, "AccountStaff", new { page = prevPage, pageSize = pageSize })
+                        : Url.Action(action, "AccountStaff", new { q = query, page = prevPage, pageSize = pageSize });
+
+                var nextUrl = nextDisabled
+                    ? "#"
+                    : string.IsNullOrWhiteSpace(query)
+                        ? Url.Action(action, "AccountStaff", new { page = nextPage, pageSize = pageSize })
+                        : Url.Action(action, "AccountStaff", new { q = query, page = nextPage, pageSize = pageSize });
+
+                <nav>
+                    <ul class="pagination justify-content-center">
+                        <li class="page-item @(prevDisabled ? "disabled" : "")">
+                            <a class="page-link" href="@prevUrl" aria-disabled="@(prevDisabled ? "true" : "false")">«</a>
+                        </li>
+
+                        @{
+                            var windowSize = 1;
+                            var startPage = currentPage - windowSize;
+                            var endPage = currentPage + windowSize;
+                            if (startPage < 1) startPage = 1;
+                            if (endPage > totalPages) endPage = totalPages;
+
+                            @PageItem(1);
+
+                            if (startPage > 2)
+                            {
+                                @DisabledDots("...");
+                            }
+
+                            for (int p = startPage; p <= endPage; p++)
+                            {
+                                if (p != 1 && p != totalPages)
+                                {
+                                    @PageItem(p);
+                                }
+                            }
+
+                            if (endPage < totalPages - 1)
+                            {
+                                @DisabledDots("...");
+                            }
+
+                            if (totalPages > 1)
+                            {
+                                @PageItem(totalPages);
+                            }
+                        }
+
+                        <li class="page-item @(nextDisabled ? "disabled" : "")">
+                            <a class="page-link" href="@nextUrl" aria-disabled="@(nextDisabled ? "true" : "false")">»</a>
+                        </li>
+                    </ul>
+                </nav>
+            }
         </div>
     </div>
 </div>
-
-<!-- ADD MODAL -->
 <div class="modal fade" id="addStaffModal" tabindex="-1" aria-labelledby="addStaffLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
@@ -340,8 +458,11 @@
             <form method="post" id="editStaffForm" enctype="multipart/form-data" action="@Url.Action("UpdateStaff","AccountStaff")">
                 @Html.AntiForgeryToken()
                 <div class="modal-body bg-light-subtle p-4">
-                    <input type="hidden" name="Id" id="edit_staffId" value="0" />
+                    <input type="hidden" name="Id" id="edit_id" value="0" />
                     <input type="hidden" name="q" value="@query" />
+                    <input type="hidden" name="pageSize" value="@pageSize" />
+                    <input type="hidden" name="ExistingImage" id="edit_existingImage" />
+                    <input type="hidden" name="RemoveImage" id="edit_removeImage" value="false" />
 
                     <div class="mb-3">
                         <label class="form-label"><i class="fa-solid fa-image me-1"></i>Ảnh nhân viên</label>
@@ -386,7 +507,7 @@
 
                         <div class="col-lg-12">
                             <label class="form-label"><i class="fa-solid fa-envelope me-1"></i>Email <span class="text-danger">*</span></label>
-                            <input type="email" class="form-control" id="edit_email" disabled />
+                            <input type="email" class="form-control" id="edit_email" readonly />
                             <input type="hidden" name="Email" id="edit_email_hidden" />
                             <small class="form-text"><i class="fa-solid fa-lock me-1"></i>Email không thể thay đổi sau khi tạo</small>
                         </div>
@@ -429,60 +550,26 @@
     </div>
 </div>
 
-<!-- TOAST -->
-<div class="toast-container position-fixed p-3 toast-top-right" style="z-index:2080;">
-    <div id="liveToast" class="toast align-items-center border-0" role="alert" aria-live="assertive" aria-atomic="true">
-        <div class="d-flex">
-            <div class="toast-body fs-6 fw-semibold">
-                <i class="fa-solid fa-circle-exclamation me-2"></i>
-                <span id="toastMessage">@ViewBag.ErrorMessage</span>
-            </div>
-            <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast"></button>
-        </div>
-    </div>
-</div>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
 @section Scripts {
     <script>
-        // ===== Toast =====
-        function showToast(msg, isError = true){
-          const el = document.getElementById('liveToast');
-          const body = document.getElementById('toastMessage');
-          if(!el || !body) return;
-          body.textContent = msg || '';
-          el.className = 'toast align-items-center border-0 ' + (isError ? 'text-bg-danger' : 'text-bg-success');
-          new bootstrap.Toast(el, { delay: 5000 }).show();
+        // ===== Status Helper =====
+        function setStatus(scope, value) {
+            document.getElementById(scope + '_status').value = value;
         }
 
-        // ===== Status radio <-> hidden =====
-        function setStatus(scope, val){
-          const st = document.getElementById(scope + '_status');
-          if(st) st.value = val || 'Active';
-        }
-
-        // ===== Avatar helpers =====
-        function clearAvatar(scope){
+        // ===== Avatar Preview =====
+        function bindAvatarPreview(scope) {
           const file = document.getElementById(scope + '_avatarFile');
-          const img  = document.getElementById(scope + '_avatarPreview');
-          const ph   = document.getElementById(scope + '_avatarPlaceholder');
-          const rm   = document.getElementById(scope + '_removeImage');
-
-          if(file) file.value = '';
-          if(rm) rm.value = 'true';
-          if(img){ img.classList.add('d-none'); img.src = ''; }
-          if(ph){ ph.classList.remove('d-none'); }
-        }
-
-        function bindAvatarPreview(scope){
-          const file = document.getElementById(scope + '_avatarFile');
-          const img  = document.getElementById(scope + '_avatarPreview');
-          const ph   = document.getElementById(scope + '_avatarPlaceholder');
           if(!file) return;
-
           file.addEventListener('change', function(){
-            const f = file.files && file.files[0]; if(!f) return;
-            const ok = ['image/png','image/jpeg','image/jpg','image/webp','image/gif'];
-            if(!ok.includes(f.type)){ showToast('Định dạng không hợp lệ. Vui lòng chọn PNG/JPG/WebP/GIF.', true); file.value=''; return; }
+            const f = this.files?.[0];
+            if(!f) return;
+            const img = document.getElementById(scope + '_avatarPreview');
+            const ph  = document.getElementById(scope + '_avatarPlaceholder');
+            const allowed = ['image/png','image/jpeg','image/jpg','image/webp','image/gif'];
+            if(!allowed.includes(f.type.toLowerCase())){ showToast('Chỉ hỗ trợ PNG/JPG/WebP/GIF!', true); file.value=''; return; }
             if(f.size > 2*1024*1024){ showToast('Kích thước ảnh tối đa 2MB.', true); file.value=''; return; }
             const reader = new FileReader();
             reader.onload = (ev)=>{
@@ -504,47 +591,72 @@
           const ph = document.getElementById('add_avatarPlaceholder');
           if(ph){ ph.textContent='S'; ph.classList.remove('d-none'); }
 
-          const idel = document.getElementById('add_isDeleted'); if(idel) idel.value = 'false';
+          const img = document.getElementById('add_avatarPreview');
+          if(img){ img.src=''; img.classList.add('d-none'); }
+        }
+
+        function clearAvatar(scope){
+          const img = document.getElementById(scope + '_avatarPreview');
+          const ph  = document.getElementById(scope + '_avatarPlaceholder');
+          const file= document.getElementById(scope + '_avatarFile');
+          if(img) img.classList.add('d-none');
+          if(ph) ph.classList.remove('d-none');
+          if(file) file.value = '';
         }
 
         function openEditModal(btn){
-          const d = btn.dataset;
-          fillEditModal({
-            id: d.id, name: d.name, phone: d.phone, roleid: d.roleid,
-            email: d.email, image: d.image, status: d.status,
-            isdeleted: (d.isdeleted === 'true'), created: d.created, updated: d.updated
-          });
+          const data = {
+            id: btn.getAttribute('data-id'),
+            name: btn.getAttribute('data-name'),
+            email: btn.getAttribute('data-email'),
+            phone: btn.getAttribute('data-phone'),
+            roleid: btn.getAttribute('data-roleid'),
+            image: btn.getAttribute('data-image'),
+            status: btn.getAttribute('data-status'),
+            isdeleted: btn.getAttribute('data-isdeleted') === 'true',
+            created: btn.getAttribute('data-created'),
+            updated: btn.getAttribute('data-updated')
+          };
+          fillEditModal(data);
         }
 
         function fillEditModal(data){
-          const idEl = document.getElementById('edit_staffId');
-          const nameEl = document.getElementById('edit_accountName');
-          const phoneEl = document.getElementById('edit_phoneNumber');
-          const roleSel = document.getElementById('edit_roleId');
-          const emailDis = document.getElementById('edit_email');
-          const emailHid = document.getElementById('edit_email_hidden');
+          document.getElementById('edit_id').value = data.id || '';
+          document.getElementById('edit_accountName').value = data.name || '';
+          document.getElementById('edit_email').value = data.email || '';
+          document.getElementById('edit_email_hidden').value = data.email || '';
+          document.getElementById('edit_phoneNumber').value = data.phone || '';
+          document.getElementById('edit_roleId').value = data.roleid || '';
+          
+          // Status radio buttons
+          const statusActive = document.getElementById('edit_statusActive');
+          const statusInactive = document.getElementById('edit_statusInactive');
+          if (data.isdeleted) {
+            if (statusInactive) statusInactive.checked = true;
+            document.getElementById('edit_status').value = 'Inactive';
+            document.getElementById('edit_isDeleted').value = 'true';
+          } else {
+            const status = data.status || 'Active';
+            document.getElementById('edit_status').value = status;
+            if (status === 'Active' && statusActive) {
+              statusActive.checked = true;
+            } else if (statusInactive) {
+              statusInactive.checked = true;
+            }
+            document.getElementById('edit_isDeleted').value = 'false';
+          }
+
+          // Clear password fields
           const newPw = document.getElementById('edit_newPassword');
-          const confPw = document.getElementById('edit_confirmNewPassword');
-          const isDel = document.getElementById('edit_isDeleted');
-          const statusHid = document.getElementById('edit_status');
-
-          idEl.value = data.id || '0';
-          nameEl.value = data.name || '';
-          phoneEl.value = data.phone || '';
-          if(roleSel) roleSel.value = data.roleid || '';
-          emailDis.value = data.email || '';
-          emailHid.value = data.email || '';
-          if(newPw) newPw.value = '';
-          if(confPw) confPw.value = '';
-          isDel.value = String(!!data.isdeleted);
-
-          const statusVal = data.status || (data.isdeleted ? 'Inactive' : 'Active');
-          statusHid.value = statusVal;
-          document.getElementById('edit_statusActive').checked = (statusVal === 'Active');
-          document.getElementById('edit_statusInactive').checked = (statusVal !== 'Active');
-
-          document.getElementById('edit_createdAt').textContent = data.created ? new Date(data.created).toLocaleString() : '—';
-          document.getElementById('edit_updatedAt').textContent = data.updated ? new Date(data.updated).toLocaleString() : '—';
+          const confirmPw = document.getElementById('edit_confirmNewPassword');
+          if (newPw) newPw.value = '';
+          if (confirmPw) confirmPw.value = '';
+          
+          // Display dates
+          const createdAtEl = document.getElementById('edit_createdAt');
+          const updatedAtEl = document.getElementById('edit_updatedAt');
+          if (createdAtEl) createdAtEl.textContent = data.created ? new Date(data.created).toLocaleString() : '—';
+          if (updatedAtEl) updatedAtEl.textContent = data.updated ? new Date(data.updated).toLocaleString() : '—';
 
           const img = document.getElementById('edit_avatarPreview');
           const ph  = document.getElementById('edit_avatarPlaceholder');
@@ -567,6 +679,24 @@
             }
             if(ex) ex.value = '';
           }
+        }
+
+        // ===== Page Size Selector =====
+        function changePageSize(newPageSize) {
+          const query = '@Html.Raw(query ?? "")';
+          
+          if (query) {
+            // Nếu có query, redirect về Search action
+            window.location.href = '@Url.Action("Search", "AccountStaff")' + '?q=' + encodeURIComponent(query) + '&page=1&pageSize=' + newPageSize;
+          } else {
+            // Nếu không có query, redirect về Index action
+            window.location.href = '@Url.Action("Index", "AccountStaff")' + '?page=1&pageSize=' + newPageSize;
+          }
+        }
+
+        // ===== Toast Helper =====
+        function showToast(msg, isError){
+          alert(msg);
         }
 
         // ===== DOM Ready =====
@@ -604,14 +734,12 @@
           const showAddModal = '@((ViewBag.ShowAddModal == true) ? "true" : "false")';
           const hasEditData = '@((edit != null) ? "true" : "false")';
           
-          // ✅ Ưu tiên mở Add Modal nếu có flag ShowAddModal
           if(showAddModal === 'true'){
             console.log('Opening Add Modal with error data');
             try{
               const addDataStr = '@Html.Raw(JsonSerializer.Serialize(ViewBag.AddStaffModel ?? new BLL.DTOs.AccountDto()))';
               const addData = addDataStr ? JSON.parse(addDataStr) : {};
               
-              // Restore dữ liệu đã nhập (nếu có)
               if(addData.AccountName || addData.Email){
                 document.getElementById('add_accountName').value = addData.AccountName || addData.accountName || '';
                 document.getElementById('add_phoneNumber').value = addData.PhoneNumber || addData.phoneNumber || '';
@@ -625,7 +753,6 @@
               console.error('Error loading add modal:', e); 
             }
           }
-          // ✅ Chỉ mở Edit Modal nếu KHÔNG có ShowAddModal và có edit data
           else if(hasEditData === 'true'){
             console.log('Opening Edit Modal');
             try{
@@ -656,5 +783,3 @@
         });
     </script>
 }
-
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />

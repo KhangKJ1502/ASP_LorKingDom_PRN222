@@ -32,9 +32,10 @@ namespace BLL.Validators
             if (await _repo.ExistsByNameAsync(dto.PromotionCode))
                 throw new InvalidOperationException("Mã khuyến mãi đã tồn tại.");
 
-            var overlap = await _repo.HasOverlapAsync(0, dto.StartDate, dto.EndDate, excludeId: null);
-            if (overlap)
-                throw new InvalidOperationException("Khoảng thời gian khuyến mãi trùng với khuyến mãi khác.");
+            // OPTIONAL: Bỏ comment dòng dưới nếu muốn cho phép nhiều promotion cùng thời gian
+            // var overlap = await _repo.HasOverlapAsync(0, dto.StartDate, dto.EndDate, excludeId: null);
+            // if (overlap)
+            //     throw new InvalidOperationException("Khoảng thời gian khuyến mãi trùng với khuyến mãi khác.");
         }
 
         public async Task ThrowIfInvalidUpdateAsync(PromotionUpdateDto dto)
@@ -55,11 +56,12 @@ namespace BLL.Validators
                 throw new ArgumentException("Phần trăm giảm phải trong khoảng 0–100.");
 
             if (await _repo.ExistsByNameAsync(dto.PromotionCode, excludeId: dto.PromotionId))
-                throw new InvalidOperationException("Mã khuyến mãi đã tồn tại.");
+                throw new InvalidOperationException("Mã khuyến mãi đã tồn tại (trùng với khuyến mãi khác).");
 
-            var overlap = await _repo.HasOverlapAsync(0, dto.StartDate, dto.EndDate, excludeId: dto.PromotionId);
-            if (overlap)
-                throw new InvalidOperationException("Khoảng thời gian khuyến mãi trùng với khuyến mãi khác.");
+            // OPTIONAL: Bỏ comment dòng dưới nếu muốn cho phép nhiều promotion cùng thời gian
+            // var overlap = await _repo.HasOverlapAsync(0, dto.StartDate, dto.EndDate, excludeId: dto.PromotionId);
+            // if (overlap)
+            //     throw new InvalidOperationException($"Khoảng thời gian {dto.StartDate:dd/MM/yyyy} - {dto.EndDate:dd/MM/yyyy} trùng với khuyến mãi khác trong hệ thống.");
         }
     }
 }

@@ -237,7 +237,7 @@
 
         <div class="card-body">
             <!-- Bộ lọc / tìm kiếm -->
-            <form class="mb-4" method="get" asp-action="Manage" asp-controller="OrderRefundAdmin">
+            <form class="mb-4" method="get" asp-action="Search" asp-controller="OrderRefundAdmin">
                 <div class="row g-2 mb-3">
                     <div class="col-md-3">
                         <input type="text" name="keyword" value="@q" class="form-control"
@@ -268,8 +268,34 @@
                             <i class="fa-solid fa-magnifying-glass"></i> Tìm kiếm
                         </button>
                     </div>
+                    
+                    <div class="col-md-1">
+                        <button class="btn btn-outline-secondary w-100" type="button" 
+                                onclick="window.location.href='@Url.Action("Index", "OrderRefundAdmin")'">
+                            <i class="fa-solid fa-times"></i> Xóa
+                        </button>
+                    </div>
                 </div>
+                <input type="hidden" name="pageSize" value="@pageSize" />
             </form>
+
+            <!-- Page Size Selector -->
+            <div class="mb-3 d-flex justify-content-between align-items-center">
+                <div>
+                    <label for="pageSizeSelect" class="form-label mb-0 me-2">Hiển thị:</label>
+                    <select id="pageSizeSelect" class="form-select form-select-sm d-inline-block" style="width: auto;" onchange="changePageSize(this.value)">
+                        <option value="5" selected="@(pageSize == 5)">5</option>
+                        <option value="10" selected="@(pageSize == 10)">10</option>
+                        <option value="20" selected="@(pageSize == 20)">20</option>
+                        <option value="50" selected="@(pageSize == 50)">50</option>
+                        <option value="100" selected="@(pageSize == 100)">100</option>
+                    </select>
+                    <span class="ms-2 text-muted">yêu cầu mỗi trang</span>
+                </div>
+                <div class="text-muted">
+                    Trang @currentPage / @totalPages (Tổng @totalRecords yêu cầu)
+                </div>
+            </div>
 
             <!-- Bảng refund -->
             <div class="table-responsive">
@@ -438,13 +464,27 @@
             <!-- Pagination -->
             @if (totalPages > 1)
             {
+                var hasFilter = !string.IsNullOrWhiteSpace(q) || !string.IsNullOrWhiteSpace(statusFilter) || !string.IsNullOrWhiteSpace(dateFromFilter) || !string.IsNullOrWhiteSpace(dateToFilter);
+                var actionName = hasFilter ? "Search" : "Index";
+                
                 <nav class="mt-4" aria-label="Refund pagination">
                     <ul class="pagination justify-content-center">
+                        <!-- Previous Button -->
                         <li class="page-item @(currentPage <= 1 ? "disabled" : "")">
-                            <a class="page-link"
-                               href="@Url.Action("Manage", new { keyword = q, status = statusFilter, dateFrom = dateFromFilter, dateTo = dateToFilter, page = currentPage - 1, pageSize })">
-                                <i class="fas fa-chevron-left me-1"></i>Trước
-                            </a>
+                            @if (hasFilter)
+                            {
+                                <a class="page-link"
+                                   href="@Url.Action("Search", new { keyword = q, status = statusFilter, dateFrom = dateFromFilter, dateTo = dateToFilter, page = currentPage - 1, pageSize })">
+                                    « Trước
+                                </a>
+                            }
+                            else
+                            {
+                                <a class="page-link"
+                                   href="@Url.Action("Index", new { page = currentPage - 1, pageSize })">
+                                    « Trước
+                                </a>
+                            }
                         </li>
 
                         @{
@@ -453,9 +493,18 @@
 
                             if (startPage > 1)
                             {
-                                <li class="page-item">
-                                    <a class="page-link" href="@Url.Action("Manage", new { keyword = q, status = statusFilter, dateFrom = dateFromFilter, dateTo = dateToFilter, page = 1, pageSize })">1</a>
-                                </li>
+                                if (hasFilter)
+                                {
+                                    <li class="page-item">
+                                        <a class="page-link" href="@Url.Action("Search", new { keyword = q, status = statusFilter, dateFrom = dateFromFilter, dateTo = dateToFilter, page = 1, pageSize })">1</a>
+                                    </li>
+                                }
+                                else
+                                {
+                                    <li class="page-item">
+                                        <a class="page-link" href="@Url.Action("Index", new { page = 1, pageSize })">1</a>
+                                    </li>
+                                }
                                 if (startPage > 2)
                                 {
                                     <li class="page-item disabled"><span class="page-link">...</span></li>
@@ -464,12 +513,24 @@
 
                             for (int i = startPage; i <= endPage; i++)
                             {
-                                <li class="page-item @(i == currentPage ? "active" : "")">
-                                    <a class="page-link"
-                                       href="@Url.Action("Manage", new { keyword = q, status = statusFilter, dateFrom = dateFromFilter, dateTo = dateToFilter, page = i, pageSize })">
-                                        @i
-                                    </a>
-                                </li>
+                                if (hasFilter)
+                                {
+                                    <li class="page-item @(i == currentPage ? "active" : "")">
+                                        <a class="page-link"
+                                           href="@Url.Action("Search", new { keyword = q, status = statusFilter, dateFrom = dateFromFilter, dateTo = dateToFilter, page = i, pageSize })">
+                                            @i
+                                        </a>
+                                    </li>
+                                }
+                                else
+                                {
+                                    <li class="page-item @(i == currentPage ? "active" : "")">
+                                        <a class="page-link"
+                                           href="@Url.Action("Index", new { page = i, pageSize })">
+                                            @i
+                                        </a>
+                                    </li>
+                                }
                             }
 
                             if (endPage < totalPages)
@@ -478,17 +539,37 @@
                                 {
                                     <li class="page-item disabled"><span class="page-link">...</span></li>
                                 }
-                                <li class="page-item">
-                                    <a class="page-link" href="@Url.Action("Manage", new { keyword = q, status = statusFilter, dateFrom = dateFromFilter, dateTo = dateToFilter, page = totalPages, pageSize })">@totalPages</a>
-                                </li>
+                                if (hasFilter)
+                                {
+                                    <li class="page-item">
+                                        <a class="page-link" href="@Url.Action("Search", new { keyword = q, status = statusFilter, dateFrom = dateFromFilter, dateTo = dateToFilter, page = totalPages, pageSize })">@totalPages</a>
+                                    </li>
+                                }
+                                else
+                                {
+                                    <li class="page-item">
+                                        <a class="page-link" href="@Url.Action("Index", new { page = totalPages, pageSize })">@totalPages</a>
+                                    </li>
+                                }
                             }
                         }
 
+                        <!-- Next Button -->
                         <li class="page-item @(currentPage >= totalPages ? "disabled" : "")">
-                            <a class="page-link"
-                               href="@Url.Action("Manage", new { keyword = q, status = statusFilter, dateFrom = dateFromFilter, dateTo = dateToFilter, page = currentPage + 1, pageSize })">
-                                Sau <i class="fas fa-chevron-right ms-1"></i>
-                            </a>
+                            @if (hasFilter)
+                            {
+                                <a class="page-link"
+                                   href="@Url.Action("Search", new { keyword = q, status = statusFilter, dateFrom = dateFromFilter, dateTo = dateToFilter, page = currentPage + 1, pageSize })">
+                                    Sau »
+                                </a>
+                            }
+                            else
+                            {
+                                <a class="page-link"
+                                   href="@Url.Action("Index", new { page = currentPage + 1, pageSize })">
+                                    Sau »
+                                </a>
+                            }
                         </li>
                     </ul>
                 </nav>
@@ -683,6 +764,23 @@
             } catch (error) {
                 content.innerHTML = `<div class="alert alert-danger"><i class="fas fa-exclamation-circle me-2"></i>Lỗi tải dữ liệu: ${escapeHtml(error.message)}</div>`;
                 console.error('Error loading refund detail:', error);
+            }
+        }
+
+        function changePageSize(newPageSize) {
+            const hasFilter = '@q' || '@statusFilter' || '@dateFromFilter' || '@dateToFilter';
+            if (hasFilter) {
+                window.location.href = '@Url.Action("Search", "OrderRefundAdmin")' +
+                    '?keyword=@q' +
+                    '&status=@statusFilter' +
+                    '&dateFrom=@dateFromFilter' +
+                    '&dateTo=@dateToFilter' +
+                    '&page=1' +
+                    '&pageSize=' + newPageSize;
+            } else {
+                window.location.href = '@Url.Action("Index", "OrderRefundAdmin")' +
+                    '?page=1' +
+                    '&pageSize=' + newPageSize;
             }
         }
 
