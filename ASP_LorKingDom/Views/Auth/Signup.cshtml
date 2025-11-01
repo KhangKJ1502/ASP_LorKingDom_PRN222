@@ -3,6 +3,9 @@
     Layout = "_Layout";
 }
 
+@using BLL.DTOs
+@model SignupRequestDto
+
 @section Styles {
     <link rel="stylesheet" href="~/css/signup.css" asp-append-version="true" />
 }
@@ -55,31 +58,33 @@
             </div>
 
             <!-- Signup Form -->
-            <form class="signup-form" id="signupForm" method="post">
+            <form class="signup-form" id="signupForm">
                 @Html.AntiForgeryToken()
 
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
                 <div class="form-group">
-                    <label for="email" class="form-label">Email</label>
-                    <input type="email" id="email" name="email" class="form-input" placeholder="ten@email.com"
-                        required />
+                    <label asp-for="Email" class="form-label"></label>
+                    <input asp-for="Email" class="form-input" placeholder="ten@email.com" />
+                    <span asp-validation-for="Email" class="text-danger"></span>
                 </div>
 
                 <div class="form-group">
-                    <label for="password" class="form-label">Mật khẩu</label>
-                    <input type="password" id="password" name="password" class="form-input" placeholder="••••••••"
-                        required />
-                    <p class="form-hint">Tối thiểu 8 ký tự, bao gồm chữ và số</p>
+                    <label asp-for="Password" class="form-label">Mật khẩu</label>
+                    <input asp-for="Password" class="form-input" placeholder="••••••••" />
+                    @* <p class="form-hint">Tối thiểu 8 ký tự, bao gồm chữ và số</p> *@
+                    <span asp-validation-for="Password" class="text-danger"></span>
                 </div>
 
                 <div class="form-group">
-                    <label for="confirmPassword" class="form-label">Xác nhận mật khẩu</label>
-                    <input type="password" id="confirmPassword" name="confirmPassword" class="form-input"
-                        placeholder="••••••••" required />
+                    <label asp-for="ConfirmPassword" class="form-label">Xác nhận mật khẩu</label>
+                    <input asp-for="ConfirmPassword" class="form-input" placeholder="••••••••" />
+                    <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
                 </div>
 
                 <div class="form-checkbox">
-                    <label class="checkbox-label">
-                        <input type="checkbox" name="agreeTerms" required />
+                    <label asp-for="AgreeTerms" class="checkbox-label">
+                        <input asp-for="AgreeTerms" />
                         <span>
                             Tôi đồng ý với
                             <a href="/terms">Điều khoản dịch vụ</a>
@@ -87,6 +92,7 @@
                             <a href="/privacy">Chính sách bảo mật</a>
                         </span>
                     </label>
+                    <span asp-validation-for="AgreeTerms" class="text-danger"></span>
                 </div>
 
                 <button type="submit" class="btn-primary">Đăng ký</button>
@@ -134,59 +140,88 @@
 </div>
 
 @section Scripts {
+    <partial name="_ValidationScriptsPartial" />
     <script>
-        document.getElementById('signupForm').addEventListener('submit', async function (e) {
-            e.preventDefault();
+        $(document).ready(function () {
+            $('#signupForm').on('submit', function (e) {
+                e.preventDefault();
 
-            const formData = new FormData(this);
-            const submitBtn = this.querySelector('button[type="submit"]');
-            const originalText = submitBtn.innerHTML;
+                const form = $(this);
 
-            // Show loading state
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<span class="spinner-border me-2"></span>Đang xử lý...';
-
-            try {
-                const response = await fetch('@Url.Action("Signup", "Auth")', {
-                    method: 'POST',
-                    body: formData
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Thành công',
-                        text: data.message,
-                        confirmButtonColor: '#28a745',
-                        allowOutsideClick: false
-                    }).then(() => {
-                        window.location.href = data.redirectUrl;
-                    });
-                } else {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Đăng ký thất bại',
-                        text: data.message,
-                        confirmButtonColor: '#f97316',
-                        timer: 5000
-                    });
-                    // Reset button state
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = originalText;
+                // Kiểm tra client-side validation trước
+                if (!form.valid()) {
+                    return;
                 }
-            } catch (error) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Lỗi',
-                    text: 'Đã xảy ra lỗi khi đăng ký',
-                    confirmButtonColor: '#f97316'
+
+                // Kiểm tra checkbox AgreeTerms riêng
+                const agreeTerms = $('input[name="AgreeTerms"]').is(':checked');
+                if (!agreeTerms) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Thiếu thông tin',
+                        text: 'Bạn phải đồng ý với Điều khoản dịch vụ và Chính sách bảo mật.',
+                        confirmButtonColor: '#f97316'
+                    });
+                    return;
+                }
+
+                const submitBtn = form.find('button[type="submit"]');
+                const originalText = submitBtn.html();
+
+                // Hiển thị trạng thái đang xử lý
+                submitBtn.prop('disabled', true);
+                submitBtn.html('<span class="spinner-border me-2"></span>Đang xử lý...');
+
+                $.ajax({
+                    url: '@Url.Action("Signup", "Auth")',
+                    type: 'POST',
+                    data: form.serialize(),
+                    headers: {
+                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function (data) {
+                        if (data.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Thành công',
+                                text: data.message,
+                                confirmButtonColor: '#28a745',
+                                allowOutsideClick: false
+                            }).then(() => {
+                                window.location.href = data.redirectUrl;
+                            });
+                        } else {
+                            // Hiển thị lỗi
+                            let errorMessage = data.message;
+                            if (Array.isArray(data.message)) {
+                                errorMessage = data.message.join('\n');
+                            }
+
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Đăng ký thất bại',
+                                text: errorMessage,
+                                confirmButtonColor: '#f97316',
+                                timer: 5000
+                            });
+                            submitBtn.prop('disabled', false);
+                            submitBtn.html(originalText);
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Lỗi',
+                            text: 'Đã xảy ra lỗi khi đăng ký',
+                            confirmButtonColor: '#f97316'
+                        });
+                        submitBtn.prop('disabled', false);
+                        submitBtn.html(originalText);
+                        console.error('Signup error:', error);
+                    }
                 });
-                // Reset button state
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = originalText;
-            }
+            });
         });
     </script>
+
 }

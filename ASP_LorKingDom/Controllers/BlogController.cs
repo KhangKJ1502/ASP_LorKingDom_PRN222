@@ -56,11 +56,11 @@ namespace WebUI.Controllers
                     .ToList();
             }
 
-            // Separate featured and recent blogs
+            // Tách biệt các blog nổi bật và gần đây
             var featuredBlogs = filteredBlogs.Where(b => b.IsFeatured).Take(4).ToList();
             var recentBlogs = filteredBlogs.Where(b => !b.IsFeatured).ToList();
 
-            // Pagination cho recent posts
+            // Phân trang cho các bài đăng gần đây
             var totalCount = recentBlogs.Count;
             var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
             var pagedRecentBlogs = recentBlogs
