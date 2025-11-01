@@ -1,9 +1,18 @@
-﻿@model IEnumerable<BLL.DTOs.AccountDto>
+﻿@using System.Linq
+@using Microsoft.AspNetCore.Html
+@using BLL.DTOs
+@model BLL.DTOs.PagedResult<BLL.DTOs.AccountDto>
 @{
     Layout = "_AdminLayout";
     ViewData["Title"] = "Quản Lý Khách Hàng";
     var query = (string?)ViewBag.Query ?? "";
     var edit = ViewBag.EditCustomer as BLL.DTOs.AccountDto;
+    
+    var currentPage = Model?.Page ?? 1;
+    var pageSize = Model?.PageSize ?? 10;
+    var totalRows = Model?.Total ?? 0;
+    var totalPages = Model?.TotalPages ?? 1;
+    if (totalPages < 1) totalPages = 1;
 }
 
 <style>
@@ -211,15 +220,39 @@
         </div>
 
         <div class="card-body">
-            <!-- Tìm kiếm -->
-            <form class="mb-4" method="get" asp-action="Manage" asp-controller="AccountCustomer">
-                <div class="input-group search-box">
-                    <input type="text" name="q" value="@query" class="form-control" placeholder="Tìm theo tên, email, số điện thoại...">
-                    <button class="btn btn-outline-secondary" type="submit">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                    </button>
+            <div class="row mb-4">
+                <div class="col-md-8">
+                    <form method="get" asp-action="Search" asp-controller="AccountCustomer" id="searchForm">
+                        <div class="input-group search-box">
+                            <input type="text" name="q" value="@query" class="form-control" placeholder="Tìm theo tên, email, số điện thoại...">
+                            <input type="hidden" name="pageSize" value="@(Model?.PageSize ?? 10)" />
+                            <button class="btn btn-outline-secondary" type="submit"><i class="fa-solid fa-magnifying-glass"></i></button>
+                            @if (!string.IsNullOrWhiteSpace(query))
+                            {
+                                <a href="@Url.Action("Index", "AccountCustomer", new { pageSize = Model?.PageSize ?? 10 })" class="btn btn-outline-danger" title="Xóa tìm kiếm">
+                                    <i class="fa-solid fa-times"></i>
+                                </a>
+                            }
+                        </div>
+                    </form>
                 </div>
-            </form>
+                <div class="col-md-4">
+                    <div class="d-flex align-items-center justify-content-end">
+                        <label class="me-2 mb-0">Hiển thị:</label>
+                        <select class="form-select form-select-sm" style="width: auto;" id="pageSizeSelector" onchange="changePageSize(this.value)">
+                            @{
+                                var currentPageSize = Model?.PageSize ?? 10;
+                            }
+                            <option value="5" selected="@(currentPageSize == 5)">5</option>
+                            <option value="10" selected="@(currentPageSize == 10)">10</option>
+                            <option value="20" selected="@(currentPageSize == 20)">20</option>
+                            <option value="50" selected="@(currentPageSize == 50)">50</option>
+                            <option value="100" selected="@(currentPageSize == 100)">100</option>
+                        </select>
+                        <span class="ms-2 text-muted">mục/trang</span>
+                    </div>
+                </div>
+            </div>
 
             @if (TempData["Error"] is string e)
             {
@@ -246,16 +279,16 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @if (Model != null && Model.Any())
+                        @if (Model != null && Model.Items != null && Model.Items.Any())
                         {
-                            foreach (var customer in Model)
+                            foreach (var customer in Model.Items)
                             {
                                 <tr class="@(customer.IsDeleted ? "deleted-row" : "")">
                                     <td>@customer.Id</td>
                                     <td style="white-space:nowrap">
                                         <a class="btn btn-sm btn-warning" title="Cập nhật"
                                            asp-action="Edit" asp-controller="AccountCustomer"
-                                           asp-route-id="@customer.Id" asp-route-q="@query">
+                                           asp-route-id="@customer.Id" asp-route-q="@query" asp-route-pageSize="@pageSize">
                                             <i class="fa-solid fa-pen-to-square"></i>
                                         </a>
                                     </td>
@@ -317,6 +350,96 @@
                     </tbody>
                 </table>
             </div>
+
+            @* PAGINATION *@
+            @if (totalPages > 1)
+            {
+                Func<int, IHtmlContent> PageItem = (int p) =>
+                {
+                    var active = p == currentPage ? "active" : "";
+                    var action = string.IsNullOrWhiteSpace(query) ? "Index" : "Search";
+                    var url = string.IsNullOrWhiteSpace(query)
+                        ? Url.Action(action, "AccountCustomer", new { page = p, pageSize = pageSize })
+                        : Url.Action(action, "AccountCustomer", new { q = query, page = p, pageSize = pageSize });
+                    return new HtmlString($@"
+                        <li class=""page-item {active}"">
+                        <a class=""page-link"" href=""{url}"">{p}</a>
+                        </li>
+                        ");
+                };
+
+                Func<string, IHtmlContent> DisabledDots = (string text) =>
+                {
+                    return new HtmlString($@"
+                        <li class=""page-item disabled"">
+                        <span class=""page-link"">{text}</span>
+                        </li>
+                        ");
+                };
+
+                var prevDisabled = currentPage <= 1;
+                var nextDisabled = currentPage >= totalPages;
+                var prevPage = prevDisabled ? 1 : currentPage - 1;
+                var nextPage = nextDisabled ? totalPages : currentPage + 1;
+
+                var action = string.IsNullOrWhiteSpace(query) ? "Index" : "Search";
+                var prevUrl = prevDisabled
+                    ? "#"
+                    : string.IsNullOrWhiteSpace(query)
+                        ? Url.Action(action, "AccountCustomer", new { page = prevPage, pageSize = pageSize })
+                        : Url.Action(action, "AccountCustomer", new { q = query, page = prevPage, pageSize = pageSize });
+
+                var nextUrl = nextDisabled
+                    ? "#"
+                    : string.IsNullOrWhiteSpace(query)
+                        ? Url.Action(action, "AccountCustomer", new { page = nextPage, pageSize = pageSize })
+                        : Url.Action(action, "AccountCustomer", new { q = query, page = nextPage, pageSize = pageSize });
+
+                <nav>
+                    <ul class="pagination justify-content-center">
+                        <li class="page-item @(prevDisabled ? "disabled" : "")">
+                            <a class="page-link" href="@prevUrl" aria-disabled="@(prevDisabled ? "true" : "false")">«</a>
+                        </li>
+
+                        @{
+                            var windowSize = 1;
+                            var startPage = currentPage - windowSize;
+                            var endPage = currentPage + windowSize;
+                            if (startPage < 1) startPage = 1;
+                            if (endPage > totalPages) endPage = totalPages;
+
+                            @PageItem(1);
+
+                            if (startPage > 2)
+                            {
+                                @DisabledDots("...");
+                            }
+
+                            for (int p = startPage; p <= endPage; p++)
+                            {
+                                if (p != 1 && p != totalPages)
+                                {
+                                    @PageItem(p);
+                                }
+                            }
+
+                            if (endPage < totalPages - 1)
+                            {
+                                @DisabledDots("...");
+                            }
+
+                            if (totalPages > 1)
+                            {
+                                @PageItem(totalPages);
+                            }
+                        }
+
+                        <li class="page-item @(nextDisabled ? "disabled" : "")">
+                            <a class="page-link" href="@nextUrl" aria-disabled="@(nextDisabled ? "true" : "false")">»</a>
+                        </li>
+                    </ul>
+                </nav>
+            }
         </div>
     </div>
 </div>
@@ -338,6 +461,7 @@
                 <div class="modal-body">
                     <input type="hidden" name="Id" id="customerId" value="@(edit?.Id ?? 0)" />
                     <input type="hidden" name="q" value="@query" />
+                    <input type="hidden" name="pageSize" value="@pageSize" />
 
                     <div class="row g-3">
                         <!-- Avatar Preview -->
@@ -479,6 +603,16 @@
             document.getElementById('isDeleted').value = isDeleted.toString();
         }
 
+        function changePageSize(newPageSize) {
+          const query = '@Html.Raw(query ?? "")';
+          
+          if (query) {
+            window.location.href = '@Url.Action("Search", "AccountCustomer")' + '?q=' + encodeURIComponent(query) + '&page=1&pageSize=' + newPageSize;
+          } else {
+            window.location.href = '@Url.Action("Index", "AccountCustomer")' + '?page=1&pageSize=' + newPageSize;
+          }
+        }
+
         document.addEventListener('DOMContentLoaded', function () {
             // Hiển thị toast nếu có lỗi
             const hasError = '@(ViewBag.ShowErrorModal == true ? "true" : "false")';
@@ -499,7 +633,14 @@
         });
 
         function closeModal() {
-            window.location.href = '@Url.Action("Manage", "AccountCustomer", new { q = query })';
+            const query = '@Html.Raw(query ?? "")';
+            const pageSize = @pageSize;
+            
+            if (query) {
+                window.location.href = '@Url.Action("Search", "AccountCustomer")' + '?q=' + encodeURIComponent(query) + '&pageSize=' + pageSize;
+            } else {
+                window.location.href = '@Url.Action("Index", "AccountCustomer")' + '?pageSize=' + pageSize;
+            }
         }
     </script>
 }

@@ -31,7 +31,7 @@ namespace DAL.Repositories
                 var k = $"%{keyword.Trim()}%";
                 q = q.Where(p =>
                     EF.Functions.Like(p.ProductName, k) ||
-                    (p.Sku != null && EF.Functions.Like(p.Sku, k))   // ✅ null-safe + Like
+                    (p.Sku != null && EF.Functions.Like(p.Sku, k))
                 );
             }
 
@@ -41,14 +41,13 @@ namespace DAL.Repositories
         public async Task<Product?> GetByIdAsync(int id)
         {
             return await _ctx.Products
-                .AsNoTracking()
                 .Include(p => p.Category)
                 .Include(p => p.Brand)
-                .Include(p => p.Material)
-                .Include(p => p.Age)
-                .Include(p => p.Sex)
-                .Include(p => p.PriceRange)
-                .Include(p => p.Origin)
+                .Include(p => p.Material)     // ✅ thêm
+                .Include(p => p.Age)          // ✅ thêm
+                .Include(p => p.Sex)          // ✅ thêm
+                .Include(p => p.Origin)       // ✅ thêm
+                .Include(p => p.PriceRange)   // ✅ thêm (nếu muốn hiện mức giá)
                 .Include(p => p.ProductImages)
                 .FirstOrDefaultAsync(p => p.ProductId == id);
         }
@@ -73,7 +72,6 @@ namespace DAL.Repositories
 
         public async Task<bool> ExistsByNameAsync(string name, int? excludeId = null)
         {
-            // ✅ case-insensitive đơn giản (phụ thuộc collation; chuẩn hơn là normalized column/collation CI)
             var up = name.ToUpper();
             var query = _ctx.Products.Where(p => p.ProductName.ToUpper() == up);
             if (excludeId.HasValue)
@@ -152,7 +150,23 @@ namespace DAL.Repositories
             await _ctx.SaveChangesAsync();
             return items.Count;
         }
+        public async Task<int> SetIsDeletedByPriceRangeAsync(int priceRangeId, bool isDeleted)
+        {
+            var items = await _ctx.Products
+                .Where(p => p.PriceRangeId == priceRangeId)
+                .ToListAsync();
 
+            foreach (var p in items)
+            {
+                p.IsDeleted = isDeleted;
+                if (isDeleted)
+                    p.ProductStatus = "Discontinued";
+            }
+
+            await _ctx.SaveChangesAsync();
+            return items.Count;
+        }
+    
         public async Task<(List<Product> Items, int Total)> QueryStorefrontPagedAsync(string? keyword, int page, int pageSize)
         {
             if (page <= 0) page = 1;

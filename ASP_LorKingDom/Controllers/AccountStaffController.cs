@@ -20,15 +20,48 @@ namespace WebUI.Controllers
             _roleRepository = roleRepo;
         }
 
-        // ===== MANAGE =====
+        // ===== INDEX - View List (Không filter) =====
         [HttpGet]
-        public async Task<IActionResult> Manage(string? q)
+        public async Task<IActionResult> Index(int page = 1, int pageSize = 10)
         {
             await LoadRolesAsync();
-            var items = await _accountService.GetAllStaffForAdminAsync();
-            items = Filter(items, q);
+            var allItems = await _accountService.GetAllStaffForAdminAsync();
+            var orderedItems = allItems.OrderByDescending(c => c.CreatedAt).ToList();
+            
+            var pagedResult = GetPagedResult(orderedItems, page, pageSize);
+            ViewBag.Query = null;
+            
+            return View("~/Views/Admin/ManageAccountStaff.cshtml", pagedResult);
+        }
+
+        // ===== SEARCH - Tìm kiếm với query =====
+        [HttpGet]
+        public async Task<IActionResult> Search(string? q, int page = 1, int pageSize = 10)
+        {
+            await LoadRolesAsync();
+            var allItems = await _accountService.GetAllStaffForAdminAsync();
+            var filteredItems = Filter(allItems, q);
+            var orderedItems = filteredItems.OrderByDescending(c => c.CreatedAt).ToList();
+            
+            var pagedResult = GetPagedResult(orderedItems, page, pageSize);
             ViewBag.Query = q;
-            return View("~/Views/Admin/ManageAccountStaff.cshtml", items.OrderByDescending(c => c.CreatedAt).ToList());
+            
+            return View("~/Views/Admin/ManageAccountStaff.cshtml", pagedResult);
+        }
+
+        // ===== MANAGE - Xử lý cả list và search =====
+        [HttpGet]
+        public async Task<IActionResult> Manage(string? q, int page = 1, int pageSize = 10)
+        {
+            await LoadRolesAsync();
+            var allItems = await _accountService.GetAllStaffForAdminAsync();
+            var filteredItems = Filter(allItems, q);
+            var orderedItems = filteredItems.OrderByDescending(c => c.CreatedAt).ToList();
+            
+            var pagedResult = GetPagedResult(orderedItems, page, pageSize);
+            ViewBag.Query = q;
+            
+            return View("~/Views/Admin/ManageAccountStaff.cshtml", pagedResult);
         }
 
         // ===== CREATE =====
@@ -37,7 +70,8 @@ namespace WebUI.Controllers
             [FromForm] AccountDto model,
             [FromForm] string? q,
             [FromForm] IFormFile? AvatarFile,
-            [FromForm] string? ConfirmPassword)
+            [FromForm] string? ConfirmPassword,
+            [FromForm] int pageSize = 10)
         {
             try
             {
@@ -47,7 +81,7 @@ namespace WebUI.Controllers
                 model.Id = 0;
                 
                 var v = AccountValidator.ValidateCreateStaff(
-                    model.AccountName, model.Email, model.PhoneNumber, model.RoleId, model.Password, ConfirmPassword ?? "");
+                    model.AccountName, model.Email, model.PhoneNumber ?? "", model.RoleId, model.Password ?? "", ConfirmPassword ?? "");
 
                 if (!v.IsValid) AddModelErrors(v.Errors);
 
@@ -64,8 +98,8 @@ namespace WebUI.Controllers
                     ModelState.AddModelError(nameof(model.Email), "Email đã tồn tại trong hệ thống.");
                     ViewBag.ShowErrorModal = true;
                     ViewBag.ErrorMessage = "Email đã tồn tại trong hệ thống.";
-                    ViewBag.ShowAddModal = true; // Flag để mở lại Add Modal
-                    return await ReloadManagePage(q, model);
+                    ViewBag.ShowAddModal = true;
+                    return await ReloadManagePage(q, 1, pageSize, model);
                 }
                 
                 // Kiểm tra phone đã tồn tại - KHÔNG cho phép trùng khi tạo mới
@@ -75,8 +109,8 @@ namespace WebUI.Controllers
                     ModelState.AddModelError(nameof(model.PhoneNumber), "Số điện thoại đã tồn tại trong hệ thống.");
                     ViewBag.ShowErrorModal = true;
                     ViewBag.ErrorMessage = "Số điện thoại đã tồn tại trong hệ thống.";
-                    ViewBag.ShowAddModal = true; // Flag để mở lại Add Modal
-                    return await ReloadManagePage(q, model);
+                    ViewBag.ShowAddModal = true;
+                    return await ReloadManagePage(q, 1, pageSize, model);
                 }
 
                 if (AvatarFile is { Length: > 0 })
@@ -89,9 +123,9 @@ namespace WebUI.Controllers
                 {
                     ViewBag.ShowErrorModal = true;
                     ViewBag.ErrorMessage = FirstModelStateError();
-                    ViewBag.ShowAddModal = true; // Flag để mở lại Add Modal
-                    ViewBag.AddStaffModel = model; // Giữ lại data đã nhập
-                    return await ReloadManagePage(q, model);
+                    ViewBag.ShowAddModal = true;
+                    ViewBag.AddStaffModel = model;
+                    return await ReloadManagePage(q, 1, pageSize, model);
                 }
 
                 model.Status = model.IsDeleted ? "Inactive" : "Active";
@@ -107,7 +141,7 @@ namespace WebUI.Controllers
                         ViewBag.ErrorMessage = pathOrErr;
                         ViewBag.ShowAddModal = true;
                         ViewBag.AddStaffModel = model;
-                        return await ReloadManagePage(q, model);
+                        return await ReloadManagePage(q, 1, pageSize, model);
                     }
                     model.Image = pathOrErr;
                 }
@@ -123,7 +157,10 @@ namespace WebUI.Controllers
                     TempData["Error"] = "❌ Thêm nhân viên thất bại! Vui lòng thử lại.";
                 }
                 
-                return RedirectToAction(nameof(Manage), new { q });
+                // Redirect về Search nếu có query, về Index nếu không
+                return string.IsNullOrWhiteSpace(q) 
+                    ? RedirectToAction(nameof(Index), new { pageSize }) 
+                    : RedirectToAction(nameof(Search), new { q, pageSize });
             }
             catch (Exception ex)
             {
@@ -131,7 +168,7 @@ namespace WebUI.Controllers
                 ViewBag.ErrorMessage = $"Lỗi hệ thống: {ex.Message}";
                 ViewBag.ShowAddModal = true;
                 ViewBag.AddStaffModel = model;
-                return await ReloadManagePage(q, model);
+                return await ReloadManagePage(q, 1, pageSize, model);
             }
         }
 
@@ -150,7 +187,8 @@ namespace WebUI.Controllers
             [FromForm] string? q,
             [FromForm] string? ExistingImage,
             [FromForm] bool RemoveImage = false,
-            [FromForm] IFormFile? AvatarFile = null)
+            [FromForm] IFormFile? AvatarFile = null,
+            [FromForm] int pageSize = 10)
         {
             try
             {
@@ -160,7 +198,9 @@ namespace WebUI.Controllers
                 if (Id <= 0)
                 {
                     TempData["Error"] = "❌ ID nhân viên không hợp lệ. Không thể cập nhật.";
-                    return RedirectToAction(nameof(Manage), new { q });
+                    return string.IsNullOrWhiteSpace(q) 
+                        ? RedirectToAction(nameof(Index), new { pageSize }) 
+                        : RedirectToAction(nameof(Search), new { q, pageSize });
                 }
                 
                 // Kiểm tra staff có tồn tại không
@@ -168,7 +208,9 @@ namespace WebUI.Controllers
                 if (existing == null)
                 {
                     TempData["Error"] = "❌ Không tìm thấy nhân viên cần cập nhật!";
-                    return RedirectToAction(nameof(Manage), new { q });
+                    return string.IsNullOrWhiteSpace(q) 
+                        ? RedirectToAction(nameof(Index), new { pageSize }) 
+                        : RedirectToAction(nameof(Search), new { q, pageSize });
                 }
 
                 var v = AccountValidator.ValidateUpdateStaff(
@@ -210,7 +252,7 @@ namespace WebUI.Controllers
                         Image = ExistingImage
                     };
                     ViewBag.EditStaff = temp;
-                    return await ReloadManagePage(q, temp);
+                    return await ReloadManagePage(q, 1, pageSize, temp);
                 }
 
                 // Update existing staff info
@@ -232,7 +274,7 @@ namespace WebUI.Controllers
                         ViewBag.ShowErrorModal = true;
                         ViewBag.ErrorMessage = pathOrErr;
                         ViewBag.EditStaff = existing;
-                        return await ReloadManagePage(q, existing);
+                        return await ReloadManagePage(q, 1, pageSize, existing);
                     }
                     DeleteOldAvatar(existing.Image);
                     existing.Image = pathOrErr;
@@ -245,23 +287,29 @@ namespace WebUI.Controllers
 
                 var success = await _accountService.UpdateAsync(existing.Id, existing);
                 TempData["Success"] = success ? "✅ Cập nhật nhân viên thành công!" : "❌ Cập nhật thất bại!";
-                return RedirectToAction(nameof(Manage), new { q });
+                return string.IsNullOrWhiteSpace(q) 
+                    ? RedirectToAction(nameof(Index), new { pageSize }) 
+                    : RedirectToAction(nameof(Search), new { q, pageSize });
             }
             catch (DbUpdateConcurrencyException)
             {
                 TempData["Error"] = "⚠️ Dữ liệu đã bị thay đổi bởi người dùng khác. Vui lòng thử lại.";
-                return RedirectToAction(nameof(Manage), new { q });
+                return string.IsNullOrWhiteSpace(q) 
+                    ? RedirectToAction(nameof(Index), new { pageSize }) 
+                    : RedirectToAction(nameof(Search), new { q, pageSize });
             }
             catch (Exception ex)
             {
                 TempData["Error"] = $"❌ Lỗi: {ex.Message}";
-                return RedirectToAction(nameof(Manage), new { q });
+                return string.IsNullOrWhiteSpace(q) 
+                    ? RedirectToAction(nameof(Index), new { pageSize }) 
+                    : RedirectToAction(nameof(Search), new { q, pageSize });
             }
         }
 
         // ===== DELETE / RESTORE =====
         [HttpPost]
-        public async Task<IActionResult> DeleteStaff(int id, string? q)
+        public async Task<IActionResult> DeleteStaff(int id, string? q, int pageSize = 10)
         {
             try
             {
@@ -269,7 +317,9 @@ namespace WebUI.Controllers
                 if (staff == null)
                 {
                     TempData["Error"] = "Không tìm thấy nhân viên!";
-                    return RedirectToAction(nameof(Manage), new { q });
+                    return string.IsNullOrWhiteSpace(q) 
+                        ? RedirectToAction(nameof(Index), new { pageSize }) 
+                        : RedirectToAction(nameof(Search), new { q, pageSize });
                 }
                 staff.IsDeleted = true;
                 staff.Status = "Inactive";
@@ -282,11 +332,13 @@ namespace WebUI.Controllers
             {
                 TempData["Error"] = $"Lỗi khi xoá: {ex.Message}";
             }
-            return RedirectToAction(nameof(Manage), new { q });
+            return string.IsNullOrWhiteSpace(q) 
+                ? RedirectToAction(nameof(Index), new { pageSize }) 
+                : RedirectToAction(nameof(Search), new { q, pageSize });
         }
 
         [HttpPost]
-        public async Task<IActionResult> RestoreStaff(int id, string? q)
+        public async Task<IActionResult> RestoreStaff(int id, string? q, int pageSize = 10)
         {
             try
             {
@@ -294,7 +346,9 @@ namespace WebUI.Controllers
                 if (staff == null)
                 {
                     TempData["Error"] = "Không tìm thấy nhân viên!";
-                    return RedirectToAction(nameof(Manage), new { q });
+                    return string.IsNullOrWhiteSpace(q) 
+                        ? RedirectToAction(nameof(Index), new { pageSize }) 
+                        : RedirectToAction(nameof(Search), new { q, pageSize });
                 }
 
                 staff.IsDeleted = false;
@@ -308,7 +362,9 @@ namespace WebUI.Controllers
             {
                 TempData["Error"] = $"Lỗi khi khôi phục: {ex.Message}";
             }
-            return RedirectToAction(nameof(Manage), new { q });
+            return string.IsNullOrWhiteSpace(q) 
+                ? RedirectToAction(nameof(Index), new { pageSize }) 
+                : RedirectToAction(nameof(Search), new { q, pageSize });
         }
 
         // ===== Helpers =====
@@ -322,16 +378,40 @@ namespace WebUI.Controllers
                 (c.PhoneNumber?.Contains(kw) ?? false)).ToList();
         }
 
-        private async Task<IActionResult> ReloadManagePage(string? q, AccountDto? editModel = null)
+        private PagedResult<AccountDto> GetPagedResult(List<AccountDto> items, int page, int pageSize)
+        {
+            if (page < 1) page = 1;
+            if (pageSize < 1) pageSize = 10;
+
+            var totalItems = items.Count;
+            var pagedItems = items
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            return new PagedResult<AccountDto>
+            {
+                Items = pagedItems,
+                Page = page,           // ✅ Dùng Page thay vì CurrentPage
+                PageSize = pageSize,
+                Total = totalItems     // ✅ Dùng Total thay vì TotalItems
+            };
+        }
+
+        private async Task<IActionResult> ReloadManagePage(string? q, int page, int pageSize, AccountDto? editModel = null)
         {
             await LoadRolesAsync();
             var all = await _accountService.GetAllStaffForAdminAsync();
-            all = Filter(all, q);
+            var filtered = Filter(all, q);
+            var ordered = filtered.OrderByDescending(c => c.CreatedAt).ToList();
+
+            // ✅ Trả về PagedResult thay vì List
+            var pagedResult = GetPagedResult(ordered, page, pageSize);
 
             if (editModel != null) ViewBag.EditStaff = editModel;
             ViewBag.Query = q;
 
-            return View("~/Views/Admin/ManageAccountStaff.cshtml", all.OrderByDescending(c => c.CreatedAt).ToList());
+            return View("~/Views/Admin/ManageAccountStaff.cshtml", pagedResult);
         }
 
         private async Task LoadRolesAsync()

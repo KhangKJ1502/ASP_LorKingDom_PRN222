@@ -22,14 +22,14 @@ namespace WebUI.Controllers
             _roleRepo = roleRepository;
         }
 
-        public IActionResult Index() => RedirectToAction(nameof(Manage));
-
+        // ===== INDEX - View List (Không filter) =====
         [HttpGet]
-        public async Task<IActionResult> Manage([FromQuery] NotificationFilterDto f)
+        public async Task<IActionResult> Index(int page = 1, int pageSize = 10)
         {
+            var f = new NotificationFilterDto { Page = page, PageSize = pageSize };
             f = NormalizeFilter(f);
 
-            var list = await _svc.SearchAsync(f);
+            var pagedResult = await _svc.SearchAsync(f);
 
             ViewBag.Filter = f;
             ViewBag.Roles = await _roleRepo.GetAllAsync();
@@ -40,7 +40,47 @@ namespace WebUI.Controllers
                 ViewBag.EditNotification = edit;
             }
 
-            return View("~/Views/Admin/ManageNotification.cshtml", list);
+            return View("~/Views/Admin/ManageNotification.cshtml", pagedResult);
+        }
+
+        // ===== SEARCH - Tìm kiếm với filter =====
+        [HttpGet]
+        public async Task<IActionResult> Search([FromQuery] NotificationFilterDto f)
+        {
+            f = NormalizeFilter(f);
+
+            var pagedResult = await _svc.SearchAsync(f);
+
+            ViewBag.Filter = f;
+            ViewBag.Roles = await _roleRepo.GetAllAsync();
+
+            if (TempData["EditNotificationId"] is int nid && nid > 0)
+            {
+                var edit = await _svc.GetByIdAsync(nid);
+                ViewBag.EditNotification = edit;
+            }
+
+            return View("~/Views/Admin/ManageNotification.cshtml", pagedResult);
+        }
+
+        // ===== MANAGE - Xử lý cả list và search =====
+        [HttpGet]
+        public async Task<IActionResult> Manage([FromQuery] NotificationFilterDto f)
+        {
+            f = NormalizeFilter(f);
+
+            var pagedResult = await _svc.SearchAsync(f);
+
+            ViewBag.Filter = f;
+            ViewBag.Roles = await _roleRepo.GetAllAsync();
+
+            if (TempData["EditNotificationId"] is int nid && nid > 0)
+            {
+                var edit = await _svc.GetByIdAsync(nid);
+                ViewBag.EditNotification = edit;
+            }
+
+            return View("~/Views/Admin/ManageNotification.cshtml", pagedResult);
         }
 
         [HttpGet]
@@ -321,12 +361,12 @@ namespace WebUI.Controllers
             ViewBag.ErrorMessage = ex.Message;
             ViewBag.ShowAddModal = true; // Flag để mở Add Modal
 
-            var list = await _svc.SearchAsync(f);
+            var pagedResult = await _svc.SearchAsync(f);
             ViewBag.Filter = f;
             ViewBag.Roles = await _roleRepo.GetAllAsync();
             ViewBag.EditNotification = null; // Không có edit data
 
-            return View("~/Views/Admin/ManageNotification.cshtml", list);
+            return View("~/Views/Admin/ManageNotification.cshtml", pagedResult);
         }
 
         private async Task<IActionResult> HandleUpdateError(Exception ex, NotificationSaveDto dto, NotificationFilterDto f)
@@ -334,7 +374,7 @@ namespace WebUI.Controllers
             ViewBag.ShowErrorModal = true;
             ViewBag.ErrorMessage = ex.Message;
 
-            var list = await _svc.SearchAsync(f);
+            var pagedResult = await _svc.SearchAsync(f);
             ViewBag.Filter = f;
             ViewBag.Roles = await _roleRepo.GetAllAsync();
 
@@ -357,7 +397,7 @@ namespace WebUI.Controllers
                 CreatedAt = DateTime.UtcNow
             };
 
-            return View("~/Views/Admin/ManageNotification.cshtml", list);
+            return View("~/Views/Admin/ManageNotification.cshtml", pagedResult);
         }
 
         private async Task<IActionResult> HandleSaveError(Exception ex, NotificationSaveDto dto, NotificationFilterDto f)
@@ -365,7 +405,7 @@ namespace WebUI.Controllers
             ViewBag.ShowErrorModal = true;
             ViewBag.ErrorMessage = ex.Message;
 
-            var list = await _svc.SearchAsync(f);
+            var pagedResult = await _svc.SearchAsync(f);
             ViewBag.Filter = f;
             ViewBag.Roles = await _roleRepo.GetAllAsync();
 
@@ -394,7 +434,7 @@ namespace WebUI.Controllers
                 ViewBag.EditNotification = null;
             }
 
-            return View("~/Views/Admin/ManageNotification.cshtml", list);
+            return View("~/Views/Admin/ManageNotification.cshtml", pagedResult);
         }
 
         private static DateTime ToUtcFromLocal(DateTime local)

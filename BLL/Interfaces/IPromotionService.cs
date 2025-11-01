@@ -15,7 +15,7 @@ namespace BLL.Interfaces
         Task<PromotionDto> CreateAsync(PromotionCreateDto dto);
         Task<bool> UpdateAsync(PromotionUpdateDto dto);
 
-        Task<bool> SoftDeleteAsync(int id);
+        Task<bool> DeleteAsync(int id);
         Task<bool> RestoreAsync(int id);
         Task<bool> ToggleStatusAsync(int id);
         Task<bool> SetStatusAsync(int id, string status);

@@ -21,23 +21,33 @@ namespace WebUI.Controllers
         }
 
         // ------------------------------
-        // GET: /OrderRefundAdmin
+        // GET: /OrderRefundAdmin (Index - List all)
         // ------------------------------
         [HttpGet]
-        public IActionResult Index(
-            string? q,
+        public async Task<IActionResult> Index(
+            int page = 1,
+            int pageSize = 10)
+        {
+            return await LoadRefundListAsync(null, null, null, null, page, pageSize);
+        }
+
+        // ------------------------------
+        // GET: /OrderRefundAdmin/Search (Search with filters)
+        // ------------------------------
+        [HttpGet("Search")]
+        public async Task<IActionResult> Search(
+            string? keyword,
             string? status,
             DateTime? dateFrom,
             DateTime? dateTo,
             int page = 1,
             int pageSize = 10)
         {
-            // Redirect sang action Manage, kèm theo query params
-            return RedirectToAction(nameof(Manage), new { keyword = q, status, dateFrom, dateTo, page, pageSize });
+            return await LoadRefundListAsync(keyword, status, dateFrom, dateTo, page, pageSize);
         }
 
         // ------------------------------
-        // GET: /OrderRefundAdmin/Manage
+        // GET: /OrderRefundAdmin/Manage (Combined handler)
         // ------------------------------
         [HttpGet("Manage")]
         public async Task<IActionResult> Manage(

@@ -192,12 +192,13 @@ namespace DAL.Repositories
             if (end < start) (start, end) = (end, start);
 
             var query = _context.Promotions
-                .Where(p => !p.IsDeleted);
+                .Where(p => !p.IsDeleted)
+                .Where(p => p.StartDate < end && p.EndDate > start); // Fixed: use < and > to avoid touching boundaries
 
             if (excludeId.HasValue)
                 query = query.Where(p => p.PromotionId != excludeId.Value);
 
-            return query.AnyAsync(p => p.StartDate <= end && p.EndDate >= start);
+            return query.AnyAsync();
         }
     }
 }
