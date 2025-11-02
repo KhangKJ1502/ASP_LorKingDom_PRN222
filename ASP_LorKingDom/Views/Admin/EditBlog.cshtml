@@ -242,60 +242,73 @@
 
         // Trước khi submit: lấy nội dung HTML từ Quill
         document.querySelector('form')?.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const form = this;
             const content = quill.root.innerHTML;
             document.getElementById('blogContent').value = content;
 
             if (!content.trim() || content === '<p><br></p>') {
-                e.preventDefault();
-                Swal.fire('Lỗi', 'Nội dung không được để trống', 'error');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi',
+                    text: 'Nội dung không được để trống',
+                    confirmButtonColor: '#dc2626'
+                });
                 return false;
             }
 
-            // Kiểm tra featured checkbox
-            const isFeatured = document.getElementById('isFeatured').checked;
-            const blogId = document.querySelector('input[name="id"]').value;
-            const originalIsFeatured = @(Model.IsFeatured.ToString().ToLower());
+            // Submit với AJAX
+            Swal.fire({
+                title: 'Đang cập nhật...',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
 
-            // Nếu muốn featured và chưa featured trước đây, gửi AJAX request để kiểm tra giới hạn
-            if (isFeatured && !originalIsFeatured) {
-                e.preventDefault();
-                submitFormWithFeaturedCheck(this, blogId);
-            }
+                    const formData = new FormData(form);
+                    const token = $('input[name="__RequestVerificationToken"]').val();
+
+                    $.ajax({
+                        url: form.action,
+                        type: 'POST',
+                        data: formData,
+                        processData: false,
+                        contentType: false,
+                        headers: {
+                            'RequestVerificationToken': token
+                        },
+                        success: function (data) {
+                            if (data.success) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Thành công',
+                                    text: data.message,
+                                    confirmButtonColor: '#10b981'
+                                }).then(() => {
+                                    window.location.href = '/Blog/Manage';
+                                });
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Lỗi',
+                                    text: data.message,
+                                    confirmButtonColor: '#dc2626'
+                                });
+                            }
+                        },
+                        error: function (xhr) {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Lỗi',
+                                text: 'Đã xảy ra lỗi khi cập nhật bài viết',
+                                confirmButtonColor: '#dc2626'
+                            });
+                        }
+                    });
+                }
+            });
+
+            return false;
         });
-
-        // ✅ Hàm gửi form với kiểm tra featured blogs
-        function submitFormWithFeaturedCheck(form, blogId) {
-            const formData = new FormData(form);
-
-            fetch(form.action, {
-                method: 'POST',
-                body: formData
-            })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Thành công',
-                            text: data.message,
-                            confirmButtonText: 'OK'
-                        }).then(() => {
-                            window.location.href = '/Blog/Manage';
-                        });
-                    } else {
-                        // Hiển thị lỗi nếu không thể thêm featured
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Lỗi',
-                            text: data.message,
-                            confirmButtonText: 'Đóng'
-                        });
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    Swal.fire('Lỗi', 'Có lỗi xảy ra khi gửi dữ liệu', 'error');
-                });
-        }
     </script>
 }

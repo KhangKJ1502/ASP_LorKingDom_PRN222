@@ -133,5 +133,41 @@ namespace BLL.Services
                     .ToList()
             };
         }
+
+        public async Task<ReviewProductDto?> GetReviewByProductAndAccountAsync(int productId, int accountId)
+        {
+            var reviews = await _repo.GetAllAsync();
+            var review = reviews
+                .FirstOrDefault(r => r.ProductId == productId && r.AccountId == accountId && !r.IsDeleted);
+
+            return review != null ? MapToDto(review) : null;
+        }
+
+        public async Task<List<ReviewProductDto>> GetReviewsByProductIdAsync(int productId)
+        {
+            var reviews = await _repo.GetAllAsync();
+            return reviews
+                .Where(r => r.ProductId == productId && !r.IsDeleted && r.Account?.Role?.RoleName == "Customer")
+                .OrderByDescending(r => r.CreatedAt)
+                .Select(r => MapToDto(r))
+                .ToList();
+        }
+
+        public async Task<List<ReviewProductDto>> GetReviewsByAccountAsync(int accountId)
+        {
+            var reviews = await _repo.GetAllAsync();
+
+            return reviews
+                .Where(r => r.AccountId == accountId && !r.IsDeleted)
+                .OrderByDescending(r => r.CreatedAt)
+                .Select(r => MapToDto(r))
+                .ToList();
+        }
+
+        public async Task<bool> HasUserReviewedAsync(int productId, int accountId)
+        {
+            return await _repo.HasUserReviewedAsync(productId, accountId);
+        }
+
     }
 }

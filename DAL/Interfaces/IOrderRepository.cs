@@ -6,5 +6,16 @@ namespace DAL.Interfaces
     {
         Task<int> CreateOrderAsync(Order order);
         Task<int> CountByVoucherAndAccountAsync(int voucherId, int accountId);
-    }
+        Task<List<Order>> GetOrdersByAccountIdAsync(int accountId);
+        Task<Order?> GetOrderByIdAsync(int orderId);
+
+        // Admin methods
+        Task<(List<Order> orders, int totalCount)> GetAllOrdersAsync(string? query, int? statusId, DateTime? dateFrom, DateTime? dateTo, int skip, int take);
+        Task<bool> UpdateOrderStatusAsync(int orderId, int newStatusId);
+
+		// review product 
+		Task<List<Order>> GetByAccountIdAsync(int accountId);
+		Task<List<OrderDetail>> GetOrderDetailsByOrderIdAsync(int orderId);
+		Task<bool> UpdateOrderDetailAsync(OrderDetail orderDetail);
+	}
 }

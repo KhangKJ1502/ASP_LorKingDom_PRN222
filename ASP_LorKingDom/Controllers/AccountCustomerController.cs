@@ -1,9 +1,13 @@
 ﻿using BLL.DTOs;
 using BLL.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using WebUI.Filters;
 
 namespace WebUI.Controllers
 {
+    [Authorize(AuthenticationSchemes = "AdminScheme")]
+    [AdminAndStaffOnly] // Staff: Customer Management
     [AutoValidateAntiforgeryToken]
     public class AccountCustomerController : Controller
     {
@@ -16,10 +20,10 @@ namespace WebUI.Controllers
         {
             var allItems = await _accountService.GetAllCustomerForAdminAsync();
             var orderedItems = allItems.OrderByDescending(c => c.CreatedAt).ToList();
-            
+
             var pagedResult = GetPagedResult(orderedItems, page, pageSize);
             ViewBag.Query = null;
-            
+
             return View("~/Views/Admin/ManageAccountCustomer.cshtml", pagedResult);
         }
 
@@ -30,10 +34,10 @@ namespace WebUI.Controllers
             var allItems = await _accountService.GetAllCustomerForAdminAsync();
             var filteredItems = Filter(allItems, q);
             var orderedItems = filteredItems.OrderByDescending(c => c.CreatedAt).ToList();
-            
+
             var pagedResult = GetPagedResult(orderedItems, page, pageSize);
             ViewBag.Query = q;
-            
+
             return View("~/Views/Admin/ManageAccountCustomer.cshtml", pagedResult);
         }
 
@@ -53,7 +57,7 @@ namespace WebUI.Controllers
             var all = await _accountService.GetAllCustomerForAdminAsync();
             var filtered = Filter(all, q);
             var ordered = filtered.OrderByDescending(c => c.CreatedAt).ToList();
-            
+
             var pagedResult = GetPagedResult(ordered, page, pageSize);
             return View("~/Views/Admin/ManageAccountCustomer.cshtml", pagedResult);
         }

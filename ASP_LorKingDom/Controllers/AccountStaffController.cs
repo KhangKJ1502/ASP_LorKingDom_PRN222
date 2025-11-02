@@ -2,11 +2,15 @@
 using BLL.Interfaces;
 using BLL.Validators;
 using DAL.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using WebUI.Filters;
 
 namespace WebUI.Controllers
 {
+    [Authorize(AuthenticationSchemes = "AdminScheme")]
+    [AdminOnly] // Only Admin: Staff Management
     [AutoValidateAntiforgeryToken]
     [RequestSizeLimit(5 * 1024 * 1024)] // 5MB
     public class AccountStaffController : Controller
@@ -27,10 +31,10 @@ namespace WebUI.Controllers
             await LoadRolesAsync();
             var allItems = await _accountService.GetAllStaffForAdminAsync();
             var orderedItems = allItems.OrderByDescending(c => c.CreatedAt).ToList();
-            
+
             var pagedResult = GetPagedResult(orderedItems, page, pageSize);
             ViewBag.Query = null;
-            
+
             return View("~/Views/Admin/ManageAccountStaff.cshtml", pagedResult);
         }
 
@@ -42,10 +46,10 @@ namespace WebUI.Controllers
             var allItems = await _accountService.GetAllStaffForAdminAsync();
             var filteredItems = Filter(allItems, q);
             var orderedItems = filteredItems.OrderByDescending(c => c.CreatedAt).ToList();
-            
+
             var pagedResult = GetPagedResult(orderedItems, page, pageSize);
             ViewBag.Query = q;
-            
+
             return View("~/Views/Admin/ManageAccountStaff.cshtml", pagedResult);
         }
 

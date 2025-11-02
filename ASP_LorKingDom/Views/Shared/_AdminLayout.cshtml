@@ -23,7 +23,7 @@
 
 	<!-- Font Awesome 6 -->
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
-		  crossorigin="anonymous" referrerpolicy="no-referrer">
+		crossorigin="anonymous" referrerpolicy="no-referrer">
 
 	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 	<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
@@ -82,7 +82,7 @@
 									</li>
 								}
 								@* Product Statistics - Admin và Warehouse *@
-								@if (User.IsInRole("Admin") || User.IsInRole("Warehouse"))
+								@if (User.IsInRole("Admin") || User.IsInRole("WareHouse"))
 								{
 									<li>
 										<a asp-controller="Statistics" asp-action="ProductStatistics">
@@ -144,7 +144,7 @@
 						</li>
 						<li>
 							<a class="show-cat-btn" href="##">
-								<span class="icon user-3" aria-hidden="true"></span>Quản Lí Tài Khoản
+								<span class="icon user-3" aria-hidden="true"></span>Quản Lý Tài Khoản
 								<span class="category__btn transparent-btn" title="Open list">
 									<span class="sr-only">Open list</span>
 									<span class="icon arrow-down" aria-hidden="true"></span>
@@ -161,7 +161,7 @@
 						</li>
 						<li>
 							<a class="show-cat-btn" href="##">
-								<span class="fa-solid fa-file-invoice" aria-hidden="true"></span>  Quản Lí Đơn Hàng
+								<span class="fa-solid fa-file-invoice" aria-hidden="true"></span>Quản Lý Đơn Hàng
 								<span class="category__btn transparent-btn" title="Open list">
 									<span class="sr-only">Open list</span>
 									<span class="icon arrow-down" aria-hidden="true"></span>
@@ -193,10 +193,12 @@
 									<a asp-controller="BlogCategory" asp-action="Manage">Danh mục Bài Viết </a>
 								</li>
 								<li>
-									<a asp-controller="BlogReview" asp-action="ManageBlogReview">Quản Lý Bình Luận Bài Viết</a>
+									<a asp-controller="BlogReview" asp-action="ManageBlogReview">Quản Lý Bình Luận Bài
+										Viết</a>
 								</li>
 								<li>
-									<a asp-controller="ReviewProduct" asp-action="ManageProductReview">Quản Lý Đánh Giá Sản Phẩm</a>
+									<a asp-controller="ReviewProduct" asp-action="ManageProductReview">Quản Lý Đánh Giá
+										Sản Phẩm</a>
 								</li>
 							</ul>
 						</li>
@@ -214,7 +216,7 @@
 								</li>
 
 								<li>
-									<a asp-controller="Chat" asp-action="Staff" > Quản lý Chat
+									<a asp-controller="Chat" asp-action="Staff"> Quản lý Chat
 									</a>
 								</li>
 							</ul>
@@ -308,7 +310,7 @@
 							<span class="icon menu-toggle--gray" aria-hidden="true"></span>
 						</button>
 						<div class="lang-switcher-wrapper">
-						
+
 						</div>
 						<button class="theme-switcher gray-circle-btn" type="button" title="Switch theme">
 							<span class="sr-only">Switch theme</span>
@@ -382,26 +384,26 @@
 								<span class="sr-only">My profile</span>
 								<span class="nav-user-img">
 									<img src="@(User.FindFirst("Avatar")?.Value ?? "/Assets/image/avatar/avatar-illustrated-02.png")"
-										 alt="@(User.FindFirst("AccountName")?.Value ?? "User")" />
+										alt="@(User.FindFirst("AccountName")?.Value ?? "User")" />
 								</span>
 							</button>
 							<ul class="users-item-dropdown nav-user-dropdown dropdown">
 								<li>
 									<a href="#" onclick="showProfileModal(); return false;">
 										<i data-feather="user" aria-hidden="true"></i>
-										<span>Profile</span>
+										<span>Hồ sơ</span>
 									</a>
 								</li>
 								<li>
 									<a href="@Url.Action("Profile", "Admin")">
 										<i data-feather="settings" aria-hidden="true"></i>
-										<span>Account settings</span>
+										<span>Cập nhật</span>
 									</a>
 								</li>
 								<li>
 									<a class="danger" href="#" onclick="confirmLogout(); return false;">
 										<i data-feather="log-out" aria-hidden="true"></i>
-										<span>Log out</span>
+										<span>Đăng xuất</span>
 									</a>
 								</li>
 							</ul>
@@ -441,6 +443,9 @@
 		</div>
 	</div>
 	<!-- ✅ JS -->
+	<!-- jQuery PHẢI nằm trước Bootstrap và các script khác -->
+	<script src="https://code.jquery.com/jquery-3.7.1.min.js"
+		integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 	<script src="~/Assets/plugins/chart.min.js" asp-append-version="true"></script>
 	<script src="~/Assets/plugins/feather.min.js" asp-append-version="true"></script>
@@ -463,7 +468,7 @@
 				<div class="modal-body">
 					<div class="text-center mb-4">
 						<img id="profileAvatar" src="" alt="Avatar"
-							 style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid #667eea;">
+							style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid #667eea;">
 					</div>
 					<div class="profile-info">
 						<div class="mb-3">

@@ -6,10 +6,12 @@ using BLL.DTOs;
 using BLL.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using WebUI.Filters;
 
 namespace WebUI.Controllers
 {
-    //[Authorize(Roles = "Admin,Staff")] // Bỏ comment nếu cần giới hạn quyền truy cập
+    [Authorize(AuthenticationSchemes = "AdminScheme")]
+    [AdminAndStaffOnly] // Staff: Refund Management
     [Route("OrderRefundAdmin")]
     public class OrderRefundAdminController : Controller
     {                                                                                                                                                                                                           

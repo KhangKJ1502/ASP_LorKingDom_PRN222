@@ -7,10 +7,12 @@ using System;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using WebUI.Filters;
 
 namespace WebUI.Controllers
 {
     [Authorize(AuthenticationSchemes = "AdminScheme")]
+    [AdminAndStaffOnly] // Staff: Product Review Management
     public class ReviewProductController : Controller
     {
         private readonly IReviewProductService _reviewProductService;

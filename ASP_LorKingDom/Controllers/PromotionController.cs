@@ -1,12 +1,16 @@
 using BLL.DTOs;
 using BLL.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using WebUI.Filters;
 
 namespace WebUI.Controllers
 {
+    [Authorize(AuthenticationSchemes = "AdminScheme")]
+    [AdminAndStaffOnly] // Staff: Promotion Management
     public class PromotionController : Controller
     {
         private readonly IPromotionService _promotionService;
@@ -111,7 +115,7 @@ namespace WebUI.Controllers
             else TempData["ErrorMessage"] = "Không thể gỡ khuyến mãi.";
             return RedirectToAction(nameof(ManageProducts), new { promotionId });
         }
-        
+
         // ===== INDEX - View List (Không filter) =====
         [HttpGet("Promotion/Manage")]
         public async Task<IActionResult> Index(int page = 1, int pageSize = 10)
@@ -169,7 +173,6 @@ namespace WebUI.Controllers
                 EndDate = dto.EndDate,
                 Status = string.IsNullOrWhiteSpace(dto.Status) ? "Active" : dto.Status
             });
-
             TempData["SuccessMessage"] = "Thêm khuyến mãi mới thành công!";
             return RedirectToListOrSearch(keyword, page, pageSize);
         }
@@ -211,7 +214,6 @@ namespace WebUI.Controllers
             TempData["SuccessMessage"] = "Cập nhật khuyến mãi thành công!";
             return RedirectToListOrSearch(keyword, page, pageSize);
         }
-
 
 
         // ===========================

@@ -197,14 +197,14 @@
                                     <td><span class="author-name">@blog.BlogPostId</span></td>
                                     <td style="text-align: center;">
                                         <button type="button" class="btn btn-sm btn-info"
-                                                onclick="viewBlogDetail(@blog.BlogPostId)" title="Xem">
+                                            onclick="viewBlogDetail(@blog.BlogPostId)" title="Xem">
                                             <i class="fas fa-eye"></i>
                                         </button>
                                         <a href="/Blog/Edit/@blog.BlogPostId" class="btn btn-sm btn-warning" title="Sửa">
                                             <i class="fas fa-edit"></i>
                                         </a>
                                         <button type="button" class="btn btn-sm btn-danger"
-                                                onclick="confirmDeleteBlog(@blog.BlogPostId)" title="Xóa">
+                                            onclick="confirmDeleteBlog(@blog.BlogPostId)" title="Xóa">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </td>
@@ -218,7 +218,8 @@
                                         </div>
                                     </td>
                                     <td>
-                                        <h6 class="blog-title cursor-pointer" onclick="viewBlogDetail(@blog.BlogPostId)" title="@blog.BlogTitle">
+                                        <h6 class="blog-title cursor-pointer" onclick="viewBlogDetail(@blog.BlogPostId)"
+                                            title="@blog.BlogTitle">
                                             @blog.BlogTitle
                                         </h6>
                                     </td>
@@ -252,7 +253,7 @@
                                                 <i class="fas fa-file"></i> Nháp
                                             </span>
                                         }
-                                    </td>                                   
+                                    </td>
                                     <td><span class="date-text">@blog.CreatedAt.ToString("dd/MM/yyyy HH:mm")</span></td>
                                     @* <td><span class="date-text">@(blog.UpdatedAt?.ToString("dd/MM/yyyy HH:mm") ?? blog.CreatedAt.ToString("dd/MM/yyyy HH:mm"))</span></td> *@
                                 </tr>
@@ -354,38 +355,38 @@
                 const createdAtFormatted = dayjs(blog.createdAt).format('DD/MM/YYYY HH:mm');
 
                 const content = `
-                        <div class="row g-3">
-                            <div class="col-md-12">
-                                <img src="${blog.blogThumbnail || 'https://upload.wikimedia.org/wikipedia/commons/d/d1/Image_not_available.png'}"
-                                     class="img-fluid rounded border" style="max-height: 300px; width: 100%; object-fit: cover;">
+                            <div class="row g-3">
+                                <div class="col-md-12">
+                                    <img src="${blog.blogThumbnail || 'https://upload.wikimedia.org/wikipedia/commons/d/d1/Image_not_available.png'}"
+                                         class="img-fluid rounded border" style="max-height: 300px; width: 100%; object-fit: cover;">
+                                </div>
+                                <div class="col-md-12">
+                                    <h5><strong>Tiêu đề:</strong> ${blog.blogTitle}</h5>
+                                </div>
+                                <div class="col-md-12">
+                                    <p><strong>Tác giả:</strong> ${blog.authorName}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Ngày cập nhật:</strong> ${updatedAtFormatted}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Ngày tạo:</strong> ${createdAtFormatted}</p>
+                                </div>
+                                <div class="col-md-12">
+                                    <p class="mb-2"><strong>Chuyên mục:</strong> ${(blog.categoryNames || []).join(', ')}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Trạng thái:</strong> ${blog.isPublished ? '<span class="badge bg-success"><i class="fas fa-check-circle"></i> Xuất bản</span>' : '<span class="badge bg-secondary"><i class="fas fa-file"></i> Nháp</span>'}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Nổi bật:</strong> ${blog.isFeatured ? '<span class="badge bg-warning"><i class="fas fa-star"></i> Có</span>' : '<span class="badge bg-secondary">Không</span>'}</p>
+                                </div>
+                                <div class="col-md-12">
+                                    <p><strong>Mô tả:</strong></p>
+                                    <p class="text-muted">${blog.blogContent || 'Không có mô tả'}</p>
+                                </div>
                             </div>
-                            <div class="col-md-12">
-                                <h5><strong>Tiêu đề:</strong> ${blog.blogTitle}</h5>
-                            </div>
-                            <div class="col-md-12">
-                                <p><strong>Tác giả:</strong> ${blog.authorName}</p>
-                            </div>
-                            <div class="col-md-6">
-                                <p><strong>Ngày cập nhật:</strong> ${updatedAtFormatted}</p>
-                            </div>
-                            <div class="col-md-6">
-                                <p><strong>Ngày tạo:</strong> ${createdAtFormatted}</p>
-                            </div>
-                            <div class="col-md-12">
-                                <p class="mb-2"><strong>Chuyên mục:</strong> ${(blog.categoryNames || []).join(', ')}</p>
-                            </div>
-                            <div class="col-md-6">
-                                <p><strong>Trạng thái:</strong> ${blog.isPublished ? '<span class="badge bg-success"><i class="fas fa-check-circle"></i> Xuất bản</span>' : '<span class="badge bg-secondary"><i class="fas fa-file"></i> Nháp</span>'}</p>
-                            </div>
-                            <div class="col-md-6">
-                                <p><strong>Nổi bật:</strong> ${blog.isFeatured ? '<span class="badge bg-warning"><i class="fas fa-star"></i> Có</span>' : '<span class="badge bg-secondary">Không</span>'}</p>
-                            </div>
-                            <div class="col-md-12">
-                                <p><strong>Mô tả:</strong></p>
-                                <p class="text-muted">${blog.blogContent || 'Không có mô tả'}</p>
-                            </div>
-                        </div>
-                    `;
+                        `;
                 document.getElementById('blogDetailContent').innerHTML = content;
                 const modal = new bootstrap.Modal(document.getElementById('blogDetailModal'));
                 modal.show();
@@ -415,23 +416,49 @@
         // Delete Blog
         async function deleteBlog(blogId) {
             try {
-                const formData = new FormData();
-                formData.append('id', blogId);
+                const token = $('input[name="__RequestVerificationToken"]').val();
 
-                const response = await fetch(`/Blog/Delete/${blogId}`, {
-                    method: 'POST',
-                    body: formData
+                $.ajax({
+                    url: `/Blog/Delete/${blogId}`,
+                    type: 'POST',
+                    headers: {
+                        'RequestVerificationToken': token
+                    },
+                    success: function (data) {
+                        if (data.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Thành công',
+                                text: data.message,
+                                confirmButtonColor: '#10b981'
+                            }).then(() => {
+                                location.reload();
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Lỗi',
+                                text: data.message,
+                                confirmButtonColor: '#dc2626'
+                            });
+                        }
+                    },
+                    error: function (xhr) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Lỗi',
+                            text: 'Đã xảy ra lỗi khi xóa bài viết.',
+                            confirmButtonColor: '#dc2626'
+                        });
+                    }
                 });
-
-                if (response.ok) {
-                    Swal.fire('Thành công', 'Bài viết đã được xóa!', 'success').then(() => {
-                        location.reload();
-                    });
-                } else {
-                    throw new Error('Không thể xóa bài viết');
-                }
             } catch (error) {
-                Swal.fire('Lỗi', error.message, 'error');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi',
+                    text: error.message || 'Đã xảy ra lỗi không xác định.',
+                    confirmButtonColor: '#dc2626'
+                });
             }
         }
     </script>

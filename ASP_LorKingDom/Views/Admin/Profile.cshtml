@@ -297,8 +297,13 @@
         }
 
         @@keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
         }
     </style>
 }
@@ -320,11 +325,12 @@
                 <img id="avatarPreview" src="" alt="Avatar" class="avatar-preview">
                 <h5 id="accountNameDisplay" style="margin-bottom: 8px; color: #1f2937;">-</h5>
                 <p style="color: #6b7280; font-size: 14px; margin-bottom: 0;" id="roleDisplay"
-                    data-role="@User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "Staff"">
-                               @(User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "Staff")
+                    data-role="@User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? " Staff"">
+                    @(User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "Staff")
                 </p>
                 <div class="avatar-upload">
-                    <button type="button" class="btn-upload-avatar" onclick="document.getElementById('avatarInput').click()">
+                    <button type="button" class="btn-upload-avatar"
+                        onclick="document.getElementById('avatarInput').click()">
                         <i class="fas fa-camera me-2"></i>Đổi ảnh đại diện
                     </button>
                     <input type="file" id="avatarInput" accept="image/*">
@@ -334,7 +340,8 @@
             <!-- Info Box -->
             <div class="info-box">
                 <i class="fas fa-info-circle"></i>
-                <span>Thông tin cơ bản được tự động cập nhật từ hệ thống. Liên hệ Admin để thay đổi role hoặc quyền.</span>
+                <span>Thông tin cơ bản được tự động cập nhật từ hệ thống. Liên hệ Admin để thay đổi role hoặc
+                    quyền.</span>
             </div>
 
             <!-- Form -->
@@ -351,12 +358,14 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label for="accountName">Tên tài khoản</label>
-                            <input type="text" id="accountName" name="accountName" class="form-input" placeholder="Nhập tên tài khoản" required>
+                            <input type="text" id="accountName" name="accountName" class="form-input"
+                                placeholder="Nhập tên tài khoản" required>
                             <span class="info-text">Tên hiển thị trên hệ thống</span>
                         </div>
                         <div class="form-group">
                             <label for="email">Email</label>
-                            <input type="email" id="email" name="email" class="form-input" placeholder="user@example.com" disabled>
+                            <input type="email" id="email" name="email" class="form-input"
+                                placeholder="user@example.com" disabled>
                             <span class="info-text">Email không thể thay đổi</span>
                         </div>
                     </div>
@@ -364,7 +373,8 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label for="phoneNumber">Số điện thoại</label>
-                            <input type="tel" id="phoneNumber" name="phoneNumber" class="form-input" placeholder="0123456789">
+                            <input type="tel" id="phoneNumber" name="phoneNumber" class="form-input"
+                                placeholder="0123456789">
                             <span class="info-text">Để trống nếu chưa có</span>
                         </div>
                         <div class="form-group">
@@ -394,7 +404,8 @@
                             <div class="form-row full">
                                 <div class="form-group">
                                     <label for="currentPassword">Mật khẩu hiện tại</label>
-                                    <input type="password" id="currentPassword" name="currentPassword" class="form-input input-change-password" placeholder="Nhập mật khẩu hiện tại">
+                                    <input type="password" id="currentPassword" name="currentPassword"
+                                        class="form-input input-change-password" placeholder="Nhập mật khẩu hiện tại">
                                     <span class="info-text">Để xác minh đó là bạn</span>
                                 </div>
                             </div>
@@ -402,7 +413,8 @@
                             <div class="form-row full">
                                 <div class="form-group">
                                     <label for="newPassword">Mật khẩu mới</label>
-                                    <input type="password" id="newPassword" name="newPassword" class="form-input input-change-password" placeholder="Nhập mật khẩu mới">
+                                    <input type="password" id="newPassword" name="newPassword"
+                                        class="form-input input-change-password" placeholder="Nhập mật khẩu mới">
                                     <span class="info-text">Tối thiểu 8 ký tự, bao gồm chữ và số</span>
                                 </div>
                             </div>
@@ -410,7 +422,8 @@
                             <div class="form-row full">
                                 <div class="form-group">
                                     <label for="confirmPassword">Xác nhận mật khẩu</label>
-                                    <input type="password" id="confirmPassword" name="confirmPassword" class="form-input input-change-password" placeholder="Nhập lại mật khẩu mới">
+                                    <input type="password" id="confirmPassword" name="confirmPassword"
+                                        class="form-input input-change-password" placeholder="Nhập lại mật khẩu mới">
                                 </div>
                             </div>
                         </div>
@@ -451,7 +464,7 @@
                 const avatarUrl = data.image || '/Assets/image/avatar/avatar-illustrated-02.png';
                 document.getElementById('avatarPreview').src = avatarUrl;
                 document.getElementById('accountNameDisplay').textContent = data.accountName || '-';
-                
+
                 // Get role from claims (server-side)
                 const roleElement = document.getElementById('roleDisplay');
                 if (roleElement && roleElement.getAttribute('data-role')) {
@@ -468,7 +481,7 @@
         document.getElementById('changePasswordCheck').addEventListener('change', function () {
             const passwordFields = document.getElementById('passwordFields');
             const hiddenInput = document.getElementById('changePasswordHidden');
-            
+
             if (this.checked) {
                 passwordFields.classList.add('show');
                 document.getElementById('currentPassword').required = true;
@@ -497,60 +510,96 @@
         });
 
         // Form submit
-        document.getElementById('profileForm').addEventListener('submit', async function (e) {
+        document.getElementById('profileForm').addEventListener('submit', function (e) {
             e.preventDefault();
 
+            const form = $(this);
             const changePassword = document.getElementById('changePasswordCheck').checked;
             const newPassword = document.getElementById('newPassword').value;
             const confirmPassword = document.getElementById('confirmPassword').value;
 
             // Validate password
             if (changePassword && newPassword !== confirmPassword) {
-                Swal.fire('Lỗi', 'Mật khẩu xác nhận không khớp', 'error');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi',
+                    text: 'Mật khẩu xác nhận không khớp',
+                    confirmButtonColor: '#dc2626'
+                });
                 return;
             }
 
             if (changePassword && newPassword.length < 8) {
-                Swal.fire('Lỗi', 'Mật khẩu phải tối thiểu 8 ký tự', 'error');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi',
+                    text: 'Mật khẩu phải tối thiểu 8 ký tự',
+                    confirmButtonColor: '#dc2626'
+                });
                 return;
             }
 
-            const formData = new FormData(this);
             const btn = this.querySelector('button[type="submit"]');
             btn.disabled = true;
             btn.innerHTML = '<span class="loading-spinner"></span>Đang lưu...';
 
-            try {
-                const response = await fetch('@Url.Action("UpdateProfile", "Admin")', {
-                    method: 'POST',
-                    body: formData
-                });
+            Swal.fire({
+                title: 'Đang cập nhật...',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
 
-                const data = await response.json();
+                    const formData = new FormData(this);
+                    const token = $('input[name="__RequestVerificationToken"]').val();
 
-                if (data.success) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Thành công',
-                        text: data.message,
-                        confirmButtonColor: '#667eea',
-                        timer: 2000,
-                        timerProgressBar: true
-                    }).then(() => {
-                        loadProfile();
-                        document.getElementById('changePasswordCheck').checked = false;
-                        document.getElementById('passwordFields').classList.remove('show');
-                        document.getElementById('profileForm').reset();
+                    $.ajax({
+                        url: '@Url.Action("UpdateProfile", "Admin")',
+                        type: 'POST',
+                        data: formData,
+                        processData: false,
+                        contentType: false,
+                        headers: {
+                            'RequestVerificationToken': token
+                        },
+                        success: function (data) {
+                            if (data.success) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Thành công',
+                                    text: data.message,
+                                    confirmButtonColor: '#10b981'
+                                }).then(() => {
+                                    loadProfile();
+                                    document.getElementById('changePasswordCheck').checked = false;
+                                    document.getElementById('passwordFields').classList.remove('show');
+                                    document.getElementById('currentPassword').value = '';
+                                    document.getElementById('newPassword').value = '';
+                                    document.getElementById('confirmPassword').value = '';
+                                });
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Lỗi',
+                                    text: data.message,
+                                    confirmButtonColor: '#dc2626'
+                                });
+                            }
+                        },
+                        error: function (xhr) {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Lỗi',
+                                text: 'Đã xảy ra lỗi khi cập nhật thông tin',
+                                confirmButtonColor: '#dc2626'
+                            });
+                        },
+                        complete: function () {
+                            btn.disabled = false;
+                            btn.innerHTML = '<i class="fas fa-save me-2"></i>Lưu thay đổi';
+                        }
                     });
-                } else {
-                    Swal.fire('Lỗi', data.message || 'Cập nhật thất bại', 'error');
                 }
-            } catch (error) {
-                Swal.fire('Lỗi', 'Đã xảy ra lỗi: ' + error.message, 'error');
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-save me-2"></i>Lưu thay đổi';
-            }
+            });
         });
 
         // Load data on page load

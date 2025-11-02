@@ -4,9 +4,12 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System.Security.Claims;
+using WebUI.Filters;
 
 namespace WebUI.Controllers
 {
+    [Authorize(AuthenticationSchemes = "AdminScheme")]
+    [AdminAndStaffOnly] // Staff: Chat Management
     public class ChatController : Controller
     {
         private readonly ILogger<ChatController> _logger;
@@ -134,7 +137,7 @@ namespace WebUI.Controllers
         // =========================================
         [Authorize(
       AuthenticationSchemes = "AdminScheme",
-      Roles = "Admin,Staff,Warehouse"
+      Roles = "Admin,Staff,WareHouse"
   )]
         public IActionResult Staff()
         {
@@ -169,7 +172,7 @@ namespace WebUI.Controllers
 
             // 5. Check role
             if (string.IsNullOrWhiteSpace(claimRole)
-                || !(claimRole == "Admin" || claimRole == "Staff" || claimRole == "Warehouse"))
+                || !(claimRole == "Admin" || claimRole == "Staff" || claimRole == "WareHouse"))
             {
                 _logger.LogWarning($"[Staff()] Role không hợp lệ: {claimRole} -> 403");
                 return Forbid("Bạn không có quyền truy cập trang hỗ trợ khách hàng.");

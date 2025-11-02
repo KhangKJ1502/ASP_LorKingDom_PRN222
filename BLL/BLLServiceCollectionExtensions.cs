@@ -76,6 +76,9 @@ namespace BLL
             //Statistics
             services.AddScoped<IStatisticsService, StatisticsService>();
 
+            // Nhánh Wallets
+            services.AddScoped<IWalletService, WalletService>();
+
             return services;
         }
     }

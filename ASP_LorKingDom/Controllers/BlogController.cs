@@ -1,7 +1,9 @@
 ﻿using BLL.DTOs;
 using BLL.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using WebUI.Filters;
 
 namespace WebUI.Controllers
 {
@@ -30,6 +32,7 @@ namespace WebUI.Controllers
             _replyService = replyService;
         }
 
+        // Public actions - Customer có thể xem blog
         [HttpGet]
         public async Task<IActionResult> Index(string? q, string? category, int page = 1, int pageSize = 6)
         {
@@ -56,11 +59,11 @@ namespace WebUI.Controllers
                     .ToList();
             }
 
-            // Separate featured and recent blogs
+            // Tách biệt các blog nổi bật và gần đây
             var featuredBlogs = filteredBlogs.Where(b => b.IsFeatured).Take(4).ToList();
             var recentBlogs = filteredBlogs.Where(b => !b.IsFeatured).ToList();
 
-            // Pagination cho recent posts
+            // Phân trang cho các bài đăng gần đây
             var totalCount = recentBlogs.Count;
             var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
             var pagedRecentBlogs = recentBlogs
@@ -118,6 +121,8 @@ namespace WebUI.Controllers
         }
 
         [HttpGet("Blog/Manage")]
+        [Authorize(AuthenticationSchemes = "AdminScheme")]
+        [AdminAndStaffOnly] // Staff: Blog Management
         public async Task<IActionResult> ManageBlog(string? q, string? category, string? status, bool? featured, int page = 1, int pageSize = 10)
         {
             var blogs = await _blogService.GetAllAsync(null); // Lấy tất cả, không filter ở tầng service
@@ -181,6 +186,8 @@ namespace WebUI.Controllers
         }
 
         [HttpGet("Blog/GetDetail/{id}")]
+        [Authorize(AuthenticationSchemes = "AdminScheme")]
+        [AdminAndStaffOnly] // Staff: Blog Management
         public async Task<IActionResult> GetDetail(int id)
         {
             var blog = await _blogService.GetByIdAsync(id);
@@ -203,7 +210,8 @@ namespace WebUI.Controllers
         }
 
         [HttpGet("Blog/Create")]
-        //[Authorize(Roles = "Admin")]
+        [Authorize(AuthenticationSchemes = "AdminScheme")]
+        [AdminAndStaffOnly] // Staff: Blog Management
         public async Task<IActionResult> Create()
         {
             var categories = await _categoryService.GetAllAsync();
@@ -212,7 +220,8 @@ namespace WebUI.Controllers
         }
 
         [HttpPost("Blog/Create")]
-        //[Authorize(Roles = "Admin")]
+        [Authorize(AuthenticationSchemes = "AdminScheme")]
+        [AdminAndStaffOnly] // Staff: Blog Management
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(BlogPostDto dto, int[] categoryIds, IFormFile? thumbnail)
         {
@@ -275,7 +284,8 @@ namespace WebUI.Controllers
         }
 
         [HttpGet("Blog/Edit/{id}")]
-        //[Authorize(Roles = "Admin")]
+        [Authorize(AuthenticationSchemes = "AdminScheme")]
+        [AdminAndStaffOnly] // Staff: Blog Management
         public async Task<IActionResult> Edit(int id)
         {
             var blog = await _blogService.GetByIdAsync(id);
@@ -292,7 +302,8 @@ namespace WebUI.Controllers
         }
 
         [HttpPost("Blog/Edit/{id}")]
-        //[Authorize(Roles = "Admin")]
+        [Authorize(AuthenticationSchemes = "AdminScheme")]
+        [AdminAndStaffOnly] // Staff: Blog Management
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, BlogPostDto dto, int[] categoryIds, IFormFile? thumbnail)
         {
@@ -355,23 +366,23 @@ namespace WebUI.Controllers
         }
 
         [HttpPost("Blog/Delete/{id}")]
-        //[Authorize(Roles = "Admin")]
+        [Authorize(AuthenticationSchemes = "AdminScheme")]
+        [AdminAndStaffOnly] // Staff: Blog Management
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Delete(int id)
+        public async Task<JsonResult> Delete(int id)
         {
             try
             {
                 var success = await _blogService.SoftDeleteAsync(id);
                 if (!success)
-                    throw new InvalidOperationException("Không thể xóa bài viết.");
+                    return Json(new { success = false, message = "Không thể xóa bài viết." });
 
-                TempData["Success"] = "Xóa bài viết thành công!";
+                return Json(new { success = true, message = "Xóa bài viết thành công!" });
             }
             catch (Exception ex)
             {
-                TempData["Error"] = ex.Message;
+                return Json(new { success = false, message = ex.Message });
             }
-            return RedirectToAction("Manage");
         }
 
         //[HttpGet("BlogReview/Manage")]

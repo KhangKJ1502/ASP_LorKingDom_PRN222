@@ -101,7 +101,7 @@
 </style>
 
 <div class="container-fluid px-5">
-    <h1 class="mt-4">Quản Lý Bình Luận Blog</h1>
+    <h1 class="mt-4">Quản Lý Bình Luận Bài Viết</h1>
 
     <div class="card mb-4 mt-4">
         <div class="card-header d-flex justify-content-between align-items-center">
@@ -144,17 +144,14 @@
                 <table class="table table-bordered table-striped table-hover">
                     <thead class="table-dark">
                         <tr>
-                            <th style="width: 40px;">
-                                <input type="checkbox" id="selectAll" class="form-check-input">
-                            </th>
+                            <th style="width: 130px; text-align: center;">Hành động</th>
                             <th>Nội dung bình luận</th>
                             <th style="width: 150px;">Người bình luận</th>
                             <th style="width: 180px;">Bài viết</th>
                             <th style="width: 120px;">Tương tác</th>
                             <th style="width: 100px;">Phản hồi</th>
                             <th style="width: 80px;">Cấm</th>
-                            <th style="width: 130px;">Ngày bình luận</th>
-                            <th style="width: 130px; text-align: center;">Hành động</th>
+                            <th style="width: 130px;">Ngày bình luận</th>                         
                         </tr>
                     </thead>
                     <tbody>
@@ -163,7 +160,22 @@
                             @foreach (var review in Model)
                             {
                                 <tr data-comment-id="@review.ReviewBlogId">
-                                    <td><input type="checkbox" class="form-check-input row-checkbox"></td>
+                                    <td style="text-align: center;">
+                                        <button type="button" class="btn btn-sm btn-info"
+                                                onclick="viewReviewDetail(@review.ReviewBlogId)" title="Xem">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button type="button"
+                                                class="btn btn-sm @(review.IsBlocked ? "btn-warning" : "btn-danger")"
+                                                onclick="toggleBlockReview(@review.ReviewBlogId, @review.IsBlocked.ToString().ToLower())"
+                                                title="@(review.IsBlocked ? "Gỡ cấm" : "Cấm")">
+                                            <i class="fa-solid @(review.IsBlocked ? "fa-lock-open" : "fa-lock")"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-danger"
+                                                onclick="deleteReview(@review.ReviewBlogId)" title="Xóa">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
                                     <td>
                                         <p class="review-content mb-0">@review.Comment</p>
                                     </td>
@@ -199,23 +211,7 @@
                                             <span class="badge bg-secondary"><i class="fas fa-lock-open"></i> Bình thường</span>
                                         }
                                     </td>
-                                    <td>@review.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
-                                    <td style="text-align: center;">
-                                        <button type="button" class="btn btn-sm btn-info"
-                                            onclick="viewReviewDetail(@review.ReviewBlogId)" title="Xem">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
-                                        <button type="button"
-                                            class="btn btn-sm @(review.IsBlocked ? "btn-warning" : "btn-danger")"
-                                            onclick="toggleBlockReview(@review.ReviewBlogId, @review.IsBlocked.ToString().ToLower())"
-                                            title="@(review.IsBlocked ? "Gỡ cấm" : "Cấm")">
-                                            <i class="fa-solid @(review.IsBlocked ? "fa-lock-open" : "fa-lock")"></i>
-                                        </button>
-                                        <button type="button" class="btn btn-sm btn-danger"
-                                            onclick="deleteReview(@review.ReviewBlogId)" title="Xóa">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </td>
+                                    <td>@review.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>                                 
                                 </tr>
                             }
                         }
@@ -289,94 +285,110 @@
             });
 
             // Toggle Block Review
-            async function toggleBlockReview(reviewId, currentlyBlocked) {
+            function toggleBlockReview(reviewId, currentlyBlocked) {
                 const action = currentlyBlocked ? 'gỡ cấm' : 'cấm';
-                const result = await Swal.fire({
+                Swal.fire({
                     title: `Xác nhận ${action}`,
                     text: `Bạn có chắc chắn muốn ${action} bình luận này?`,
                     icon: 'warning',
                     showCancelButton: true,
-                    confirmButtonColor: '#d33',
-                    cancelButtonColor: '#6c757d',
+                    confirmButtonColor: '#dc2626',
+                    cancelButtonColor: '#6b7280',
                     confirmButtonText: 'Có, xác nhận',
                     cancelButtonText: 'Hủy'
-                });
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        const token = $('input[name="__RequestVerificationToken"]').val();
 
-                if (result.isConfirmed) {
-                    try {
-                        const formData = new FormData();
-                        const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
-                        if (token) {
-                            formData.append('__RequestVerificationToken', token);
-                        }
-
-                        const response = await fetch(`/BlogReview/ToggleBlock/${reviewId}`, {
-                            method: 'POST',
-                            body: formData
+                        $.ajax({
+                            url: `/BlogReview/ToggleBlock/${reviewId}`,
+                            type: 'POST',
+                            headers: {
+                                'RequestVerificationToken': token
+                            },
+                            success: function (data) {
+                                if (data.success) {
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: 'Thành công',
+                                        text: data.message,
+                                        confirmButtonColor: '#10b981'
+                                    }).then(() => {
+                                        location.reload();
+                                    });
+                                } else {
+                                    Swal.fire({
+                                        icon: 'error',
+                                        title: 'Lỗi',
+                                        text: data.message,
+                                        confirmButtonColor: '#dc2626'
+                                    });
+                                }
+                            },
+                            error: function (xhr) {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Lỗi',
+                                    text: 'Không thể cập nhật trạng thái',
+                                    confirmButtonColor: '#dc2626'
+                                });
+                            }
                         });
-
-                        if (response.ok) {
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Thành công',
-                                text: currentlyBlocked ? 'Đã gỡ cấm bình luận' : 'Đã cấm bình luận',
-                                timer: 1500,
-                                showConfirmButton: false
-                            }).then(() => {
-                                location.reload();
-                            });
-                        } else {
-                            throw new Error('Lỗi server');
-                        }
-                    } catch (error) {
-                        Swal.fire('Lỗi', 'Không thể cập nhật trạng thái', 'error');
                     }
-                }
+                });
             }
 
             // Delete Review
-            async function deleteReview(reviewId) {
-                const result = await Swal.fire({
+            function deleteReview(reviewId) {
+                Swal.fire({
                     title: 'Xác nhận xóa',
-                    text: 'Bạn có chắc chắn muốn xóa bình luận này? Hành động này không thể hoàn tác.',
+                    text: 'Bạn có chắc chắn muốn xóa bình luận này?',
                     icon: 'warning',
                     showCancelButton: true,
-                    confirmButtonColor: '#d33',
-                    cancelButtonColor: '#6c757d',
+                    confirmButtonColor: '#dc2626',
+                    cancelButtonColor: '#6b7280',
                     confirmButtonText: 'Có, xóa',
                     cancelButtonText: 'Hủy'
-                });
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        const token = $('input[name="__RequestVerificationToken"]').val();
 
-                if (result.isConfirmed) {
-                    try {
-                        const formData = new FormData();
-                        const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
-                        if (token) {
-                            formData.append('__RequestVerificationToken', token);
-                        }
-
-                        const response = await fetch(`/BlogReview/Delete/${reviewId}`, {
-                            method: 'POST',
-                            body: formData
+                        $.ajax({
+                            url: `/BlogReview/Delete/${reviewId}`,
+                            type: 'POST',
+                            headers: {
+                                'RequestVerificationToken': token
+                            },
+                            success: function (data) {
+                                if (data.success) {
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: 'Thành công',
+                                        text: data.message,
+                                        confirmButtonColor: '#10b981'
+                                    }).then(() => {
+                                        location.reload();
+                                    });
+                                } else {
+                                    Swal.fire({
+                                        icon: 'error',
+                                        title: 'Lỗi',
+                                        text: data.message,
+                                        confirmButtonColor: '#dc2626'
+                                    });
+                                }
+                            },
+                            error: function (xhr) {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Lỗi',
+                                    text: 'Không thể xóa bình luận',
+                                    confirmButtonColor: '#dc2626'
+                                });
+                            }
                         });
-
-                        if (response.ok) {
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Thành công',
-                                text: 'Bình luận đã được xóa',
-                                timer: 1500,
-                                showConfirmButton: false
-                            }).then(() => {
-                                location.reload();
-                            });
-                        } else {
-                            throw new Error('Lỗi server');
-                        }
-                    } catch (error) {
-                        Swal.fire('Lỗi', 'Không thể xóa bình luận', 'error');
                     }
-                }
+                });
             }
 
             // View Review Detail
@@ -452,44 +464,55 @@
             }
 
             // Submit Reply
-            async function submitReply(reviewId) {
+            function submitReply(reviewId) {
                 const replyContent = document.querySelector('textarea[name="replyContent"]')?.value.trim();
                 if (!replyContent) {
-                    Swal.fire('Thông báo', 'Vui lòng nhập phản hồi', 'warning');
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Thông báo',
+                        text: 'Vui lòng nhập phản hồi',
+                        confirmButtonColor: '#f59e0b'
+                    });
                     return;
                 }
 
-                try {
-                    const formData = new FormData();
-                    formData.append('replyContent', replyContent);
+                const token = $('input[name="__RequestVerificationToken"]').val();
 
-                    // Thêm CSRF token
-                    const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
-                    if (token) {
-                        formData.append('__RequestVerificationToken', token);
-                    }
-
-                    const response = await fetch(`/BlogReview/Reply/${reviewId}`, {
-                        method: 'POST',
-                        body: formData
-                    });
-
-                    if (response.ok) {
+                $.ajax({
+                    url: `/BlogReview/Reply/${reviewId}`,
+                    type: 'POST',
+                    data: { replyContent: replyContent },
+                    headers: {
+                        'RequestVerificationToken': token
+                    },
+                    success: function (data) {
+                        if (data.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Thành công',
+                                text: data.message,
+                                confirmButtonColor: '#10b981'
+                            }).then(() => {
+                                location.reload();
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Lỗi',
+                                text: data.message,
+                                confirmButtonColor: '#dc2626'
+                            });
+                        }
+                    },
+                    error: function (xhr) {
                         Swal.fire({
-                            icon: 'success',
-                            title: 'Thành công',
-                            text: 'Phản hồi đã được gửi',
-                            timer: 1500,
-                            showConfirmButton: false
-                        }).then(() => {
-                            location.reload();
+                            icon: 'error',
+                            title: 'Lỗi',
+                            text: 'Không thể gửi phản hồi',
+                            confirmButtonColor: '#dc2626'
                         });
-                    } else {
-                        throw new Error('Lỗi server');
                     }
-                } catch (error) {
-                    Swal.fire('Lỗi', 'Không thể gửi phản hồi', 'error');
-                }
+                });
             }
         </script>
 }

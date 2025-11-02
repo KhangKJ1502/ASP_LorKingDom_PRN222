@@ -22,7 +22,7 @@
                 {
                     <form method="post" asp-action="DeletePublicReview" asp-controller="BlogReview"
                         asp-route-reviewId="@Model?.ReviewBlogId" style="display:inline;"
-                        onsubmit="return confirmDeleteComment(event)">
+                        onsubmit="return handleDeleteComment(event, this, @Model?.ReviewBlogId)">
                         @Html.AntiForgeryToken()
                         <button type="submit" class="btn btn-sm btn-danger" title="Xoá bình luận"
                             style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">
@@ -57,24 +57,26 @@
 
     <div class="comment-content">@Model?.Comment</div>
 
-    <div class="comment-actions">
-        <form method="post" asp-action="ReactToReview" asp-controller="BlogReview"
-            asp-route-reviewId="@Model?.ReviewBlogId" style="display:inline;" onsubmit="return handleReaction(event)">
+    <div class="comment-actions" data-review-id="@Model?.ReviewBlogId">
+        <form asp-action="ReactToReview" asp-controller="BlogReview"
+            asp-route-reviewId="@Model?.ReviewBlogId" style="display:inline;"
+            onsubmit="return handleReaction(event, this)">
             @Html.AntiForgeryToken()
             <input type="hidden" name="reactionType" value="like" />
             <button type="submit" class="reaction-btn @(Model?.CurrentUserReactionType == true ? "active" : "")"
-                title="Thích">
+                data-reaction="like" title="Thích">
                 <i class="fas fa-thumbs-up"></i>
                 <span class="reaction-count">@Model?.LikeCount</span>
             </button>
         </form>
 
-        <form method="post" asp-action="ReactToReview" asp-controller="BlogReview"
-            asp-route-reviewId="@Model?.ReviewBlogId" style="display:inline;" onsubmit="return handleReaction(event)">
+        <form asp-action="ReactToReview" asp-controller="BlogReview"
+            asp-route-reviewId="@Model?.ReviewBlogId" style="display:inline;"
+            onsubmit="return handleReaction(event, this)">
             @Html.AntiForgeryToken()
             <input type="hidden" name="reactionType" value="dislike" />
             <button type="submit" class="reaction-btn @(Model?.CurrentUserReactionType == false ? "active" : "")"
-                title="Không thích">
+                data-reaction="dislike" title="Không thích">
                 <i class="fas fa-thumbs-down"></i>
                 <span class="reaction-count">@Model?.DislikeCount</span>
             </button>

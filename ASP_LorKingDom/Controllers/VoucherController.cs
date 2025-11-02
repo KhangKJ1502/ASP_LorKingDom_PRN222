@@ -1,13 +1,17 @@
 ﻿using BLL.DTOs;
 using BLL.Interfaces;
 using BLL.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using DAL.Models;
 using Microsoft.EntityFrameworkCore;
+using WebUI.Filters;
 
 namespace WebUI.Controllers
 {
+    [Authorize(AuthenticationSchemes = "AdminScheme")]
+    [AdminAndStaffOnly] // Staff: Voucher Management
     public class VoucherController : Controller
     {
         private readonly IVoucherService _voucherService;
@@ -178,17 +182,17 @@ namespace WebUI.Controllers
                 ViewBag.TotalPages = totalPages;
                 ViewBag.ShowDeleted = showDeleted;
                 ViewBag.VoucherTypes = await _voucherTypeService.GetAllAsync();
-               
+
                 var allAccounts = await _accountService.GetAllAsync();
 
                 var adminRoleId = await _context.Roles
                     .Where(r => r.RoleName == "Admin")
-                    .Select(r => r.RoleId)  
+                    .Select(r => r.RoleId)
                     .FirstOrDefaultAsync();
 
                 var staffRoleId = await _context.Roles
                     .Where(r => r.RoleName == "Staff")
-                    .Select(r => r.RoleId) 
+                    .Select(r => r.RoleId)
                     .FirstOrDefaultAsync();
 
                 ViewBag.AdminStaffAccounts = allAccounts

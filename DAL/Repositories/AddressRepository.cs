@@ -11,21 +11,10 @@ public class AddressRepository : IAddressRepository
         _context = context;
     }
 
-    public async Task<List<Address>> ListAsync(int accountId, string? keyword)
+    public async Task<List<Address>> ListAsync(int accountId)
     {
-        var query = _context.Addresses
-            .Where(a => a.AccountId == accountId); // ⬅️ bỏ lọc IsDeleted
-
-        if (!string.IsNullOrWhiteSpace(keyword))
-        {
-            var kw = keyword.Trim().ToLower();
-            query = query.Where(a =>
-                a.AddressLine.ToLower().Contains(kw) ||
-                a.City.ToLower().Contains(kw) ||
-                (a.Ward ?? string.Empty).ToLower().Contains(kw));
-        }
-
-        return await query
+        return await _context.Addresses
+            .Where(a => a.AccountId == accountId)
             .OrderByDescending(a => a.CreatedAt)
             .ToListAsync();
     }

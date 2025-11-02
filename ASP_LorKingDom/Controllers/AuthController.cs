@@ -93,22 +93,28 @@ namespace WebUI.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Signup(string email, string password, string confirmPassword)
+        public async Task<JsonResult> Signup(SignupRequestDto dto)
         {
-            if (password != confirmPassword)
-                return BadRequest(new { success = false, message = "Mật khẩu xác nhận không khớp." });
+            if (!ModelState.IsValid)
+            {
+                // Tự động lấy tất cả lỗi từ Data Annotations
+                var errorMessages = ModelState.Values
+                                .SelectMany(v => v.Errors)
+                                .Select(e => e.ErrorMessage);
+                return Json(new { success = false, message = errorMessages });
+            }
 
-            if (await _accountService.ExistsByEmailAsync(email))
-                return BadRequest(new { success = false, message = "Email đã được sử dụng." });
+            if (await _accountService.ExistsByEmailAsync(dto.Email))
+                return Json(new { success = false, message = "Email đã được sử dụng." });
 
             try
             {
-                await _emailOtpService.SendOtpAsync(email);
+                await _emailOtpService.SendOtpAsync(dto.Email);
                 // Store in session instead of TempData for AJAX
-                HttpContext.Session.SetString("SignupEmail", email);
-                HttpContext.Session.SetString("SignupPassword", password);
+                HttpContext.Session.SetString("SignupEmail", dto.Email);
+                HttpContext.Session.SetString("SignupPassword", dto.Password);
 
-                return Ok(new
+                return Json(new
                 {
                     success = true,
                     message = "OTP đã được gửi. Vui lòng kiểm tra email của bạn.",
@@ -117,11 +123,11 @@ namespace WebUI.Controllers
             }
             catch (InvalidOperationException ex)
             {
-                return BadRequest(new { success = false, message = ex.Message });
+                return Json(new { success = false, message = ex.Message });
             }
             catch
             {
-                return BadRequest(new { success = false, message = "Đã xảy ra lỗi khi gửi OTP." });
+                return Json(new { success = false, message = "Đã xảy ra lỗi khi gửi OTP." });
             }
         }
 
@@ -138,7 +144,7 @@ namespace WebUI.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> VerifyOtp(
+        public async Task<JsonResult> VerifyOtp(
             string email,
             string? otpCode,
             string Otp1, string Otp2, string Otp3, string Otp4, string Otp5, string Otp6)
@@ -150,10 +156,10 @@ namespace WebUI.Controllers
 
             var password = HttpContext.Session.GetString("SignupPassword");
             if (string.IsNullOrEmpty(password))
-                return BadRequest(new { success = false, message = "Phiên đăng ký đã hết hạn. Vui lòng đăng ký lại." });
+                return Json(new { success = false, message = "Phiên đăng ký đã hết hạn. Vui lòng đăng ký lại." });
 
             if (string.IsNullOrEmpty(otpCode))
-                return BadRequest(new { success = false, message = "Vui lòng nhập OTP." });
+                return Json(new { success = false, message = "Vui lòng nhập OTP." });
 
             try
             {
@@ -172,7 +178,7 @@ namespace WebUI.Controllers
 
                     try
                     {
-                        await _accountService.CreateAsync(account);
+                        var accountId = await _accountService.CreateAsync(account);
                         await _emailOtpService.SendWelcomeEmailAsync(email, account.AccountName);
 
                         // Clear session
@@ -202,7 +208,7 @@ namespace WebUI.Controllers
                                 });
                         }
 
-                        return Ok(new
+                        return Json(new
                         {
                             success = true,
                             message = "Đăng ký thành công! Tài khoản của bạn đã được tạo.",
@@ -211,17 +217,17 @@ namespace WebUI.Controllers
                     }
                     catch
                     {
-                        return BadRequest(new { success = false, message = "Đã xảy ra lỗi khi tạo tài khoản." });
+                        return Json(new { success = false, message = "Đã xảy ra lỗi khi tạo tài khoản." });
                     }
                 }
                 else
                 {
-                    return BadRequest(new { success = false, message = "OTP không hợp lệ hoặc đã hết hạn." });
+                    return Json(new { success = false, message = "OTP không hợp lệ hoặc đã hết hạn." });
                 }
             }
             catch
             {
-                return BadRequest(new { success = false, message = "Đã xảy ra lỗi khi xác minh OTP." });
+                return Json(new { success = false, message = "Đã xảy ra lỗi khi xác minh OTP." });
             }
         }
 

@@ -587,11 +587,16 @@
     function handleCommentSubmit(event) {
         event.preventDefault();
         
-        const form = event.target;
-        const comment = document.getElementById('commentText').value.trim();
+        const form = $(event.target);
+        const comment = $('#commentText').val().trim();
         
         if (!comment) {
-            Swal.fire('Lỗi', 'Bình luận không được để trống', 'error');
+            Swal.fire({
+                icon: 'error',
+                title: 'Lỗi',
+                text: 'Bình luận không được để trống',
+                confirmButtonColor: '#dc2626'
+            });
             return false;
         }
 
@@ -599,46 +604,53 @@
         Swal.fire({
             title: 'Đang gửi...',
             allowOutsideClick: false,
-            didOpen: async (modal) => {
+            didOpen: () => {
                 Swal.showLoading();
-                try {
-                    const formData = new FormData(form);
-                    const response = await fetch(form.action, {
-                        method: 'POST',
-                        body: formData
-                    });
-
-                    if (response.redirected) {
-                        // Thành công - page sẽ redirect
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Thành công',
-                            text: 'Bình luận của bạn đã được đăng!',
-                            timer: 1500,
-                            showConfirmButton: false
-                        }).then(() => {
-                            window.location = response.url;
-                        });
-                    } else {
-                        // Lỗi từ server
-                        const text = await response.text();
-                        if (text.includes('bình luận rồi')) {
-                            Swal.fire('Thông báo', 'Bạn đã bình luận rồi trên bài viết này', 'warning');
+                
+                const token = $('input[name="__RequestVerificationToken"]').val();
+                
+                $.ajax({
+                    url: form.attr('action'),
+                    type: 'POST',
+                    data: form.serialize(),
+                    headers: {
+                        'RequestVerificationToken': token
+                    },
+                    success: function (data) {
+                        if (data.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Thành công',
+                                text: data.message,
+                                confirmButtonColor: '#10b981'
+                            }).then(() => {
+                                window.location.reload();
+                            });
                         } else {
-                            Swal.fire('Lỗi', 'Có lỗi xảy ra khi gửi bình luận', 'error');
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Lỗi',
+                                text: data.message,
+                                confirmButtonColor: '#dc2626'
+                            });
                         }
+                    },
+                    error: function (xhr) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Lỗi',
+                            text: 'Đã xảy ra lỗi khi gửi bình luận.',
+                            confirmButtonColor: '#dc2626'
+                        });
                     }
-                } catch (error) {
-                    Swal.fire('Lỗi', 'Có lỗi kết nối', 'error');
-                    console.error(error);
-                }
+                });
             }
         });
         
         return false;
     }
 
-    function handleReaction(event) {
+    function handleReaction(event, formElement) {
         event.preventDefault();
 
         // Check if user is logged in
@@ -648,7 +660,8 @@
             @:    icon: 'warning',
             @:    title: 'Yêu cầu đăng nhập',
             @:    text: 'Bạn cần đăng nhập để thực hiện chức năng này',
-            @:    confirmButtonText: 'Đăng nhập'
+            @:    confirmButtonText: 'Đăng nhập',
+            @:    confirmButtonColor: '#667eea'
             @:}).then((result) => {
             @:    if (result.isConfirmed) {
             @:        window.location.href = '/Auth/Login?returnUrl=' + encodeURIComponent(window.location.href);
@@ -657,26 +670,136 @@
             @:return false;
         }
         
-        const form = event.target;
-        const reviewId = form.querySelector('input[name="reviewId"]')?.value || 
-                        form.action.match(/\/(\d+)\/React/)?.[1];
+        const form = $(formElement);
+        const token = form.find('input[name="__RequestVerificationToken"]').val();
+        const reactionType = form.find('input[name="reactionType"]').val();
+        const commentActions = form.closest('.comment-actions');
+        const reviewId = commentActions.data('review-id');
 
-        fetch(form.action, {
-            method: 'POST',
-            body: new FormData(form)
-        })
-            .then(response => {
-                if (response.redirected) {
-                    // Reload page silently
-                    location.reload();
+        // Use jQuery AJAX like Login page
+        $.ajax({
+            url: form.attr('action'),
+            type: 'POST',
+            data: form.serialize(),
+            headers: {
+                'RequestVerificationToken': token
+            },
+            success: function (data) {
+                if (data.success) {
+                    // Update counts in UI
+                    const likeBtn = commentActions.find('.reaction-btn[data-reaction="like"]');
+                    const dislikeBtn = commentActions.find('.reaction-btn[data-reaction="dislike"]');
+                    
+                    likeBtn.find('.reaction-count').text(data.likeCount);
+                    dislikeBtn.find('.reaction-count').text(data.dislikeCount);
+                    
+                    // Update active state
+                    likeBtn.removeClass('active');
+                    dislikeBtn.removeClass('active');
+                    
+                    if (data.currentUserReaction === 'like') {
+                        likeBtn.addClass('active');
+                    } else if (data.currentUserReaction === 'dislike') {
+                        dislikeBtn.addClass('active');
+                    }
+                    
+                    // Show success message
+                    // Swal.fire({
+                    //     icon: 'success',
+                    //     title: 'Thành công',
+                    //     text: data.message || 'Đã cập nhật cảm xúc',
+                    //     timer: 1500,
+                    //     showConfirmButton: false
+                    // });
                 } else {
-                    throw new Error('Failed');
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Lỗi',
+                        text: data.message || 'Không thể cập nhật cảm xúc',
+                        confirmButtonColor: '#dc2626'
+                    });
                 }
-            })
-            .catch(error => {
-                Swal.fire('Lỗi', 'Không thể cập nhật reaction', 'error');
-                console.error(error);
-            });
+            },
+            error: function (xhr, status, error) {
+                console.error('Reaction error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi',
+                    text: 'Đã xảy ra lỗi khi cập nhật cảm xúc.',
+                    confirmButtonColor: '#dc2626'
+                });
+            }
+        });
+
+        return false;
+    }
+
+    function handleDeleteComment(event, formElement, reviewId) {
+        event.preventDefault();
+
+        Swal.fire({
+            title: 'Xác nhận xóa',
+            text: 'Bạn có chắc muốn xóa bình luận này?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc2626',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: 'Xóa',
+            cancelButtonText: 'Hủy'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Show loading
+                Swal.fire({
+                    title: 'Đang xóa...',
+                    allowOutsideClick: false,
+                    didOpen: () => Swal.showLoading()
+                });
+
+                const form = $(formElement);
+                const token = form.find('input[name="__RequestVerificationToken"]').val();
+
+                // Use jQuery AJAX like Login page
+                $.ajax({
+                    url: form.attr('action'),
+                    type: 'POST',
+                    data: form.serialize(),
+                    headers: {
+                        'RequestVerificationToken': token
+                    },
+                    success: function (data) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Thành công',
+                            text: 'Đã xóa bình luận!',
+                            confirmButtonColor: '#10b981'
+                        }).then(() => {
+                            // Reload page to update comments list
+                            window.location.reload();
+                        });
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Delete comment error:', error);
+                        let errorMessage = 'Không thể xóa bình luận.';
+                        
+                        if (xhr.responseText) {
+                            try {
+                                const response = JSON.parse(xhr.responseText);
+                                errorMessage = response.message || errorMessage;
+                            } catch (e) {
+                                errorMessage = xhr.responseText || errorMessage;
+                            }
+                        }
+
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Lỗi',
+                            text: errorMessage,
+                            confirmButtonColor: '#dc2626'
+                        });
+                    }
+                });
+            }
+        });
 
         return false;
     }

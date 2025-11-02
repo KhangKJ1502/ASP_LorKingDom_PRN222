@@ -28,7 +28,7 @@ namespace WebUI.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<JsonResult> Login(string email, string password, bool rememberMe, string? returnUrl = null)
+        public async Task<JsonResult> Login(string email, string password, bool rememberMe = false, string? returnUrl = null)
         {
             try
             {
@@ -44,7 +44,7 @@ namespace WebUI.Controllers
                 var roleName = await _roleService.GetRoleNameByIdAsync(user.RoleId);
 
                 // Kiểm tra role có phải Admin/Staff/Warehouse không
-                if (roleName != "Admin" && roleName != "Staff" && roleName != "Warehouse")
+                if (roleName != "Admin" && roleName != "Staff" && roleName != "WareHouse")
                 {
                     return Json(new { success = false, message = "Bạn không có quyền truy cập vào hệ thống quản lý." });
                 }
@@ -162,7 +162,7 @@ namespace WebUI.Controllers
                 var roleName = await _roleService.GetRoleNameByIdAsync(user.RoleId);
 
                 // Kiểm tra role có phải Admin/Staff/Warehouse không
-                if (roleName != "Admin" && roleName != "Staff" && roleName != "Warehouse")
+                if (roleName != "Admin" && roleName != "Staff" && roleName != "WareHouse")
                     return Json(new { success = false, message = "Tài khoản này không có quyền truy cập hệ thống quản lý." });
 
                 // Gửi OTP cho quên mật khẩu

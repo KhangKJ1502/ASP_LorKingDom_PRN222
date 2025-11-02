@@ -3,6 +3,7 @@ using BLL.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using WebUI.Filters;
 
 namespace WebUI.Controllers
 {
@@ -23,16 +24,68 @@ namespace WebUI.Controllers
         }
 
         [HttpGet("/Home/OrderDetails")]
-        public IActionResult Index()
+        public async Task<IActionResult> OrderDetails(int id)
         {
-            return View("~/Views/Home/OrderDetails.cshtml");
+            var accountId = GetAccountId();
+            if (accountId == 0)
+                return RedirectToAction("Login", "Auth");
+
+            try
+            {
+                var order = await _orderService.GetOrderByIdAsync(id);
+                if (order == null || order.AccountId != accountId)
+                    return RedirectToAction("OrderHistory");
+
+                return View("~/Views/Home/OrderDetails.cshtml", order);
+            }
+            catch
+            {
+                return RedirectToAction("OrderHistory");
+            }
         }
 
         [HttpGet("/Home/Order")]
-        public IActionResult OrderHistory()
+        [Authorize]
+        public async Task<IActionResult> OrderHistory(int page = 1)
         {
-            // Trả về Partial View để tránh duplicate header/footer khi load qua AJAX
-            return PartialView("~/Views/Home/_OrderHistory.cshtml");
+            var accountId = GetAccountId();
+            if (accountId == 0)
+                return RedirectToAction("Login", "Auth");
+
+            try
+            {
+                const int pageSize = 5;
+                var allOrders = await _orderService.GetOrdersByAccountIdAsync(accountId);
+
+                // Calculate pagination
+                var totalItems = allOrders.Count;
+                var orders = allOrders
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToList();
+
+                // Create paged result
+                var pagedResult = new PagedResult<OrderDto>
+                {
+                    Items = orders,
+                    Total = totalItems,
+                    Page = page,
+                    PageSize = pageSize
+                };
+
+                return PartialView("~/Views/Home/_OrderHistory.cshtml", pagedResult);
+            }
+            catch
+            {
+                var emptyResult = new PagedResult<OrderDto>
+                {
+                    Items = new List<OrderDto>(),
+                    Total = 0,
+                    Page = 1,
+                    PageSize = 10
+                };
+                return PartialView("~/Views/Home/_OrderHistory.cshtml", emptyResult);
+            }
         }
 
         [HttpGet("/Home/Checkout")]
@@ -114,9 +167,112 @@ namespace WebUI.Controllers
         }
 
         [HttpGet("/Order/Manage")]
-        public IActionResult Manage()
+        [Authorize(AuthenticationSchemes = "AdminScheme")]
+        [AdminAndStaffOnly] // Staff: Order Management
+        public async Task<IActionResult> Manage(string? q, int? status, DateTime? dateFrom, DateTime? dateTo, int page = 1)
         {
-            return View("~/Views/Admin/ManageOrder.cshtml");
+            try
+            {
+                const int pageSize = 10;
+                var result = await _orderService.GetAllOrdersAsync(q, status, dateFrom, dateTo, page, pageSize);
+
+                ViewBag.Query = q;
+                ViewBag.StatusFilter = status;
+                ViewBag.DateFromFilter = dateFrom?.ToString("yyyy-MM-dd");
+                ViewBag.DateToFilter = dateTo?.ToString("yyyy-MM-dd");
+                ViewBag.CurrentPage = page;
+
+                return View("~/Views/Admin/ManageOrder.cshtml", result);
+            }
+            catch
+            {
+                return View("~/Views/Admin/ManageOrder.cshtml", new BLL.DTOs.PagedResult<OrderDto>());
+            }
+        }
+
+        [HttpPost("/Order/UpdateStatus")]
+        [Authorize(AuthenticationSchemes = "AdminScheme")]
+        [AdminAndStaffOnly] // Staff: Order Management
+        public async Task<IActionResult> UpdateStatus(int orderId, int statusId)
+        {
+            try
+            {
+                var success = await _orderService.UpdateOrderStatusAsync(orderId, statusId);
+                if (success)
+                {
+                    return Json(new { success = true, message = "Cập nhật trạng thái thành công!" });
+                }
+                else
+                {
+                    return Json(new { success = false, message = "Không tìm thấy đơn hàng!" });
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = $"Lỗi: {ex.Message}" });
+            }
+        }
+
+        [HttpGet("/Order/GetOrderDetail")]
+        [Authorize(AuthenticationSchemes = "AdminScheme")]
+        [AdminAndStaffOnly] // Staff: Order Management
+        public async Task<IActionResult> GetOrderDetail(int id)
+        {
+            try
+            {
+                var order = await _orderService.GetOrderByIdAsync(id);
+                if (order == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy đơn hàng!" });
+                }
+
+                return Json(new { success = true, order = order });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = $"Lỗi: {ex.Message}" });
+            }
+        }
+
+        [HttpPost("/Order/CancelOrder")]
+        public async Task<IActionResult> CancelOrder([FromBody] dynamic request)
+        {
+            var accountId = GetAccountId();
+            if (accountId == 0)
+                return Json(new { success = false, message = "Vui lòng đăng nhập!" });
+
+            try
+            {
+                int orderId = (int)request.orderId;
+
+                // Verify order belongs to user
+                var order = await _orderService.GetOrderByIdAsync(orderId);
+                if (order == null)
+                    return Json(new { success = false, message = "Không tìm thấy đơn hàng!" });
+
+                if (order.AccountId != accountId)
+                    return Json(new { success = false, message = "Bạn không có quyền hủy đơn hàng này!" });
+
+                // Only allow cancel if order is pending (1) or confirmed (2)
+                if (order.StatusId != 1 && order.StatusId != 2)
+                    return Json(new { success = false, message = "Không thể hủy đơn hàng ở trạng thái này!" });
+
+                // Update status to cancelled (5)
+                var success = await _orderService.UpdateOrderStatusAsync(orderId, 5);
+
+                if (success)
+                {
+                    return Json(new { success = true, message = "Hủy đơn hàng thành công!" });
+                }
+                else
+                {
+                    return Json(new { success = false, message = "Không thể hủy đơn hàng!" });
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = $"Lỗi: {ex.Message}" });
+            }
         }
 
         // ===== Helper Methods =====

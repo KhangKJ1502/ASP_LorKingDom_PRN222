@@ -1,0 +1,235 @@
+﻿<div class="modal fade" id="reviewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 1rem; border: 2px solid #fed7aa;">
+            <div class="modal-header" style="background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); color: white; border-radius: 1rem 1rem 0 0;">
+                <h5 class="modal-title">
+                    <i class="fas fa-star me-2"></i>Đánh giá sản phẩm
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body" style="padding: 2rem;">
+                <form id="reviewForm" enctype="multipart/form-data">
+                    <input type="hidden" id="reviewProductId" name="ProductId" />
+
+                    <!-- Product Info -->
+                    <div style="display: flex; gap: 1rem; padding: 1rem; background: #fff5ec; border-radius: 0.75rem; margin-bottom: 1.5rem; align-items: center;">
+                        <img id="reviewProductImage" src="" alt="" style="width: 80px; height: 80px; border-radius: 0.5rem; object-fit: cover; border: 2px solid #fed7aa;">
+                        <div style="flex: 1;">
+                            <div id="reviewProductName" style="font-weight: 600; font-size: 1.125rem; color: #1f2937;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Rating -->
+                    <div style="margin-bottom: 1.5rem;">
+                        <label style="display: block; font-weight: 600; margin-bottom: 0.75rem; color: #1f2937;">
+                            Đánh giá của bạn <span style="color: #dc2626;">*</span>
+                        </label>
+                        <div class="star-rating" id="starRating">
+                            <i class="far fa-star" data-rating="1"></i>
+                            <i class="far fa-star" data-rating="2"></i>
+                            <i class="far fa-star" data-rating="3"></i>
+                            <i class="far fa-star" data-rating="4"></i>
+                            <i class="far fa-star" data-rating="5"></i>
+                        </div>
+                        <input type="hidden" id="ratingValue" name="Rating" value="0" />
+                        <small style="color: #6b7280; display: block; margin-top: 0.5rem;">Nhấp vào ngôi sao để đánh giá</small>
+                    </div>
+
+                    <!-- Comment -->
+                    <div style="margin-bottom: 1.5rem;">
+                        <label style="display: block; font-weight: 600; margin-bottom: 0.75rem; color: #1f2937;">
+                            Nhận xét của bạn <span style="color: #dc2626;">*</span>
+                        </label>
+                        <textarea id="reviewComment"
+                                  name="Comment"
+                                  rows="5"
+                                  class="form-control"
+                                  placeholder="Chia sẻ trải nghiệm của bạn về sản phẩm này..."
+                                  style="border: 2px solid #fed7aa; border-radius: 0.75rem; resize: vertical;"
+                                  required></textarea>
+                        <small style="color: #6b7280; display: block; margin-top: 0.5rem;">Tối thiểu 10 ký tự</small>
+                    </div>
+
+                    <!-- Images -->
+                    <div style="margin-bottom: 1.5rem;">
+                        <label style="display: block; font-weight: 600; margin-bottom: 0.75rem; color: #1f2937;">
+                            Thêm hình ảnh (Tùy chọn)
+                        </label>
+                        <input type="file"
+                               id="reviewImages"
+                               name="Images"
+                               accept="image/*"
+                               multiple
+                               class="form-control"
+                               style="border: 2px solid #fed7aa; border-radius: 0.75rem;" />
+                        <small style="color: #6b7280; display: block; margin-top: 0.5rem;">
+                            Chọn tối đa 5 hình ảnh (jpg, png, gif)
+                        </small>
+                        <div id="imagePreview" style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 1rem;"></div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="modal-footer" style="border-top: 2px solid #fff5ec; padding: 1.5rem;">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="padding: 0.75rem 1.5rem; border-radius: 0.75rem;">
+                    Hủy
+                </button>
+                <button type="button" class="btn btn-primary" onclick="submitReview()" style="background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); border: none; padding: 0.75rem 1.5rem; border-radius: 0.75rem; font-weight: 600;">
+                    <i class="fas fa-paper-plane me-1"></i>Gửi đánh giá
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .star-rating {
+        display: flex;
+        gap: 0.5rem;
+        font-size: 2.5rem;
+    }
+
+    .star-rating i {
+        cursor: pointer;
+        color: #d1d5db;
+        transition: all 0.2s ease;
+    }
+
+    .star-rating i:hover,
+    .star-rating i.hover {
+        color: #fbbf24;
+        transform: scale(1.1);
+    }
+
+    .star-rating i.active {
+        color: #fbbf24;
+    }
+
+    .image-preview-item {
+        position: relative;
+        width: 100px;
+        height: 100px;
+        border-radius: 0.5rem;
+        overflow: hidden;
+        border: 2px solid #fed7aa;
+    }
+
+    .image-preview-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .image-preview-remove {
+        position: absolute;
+        top: 0.25rem;
+        right: 0.25rem;
+        background: #dc2626;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 0.75rem;
+    }
+
+    .image-preview-remove:hover {
+        background: #b91c1c;
+    }
+</style>
+
+<script>
+    // Star rating functionality
+    const stars = document.querySelectorAll('#starRating i');
+    const ratingValue = document.getElementById('ratingValue');
+
+    stars.forEach((star, index) => {
+        star.addEventListener('mouseover', function() {
+            highlightStars(index);
+        });
+
+        star.addEventListener('mouseout', function() {
+            const currentRating = parseInt(ratingValue.value);
+            if (currentRating > 0) {
+                highlightStars(currentRating - 1);
+            } else {
+                clearStars();
+            }
+        });
+
+        star.addEventListener('click', function() {
+            const rating = parseInt(this.getAttribute('data-rating'));
+            ratingValue.value = rating;
+            highlightStars(index);
+        });
+    });
+
+    function highlightStars(index) {
+        stars.forEach((star, i) => {
+            if (i <= index) {
+                star.classList.remove('far');
+                star.classList.add('fas', 'active');
+            } else {
+                star.classList.remove('fas', 'active');
+                star.classList.add('far');
+            }
+        });
+    }
+
+    function clearStars() {
+        stars.forEach(star => {
+            star.classList.remove('fas', 'active');
+            star.classList.add('far');
+        });
+    }
+
+    // Image preview
+    document.getElementById('reviewImages').addEventListener('change', function(e) {
+        const preview = document.getElementById('imagePreview');
+        preview.innerHTML = '';
+
+        const files = Array.from(e.target.files).slice(0, 5); // Max 5 images
+
+        files.forEach((file, index) => {
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+
+                reader.onload = function(e) {
+                    const div = document.createElement('div');
+                    div.className = 'image-preview-item';
+                    div.innerHTML = `
+                        <img src="${e.target.result}" alt="Preview">
+                        <button type="button" class="image-preview-remove" onclick="removePreviewImage(${index})">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    `;
+                    preview.appendChild(div);
+                };
+
+                reader.readAsDataURL(file);
+            }
+        });
+    });
+
+    function removePreviewImage(index) {
+        const fileInput = document.getElementById('reviewImages');
+        const dt = new DataTransfer();
+        const files = Array.from(fileInput.files);
+
+        files.forEach((file, i) => {
+            if (i !== index) {
+                dt.items.add(file);
+            }
+        });
+
+        fileInput.files = dt.files;
+
+        // Trigger change event to update preview
+        fileInput.dispatchEvent(new Event('change'));
+    }
+</script>
