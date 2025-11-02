@@ -1,54 +1,50 @@
 ﻿@* Views/Shared/_ProfileDropdown.cshtml *@
 @{
-    var isAuth = Context.User?.Identity?.IsAuthenticated ?? false;
+    // Kiểm tra authentication một cách chắc chắn
+    var isAuth = User?.Identity?.IsAuthenticated ?? false;
 }
 <link href="~/css/profile-dropdown.css" rel="stylesheet" />
 <div class="profile-dropdown-container dropdown" style="width: 100px;">
-    <button class="profile-button header-action-btn dropdown-toggle"
-            id="profileMenuBtn"
-            data-bs-toggle="dropdown"
-            aria-expanded="false"
-            aria-label="Profile Menu">
+    <button class="profile-button header-action-btn dropdown-toggle" id="profileMenuBtn" data-bs-toggle="dropdown"
+        aria-expanded="false" aria-label="Profile Menu">
         <i data-lucide="user" class="icon"></i>
     </button>
 
     <!-- dùng DIV cho dropdown-menu để dễ định dạng header/divider -->
     <div class="dropdown-menu dropdown-menu-end" role="menu" aria-labelledby="profileMenuBtn">
         <div class="dropdown-header">
-            <span>My Account</span>
+            <span>Tài khoản</span>
         </div>
         <div class="dropdown-divider"></div>
 
-        @if (!isAuth)
-        {
-            <a class="dropdown-item d-flex align-items-center gap-2"
-               asp-controller="Auth" asp-action="Login" role="menuitem">
-                <i data-lucide="log-in" class="dropdown-icon"></i>
-                <span>Login</span>
-            </a>
-            <a class="dropdown-item d-flex align-items-center gap-2"
-               asp-controller="Auth" asp-action="Signup" role="menuitem">
-                <i data-lucide="user-plus" class="dropdown-icon"></i>
-                <span>Sign Up</span>
-            </a>    
-        }
-
         @if (isAuth)
         {
-            <a class="dropdown-item d-flex align-items-center gap-2"
-               asp-controller="Home" asp-action="Profile" role="menuitem">
+            <a class="dropdown-item d-flex align-items-center gap-2" asp-controller="Home" asp-action="Profile"
+                role="menuitem">
                 <i data-lucide="user-circle" class="dropdown-icon"></i>
-                <span>Profile</span>
+                <span>Hồ sơ</span>
             </a>
 
             <form asp-controller="Auth" asp-action="Logout" method="post">
                 @Html.AntiForgeryToken()
                 <button type="submit" class="dropdown-item d-flex align-items-center gap-2 logout-item" role="menuitem">
                     <i data-lucide="log-out" class="dropdown-icon"></i>
-                    <span>Logout</span>
+                    <span>Đăng xuất</span>
                 </button>
             </form>
-            
+        }
+        else
+        {
+            <a class="dropdown-item d-flex align-items-center gap-2" asp-controller="Auth" asp-action="Login"
+                role="menuitem">
+                <i data-lucide="log-in" class="dropdown-icon"></i>
+                <span>Đăng nhập</span>
+            </a>
+            <a class="dropdown-item d-flex align-items-center gap-2" asp-controller="Auth" asp-action="Signup"
+                role="menuitem">
+                <i data-lucide="user-plus" class="dropdown-icon"></i>
+                <span>Đăng ký</span>
+            </a>
         }
     </div>
 </div>
