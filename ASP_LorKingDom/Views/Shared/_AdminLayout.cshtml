@@ -82,7 +82,7 @@
 									</li>
 								}
 								@* Product Statistics - Admin và Warehouse *@
-								@if (User.IsInRole("Admin") || User.IsInRole("Warehouse"))
+								@if (User.IsInRole("Admin") || User.IsInRole("WareHouse"))
 								{
 									<li>
 										<a asp-controller="Product" asp-action="Statistics">
@@ -144,7 +144,7 @@
 						</li>
 						<li>
 							<a class="show-cat-btn" href="##">
-								<span class="icon user-3" aria-hidden="true"></span>Quản Lí Tài Khoản
+								<span class="icon user-3" aria-hidden="true"></span>Quản Lý Tài Khoản
 								<span class="category__btn transparent-btn" title="Open list">
 									<span class="sr-only">Open list</span>
 									<span class="icon arrow-down" aria-hidden="true"></span>
@@ -161,7 +161,7 @@
 						</li>
 						<li>
 							<a class="show-cat-btn" href="##">
-								<span class="fa-solid fa-file-invoice" aria-hidden="true"></span> Quản Lí Đơn Hàng
+								<span class="fa-solid fa-file-invoice" aria-hidden="true"></span>Quản Lý Đơn Hàng
 								<span class="category__btn transparent-btn" title="Open list">
 									<span class="sr-only">Open list</span>
 									<span class="icon arrow-down" aria-hidden="true"></span>
@@ -391,19 +391,19 @@
 								<li>
 									<a href="#" onclick="showProfileModal(); return false;">
 										<i data-feather="user" aria-hidden="true"></i>
-										<span>Profile</span>
+										<span>Hồ sơ</span>
 									</a>
 								</li>
 								<li>
 									<a href="@Url.Action("Profile", "Admin")">
 										<i data-feather="settings" aria-hidden="true"></i>
-										<span>Account settings</span>
+										<span>Cập nhật</span>
 									</a>
 								</li>
 								<li>
 									<a class="danger" href="#" onclick="confirmLogout(); return false;">
 										<i data-feather="log-out" aria-hidden="true"></i>
-										<span>Log out</span>
+										<span>Đăng xuất</span>
 									</a>
 								</li>
 							</ul>

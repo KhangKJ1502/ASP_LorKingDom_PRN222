@@ -28,7 +28,7 @@ namespace WebUI.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<JsonResult> Login(string email, string password, bool rememberMe, string? returnUrl = null)
+        public async Task<JsonResult> Login(string email, string password, bool rememberMe = false, string? returnUrl = null)
         {
             try
             {
@@ -44,7 +44,7 @@ namespace WebUI.Controllers
                 var roleName = await _roleService.GetRoleNameByIdAsync(user.RoleId);
 
                 // Kiểm tra role có phải Admin/Staff/Warehouse không
-                if (roleName != "Admin" && roleName != "Staff" && roleName != "Warehouse")
+                if (roleName != "Admin" && roleName != "Staff" && roleName != "WareHouse")
                 {
                     return Json(new { success = false, message = "Bạn không có quyền truy cập vào hệ thống quản lý." });
                 }
@@ -68,11 +68,28 @@ namespace WebUI.Controllers
                         ExpiresUtc = rememberMe ? DateTimeOffset.UtcNow.AddDays(7) : null
                     });
 
+                // Redirect dựa trên role
+                string redirectUrl;
+                if (!string.IsNullOrEmpty(returnUrl))
+                {
+                    redirectUrl = returnUrl;
+                }
+                else if (roleName == "WareHouse")
+                {
+                    // Warehouse không được xem Dashboard, redirect đến Product Management
+                    redirectUrl = "/Product/Manage";
+                }
+                else
+                {
+                    // Admin và Staff xem Dashboard
+                    redirectUrl = "/Admin/Dashboard";
+                }
+
                 return Json(new
                 {
                     success = true,
                     message = $"Đăng nhập thành công! Chào mừng {roleName}.",
-                    redirectUrl = returnUrl ?? "/Admin/Dashboard"
+                    redirectUrl = redirectUrl
                 });
             }
             catch (Exception ex)
@@ -145,7 +162,7 @@ namespace WebUI.Controllers
                 var roleName = await _roleService.GetRoleNameByIdAsync(user.RoleId);
 
                 // Kiểm tra role có phải Admin/Staff/Warehouse không
-                if (roleName != "Admin" && roleName != "Staff" && roleName != "Warehouse")
+                if (roleName != "Admin" && roleName != "Staff" && roleName != "WareHouse")
                     return Json(new { success = false, message = "Tài khoản này không có quyền truy cập hệ thống quản lý." });
 
                 // Gửi OTP cho quên mật khẩu

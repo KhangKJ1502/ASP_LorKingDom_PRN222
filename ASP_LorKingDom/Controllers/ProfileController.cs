@@ -1,7 +1,7 @@
-﻿using System.Security.Claims;
+﻿using BLL.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using BLL.Interfaces;
+using System.Security.Claims;
 
 namespace WebUI.Controllers
 {
@@ -51,6 +51,7 @@ namespace WebUI.Controllers
             ViewBag.Query = q;
             return View("~/Views/Profile/Addresses.cshtml", list); // Model: List<AddressDto>
         }
+
 
         [HttpGet]
         public IActionResult Settings()

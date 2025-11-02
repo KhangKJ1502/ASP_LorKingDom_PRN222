@@ -69,7 +69,7 @@ namespace WebUI.Filters
             }
 
             var role = user.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
-            if (role != "Admin" && role != "Warehouse")
+            if (role != "Admin" && role != "WareHouse")
             {
                 context.Result = new RedirectToActionResult("AccessDenied", "AdminAuth", null);
             }
@@ -93,7 +93,7 @@ namespace WebUI.Filters
             }
 
             var role = user.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
-            if (role != "Admin" && role != "Staff" && role != "Warehouse")
+            if (role != "Admin" && role != "Staff" && role != "WareHouse")
             {
                 context.Result = new RedirectToActionResult("AccessDenied", "AdminAuth", null);
             }

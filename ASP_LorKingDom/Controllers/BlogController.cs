@@ -7,8 +7,6 @@ using WebUI.Filters;
 
 namespace WebUI.Controllers
 {
-    [Authorize(AuthenticationSchemes = "AdminScheme")]
-    [AdminAndStaffOnly] // Staff: Blog Management
     public class BlogController : Controller
     {
         private readonly IBlogService _blogService;
@@ -34,6 +32,7 @@ namespace WebUI.Controllers
             _replyService = replyService;
         }
 
+        // Public actions - Customer có thể xem blog
         [HttpGet]
         public async Task<IActionResult> Index(string? q, string? category, int page = 1, int pageSize = 6)
         {
@@ -122,6 +121,8 @@ namespace WebUI.Controllers
         }
 
         [HttpGet("Blog/Manage")]
+        [Authorize(AuthenticationSchemes = "AdminScheme")]
+        [AdminAndStaffOnly] // Staff: Blog Management
         public async Task<IActionResult> ManageBlog(string? q, string? category, string? status, bool? featured, int page = 1, int pageSize = 10)
         {
             var blogs = await _blogService.GetAllAsync(null); // Lấy tất cả, không filter ở tầng service
@@ -185,6 +186,8 @@ namespace WebUI.Controllers
         }
 
         [HttpGet("Blog/GetDetail/{id}")]
+        [Authorize(AuthenticationSchemes = "AdminScheme")]
+        [AdminAndStaffOnly] // Staff: Blog Management
         public async Task<IActionResult> GetDetail(int id)
         {
             var blog = await _blogService.GetByIdAsync(id);
@@ -207,7 +210,8 @@ namespace WebUI.Controllers
         }
 
         [HttpGet("Blog/Create")]
-        //[Authorize(Roles = "Admin")]
+        [Authorize(AuthenticationSchemes = "AdminScheme")]
+        [AdminAndStaffOnly] // Staff: Blog Management
         public async Task<IActionResult> Create()
         {
             var categories = await _categoryService.GetAllAsync();
@@ -216,7 +220,8 @@ namespace WebUI.Controllers
         }
 
         [HttpPost("Blog/Create")]
-        //[Authorize(Roles = "Admin")]
+        [Authorize(AuthenticationSchemes = "AdminScheme")]
+        [AdminAndStaffOnly] // Staff: Blog Management
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(BlogPostDto dto, int[] categoryIds, IFormFile? thumbnail)
         {
@@ -279,7 +284,8 @@ namespace WebUI.Controllers
         }
 
         [HttpGet("Blog/Edit/{id}")]
-        //[Authorize(Roles = "Admin")]
+        [Authorize(AuthenticationSchemes = "AdminScheme")]
+        [AdminAndStaffOnly] // Staff: Blog Management
         public async Task<IActionResult> Edit(int id)
         {
             var blog = await _blogService.GetByIdAsync(id);
@@ -296,7 +302,8 @@ namespace WebUI.Controllers
         }
 
         [HttpPost("Blog/Edit/{id}")]
-        //[Authorize(Roles = "Admin")]
+        [Authorize(AuthenticationSchemes = "AdminScheme")]
+        [AdminAndStaffOnly] // Staff: Blog Management
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, BlogPostDto dto, int[] categoryIds, IFormFile? thumbnail)
         {
@@ -359,7 +366,8 @@ namespace WebUI.Controllers
         }
 
         [HttpPost("Blog/Delete/{id}")]
-        //[Authorize(Roles = "Admin")]
+        [Authorize(AuthenticationSchemes = "AdminScheme")]
+        [AdminAndStaffOnly] // Staff: Blog Management
         [ValidateAntiForgeryToken]
         public async Task<JsonResult> Delete(int id)
         {

@@ -7,8 +7,6 @@ using WebUI.Filters;
 
 namespace WebUI.Controllers
 {
-    [Authorize(AuthenticationSchemes = "AdminScheme")]
-    [AdminAndStaffOnly] // Staff: Blog Review Management
     public class BlogReviewController : Controller
     {
         private readonly IReviewBlogService _reviewBlogService;
@@ -32,6 +30,8 @@ namespace WebUI.Controllers
         }
 
         [HttpGet("BlogReview/Manage")]
+        [Authorize(AuthenticationSchemes = "AdminScheme")]
+        [AdminAndStaffOnly] // Staff: Blog Review Management
         public async Task<IActionResult> ManageBlogReview(string? q, string? blog, string? blockStatus, string? replyStatus, int page = 1, int pageSize = 10)
         {
             try
@@ -106,6 +106,8 @@ namespace WebUI.Controllers
 
         [HttpPost("BlogReview/Delete/{id}")]
         [ValidateAntiForgeryToken]
+        [Authorize(AuthenticationSchemes = "AdminScheme")]
+        [AdminAndStaffOnly] // Staff: Blog Review Management
         public async Task<JsonResult> DeleteReview(int id)
         {
             try
@@ -124,6 +126,8 @@ namespace WebUI.Controllers
         }
 
         [HttpGet("BlogReview/Details/{id}")]
+        [Authorize(AuthenticationSchemes = "AdminScheme")]
+        [AdminAndStaffOnly] // Staff: Blog Review Management
         public async Task<IActionResult> GetReviewDetail(int id)
         {
             try
@@ -166,6 +170,8 @@ namespace WebUI.Controllers
 
         [HttpPost("BlogReview/Reply/{reviewId}")]
         [ValidateAntiForgeryToken]
+        [Authorize(AuthenticationSchemes = "AdminScheme")]
+        [AdminAndStaffOnly] // Staff: Blog Review Management
         public async Task<JsonResult> ReplyToReview(int reviewId, string replyContent)
         {
             try
@@ -201,6 +207,8 @@ namespace WebUI.Controllers
 
         [HttpPost("BlogReview/DeleteReply/{replyId}")]
         [ValidateAntiForgeryToken]
+        [Authorize(AuthenticationSchemes = "AdminScheme")]
+        [AdminAndStaffOnly] // Staff: Blog Review Management
         public async Task<IActionResult> DeleteReply(int replyId)
         {
             try
@@ -223,6 +231,8 @@ namespace WebUI.Controllers
 
         [HttpPost("BlogReview/ToggleBlock/{id}")]
         [ValidateAntiForgeryToken]
+        [Authorize(AuthenticationSchemes = "AdminScheme")]
+        [AdminAndStaffOnly] // Staff: Blog Review Management
         public async Task<JsonResult> ToggleBlockReview(int id)
         {
             try
@@ -271,8 +281,10 @@ namespace WebUI.Controllers
             }
         }
 
+        // Customer actions - yêu cầu login với Cookies scheme (customer login)
         [HttpPost("Blog/{id}/Reviews")]
         [ValidateAntiForgeryToken]
+        [Authorize(AuthenticationSchemes = "Cookies")]
         public async Task<JsonResult> AddReview(int id, ReviewBlogDto dto)
         {
             try
@@ -308,6 +320,7 @@ namespace WebUI.Controllers
 
         [HttpPost("Blog/Review/{reviewId}/React")]
         [ValidateAntiForgeryToken]
+        [Authorize(AuthenticationSchemes = "Cookies")]
         public async Task<JsonResult> ReactToReview(int reviewId, string reactionType)
         {
             try
@@ -335,7 +348,9 @@ namespace WebUI.Controllers
                     success = true,
                     message = "Đã cập nhật cảm xúc!",
                     likeCount = updatedReview?.LikeCount ?? 0,
-                    dislikeCount = updatedReview?.DislikeCount ?? 0
+                    dislikeCount = updatedReview?.DislikeCount ?? 0,
+                    currentUserReaction = updatedReview?.CurrentUserReactionType == true ? "like" :
+                                         updatedReview?.CurrentUserReactionType == false ? "dislike" : null
                 });
             }
             catch (Exception ex)
@@ -346,6 +361,7 @@ namespace WebUI.Controllers
 
         [HttpPost("Blog/Review/{reviewId}/Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize(AuthenticationSchemes = "Cookies")]
         public async Task<IActionResult> DeletePublicReview(int reviewId)
         {
             try

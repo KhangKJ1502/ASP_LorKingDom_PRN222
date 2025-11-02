@@ -19,6 +19,7 @@ namespace BLL.DTOs
         public string? ConfirmPassword { get; set; }
 
         [Required(ErrorMessage = "Bạn phải đồng ý với Điều khoản dịch vụ và Chính sách bảo mật.")]
+        [Range(typeof(bool), "true", "true", ErrorMessage = "Bạn phải đồng ý với Điều khoản dịch vụ và Chính sách bảo mật.")]
         [Display(Name = "AgreeTerms")]
         public bool AgreeTerms { get; set; }
     }
