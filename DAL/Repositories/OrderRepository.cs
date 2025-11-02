@@ -113,5 +113,43 @@ namespace DAL.Repositories
             await _db.SaveChangesAsync();
             return true;
         }
-    }
+
+		public async Task<List<Order>> GetByAccountIdAsync(int accountId)
+		{
+			return await _db.Orders
+				.Include(o => o.Status)
+				.Include(o => o.Account)
+				.Include(o => o.Voucher)
+				.Include(o => o.OrderDetails)
+					.ThenInclude(od => od.Product)
+						.ThenInclude(p => p.ProductImages)
+				.Where(o => o.AccountId == accountId && !o.IsDeleted)
+				.OrderByDescending(o => o.OrderDate)
+				.ToListAsync();
+		}
+
+		public async Task<List<OrderDetail>> GetOrderDetailsByOrderIdAsync(int orderId)
+		{
+			return await _db.OrderDetails
+				.Include(od => od.Product)
+					.ThenInclude(p => p.ProductImages)
+				.Where(od => od.OrderId == orderId && !od.IsDeleted)
+				.ToListAsync();
+		}
+
+		public async Task<bool> UpdateOrderDetailAsync(OrderDetail orderDetail)
+		{
+			try
+			{
+				_db.OrderDetails.Update(orderDetail);
+				await _db.SaveChangesAsync();
+				return true;
+			}
+			catch
+			{
+				return false;
+			}
+		}
+
+	}
 }

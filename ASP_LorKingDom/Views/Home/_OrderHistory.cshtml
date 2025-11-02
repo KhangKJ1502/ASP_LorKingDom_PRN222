@@ -443,21 +443,47 @@
 
                     <div class="order-footer">
                         <div class="order-total">Tổng: @order.TotalAmount.ToString("N0") ₫</div>
-                        <div style="display: flex; gap: 0.5rem;">
+                        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
                             <a href="/Home/OrderDetails?id=@order.OrderId" class="btn-view-detail">
                                 Xem chi tiết
                             </a>
+
                             @if (order.StatusId == 1 || order.StatusId == 2)
                             {
                                 <button class="btn-cancel" onclick="cancelOrder(@order.OrderId)">
                                     Hủy đơn
                                 </button>
                             }
+
                             @if (order.StatusId == 4)
                             {
                                 <button class="btn-return" onclick="returnOrder(@order.OrderId)">
                                     Hoàn trả
                                 </button>
+
+                                @* Kiểm tra xem có sản phẩm nào chưa đánh giá không *@
+                                @if (order.OrderDetails.Any(d => !d.Reviewed))
+                                {
+                                    <!-- Nếu có sản phẩm chưa đánh giá - chuyển sang tab pending reviews -->
+                                    <button class="btn-write-review"
+                                            onclick="navigateToReviewsTab('pending')"
+                                            style="background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); color: white; padding: 0.625rem 1rem; border-radius: 0.5rem; border: none; font-weight: 600; cursor: pointer; transition: all 0.3s ease; white-space: nowrap; display: inline-flex; align-items: center; gap: 0.5rem;">
+                                        <i class="fas fa-star"></i> Đánh giá sản phẩm
+                                    </button>
+                                }
+
+                                @if (order.OrderDetails.Any(d => d.Reviewed))
+                                {
+                                    @* Lấy productId của sản phẩm đầu tiên đã được đánh giá - INLINE *@
+                                    var reviewedProductId = order.OrderDetails.FirstOrDefault(d => d.Reviewed)?.ProductId ?? 0;
+
+                                    <!-- Nếu đã có đánh giá - chuyển sang tab reviewed và highlight -->
+                                    <button class="btn btn-outline-success btn-sm d-flex align-items-center gap-1"
+                                            onclick="openReviewPopup(@reviewedProductId)"
+                                            style="font-weight: 600; padding: 0.5rem 1rem; border-radius: 0.5rem;">
+                                        <i class="fas fa-eye"></i> Xem đánh giá
+                                    </button>
+                                }
                             }
                         </div>
                     </div>

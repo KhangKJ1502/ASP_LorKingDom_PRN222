@@ -1,9 +1,9 @@
 ﻿@model BLL.DTOs.ProductDto
 @using System.Linq
+@using BLL.DTOs
 @{
     ViewData["Title"] = (Model?.ProductName ?? "Chi tiết sản phẩm") + " - ToyLand";
 
-    // ==== Chuẩn bị dữ liệu hiển thị an toàn ====
     var placeholder = Url.Content("~/images/placeholder.png");
     var mainImage = !string.IsNullOrWhiteSpace(Model?.MainImageUrl) ? Model!.MainImageUrl! : placeholder;
 
@@ -12,7 +12,6 @@
         .Distinct()
         .ToList();
 
-    // đảm bảo ảnh chính luôn ở vị trí đầu của thumbnail
     if (!string.IsNullOrWhiteSpace(mainImage))
     {
         if (!thumbs.Any() || !thumbs[0].Equals(mainImage, StringComparison.OrdinalIgnoreCase))
@@ -27,8 +26,10 @@
     var sku = Model?.Sku ?? "—";
     var stock = Model?.StockQuantity ?? 0;
 
-    // Giá gốc/khuyến mại: nếu bạn có field riêng thì gắn vào; hiện tại chưa có -> ẩn phần giảm giá
-    decimal? originalPrice = null; // ví dụ: Model?.OriginalPrice
+    // Giả lập dữ liệu đánh giá (sẽ thay bằng API)
+    var reviews = ViewBag.Reviews as List<ReviewProductDto> ?? new List<ReviewProductDto>();
+    var avgRating = reviews.Any() ? Math.Round(reviews.Average(r => r.Rating), 1) : 0.0;
+    var totalReviews = reviews.Count;
 }
 <link href="~/css/productDetail.css" rel="stylesheet" asp-append-version="true" />
 
@@ -39,90 +40,56 @@
         <div class="animate-slide-up">
             <div class="gallery-main" id="mainGallery">
                 <img src="@mainImage" alt="@Model?.ProductName" id="mainImage" />
-                <button class="gallery-nav prev" type="button" onclick="previousImage()">❮</button>
-                <button class="gallery-nav next" type="button" onclick="nextImage()">❯</button>
+                <button class="gallery-nav prev" type="button" onclick="previousImage()">Previous</button>
+                <button class="gallery-nav next" type="button" onclick="nextImage()">Next</button>
                 <div class="gallery-counter">
                     <span id="imageCounter">1</span> / @thumbs.Count
                 </div>
             </div>
 
-            <!-- Thumbnails -->
             <div class="gallery-thumbnails" style="margin-top:1rem;">
-                @{
-                    for (var idx = 0; idx < thumbs.Count; idx++)
-                    {
-                        var t = thumbs[idx];
-                        var isActive = idx == 0 ? "active" : "";
-                        <button class="thumbnail @isActive" type="button" onclick="selectImage(@idx)">
-                            <img src="@t" alt="Thumbnail @(idx+1)" />
-                        </button>
-                    }
+                @for (var idx = 0; idx < thumbs.Count; idx++)
+                {
+                    var t = thumbs[idx];
+                    var isActive = idx == 0 ? "active" : "";
+                    <button class="thumbnail @isActive" type="button" onclick="selectImage(@idx)">
+                        <img src="@t" alt="Thumbnail @(idx+1)" />
+                    </button>
                 }
             </div>
         </div>
 
         <!-- Product Info -->
         <div class="product-info animate-slide-up" style="animation-delay:.1s;">
-            <!-- Header -->
             <div>
                 <span class="badge">@categoryName</span>
                 <h1 class="product-title">@Model?.ProductName</h1>
             </div>
 
-            <!-- Rating (giả lập) -->
+            <!-- Rating -->
             <div class="rating">
                 <div class="stars">
-                    <span class="star">★</span>
-                    <span class="star">★</span>
-                    <span class="star">★</span>
-                    <span class="star">★</span>
-                    <span class="star empty">★</span>
+                    @for (int i = 1; i <= 5; i++)
+                    {
+                        <span class="star @(i <= Math.Floor(avgRating) ? "" : i <= avgRating ? "half" : "empty")">Star</span>
+                    }
                 </div>
-                <span class="rating-text">4.8</span>
-                <span class="rating-count">(124 đánh giá)</span>
+                <span class="rating-text">@avgRating</span>
+                <span class="rating-count">(@totalReviews đánh giá)</span>
             </div>
 
-            <!-- Price Section -->
+            <!-- Price -->
             <div class="price-section">
                 <div class="price-display">
                     <span class="price-current">@((Model?.Price ?? 0m).ToString("n0")) ₫</span>
-
-                    @if (originalPrice.HasValue && originalPrice.Value > (Model?.Price ?? 0m))
-                    {
-                        <span class="price-original">@originalPrice.Value.ToString("n0") ₫</span>
-                        @if (originalPrice.HasValue && originalPrice.Value > (Model?.Price ?? 0m))
-                        {
-                            <span class="price-original">@originalPrice.Value.ToString("n0") ₫</span>
-                            var discount = 100 - (int)Math.Round(((Model?.Price ?? 0m) / originalPrice.Value) * 100, 0);
-                            <span class="discount-badge">-@discount%</span>
-                        }
-
-
-                    }
                 </div>
-
-                @if (originalPrice.HasValue && originalPrice.Value > (Model?.Price ?? 0m))
-                {
-                    <div class="price-savings">
-                        Tiết kiệm: @((originalPrice.Value - (Model?.Price ?? 0m)).ToString("n0")) ₫
-                    </div>
-                }
             </div>
 
-            <!-- Product Details -->
+            <!-- Details -->
             <div class="details-box">
-                <div class="detail-row">
-                    <span class="detail-label">Thương hiệu:</span>
-                    <span class="detail-value">@brandName</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Xuất xứ:</span>
-                    <span class="detail-value">@originName</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">SKU:</span>
-                    <span class="detail-value" style="font-family:monospace; font-size:.875rem;">@sku</span>
-                </div>
+                <div class="detail-row"><span class="detail-label">Thương hiệu:</span><span class="detail-value">@brandName</span></div>
+                <div class="detail-row"><span class="detail-label">Xuất xứ:</span><span class="detail-value">@originName</span></div>
+                <div class="detail-row"><span class="detail-label">SKU:</span><span class="detail-value" style="font-family:monospace;">@sku</span></div>
                 <div class="detail-row">
                     <span class="detail-label">Kho hàng:</span>
                     <span class="detail-value @(stock <= 5 ? "stock-low" : "stock-available")">
@@ -131,7 +98,7 @@
                 </div>
             </div>
 
-            <!-- Quantity Selector -->
+            <!-- Quantity -->
             <div class="quantity-section">
                 <span class="quantity-label">Số lượng:</span>
                 <div class="quantity-control">
@@ -141,16 +108,16 @@
                 </div>
             </div>
 
-            <!-- Action Buttons -->
+            <!-- Actions -->
             <div class="action-buttons">
                 <button onclick="addToCart(@(Model?.Id ?? 0), parseInt(document.getElementById('quantity').value))" class="btn btn-primary w-full" @(stock <= 0 ? "disabled" : "")>
-                    🛒 Thêm vào giỏ
+                    Thêm vào giỏ
                 </button>
-                <button class="btn btn-secondary" type="button" onclick="toggleFavorite(this)">♡ Yêu thích</button>
+                <button class="btn btn-secondary" type="button" onclick="toggleFavorite(this)">Yêu thích</button>
             </div>
-            <!-- Info Banner -->
+
             <div class="info-banner">
-                ✓ Giao hàng miễn phí cho đơn hàng trên 500.000đ | ✓ Bảo hành 12 tháng | ✓ Hỗ trợ 24/7
+                Giao hàng miễn phí cho đơn hàng trên 500.000đ | Bảo hành 12 tháng | Hỗ trợ 24/7
             </div>
         </div>
     </div>
@@ -161,9 +128,10 @@
             <button class="tab-trigger active" type="button" onclick="switchTab(event, 'description')">Mô tả</button>
             <button class="tab-trigger" type="button" onclick="switchTab(event, 'features')">Tính năng</button>
             <button class="tab-trigger" type="button" onclick="switchTab(event, 'specifications')">Thông số</button>
+            <button class="tab-trigger" type="button" onclick="switchTab(event, 'reviews')">Đánh giá (@totalReviews)</button>
         </div>
 
-        <!-- Description Tab -->
+        <!-- Description -->
         <div id="description" class="tab-content active">
             <div class="card">
                 @if (!string.IsNullOrWhiteSpace(Model?.DescriptionHtml))
@@ -172,39 +140,120 @@
                 }
                 else
                 {
-                    <p style="font-size:1.125rem; color:var(--foreground); line-height:1.8; margin-bottom:1.5rem;">
-                        Chưa có mô tả cho sản phẩm này.
-                    </p>
+                    <p class="text-muted">Chưa có mô tả cho sản phẩm này.</p>
                 }
             </div>
         </div>
 
-        <!-- Features Tab -->
+        <!-- Features -->
         <div id="features" class="tab-content">
             <div class="card">
                 <div class="features-grid">
-                    <div class="feature-item"><div class="feature-icon">✓</div><div class="feature-text">Thiết kế an toàn cho trẻ</div></div>
-                    <div class="feature-item"><div class="feature-icon">✓</div><div class="feature-text">Vật liệu đạt chuẩn</div></div>
-                    <div class="feature-item"><div class="feature-icon">✓</div><div class="feature-text">Dễ lắp ráp, sáng tạo</div></div>
-                    <div class="feature-item"><div class="feature-icon">✓</div><div class="feature-text">Bảo hành rõ ràng</div></div>
+                    <div class="feature-item"><div class="feature-icon">Check</div><div class="feature-text">Thiết kế an toàn cho trẻ</div></div>
+                    <div class="feature-item"><div class="feature-icon">Check</div><div class="feature-text">Vật liệu đạt chuẩn</div></div>
+                    <div class="feature-item"><div class="feature-icon">Check</div><div class="feature-text">Dễ lắp ráp, sáng tạo</div></div>
+                    <div class="feature-item"><div class="feature-icon">Check</div><div class="feature-text">Bảo hành rõ ràng</div></div>
                 </div>
             </div>
         </div>
 
-        <!-- Specifications Tab -->
+        <!-- Specifications -->
         <div id="specifications" class="tab-content">
             <div class="card">
                 <table class="specs-table">
                     <tbody>
-                        <tr><td>Danh mục</td>  <td>@(Model?.CategoryName ?? "—")</td></tr>
-                        <tr><td>Thương hiệu</td><td>@(Model?.BrandName ?? "—")</td></tr>
-                        <tr><td>Độ tuổi</td>   <td>@(Model?.AgeRange ?? "—")</td></tr>
-                        <tr><td>Chất liệu</td> <td>@(Model?.MaterialName ?? "—")</td></tr>
-                        <tr><td>Xuất xứ</td>   <td>@(Model?.OriginName ?? "—")</td></tr>
-                        <tr><td>Trạng thái</td><td>@(Model?.ProductStatus ?? "—")</td></tr>
-                        <tr><td>Mã SKU</td>    <td>@(Model?.Sku ?? "—")</td></tr>
+                        <tr><td>Danh mục</td>     <td>@(Model?.CategoryName ?? "—")</td></tr>
+                        <tr><td>Thương hiệu</td>  <td>@(Model?.BrandName ?? "—")</td></tr>
+                        <tr><td>Độ tuổi</td>      <td>@(Model?.AgeRange ?? "—")</td></tr>
+                        <tr><td>Chất liệu</td>    <td>@(Model?.MaterialName ?? "—")</td></tr>
+                        <tr><td>Xuất xứ</td>      <td>@(Model?.OriginName ?? "—")</td></tr>
+                        <tr><td>Trạng thái</td>   <td>@(Model?.ProductStatus ?? "—")</td></tr>
+                        <tr><td>Mã SKU</td>       <td>@(Model?.Sku ?? "—")</td></tr>
                     </tbody>
                 </table>
+            </div>
+        </div>
+
+        <!-- Reviews Tab -->
+        <div id="reviews" class="tab-content">
+            <div class="card">
+                @if (reviews.Any())
+                {
+                    <div class="space-y-6">
+                        @foreach (var review in reviews)
+                        {
+                            <div class="review-item p-4 border rounded-lg bg-gray-50">
+                                <!-- Header -->
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <div>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="avatar-sm rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold">
+                                                @(review.AuthorName?.FirstOrDefault() ?? 'A')
+                                            </div>
+                                            <div>
+                                                <strong>@review.AuthorName</strong>
+                                                @if (review.IsVerifiedPurchase)
+                                                {
+                                                    <span class="badge bg-success ms-2" style="font-size:0.65rem;">Đã mua</span>
+                                                }
+                                            </div>
+                                        </div>
+                                        <div class="d-flex align-items-center gap-1 text-warning mt-1">
+                                            @for (int i = 1; i <= 5; i++)
+                                            {
+                                                <i class="@(i <= review.Rating ? "fas" : "far") fa-star"></i>
+                                            }
+                                        </div>
+                                        <small class="text-muted">
+                                            @review.CreatedAt.ToString("dd/MM/yyyy HH:mm")
+                                        </small>
+                                    </div>
+                                </div>
+
+                                <!-- Comment -->
+                                <p class="mb-3" style="line-height:1.7;">@review.Comment</p>
+
+                                <!-- Images -->
+                                @if (review.ImageUrls?.Any() == true)
+                                {
+                                    <div class="d-flex gap-2 flex-wrap mb-3">
+                                        @foreach (var img in review.ImageUrls)
+                                        {
+                                            <a href="@img" target="_blank">
+                                                <img src="@img" class="rounded" style="width:80px;height:80px;object-fit:cover;cursor:zoom-in;border:2px solid #fed7aa;" />
+                                            </a>
+                                        }
+                                    </div>
+                                }
+
+                                <!-- Shop Reply -->
+                                @if (review.Replies?.Any() == true)
+                                {
+                                    <div class="bg-orange-50 p-3 rounded border-start border-orange border-3 mt-3">
+                                        <p class="fw-bold text-orange mb-2">
+                                            Phản hồi từ cửa hàng
+                                        </p>
+                                        @foreach (var reply in review.Replies)
+                                        {
+                                            <div class="small">
+                                                <p class="mb-1">@reply.Content</p>
+                                                <span class="text-muted">@reply.CreatedAt.ToString("dd/MM/yyyy HH:mm")</span>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-5 text-muted">
+                        <i class="far fa-comment-slash fa-3x mb-3"></i>
+                        <p>Chưa có đánh giá nào cho sản phẩm này.</p>
+                        <p class="text-sm">Hãy là người đầu tiên đánh giá!</p>
+                    </div>
+                }
             </div>
         </div>
     </div>
@@ -221,13 +270,12 @@
             if (!thumbs.length) return;
             const main = document.getElementById('mainImage');
             main.src = thumbs[i].src;
-            const counter = document.getElementById('imageCounter');
-            if (counter) counter.textContent = (i + 1);
+            document.getElementById('imageCounter').textContent = (i + 1);
             document.querySelectorAll('.thumbnail').forEach((t, idx) => t.classList.toggle('active', idx === i));
         }
-        function selectImage(index) { if (!thumbs.length) return; currentImageIndex = index; setMainByIndex(currentImageIndex); }
-        function nextImage() { if (!thumbs.length) return; currentImageIndex = (currentImageIndex + 1) % totalImages; setMainByIndex(currentImageIndex); }
-        function previousImage() { if (!thumbs.length) return; currentImageIndex = (currentImageIndex - 1 + totalImages) % totalImages; setMainByIndex(currentImageIndex); }
+        function selectImage(i) { currentImageIndex = i; setMainByIndex(i); }
+        function nextImage() { currentImageIndex = (currentImageIndex + 1) % totalImages; setMainByIndex(currentImageIndex); }
+        function previousImage() { currentImageIndex = (currentImageIndex - 1 + totalImages) % totalImages; setMainByIndex(currentImageIndex); }
 
         // === Quantity ===
         function increaseQuantity() {
@@ -243,41 +291,31 @@
             const cur = parseInt(input.value || '1');
             if (cur > 1) input.value = cur - 1;
         }
-        function syncQtyBeforeSubmit() {
-            const qty = (document.getElementById('quantity')?.value || '1');
-            const hidden = document.getElementById('qtyHidden');
-            if (hidden) hidden.value = qty;
-        }
 
-        // === Favorite toggle ===
-        function toggleFavorite(button) {
-            if (button.textContent.includes('♡')) {
-                button.textContent = '♥ Yêu thích';
-                button.style.color = '#ec4899';
+        // === Favorite ===
+        function toggleFavorite(btn) {
+            if (btn.textContent.includes('Yêu thích')) {
+                btn.innerHTML = 'Đã yêu thích';
+                btn.style.color = '#ec4899';
             } else {
-                button.textContent = '♡ Yêu thích';
-                button.style.color = 'var(--foreground)';
+                btn.innerHTML = 'Yêu thích';
+                btn.style.color = 'var(--foreground)';
             }
         }
 
         // === Tabs ===
-        function switchTab(event, tabName) {
+        function switchTab(e, tabName) {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.tab-trigger').forEach(t => t.classList.remove('active'));
             document.getElementById(tabName)?.classList.add('active');
-            event.target.classList.add('active');
+            e.target.classList.add('active');
         }
-        window.switchTab = switchTab; // để dùng trong HTML
+        window.switchTab = switchTab;
 
         // === Init ===
-        window.addEventListener('DOMContentLoaded', function () {
-            if (thumbs.length > 0) {
-                setMainByIndex(0);
-            } else {
-                // nếu không có ảnh phụ, đảm bảo counter vẫn là 1/1
-                const counter = document.getElementById('imageCounter');
-                if (counter) counter.textContent = '1';
-            }
+        document.addEventListener('DOMContentLoaded', () => {
+            if (thumbs.length > 0) setMainByIndex(0);
+            else document.getElementById('imageCounter').textContent = '1';
         });
     </script>
 }

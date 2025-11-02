@@ -292,5 +292,88 @@ namespace BLL.Services
                 }).ToList() ?? new List<OrderDetailDto>()
             };
         }
-    }
+
+		public async Task<List<PendingReviewDto>> GetPendingReviewProductsAsync(int accountId)
+		{
+			var orders = await _orderRepo.GetByAccountIdAsync(accountId);
+
+			var deliveredOrders = orders
+				.Where(o => o.StatusId == 4 && !o.IsDeleted) // Status 4 = Delivered
+				.ToList();
+
+			var pendingReviews = new List<PendingReviewDto>();
+
+			foreach (var order in deliveredOrders)
+			{
+				var orderDetails = await _orderRepo.GetOrderDetailsByOrderIdAsync(order.OrderId);
+
+				foreach (var detail in orderDetails.Where(d => !d.Reviewed && !d.IsDeleted))
+				{
+					var product = await _productRepo.GetByIdAsync(detail.ProductId);
+					if (product != null && !product.IsDeleted)
+					{
+						pendingReviews.Add(new PendingReviewDto
+						{
+							ProductId = product.ProductId,
+							ProductName = product.ProductName,
+							MainImageUrl = product.ProductImages?.FirstOrDefault(i => i.IsMain)?.ImageUrl,
+							PurchaseDate = order.OrderDate,
+							OrderId = order.OrderId,
+							Price = detail.UnitPrice
+						});
+					}
+				}
+			}
+
+			return pendingReviews.OrderByDescending(p => p.PurchaseDate).ToList();
+		}
+
+		public async Task<bool> CanReviewProductAsync(int accountId, int productId)
+		{
+			var orders = await _orderRepo.GetByAccountIdAsync(accountId);
+
+			var hasDeliveredOrder = orders.Any(o =>
+				o.StatusId == 4 && // Delivered
+				!o.IsDeleted &&
+				o.OrderDetails.Any(od => od.ProductId == productId && !od.IsDeleted)
+			);
+
+			return hasDeliveredOrder;
+		}
+
+		public async Task MarkProductAsReviewedAsync(int accountId, int productId)
+		{
+			var orders = await _orderRepo.GetByAccountIdAsync(accountId);
+
+			foreach (var order in orders.Where(o => o.StatusId == 4 && !o.IsDeleted))
+			{
+				var orderDetails = await _orderRepo.GetOrderDetailsByOrderIdAsync(order.OrderId);
+				var detail = orderDetails.FirstOrDefault(od => od.ProductId == productId && !od.IsDeleted);
+
+				if (detail != null)
+				{
+					detail.Reviewed = true;
+					await _orderRepo.UpdateOrderDetailAsync(detail);
+				}
+			}
+		}
+
+		public async Task UnmarkProductAsReviewedAsync(int accountId, int productId)
+		{
+			var orders = await _orderRepo.GetByAccountIdAsync(accountId);
+
+			foreach (var order in orders.Where(o => o.StatusId == 4 && !o.IsDeleted))
+			{
+				var orderDetails = await _orderRepo.GetOrderDetailsByOrderIdAsync(order.OrderId);
+				var detail = orderDetails.FirstOrDefault(od => od.ProductId == productId && !od.IsDeleted);
+
+				if (detail != null)
+				{
+					detail.Reviewed = false;
+					await _orderRepo.UpdateOrderDetailAsync(detail);
+				}
+			}
+		}
+
+	}
 }
