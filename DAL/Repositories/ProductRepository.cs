@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace DAL.Repositories
 {
-    public class ProductRepository : IProductRepository
+    public partial class ProductRepository : IProductRepository
     {
         private readonly AspLorKingDomContext _ctx;
 
@@ -24,6 +24,7 @@ namespace DAL.Repositories
                 .Include(p => p.Category)
                 .Include(p => p.Brand)
                 .Include(p => p.ProductImages)
+                .Include(p => p.Promotion)
                 .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(keyword))
@@ -49,6 +50,7 @@ namespace DAL.Repositories
                 .Include(p => p.Origin)       // ✅ thêm
                 .Include(p => p.PriceRange)   // ✅ thêm (nếu muốn hiện mức giá)
                 .Include(p => p.ProductImages)
+                .Include(p => p.Promotion)
                 .FirstOrDefaultAsync(p => p.ProductId == id);
         }
 
@@ -177,6 +179,7 @@ namespace DAL.Repositories
                 .Include(p => p.Category)
                 .Include(p => p.Brand)
                 .Include(p => p.ProductImages) // để lấy MainImageUrl
+                .Include(p => p.Promotion)
                 .Where(p =>
                     p.IsDeleted == false &&
                     p.Quantity > 0 &&
@@ -233,6 +236,7 @@ namespace DAL.Repositories
                 .Include(p => p.Category)
                 .Include(p => p.Brand)
                 .Include(p => p.ProductImages) // để có ảnh chính
+                .Include(p => p.Promotion)
                 .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(keyword))
@@ -255,9 +259,32 @@ namespace DAL.Repositories
                 .Take(pageSize)
                 .ToListAsync();
 
-            return (items, total);
+                return (items, total);
+            }
+
+            // Get product ids currently assigned to a promotion
+            public Task<List<int>> GetProductIdsByPromotionAsync(int promotionId)
+            {
+                return _ctx.Products
+                    .Where(p => p.PromotionId == promotionId)
+                    .Select(p => p.ProductId)
+                    .ToListAsync();
+            }
+
+            // Bulk set PromotionId for a set of products (use ExecuteUpdateAsync for efficiency)
+            public async Task<int> SetPromotionForProductsAsync(int? promotionId, int[] productIds)
+            {
+                if (productIds == null || productIds.Length == 0) return 0;
+
+                var q = _ctx.Products.Where(p => productIds.Contains(p.ProductId));
+
+                var affected = await q.ExecuteUpdateAsync(s => s
+                    .SetProperty(p => p.PromotionId, p => promotionId)
+                    .SetProperty(p => p.UpdatedAt, p => DateTime.Now));
+
+                return affected;
+            }
         }
 
     }
 
-}

@@ -87,7 +87,9 @@ namespace DAL.Repositories
 
         public Task<Notification?> GetByIdAsync(int id)
         {
+            // ✅ AsNoTracking để tránh conflict khi Update
             return _db.Notifications
+                .AsNoTracking()
                 .AsSplitQuery()
                 .Include(x => x.TargetRole)
                 .Include(x => x.TargetUser)
@@ -112,16 +114,44 @@ namespace DAL.Repositories
 
         public async Task UpdateAsync(Notification entity)
         {
+            // ✅ Attach và set state để tránh tracking conflicts
+            var tracked = _db.Notifications.Local.FirstOrDefault(n => n.NotificationId == entity.NotificationId);
+            if (tracked != null)
+            {
+                _db.Entry(tracked).State = EntityState.Detached;
+            }
+            
             _db.Notifications.Update(entity);
             await _db.SaveChangesAsync();
         }
 
         public async Task DeleteAsync(int id)
         {
-            var entity = await _db.Notifications.FindAsync(id);
-            if (entity == null) return;
+            var notification = await _db.Notifications.FindAsync(id);
+            if (notification == null) return;
 
-            _db.Notifications.Remove(entity);
+            // ✅ Xóa tất cả NotificationLog liên quan trước (để tránh FK constraint)
+            var logs = await _db.NotificationLogs
+                .Where(l => l.NotificationId == id)
+                .ToListAsync();
+            
+            if (logs.Any())
+            {
+                _db.NotificationLogs.RemoveRange(logs);
+            }
+
+            // ✅ Xóa tất cả UserNotification liên quan
+            var userNotifications = await _db.UserNotifications
+                .Where(un => un.NotificationId == id)
+                .ToListAsync();
+            
+            if (userNotifications.Any())
+            {
+                _db.UserNotifications.RemoveRange(userNotifications);
+            }
+
+            // Sau đó mới xóa Notification
+            _db.Notifications.Remove(notification);
             await _db.SaveChangesAsync();
         }
 

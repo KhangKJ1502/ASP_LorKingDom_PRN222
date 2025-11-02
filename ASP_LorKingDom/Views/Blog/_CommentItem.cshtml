@@ -1,5 +1,13 @@
 @model BLL.DTOs.ReviewBlogDto
 
+@* Ensure SweetAlert2 is loaded *@
+@if (!ViewData.ContainsKey("SweetAlert2Loaded"))
+{
+    ViewData["SweetAlert2Loaded"] = true;
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+}
+
 <div class="comment-item">
     <div class="comment-header">
         <div>
@@ -14,13 +22,34 @@
                 {
                     <form method="post" asp-action="DeletePublicReview" asp-controller="BlogReview"
                         asp-route-reviewId="@Model?.ReviewBlogId" style="display:inline;"
-                        onsubmit="return confirm('Bạn có chắc muốn xoá bình luận này?')">
+                        onsubmit="return confirmDeleteComment(event)">
                         @Html.AntiForgeryToken()
                         <button type="submit" class="btn btn-sm btn-danger" title="Xoá bình luận"
                             style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">
                             <i class="fas fa-trash"></i>
                         </button>
                     </form>
+
+                    <script>
+                        async function confirmDeleteComment(event) {
+                            event.preventDefault();
+                            const result = await Swal.fire({
+                                icon: 'warning',
+                                title: 'Xóa bình luận?',
+                                text: 'Bạn có chắc muốn xóa bình luận này?',
+                                showCancelButton: true,
+                                confirmButtonColor: '#667eea',
+                                cancelButtonColor: '#6c757d',
+                                confirmButtonText: 'Xóa',
+                                cancelButtonText: 'Hủy',
+                                reverseButtons: true
+                            });
+                            if (result.isConfirmed) {
+                                event.target.submit();
+                            }
+                            return false;
+                        }
+                    </script>
                 }
             }
         </div>

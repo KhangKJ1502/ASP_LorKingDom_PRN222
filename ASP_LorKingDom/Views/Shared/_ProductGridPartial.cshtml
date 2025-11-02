@@ -9,6 +9,7 @@
 
 	var indexUrl = Url.Action("Index", "Home", new { q, page, pageSize });
 }
+<link href="~/css/promotion-pricing.css" rel="stylesheet" asp-append-version="true" />
 <style>
 	.pagination-orange {
 		display: flex;
@@ -90,8 +91,9 @@
 				var url = Url.Action("ProductDetails", "Home", new { id = p.Id });
 				int stars = rnd.Next(4, 6);
 				int reviews = rnd.Next(50, 500);
+				var hasPromotion = p.PromotionId != null && p.PromotionDiscountPercent.HasValue && p.PromotionDiscountPercent.Value > 0;
 
-				<article class="product-card js-card" role="link" tabindex="0" data-url="@url">
+				<article class="product-card @(hasPromotion ? "on-sale" : "") js-card" role="link" tabindex="0" data-url="@url">
 					<div class="product-image">
 						<img src="@(string.IsNullOrWhiteSpace(p.MainImageUrl) ? Url.Content("~/images/placeholder.png") : p.MainImageUrl)" alt="@p.ProductName" />
 
@@ -130,7 +132,22 @@
 							<span>(@reviews)</span>
 						</div>
 						<div class="product-price">
-							<span class="price-current">@p.Price.ToString("C0")</span>
+							@{
+								// If product has a promotion, show original price struck-through and discounted price
+								if (p.PromotionId != null && p.PromotionDiscountPercent.HasValue && p.PromotionDiscountPercent.Value > 0)
+								{
+									var discount = p.PromotionDiscountPercent.Value;
+									var discounted = p.Price * (1 - discount / 100m);
+									<text>
+										<span class="price-discounted">@discounted.ToString("C0")</span>
+										<span class="price-original"><del>@p.Price.ToString("C0")</del></span>
+									</text>
+								}
+								else
+								{
+									<text><span class="price-current">@p.Price.ToString("C0")</span></text>
+								}
+							}
 						</div>
 						<button onclick="addToCart(@p.Id, 1)" class="btn btn-primary btn-block">
 							Thêm vào giỏ hàng

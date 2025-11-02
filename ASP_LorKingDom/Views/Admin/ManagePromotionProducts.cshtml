@@ -1,0 +1,449 @@
+@model BLL.DTOs.PagedResult<BLL.DTOs.ProductDto>
+@{
+    var promo = ViewBag.Promotion as BLL.DTOs.PromotionDto;
+    var query = ViewBag.Query as string ?? "";
+}
+<link href="~/css/admin-promotion.css" rel="stylesheet" asp-append-version="true" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<div class="admin-promotion-page">
+    <div class="promotion-page-header">
+        <div class="header-content">
+            <h2>
+                <i class="fa-solid fa-boxes-stacked me-2"></i>
+                Quản Lý Sản Phẩm Khuyến Mãi
+            </h2>
+            <p class="promo-info">
+                <span class="promo-code">@promo?.PromotionCode</span>
+                <span class="promo-desc">@promo?.Description</span>
+                <span class="promo-discount">@(promo?.DiscountPercent ?? 0)% OFF</span>
+            </p>
+        </div>
+        <div class="header-stats">
+            <div class="stat-card">
+                <div class="stat-value" id="assignedCount">0</div>
+                <div class="stat-label">Đã gán</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="totalProducts">@Model.Total</div>
+                <div class="stat-label">Tổng sản phẩm</div>
+            </div>
+        </div>
+    </div>
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert-message alert-error">
+            <i class="fa-solid fa-circle-exclamation me-2"></i>
+            @TempData["ErrorMessage"]
+        </div>
+    }
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert-message alert-success">
+            <i class="fa-solid fa-circle-check me-2"></i>
+            @TempData["SuccessMessage"]
+        </div>
+    }
+
+    <form asp-action="AssignProducts" method="post" id="assignForm">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="promotionId" value="@promo?.PromotionId" />
+
+        <!-- Filters & Actions Bar -->
+        <div class="filter-action-bar">
+            <div class="search-container">
+                <div class="search-input-group">
+                    <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                    <input type="text" name="q" value="@query" class="search-input" placeholder="Tìm kiếm theo tên hoặc SKU..." />
+                    @if (!string.IsNullOrWhiteSpace(query))
+                    {
+                        <a href="@Url.Action("ManageProducts", "Promotion", new { promotionId = promo?.PromotionId })" class="clear-search" title="Xóa tìm kiếm">
+                            <i class="fa-solid fa-times"></i>
+                        </a>
+                    }
+                </div>
+            </div>
+
+            <div class="quick-actions">
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn-action" onclick="filterProducts('all')" id="filterAll">
+                        <i class="fa-solid fa-list me-1"></i>Tất cả
+                    </button>
+                    <button type="button" class="btn-action" onclick="filterProducts('assigned')" id="filterAssigned">
+                        <i class="fa-solid fa-check-circle me-1"></i>Đã gán
+                    </button>
+                    <button type="button" class="btn-action" onclick="filterProducts('unassigned')" id="filterUnassigned">
+                        <i class="fa-solid fa-circle me-1"></i>Chưa gán
+                    </button>
+                </div>
+
+                <div class="btn-group ms-3" role="group">
+                    <button type="button" class="btn-action btn-action-primary" onclick="selectAll()">
+                        <i class="fa-solid fa-check-double me-1"></i>Chọn tất cả
+                    </button>
+                    <button type="button" class="btn-action btn-action-secondary" onclick="deselectAll()">
+                        <i class="fa-solid fa-square me-1"></i>Bỏ chọn
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="promotion-table-container">
+            <table class="promotion-table">
+                <thead>
+                    <tr>
+                        <th style="width: 50px;">✓</th>
+                        <th>SKU</th>
+                        <th>Tên sản phẩm</th>
+                        <th>Giá bán</th>
+                        <th>Trạng thái</th>
+                        <th>Khuyến mãi hiện tại</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Items.Any())
+                    {
+                        @foreach (var p in Model.Items)
+                        {
+                            <tr>
+                                <td>
+                                    <input type="checkbox" name="productIds" value="@p.Id" class="promotion-checkbox" @(p.PromotionId == promo?.PromotionId ? "checked" : "") />
+                                </td>
+                                <td><code style="background: #f1f5f9; padding: 4px 8px; border-radius: 6px;">@p.Sku</code></td>
+                                <td><strong>@p.ProductName</strong></td>
+                                <td style="font-weight: 600; color: #F97316;">@p.Price.ToString("N0") ₫</td>
+                                <td>
+                                    @{
+                                        var statusText = p.ProductStatus switch
+                                        {
+                                            "Available" => "Còn hàng",
+                                            "OutOfStock" => "Hết hàng",
+                                            "Discontinued" => "Ngừng bán",
+                                            _ => p.ProductStatus
+                                        };
+                                        var statusClass = p.ProductStatus == "Available" ? "active" : "inactive";
+                                    }
+                                    <span class="status-badge @statusClass">
+                                        @statusText
+                                    </span>
+                                </td>
+                                <td>
+                                    @if (p.PromotionId == promo?.PromotionId)
+                                    {
+                                        <span style="color: #059669; font-weight: 600;">✓ @(p.PromotionCode ?? "Đã gán")</span>
+                                    }
+                                    else if (p.PromotionId != null)
+                                    {
+                                        <span style="color: #dc2626;">⚠ @(p.PromotionCode ?? "Khác")</span>
+                                    }
+                                    else
+                                    {
+                                        <span style="color: #94a3b8;">—</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="6">
+                                <div class="empty-state">
+                                    <div class="empty-state-icon">📭</div>
+                                    <h3>Không tìm thấy sản phẩm</h3>
+                                    <p>Thử điều chỉnh bộ lọc tìm kiếm của bạn</p>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="btn-group-actions">
+            <button type="submit" class="btn-promotion btn-promotion-primary">
+                <i class="fa-solid fa-floppy-disk me-2"></i>
+                Lưu thay đổi
+                <span class="badge bg-white text-primary ms-2" id="selectedCount">0</span>
+            </button>
+            <a asp-action="Manage" asp-controller="Promotion" class="btn-promotion btn-promotion-secondary">
+                <i class="fa-solid fa-arrow-left me-2"></i>
+                Quay lại danh sách
+            </a>
+            <button type="button" onclick="confirmUnassignAll()" class="btn-promotion btn-promotion-danger">
+                <i class="fa-solid fa-ban me-2"></i>
+                Bỏ gán tất cả
+            </button>
+        </div>
+
+        <!-- Help Info -->
+        <div class="help-info">
+            <i class="fa-solid fa-lightbulb me-2"></i>
+            <strong>Hướng dẫn:</strong> Tick chọn sản phẩm cần áp dụng khuyến mãi, sau đó nhấn "Lưu thay đổi". Sản phẩm đã có khuyến mãi khác sẽ được đánh dấu ⚠.
+        </div>
+    </form>
+
+    <!-- Paging -->
+    @if (Model.TotalPages > 1)
+    {
+        <div class="pagination-wrapper">
+            <div class="pagination-info">
+                <i class="fa-solid fa-layer-group me-2"></i>
+                Hiển thị <strong>@((Model.Page - 1) * Model.PageSize + 1)</strong> - <strong>@(Math.Min(Model.Page * Model.PageSize, Model.Total))</strong> 
+                trong tổng số <strong>@Model.Total</strong> sản phẩm
+            </div>
+            
+            <nav class="pagination-nav">
+                <ul class="pagination">
+                    <!-- First Page -->
+                    @if (Model.Page > 1)
+                    {
+                        <li class="page-item">
+                            <a class="page-link" href="@Url.Action("ManageProducts", "Promotion", new { promotionId = promo?.PromotionId, q = query, page = 1 })" title="Trang đầu">
+                                <i class="fa-solid fa-angles-left"></i>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="@Url.Action("ManageProducts", "Promotion", new { promotionId = promo?.PromotionId, q = query, page = Model.Page - 1 })" title="Trang trước">
+                                <i class="fa-solid fa-chevron-left"></i>
+                            </a>
+                        </li>
+                    }
+                    else
+                    {
+                        <li class="page-item disabled">
+                            <span class="page-link"><i class="fa-solid fa-angles-left"></i></span>
+                        </li>
+                        <li class="page-item disabled">
+                            <span class="page-link"><i class="fa-solid fa-chevron-left"></i></span>
+                        </li>
+                    }
+
+                    <!-- Page Numbers -->
+                    @{
+                        int startPage = Math.Max(1, Model.Page - 2);
+                        int endPage = Math.Min(Model.TotalPages, Model.Page + 2);
+                        
+                        // Adjust if we're near the start or end
+                        if (Model.Page <= 3)
+                        {
+                            endPage = Math.Min(5, Model.TotalPages);
+                        }
+                        if (Model.Page >= Model.TotalPages - 2)
+                        {
+                            startPage = Math.Max(1, Model.TotalPages - 4);
+                        }
+                    }
+
+                    @if (startPage > 1)
+                    {
+                        <li class="page-item">
+                            <a class="page-link" href="@Url.Action("ManageProducts", "Promotion", new { promotionId = promo?.PromotionId, q = query, page = 1 })">1</a>
+                        </li>
+                        @if (startPage > 2)
+                        {
+                            <li class="page-item disabled">
+                                <span class="page-link">...</span>
+                            </li>
+                        }
+                    }
+
+                    @for (int i = startPage; i <= endPage; i++)
+                    {
+                        <li class="page-item @(i == Model.Page ? "active" : "")">
+                            <a class="page-link" href="@Url.Action("ManageProducts", "Promotion", new { promotionId = promo?.PromotionId, q = query, page = i })">@i</a>
+                        </li>
+                    }
+
+                    @if (endPage < Model.TotalPages)
+                    {
+                        @if (endPage < Model.TotalPages - 1)
+                        {
+                            <li class="page-item disabled">
+                                <span class="page-link">...</span>
+                            </li>
+                        }
+                        <li class="page-item">
+                            <a class="page-link" href="@Url.Action("ManageProducts", "Promotion", new { promotionId = promo?.PromotionId, q = query, page = Model.TotalPages })">@Model.TotalPages</a>
+                        </li>
+                    }
+
+                    <!-- Next Page -->
+                    @if (Model.Page < Model.TotalPages)
+                    {
+                        <li class="page-item">
+                            <a class="page-link" href="@Url.Action("ManageProducts", "Promotion", new { promotionId = promo?.PromotionId, q = query, page = Model.Page + 1 })" title="Trang sau">
+                                <i class="fa-solid fa-chevron-right"></i>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="@Url.Action("ManageProducts", "Promotion", new { promotionId = promo?.PromotionId, q = query, page = Model.TotalPages })" title="Trang cuối">
+                                <i class="fa-solid fa-angles-right"></i>
+                            </a>
+                        </li>
+                    }
+                    else
+                    {
+                        <li class="page-item disabled">
+                            <span class="page-link"><i class="fa-solid fa-chevron-right"></i></span>
+                        </li>
+                        <li class="page-item disabled">
+                            <span class="page-link"><i class="fa-solid fa-angles-right"></i></span>
+                        </li>
+                    }
+                </ul>
+            </nav>
+        </div>
+    }
+</div>
+
+<script>
+    // Update counts on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        updateCounts();
+        updateFilterButtons('all');
+        
+        // Add change listener to all checkboxes
+        document.querySelectorAll('input[name=productIds]').forEach(checkbox => {
+            checkbox.addEventListener('change', updateCounts);
+        });
+    });
+
+    // Update assigned and selected counts
+    function updateCounts() {
+        const checkboxes = document.querySelectorAll('input[name=productIds]');
+        const totalChecked = Array.from(checkboxes).filter(cb => cb.checked).length;
+        const total = checkboxes.length;
+        
+        // Update assigned count (initially checked)
+        const assignedCount = document.querySelectorAll('input[name=productIds]:checked').length;
+        document.getElementById('assignedCount').textContent = assignedCount;
+        
+        // Update selected count badge
+        document.getElementById('selectedCount').textContent = totalChecked;
+        
+        // Change button style if selection changed
+        const submitBtn = document.querySelector('.btn-promotion-primary');
+        if (totalChecked > 0) {
+            submitBtn.classList.add('pulse');
+        } else {
+            submitBtn.classList.remove('pulse');
+        }
+    }
+
+    // Select all visible products
+    function selectAll() {
+        document.querySelectorAll('input[name=productIds]:not([style*="display: none"])').forEach(checkbox => {
+            const row = checkbox.closest('tr');
+            if (row && row.style.display !== 'none') {
+                checkbox.checked = true;
+            }
+        });
+        updateCounts();
+        
+        Swal.fire({
+            icon: 'success',
+            title: 'Đã chọn!',
+            text: 'Đã chọn tất cả sản phẩm hiện tại',
+            timer: 1500,
+            showConfirmButton: false
+        });
+    }
+
+    // Deselect all
+    function deselectAll() {
+        document.querySelectorAll('input[name=productIds]').forEach(checkbox => {
+            checkbox.checked = false;
+        });
+        updateCounts();
+        
+        Swal.fire({
+            icon: 'info',
+            title: 'Đã bỏ chọn!',
+            text: 'Đã bỏ chọn tất cả sản phẩm',
+            timer: 1500,
+            showConfirmButton: false
+        });
+    }
+
+    // Filter products
+    function filterProducts(filter) {
+        const rows = document.querySelectorAll('.promotion-table tbody tr');
+        const currentPromoId = @(promo?.PromotionId ?? 0);
+        
+        rows.forEach(row => {
+            const checkbox = row.querySelector('input[name=productIds]');
+            if (!checkbox) return;
+            
+            const isAssigned = checkbox.checked;
+            
+            switch(filter) {
+                case 'assigned':
+                    row.style.display = isAssigned ? '' : 'none';
+                    break;
+                case 'unassigned':
+                    row.style.display = !isAssigned ? '' : 'none';
+                    break;
+                case 'all':
+                default:
+                    row.style.display = '';
+                    break;
+            }
+        });
+        
+        updateFilterButtons(filter);
+        updateCounts();
+    }
+
+    // Update filter button states
+    function updateFilterButtons(activeFilter) {
+        document.getElementById('filterAll').classList.toggle('active', activeFilter === 'all');
+        document.getElementById('filterAssigned').classList.toggle('active', activeFilter === 'assigned');
+        document.getElementById('filterUnassigned').classList.toggle('active', activeFilter === 'unassigned');
+    }
+
+    // Confirm unassign all
+    async function confirmUnassignAll() {
+        const result = await Swal.fire({
+            icon: 'warning',
+            title: 'Bỏ gán tất cả sản phẩm?',
+            text: '⚠️ Bạn có chắc chắn muốn bỏ gán tất cả sản phẩm khỏi khuyến mãi này?',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Bỏ gán tất cả',
+            cancelButtonText: 'Hủy',
+            reverseButtons: true
+        });
+
+        if (result.isConfirmed) {
+            document.querySelectorAll('input[name=productIds]').forEach(c => c.checked = false);
+            
+            const form = document.querySelector('form');
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = '_unassignAll';
+            input.value = '1';
+            form.appendChild(input);
+            form.action = '@Url.Action("AssignProducts", "Promotion", new { promotionId = promo?.PromotionId })';
+            form.submit();
+        }
+    }
+
+    // Form submit confirmation
+    document.getElementById('assignForm').addEventListener('submit', function(e) {
+        const checkedCount = document.querySelectorAll('input[name=productIds]:checked').length;
+        
+        if (checkedCount === 0) {
+            e.preventDefault();
+            Swal.fire({
+                icon: 'warning',
+                title: 'Chưa chọn sản phẩm',
+                text: 'Vui lòng chọn ít nhất một sản phẩm để áp dụng khuyến mãi.',
+                confirmButtonColor: '#667eea'
+            });
+        }
+    });
+</script>

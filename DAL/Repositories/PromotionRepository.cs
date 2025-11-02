@@ -115,8 +115,7 @@ namespace DAL.Repositories
             var promo = await _context.Promotions.FirstOrDefaultAsync(p => p.PromotionId == id);
             if (promo == null) return false;
 
-            promo.IsDeleted = true;
-            promo.UpdatedAt = DateTime.Now;
+            _context.Promotions.Remove(promo);
             await _context.SaveChangesAsync();
             return true;
         }

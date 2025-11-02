@@ -56,27 +56,62 @@ namespace BLL.Validators
         public static ValidationResult ValidatePhoneNumber(string phoneNumber)
         {
             var result = new ValidationResult();
-            if (string.IsNullOrWhiteSpace(phoneNumber)) return result;
-
-            var cleaned = Regex.Replace(phoneNumber.Trim(), @"[\s\-\(\)]+", "");
-            if (cleaned.StartsWith("+84")) cleaned = "0" + cleaned[3..];
-            if (!Regex.IsMatch(cleaned, @"^0\d{9}$"))
-            {
-                result.AddError("Số điện thoại phải có 10 số (bắt đầu từ 0) hoặc định dạng +84xxxxxxxxx.");
+            
+            // Allow empty/null phone numbers
+            if (string.IsNullOrWhiteSpace(phoneNumber)) 
                 return result;
-            }
 
-            // Prefix check (có thể nới lỏng nếu cần)
-            var prefix = cleaned[..3];
-            var validPrefixes = new[]
+            try
             {
-                "080","081","082","083","084","085","086","087","088","089",
-                "030","031","032","033","034","035","036","037","038","039",
-                "050","051","052","056","058","059",
-                "070","076","077","078","079", "094"
-            };
-            if (!Array.Exists(validPrefixes, p => p == prefix))
-                result.AddError("Số điện thoại không hợp lệ (nhà mạng không được hỗ trợ).");
+                var cleaned = Regex.Replace(phoneNumber.Trim(), @"[\s\-\(\)\.]+", "");
+                
+                // Handle +84 prefix
+                if (cleaned.StartsWith("+84"))
+                {
+                    if (cleaned.Length < 12) // +84 + 9 digits minimum
+                    {
+                        result.AddError("Số điện thoại với +84 phải có đủ 9 số sau mã quốc gia.");
+                        return result;
+                    }
+                    cleaned = "0" + cleaned.Substring(3);
+                }
+                else if (cleaned.StartsWith("84") && cleaned.Length >= 11)
+                {
+                    // Handle 84xxxxxxxxx without +
+                    cleaned = "0" + cleaned.Substring(2);
+                }
+                
+                // Check if it matches Vietnamese phone format (10 digits starting with 0)
+                if (!Regex.IsMatch(cleaned, @"^0\d{9}$"))
+                {
+                    result.AddError("Số điện thoại phải có 10 số (bắt đầu từ 0) hoặc định dạng +84xxxxxxxxx.");
+                    return result;
+                }
+
+                // Prefix check - relaxed validation
+                if (cleaned.Length >= 3)
+                {
+                    var prefix = cleaned.Substring(0, 3);
+                    var validPrefixes = new[]
+                    {
+                        "080","081","082","083","084","085","086","087","088","089",
+                        "030","031","032","033","034","035","036","037","038","039",
+                        "050","051","052","053","054","055","056","057","058","059",
+                        "070","076","077","078","079",
+                        "090","091","092","093","094","096","097","098","099"
+                    };
+                    
+                    if (!Array.Exists(validPrefixes, p => p == prefix))
+                    {
+                        // Warning only, not blocking
+                        result.AddError($"Đầu số {prefix} có thể không hợp lệ. Vui lòng kiểm tra lại.");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                result.AddError($"Số điện thoại không hợp lệ: {ex.Message}");
+            }
 
             return result;
         }

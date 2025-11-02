@@ -23,12 +23,10 @@ namespace WebUI.Controllers
         }
 
         // ===== INDEX - View List (Không filter) =====
-        [HttpGet]
+        [HttpGet("Notification/Manage")]
         public async Task<IActionResult> Index(int page = 1, int pageSize = 10)
         {
-            var f = new NotificationFilterDto { Page = page, PageSize = pageSize };
-            f = NormalizeFilter(f);
-
+            var f = NormalizeFilter(new NotificationFilterDto { Page = page, PageSize = pageSize });
             var pagedResult = await _svc.SearchAsync(f);
 
             ViewBag.Filter = f;
@@ -36,8 +34,7 @@ namespace WebUI.Controllers
 
             if (TempData["EditNotificationId"] is int nid && nid > 0)
             {
-                var edit = await _svc.GetByIdAsync(nid);
-                ViewBag.EditNotification = edit;
+                ViewBag.EditNotification = await _svc.GetByIdAsync(nid);
             }
 
             return View("~/Views/Admin/ManageNotification.cshtml", pagedResult);
@@ -48,7 +45,6 @@ namespace WebUI.Controllers
         public async Task<IActionResult> Search([FromQuery] NotificationFilterDto f)
         {
             f = NormalizeFilter(f);
-
             var pagedResult = await _svc.SearchAsync(f);
 
             ViewBag.Filter = f;
@@ -56,28 +52,7 @@ namespace WebUI.Controllers
 
             if (TempData["EditNotificationId"] is int nid && nid > 0)
             {
-                var edit = await _svc.GetByIdAsync(nid);
-                ViewBag.EditNotification = edit;
-            }
-
-            return View("~/Views/Admin/ManageNotification.cshtml", pagedResult);
-        }
-
-        // ===== MANAGE - Xử lý cả list và search =====
-        [HttpGet]
-        public async Task<IActionResult> Manage([FromQuery] NotificationFilterDto f)
-        {
-            f = NormalizeFilter(f);
-
-            var pagedResult = await _svc.SearchAsync(f);
-
-            ViewBag.Filter = f;
-            ViewBag.Roles = await _roleRepo.GetAllAsync();
-
-            if (TempData["EditNotificationId"] is int nid && nid > 0)
-            {
-                var edit = await _svc.GetByIdAsync(nid);
-                ViewBag.EditNotification = edit;
+                ViewBag.EditNotification = await _svc.GetByIdAsync(nid);
             }
 
             return View("~/Views/Admin/ManageNotification.cshtml", pagedResult);
@@ -90,25 +65,18 @@ namespace WebUI.Controllers
             if (n == null)
             {
                 TempData["Error"] = "Không tìm thấy thông báo cần sửa.";
-                return RedirectToAction(nameof(Manage), NormalizeFilter(f));
+                return RedirectToListOrSearch(f);
             }
 
             TempData["EditNotificationId"] = id;
-            return RedirectToAction(nameof(Manage), NormalizeFilter(f));
+            return RedirectToListOrSearch(f);
         }
 
         [HttpGet]
         public async Task<IActionResult> GetRoles()
         {
-            try
-            {
-                var roles = await _roleRepo.GetAllAsync();
-                return Json(roles.Select(r => new { id = r.RoleId, name = r.RoleName }));
-            }
-            catch
-            {
-                return Json(new { error = "Không thể tải danh sách vai trò" });
-            }
+            var roles = await _roleRepo.GetAllAsync();
+            return Json(roles.Select(r => new { id = r.RoleId, name = r.RoleName }));
         }
 
         [HttpPost]
@@ -117,22 +85,14 @@ namespace WebUI.Controllers
         {
             f = NormalizeFilter(f);
 
+            var validationError = ValidateBasicInput(dto);
+            if (!string.IsNullOrWhiteSpace(validationError))
+                return await HandleCreateError(new InvalidOperationException(validationError), dto, f);
+
+            PrepareDto(dto);
+
             try
             {
-                var validationError = ValidateBasicInput(dto);
-                if (!string.IsNullOrWhiteSpace(validationError))
-                    throw new InvalidOperationException(validationError);
-
-                dto.ScheduledAt = ToUtcFromLocal(dto.ScheduledAt);
-                if (dto.ExpireAt.HasValue)
-                    dto.ExpireAt = ToUtcFromLocal(dto.ExpireAt.Value);
-
-                if (dto.CreatedBy <= 0)
-                    dto.CreatedBy = GetCurrentUserId();
-
-                dto.Type = NormalizeTypeForService(dto.Type);
-                dto.TargetType = NormalizeTargetTypeForService(dto.TargetType);
-
                 await _svc.CreateAsync(new NotificationCreateDto
                 {
                     CreatedBy = dto.CreatedBy,
@@ -147,8 +107,17 @@ namespace WebUI.Controllers
                     ExpireAt = dto.ExpireAt
                 });
 
-                TempData["Success"] = "✅ Thêm thông báo mới thành công.";
-                return RedirectToAction(nameof(Manage), f);
+                TempData["Success"] = "Thêm thông báo mới thành công.";
+                return RedirectToListOrSearch(f);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return await HandleCreateError(ex, dto, f);
+            }
+            catch (Microsoft.EntityFrameworkCore.DbUpdateException dbEx)
+            {
+                var message = dbEx.InnerException?.Message ?? dbEx.Message;
+                return await HandleCreateError(new Exception($"Lỗi database: {message}"), dto, f);
             }
             catch (Exception ex)
             {
@@ -162,25 +131,17 @@ namespace WebUI.Controllers
         {
             f = NormalizeFilter(f);
 
+            if (!dto.NotificationId.HasValue || dto.NotificationId.Value <= 0)
+                return await HandleUpdateError(new InvalidOperationException("ID thông báo không hợp lệ."), dto, f);
+
+            var validationError = ValidateBasicInput(dto);
+            if (!string.IsNullOrWhiteSpace(validationError))
+                return await HandleUpdateError(new InvalidOperationException(validationError), dto, f);
+
+            PrepareDto(dto);
+
             try
             {
-                if (!dto.NotificationId.HasValue || dto.NotificationId.Value <= 0)
-                    throw new InvalidOperationException("ID thông báo không hợp lệ.");
-
-                var validationError = ValidateBasicInput(dto);
-                if (!string.IsNullOrWhiteSpace(validationError))
-                    throw new InvalidOperationException(validationError);
-
-                dto.ScheduledAt = ToUtcFromLocal(dto.ScheduledAt);
-                if (dto.ExpireAt.HasValue)
-                    dto.ExpireAt = ToUtcFromLocal(dto.ExpireAt.Value);
-
-                if (dto.CreatedBy <= 0)
-                    dto.CreatedBy = GetCurrentUserId();
-
-                dto.Type = NormalizeTypeForService(dto.Type);
-                dto.TargetType = NormalizeTargetTypeForService(dto.TargetType);
-
                 await _svc.UpdateAsync(new NotificationUpdateDto
                 {
                     NotificationId = dto.NotificationId.Value,
@@ -196,8 +157,21 @@ namespace WebUI.Controllers
                     ExpireAt = dto.ExpireAt
                 });
 
-                TempData["Success"] = "✅ Cập nhật thông báo thành công.";
-                return RedirectToAction(nameof(Manage), f);
+                TempData["Success"] = "Cập nhật thông báo thành công.";
+                return RedirectToListOrSearch(f);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return await HandleUpdateError(ex, dto, f);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return await HandleUpdateError(ex, dto, f);
+            }
+            catch (Microsoft.EntityFrameworkCore.DbUpdateException dbEx)
+            {
+                var message = dbEx.InnerException?.Message ?? dbEx.Message;
+                return await HandleUpdateError(new Exception($"Lỗi database: {message}"), dto, f);
             }
             catch (Exception ex)
             {
@@ -205,93 +179,35 @@ namespace WebUI.Controllers
             }
         }
 
-        /// <summary>
-        /// [DEPRECATED] Use CreateNotification() or UpdateNotification() instead
-        /// </summary>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Obsolete("Use CreateNotification() or UpdateNotification() instead")]
-        public async Task<IActionResult> SaveNotification(NotificationSaveDto dto, [FromQuery] NotificationFilterDto f)
+        public async Task<IActionResult> Delete(int id, [FromQuery] NotificationFilterDto f)
         {
-            f = NormalizeFilter(f);
-
             try
             {
-                var validationError = ValidateBasicInput(dto);
-                if (!string.IsNullOrWhiteSpace(validationError))
-                    throw new InvalidOperationException(validationError);
+                bool deleted = await _svc.DeleteAsync(id);
 
-                dto.ScheduledAt = ToUtcFromLocal(dto.ScheduledAt);
-                if (dto.ExpireAt.HasValue)
-                    dto.ExpireAt = ToUtcFromLocal(dto.ExpireAt.Value);
-
-                if (dto.CreatedBy <= 0)
-                    dto.CreatedBy = GetCurrentUserId();
-
-                dto.Type = NormalizeTypeForService(dto.Type);
-                dto.TargetType = NormalizeTargetTypeForService(dto.TargetType);
-
-                if (dto.NotificationId.HasValue && dto.NotificationId.Value > 0)
-                {
-                    await _svc.UpdateAsync(new NotificationUpdateDto
-                    {
-                        NotificationId = dto.NotificationId.Value,
-                        CreatedBy = dto.CreatedBy,
-                        Title = dto.Title,
-                        Message = dto.Message,
-                        Type = dto.Type,
-                        TargetType = dto.TargetType,
-                        TargetRoleId = dto.TargetRoleId,
-                        TargetUserId = dto.TargetUserId,
-                        ConditionJson = dto.ConditionJson,
-                        ScheduledAt = dto.ScheduledAt,
-                        ExpireAt = dto.ExpireAt
-                    });
-
-                    TempData["Success"] = "✅ Cập nhật thông báo thành công.";
-                }
+                if (deleted)
+                    TempData["Success"] = "Đã xóa thông báo thành công.";
                 else
-                {
-                    await _svc.CreateAsync(new NotificationCreateDto
-                    {
-                        CreatedBy = dto.CreatedBy,
-                        Title = dto.Title,
-                        Message = dto.Message,
-                        Type = dto.Type,
-                        TargetType = dto.TargetType,
-                        TargetRoleId = dto.TargetRoleId,
-                        TargetUserId = dto.TargetUserId,
-                        ConditionJson = dto.ConditionJson,
-                        ScheduledAt = dto.ScheduledAt,
-                        ExpireAt = dto.ExpireAt
-                    });
-
-                    TempData["Success"] = "✅ Thêm thông báo mới thành công.";
-                }
-
-                return RedirectToAction(nameof(Manage), f);
+                    TempData["Error"] = "Không tìm thấy thông báo để xóa.";
             }
-            catch (Exception ex)
-            {
-                return await HandleSaveError(ex, dto, f);
-            }
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> SoftDelete(int id, [FromQuery] NotificationFilterDto f)
-        {
-            try
-            {
-                await _svc.DeleteAsync(id);
-                TempData["toast"] = "🗑️ Đã xóa thông báo.";
-            }
-            catch (Exception ex)
+            catch (InvalidOperationException ex)
             {
                 TempData["Error"] = ex.Message;
             }
+            catch (Microsoft.EntityFrameworkCore.DbUpdateException dbEx)
+            {
+                var innerMessage = dbEx.InnerException?.Message ?? dbEx.Message;
+                TempData["Error"] = $"Lỗi database khi xóa: {innerMessage}";
+            }
+            catch (Exception ex)
+            {
+                var innerMessage = ex.InnerException?.Message ?? ex.Message;
+                TempData["Error"] = $"Lỗi: {innerMessage}";
+            }
 
-            return RedirectToAction(nameof(Manage), NormalizeFilter(f));
+            return RedirectToListOrSearch(f);
         }
 
         [HttpPost]
@@ -301,14 +217,27 @@ namespace WebUI.Controllers
             try
             {
                 await _svc.CancelAsync(id);
-                TempData["toast"] = "❌ Đã hủy thông báo.";
+                TempData["Success"] = "Đã hủy thông báo thành công.";
             }
-            catch (Exception ex)
+            catch (KeyNotFoundException ex)
             {
                 TempData["Error"] = ex.Message;
             }
-
-            return RedirectToAction(nameof(Manage), NormalizeFilter(f));
+            catch (InvalidOperationException ex)
+            {
+                TempData["Error"] = ex.Message;
+            }
+            catch (Microsoft.EntityFrameworkCore.DbUpdateException dbEx)
+            {
+                var innerMessage = dbEx.InnerException?.Message ?? dbEx.Message;
+                TempData["Error"] = $"Lỗi database: {innerMessage}";
+            }
+            catch (Exception ex)
+            {
+                var innerMessage = ex.InnerException?.Message ?? ex.Message;
+                TempData["Error"] = $"Lỗi: {innerMessage}";
+            }
+            return RedirectToListOrSearch(f);
         }
 
         [HttpPost]
@@ -318,24 +247,74 @@ namespace WebUI.Controllers
             try
             {
                 await _svc.SendNowAsync(id);
-                TempData["toast"] = "📨 Đã gửi ngay.";
+                TempData["Success"] = "📨 Đã gửi thông báo thành công.";
             }
-            catch (Exception ex)
+            catch (KeyNotFoundException ex)
             {
                 TempData["Error"] = ex.Message;
             }
-
-            return RedirectToAction(nameof(Manage), NormalizeFilter(f));
+            catch (InvalidOperationException ex)
+            {
+                TempData["Error"] = ex.Message;
+            }
+            catch (Microsoft.EntityFrameworkCore.DbUpdateException dbEx)
+            {
+                var innerMessage = dbEx.InnerException?.Message ?? dbEx.Message;
+                TempData["Error"] = $"Lỗi database: {innerMessage}";
+            }
+            catch (Exception ex)
+            {
+                var innerMessage = ex.InnerException?.Message ?? ex.Message;
+                TempData["Error"] = $"Lỗi: {innerMessage}";
+            }
+            return RedirectToListOrSearch(f);
         }
 
         // ===== Helpers =====
 
+        /// <summary>
+        /// Helper: Redirect về Index hoặc Search tùy theo có keyword hay không
+        /// </summary>
+        private IActionResult RedirectToListOrSearch(NotificationFilterDto f)
+        {
+            f = NormalizeFilter(f);
+
+            if (!string.IsNullOrWhiteSpace(f.Keyword))
+            {
+                return RedirectToAction(nameof(Search), f);
+            }
+
+            return RedirectToAction(nameof(Index), new { page = f.Page, pageSize = f.PageSize });
+        }
+
+        /// <summary>
+        /// Helper: Chuẩn bị DTO trước khi gọi Service (convert time, normalize type, set default user)
+        /// </summary>
+        private void PrepareDto(NotificationSaveDto dto)
+        {
+            dto.ScheduledAt = ToUtcFromLocal(dto.ScheduledAt);
+            if (dto.ExpireAt.HasValue)
+                dto.ExpireAt = ToUtcFromLocal(dto.ExpireAt.Value);
+
+            if (dto.CreatedBy <= 0)
+                dto.CreatedBy = GetCurrentUserId();
+
+            dto.Type = NormalizeTypeForService(dto.Type);
+            dto.TargetType = NormalizeTargetTypeForService(dto.TargetType);
+        }
+
+        /// <summary>
+        /// Helper: Lấy UserId từ Claims
+        /// </summary>
         private int GetCurrentUserId()
         {
             var claim = User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             return int.TryParse(claim, out var id) ? id : 1;
         }
 
+        /// <summary>
+        /// Helper: Chuẩn hóa filter (đảm bảo Page >= 1, PageSize hợp lệ)
+        /// </summary>
         private static NotificationFilterDto NormalizeFilter(NotificationFilterDto f)
         {
             f ??= new NotificationFilterDto();
@@ -344,6 +323,9 @@ namespace WebUI.Controllers
             return f;
         }
 
+        /// <summary>
+        /// Helper: Validate input cơ bản (Title, Message, ExpireAt)
+        /// </summary>
         private static string ValidateBasicInput(NotificationSaveDto dto)
         {
             if (string.IsNullOrWhiteSpace(dto.Title))
@@ -355,20 +337,26 @@ namespace WebUI.Controllers
             return string.Empty;
         }
 
+        /// <summary>
+        /// Helper: Xử lý lỗi khi Create (hiển thị lại form Add với lỗi)
+        /// </summary>
         private async Task<IActionResult> HandleCreateError(Exception ex, NotificationSaveDto dto, NotificationFilterDto f)
         {
             ViewBag.ShowErrorModal = true;
             ViewBag.ErrorMessage = ex.Message;
-            ViewBag.ShowAddModal = true; // Flag để mở Add Modal
+            ViewBag.ShowAddModal = true;
 
             var pagedResult = await _svc.SearchAsync(f);
             ViewBag.Filter = f;
             ViewBag.Roles = await _roleRepo.GetAllAsync();
-            ViewBag.EditNotification = null; // Không có edit data
+            ViewBag.EditNotification = null;
 
             return View("~/Views/Admin/ManageNotification.cshtml", pagedResult);
         }
 
+        /// <summary>
+        /// Helper: Xử lý lỗi khi Update (hiển thị lại form Edit với lỗi)
+        /// </summary>
         private async Task<IActionResult> HandleUpdateError(Exception ex, NotificationSaveDto dto, NotificationFilterDto f)
         {
             ViewBag.ShowErrorModal = true;
@@ -400,43 +388,9 @@ namespace WebUI.Controllers
             return View("~/Views/Admin/ManageNotification.cshtml", pagedResult);
         }
 
-        private async Task<IActionResult> HandleSaveError(Exception ex, NotificationSaveDto dto, NotificationFilterDto f)
-        {
-            ViewBag.ShowErrorModal = true;
-            ViewBag.ErrorMessage = ex.Message;
-
-            var pagedResult = await _svc.SearchAsync(f);
-            ViewBag.Filter = f;
-            ViewBag.Roles = await _roleRepo.GetAllAsync();
-
-            if (dto.NotificationId.HasValue && dto.NotificationId.Value > 0)
-            {
-                ViewBag.EditNotification = new NotificationDto
-                {
-                    NotificationId = dto.NotificationId.Value,
-                    CreatedBy = dto.CreatedBy,
-                    Title = dto.Title,
-                    Message = dto.Message,
-                    Type = dto.Type,
-                    TargetType = dto.TargetType,
-                    TargetRoleId = dto.TargetRoleId,
-                    TargetUserId = dto.TargetUserId,
-                    ConditionJson = dto.ConditionJson,
-                    ScheduledAt = dto.ScheduledAt,
-                    ExpireAt = dto.ExpireAt,
-                    IsSent = false,
-                    IsCanceled = false,
-                    CreatedAt = DateTime.UtcNow
-                };
-            }
-            else
-            {
-                ViewBag.EditNotification = null;
-            }
-
-            return View("~/Views/Admin/ManageNotification.cshtml", pagedResult);
-        }
-
+        /// <summary>
+        /// Helper: Convert DateTime từ Local sang UTC
+        /// </summary>
         private static DateTime ToUtcFromLocal(DateTime local)
         {
             if (local.Kind == DateTimeKind.Utc) return local;
@@ -444,6 +398,9 @@ namespace WebUI.Controllers
             return localSpecified.ToUniversalTime();
         }
 
+        /// <summary>
+        /// Helper: Normalize Type từ UI sang Service (info → General, promo → Promotion, v.v.)
+        /// </summary>
         private static string NormalizeTypeForService(string? type) =>
             (type ?? "").Trim().ToLowerInvariant() switch
             {
@@ -455,6 +412,9 @@ namespace WebUI.Controllers
                 _ => "General"
             };
 
+        /// <summary>
+        /// Helper: Normalize TargetType từ UI sang Service (Role → ByRole, User → SingleUser, v.v.)
+        /// </summary>
         private static string NormalizeTargetTypeForService(string? targetType) =>
             (targetType ?? "").Trim().ToLowerInvariant() switch
             {

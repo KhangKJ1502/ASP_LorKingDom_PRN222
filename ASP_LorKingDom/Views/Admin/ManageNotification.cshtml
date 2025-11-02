@@ -11,149 +11,9 @@
     var roles = ViewBag.Roles as IEnumerable<DAL.Models.Role>;
 }
 
-<style>
-    .search-box .form-control {
-        border: 1px solid #000 !important;
-        box-shadow: none !important;
-    }
-
-    .search-box .btn {
-        border: 1px solid #000 !important;
-        border-left: none !important;
-    }
-
-    .toast-top-right {
-        top: 120px !important;
-        right: 24px !important;
-    }
-
-    #liveToast.toast {
-        min-width: 520px;
-        padding: 1rem 1.25rem;
-        border-radius: 12px;
-        box-shadow: 0 8px 24px rgba(0,0,0,.18);
-    }
-
-    #liveToast .toast-body {
-        font-size: 1.1rem;
-        font-weight: 600;
-    }
-
-    .deleted-row {
-        opacity: .6;
-        background: #f8f9fa;
-    }
-
-    #notificationModal .modal-content {
-        border: none;
-        border-radius: 16px;
-        box-shadow: 0 10px 40px rgba(0,0,0,.15);
-    }
-
-    #notificationModal .modal-header {
-        background: linear-gradient(135deg,#667eea 0%,#764ba2 100%);
-        color: #fff;
-        border-radius: 16px 16px 0 0;
-        padding: 1.5rem;
-        border: none;
-    }
-
-    #notificationModal .modal-title {
-        font-weight: 600;
-        font-size: 1.25rem;
-    }
-
-    #notificationModal .btn-close {
-        filter: brightness(0) invert(1);
-        opacity: .8;
-    }
-
-        #notificationModal .btn-close:hover {
-            opacity: 1;
-        }
-
-    #notificationModal .modal-body {
-        padding: 2rem;
-        background-color: #f8f9fa;
-    }
-
-    #notificationModal .form-label {
-        font-weight: 500;
-        color: #495057;
-        margin-bottom: .5rem;
-        font-size: .9rem;
-    }
-
-    #notificationModal .form-control,
-    #notificationModal .form-select {
-        border: 2px solid #e9ecef;
-        border-radius: 8px;
-        padding: .65rem .875rem;
-        transition: .3s ease;
-        background-color: #fff;
-    }
-
-        #notificationModal .form-control:focus,
-        #notificationModal .form-select:focus {
-            border-color: #667eea;
-            box-shadow: 0 0 0 .2rem rgba(102,126,234,.15);
-        }
-
-    #notificationModal textarea.form-control {
-        min-height: 100px;
-        resize: vertical;
-    }
-
-    #notificationModal .modal-footer {
-        border-top: 1px solid #e9ecef;
-        padding: 1.25rem 2rem;
-        background-color: #fff;
-        border-radius: 0 0 16px 16px;
-    }
-
-    #notificationModal .btn {
-        padding: .625rem 1.5rem;
-        border-radius: 8px;
-        font-weight: 500;
-        transition: .3s ease;
-    }
-
-    #notificationModal .btn-primary {
-        background: linear-gradient(135deg,#667eea 0%,#764ba2 100%);
-        border: none;
-    }
-
-        #notificationModal .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102,126,234,.4);
-        }
-
-    #notificationModal .btn-outline-secondary {
-        border: 2px solid #6c757d;
-        color: #6c757d;
-    }
-
-        #notificationModal .btn-outline-secondary:hover {
-            background-color: #6c757d;
-            color: #fff;
-        }
-
-    .field-animate {
-        animation: slideIn .3s ease;
-    }
-
-    @@keyframes slideIn {
-        from {
-            opacity: 0;
-            transform: translateY(-4px);
-        }
-
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-</style>
+<link rel="stylesheet" href="~/css/admin-notification.css" asp-append-version="true" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <div class="container-fluid px-5">
     <h1 class="mt-4">Quản Lý Thông Báo</h1>
@@ -245,52 +105,74 @@
                                     <td style="white-space:nowrap">
                                         @if (!n.IsSent && !n.IsCanceled)
                                         {
+                                            <!-- Chỉnh sửa -->
                                             <a class="btn btn-sm btn-warning"
                                                asp-action="Edit"
                                                asp-controller="Notification"
-                                               asp-route-id="@n.NotificationId">
+                                               asp-route-id="@n.NotificationId"
+                                               title="Chỉnh sửa">
                                                 <i class="fa-solid fa-pen-to-square"></i>
                                             </a>
 
+                                            <!-- Gửi ngay -->
                                             <form method="post"
                                                   asp-action="SendNow"
                                                   asp-controller="Notification"
-                                                  style="display:inline">
+                                                  style="display:inline"
+                                                  onsubmit="return confirmSendNow(event)">
                                                 @Html.AntiForgeryToken()
                                                 <input type="hidden" name="id" value="@n.NotificationId" />
                                                 <button type="submit"
                                                         class="btn btn-sm btn-success"
-                                                        onclick="return confirm('Gửi ngay thông báo này?')">
+                                                        title="Gửi ngay">
                                                     <i class="fa-solid fa-paper-plane"></i>
                                                 </button>
                                             </form>
 
+                                            <!-- Hủy -->
                                             <form method="post"
                                                   asp-action="Cancel"
                                                   asp-controller="Notification"
-                                                  style="display:inline">
+                                                  style="display:inline"
+                                                  onsubmit="return confirmCancel(event)">
                                                 @Html.AntiForgeryToken()
                                                 <input type="hidden" name="id" value="@n.NotificationId" />
                                                 <button type="submit"
                                                         class="btn btn-sm btn-secondary"
-                                                        onclick="return confirm('Hủy thông báo này?')">
+                                                        title="Hủy thông báo">
                                                     <i class="fa-solid fa-ban"></i>
                                                 </button>
                                             </form>
-                                        }
 
-                                        <form method="post"
-                                              asp-action="SoftDelete"
-                                              asp-controller="Notification"
-                                              style="display:inline">
-                                            @Html.AntiForgeryToken()
-                                            <input type="hidden" name="id" value="@n.NotificationId" />
-                                            <button type="submit"
-                                                    class="btn btn-sm btn-danger"
-                                                    onclick="return confirm('Xóa thông báo này?')">
-                                                <i class="fa-solid fa-trash"></i>
-                                            </button>
-                                        </form>
+                                            <!-- Xóa (chỉ cho thông báo chưa gửi) -->
+                                            <form method="post"
+                                                  asp-action="Delete"
+                                                  asp-controller="Notification"
+                                                  style="display:inline"
+                                                  onsubmit="return confirmDelete(event)">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@n.NotificationId" />
+                                                <button type="submit"
+                                                        class="btn btn-sm btn-danger"
+                                                        title="Xóa thông báo">
+                                                    <i class="fa-solid fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        }
+                                        else
+                                        {
+                                            <!-- Chỉ hiển thị thông tin cho thông báo đã gửi/đã hủy -->
+                                            <span class="text-muted">
+                                                @if (n.IsSent)
+                                                {
+                                                    <i class="fa-solid fa-check-circle text-success" title="Đã gửi"></i>
+                                                }
+                                                else if (n.IsCanceled)
+                                                {
+                                                    <i class="fa-solid fa-ban text-secondary" title="Đã hủy"></i>
+                                                }
+                                            </span>
+                                        }
                                     </td>
 
                                     <td>@n.Title</td>
@@ -505,7 +387,7 @@
             </div>
 
             <form method="post"
-                  asp-action="SaveNotification"
+                  asp-action="@(edit != null ? "UpdateNotification" : "CreateNotification")"
                   asp-controller="Notification"
                   id="notificationForm">
                 @Html.AntiForgeryToken()
@@ -513,80 +395,68 @@
                 <div class="modal-body">
                     <input type="hidden" name="NotificationId" id="notificationId" value="@(edit?.NotificationId ?? 0)" />
                     <input type="hidden" name="CreatedBy" id="createdBy" value="0" />
+                    <input type="hidden" name="ConditionJson" id="conditionJson" value="@(edit?.ConditionJson ?? "")" />
 
                     <div class="row g-3">
 
-                        <div class="col-lg-6">
-                            <label class="form-label">
-                                <i class="fa-solid fa-heading me-1"></i>
-                                Tiêu đề <span class="text-danger">*</span>
+                        <!-- Tiêu đề -->
+                        <div class="col-12">
+                            <label class="form-label fw-bold">
+                                <i class="fa-solid fa-heading me-1 text-primary"></i>
+                                Tiêu đề thông báo <span class="text-danger">*</span>
                             </label>
                             <input type="text"
-                                   class="form-control"
+                                   class="form-control form-control-lg"
                                    name="Title"
                                    id="title"
                                    value="@(edit?.Title ?? "")"
-                                   placeholder="Nhập tiêu đề thông báo"
+                                   placeholder="VD: Chương trình khuyến mãi 11/11"
                                    required
                                    maxlength="200" />
                         </div>
 
+                        <!-- Loại và Icon -->
                         <div class="col-lg-6">
-                            <label class="form-label">
-                                <i class="fa-solid fa-tag me-1"></i>
-                                Loại <span class="text-danger">*</span>
+                            <label class="form-label fw-bold">
+                                <i class="fa-solid fa-tag me-1 text-primary"></i>
+                                Loại thông báo <span class="text-danger">*</span>
                             </label>
-                            <select class="form-select"
+                            <select class="form-select form-select-lg"
                                     name="Type"
                                     id="type"
                                     required>
-                                <option value="info">ℹ️ Info</option>
-                                <option value="warning">⚠️ Warning</option>
-                                <option value="error">❌ Error</option>
-                                <option value="promo">🎉 Promo</option>
-                                <option value="system">⚙️ System</option>
+                                <option value="info">ℹ️ Thông tin - Tin tức chung</option>
+                                <option value="promo">🎉 Khuyến mãi - Ưu đãi đặc biệt</option>
+                                <option value="warning">⚠️ Cảnh báo - Thông báo quan trọng</option>
+                                <option value="system">⚙️ Hệ thống - Bảo trì, cập nhật</option>
+                                <option value="error">❌ Lỗi - Sự cố cần xử lý</option>
                             </select>
                         </div>
 
-                        <div class="col-12">
-                            <label class="form-label">
-                                <i class="fa-solid fa-message me-1"></i>
-                                Nội dung <span class="text-danger">*</span>
+                        <!-- Đối tượng -->
+                        <div class="col-lg-6">
+                            <label class="form-label fw-bold">
+                                <i class="fa-solid fa-bullseye me-1 text-primary"></i>
+                                Gửi đến <span class="text-danger">*</span>
                             </label>
-                            <textarea class="form-control"
-                                      name="Message"
-                                      id="message"
-                                      rows="3"
-                                      placeholder="Nhập nội dung thông báo..."
-                                      required
-                                      maxlength="1000">@(
-                                          edit?.Message ?? ""
-                                      )</textarea>
-                        </div>
-
-                        <div class="col-lg-4">
-                            <label class="form-label">
-                                <i class="fa-solid fa-bullseye me-1"></i>
-                                Đối tượng <span class="text-danger">*</span>
-                            </label>
-                            <select class="form-select"
+                            <select class="form-select form-select-lg"
                                     name="TargetType"
                                     id="targetType"
                                     onchange="toggleTargetFields()"
                                     required>
-                                <option value="All">👥 Tất cả</option>
-                                <option value="Role">🎭 Theo vai trò</option>
-                                <option value="User">👤 Người dùng cụ thể</option>
-                                <option value="Condition">🔍 Theo điều kiện</option>
+                                <option value="All">👥 Tất cả người dùng</option>
+                                <option value="Role">🎭 Nhóm người dùng (Vai trò)</option>
+                                <option value="User">👤 Một người dùng cụ thể</option>
                             </select>
                         </div>
 
-                        <div class="col-lg-4 field-animate"
+                        <!-- Target Role Field -->
+                        <div class="col-12 field-animate"
                              id="targetRoleField"
                              style="display:none">
                             <label class="form-label">
                                 <i class="fa-solid fa-user-tag me-1"></i>
-                                Vai trò
+                                Chọn nhóm người dùng
                             </label>
                             <select class="form-select"
                                     name="TargetRoleId"
@@ -610,62 +480,108 @@
                             </select>
                         </div>
 
-                        <div class="col-lg-4 field-animate"
+                        <!-- Target User Field -->
+                        <div class="col-12 field-animate"
                              id="targetUserField"
                              style="display:none">
                             <label class="form-label">
                                 <i class="fa-solid fa-user me-1"></i>
-                                ID Người dùng
+                                ID người dùng
                             </label>
                             <input type="number"
                                    class="form-control"
                                    name="TargetUserId"
                                    id="targetUserId"
                                    value="@(edit?.TargetUserId?.ToString() ?? "")"
-                                   placeholder="Nhập ID người dùng"
+                                   placeholder="Nhập ID người dùng (VD: 123)"
                                    min="1" />
+                            <small class="text-muted">💡 Xem ID trong danh sách quản lý khách hàng</small>
                         </div>
 
+                        <!-- Nội dung -->
+                        <div class="col-12">
+                            <label class="form-label fw-bold">
+                                <i class="fa-solid fa-message me-1 text-primary"></i>
+                                Nội dung chi tiết <span class="text-danger">*</span>
+                            </label>
+                            <textarea class="form-control"
+                                      name="Message"
+                                      id="message"
+                                      rows="4"
+                                      placeholder="VD: Giảm giá 50% toàn bộ sản phẩm đồ chơi trong dịp lễ. Áp dụng từ 11/11 đến 15/11. Không áp dụng cùng khuyến mãi khác."
+                                      required
+                                      maxlength="1000">@(edit?.Message ?? "")</textarea>
+                            <div class="d-flex justify-content-between mt-1">
+                                <small class="text-muted">📝 Tối đa 1000 ký tự</small>
+                                <small class="text-muted" id="charCount">0/1000</small>
+                            </div>
+                        </div>
+
+                        <!-- Divider -->
+                        <div class="col-12">
+                            <hr class="my-2">
+                            <h6 class="text-primary mb-3">
+                                <i class="fa-solid fa-clock me-2"></i>
+                                Lên lịch hiển thị
+                            </h6>
+                        </div>
+
+                        <!-- Quick Time Buttons -->
+                        <div class="col-12">
+                            <label class="form-label fw-bold">
+                                ⚡ Chọn nhanh thời gian
+                            </label>
+                            <div class="btn-group w-100" role="group">
+                                <button type="button" class="btn btn-outline-primary" onclick="setScheduleTime('now')">
+                                    <i class="fa-solid fa-bolt me-1"></i>Ngay bây giờ
+                                </button>
+                                <button type="button" class="btn btn-outline-primary" onclick="setScheduleTime('1hour')">
+                                    <i class="fa-solid fa-clock me-1"></i>Sau 1 giờ
+                                </button>
+                                <button type="button" class="btn btn-outline-primary" onclick="setScheduleTime('tomorrow')">
+                                    <i class="fa-solid fa-calendar-day me-1"></i>Ngày mai 9h
+                                </button>
+                                <button type="button" class="btn btn-outline-primary" onclick="setScheduleTime('nextweek')">
+                                    <i class="fa-solid fa-calendar-week me-1"></i>Tuần sau
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Manual Time Input -->
                         <div class="col-lg-6">
                             <label class="form-label">
-                                <i class="fa-solid fa-clock me-1"></i>
-                                Thời gian hiển thị <span class="text-danger">*</span>
+                                <i class="fa-solid fa-calendar-plus me-1"></i>
+                                Hoặc chọn thời gian tùy chỉnh <span class="text-danger">*</span>
                             </label>
                             <input type="datetime-local"
                                    class="form-control"
                                    name="ScheduledAt"
                                    id="scheduledAt"
-                                   value="@(edit != null
-                                                                               ? edit.ScheduledAt.ToLocalTime().ToString("yyyy-MM-ddTHH:mm")
-                                                                               : DateTime.Now.ToString("yyyy-MM-ddTHH:mm"))"
+                                   value="@(edit != null ? edit.ScheduledAt.ToLocalTime().ToString("yyyy-MM-ddTHH:mm") : DateTime.Now.ToString("yyyy-MM-ddTHH:mm"))"
                                    required />
+                            <small class="text-muted">📅 Thông báo sẽ hiển thị từ thời điểm này</small>
                         </div>
 
+                        <!-- Expire Time -->
                         <div class="col-lg-6">
                             <label class="form-label">
                                 <i class="fa-solid fa-calendar-xmark me-1"></i>
-                                Thời gian hết hạn
+                                Hết hạn (Tùy chọn)
                             </label>
                             <input type="datetime-local"
                                    class="form-control"
                                    name="ExpireAt"
                                    id="expireAt"
                                    value="@(edit?.ExpireAt?.ToLocalTime().ToString("yyyy-MM-ddTHH:mm") ?? "")" />
+                            <small class="text-muted">⏰ Để trống = không giới hạn</small>
                         </div>
 
-                        <div class="col-12 field-animate"
-                             id="conditionField"
-                             style="display:none">
-                            <label class="form-label">
-                                <i class="fa-solid fa-filter me-1"></i>
-                                Điều kiện (JSON, optional)
-                            </label>
-                            <input type="text"
-                                   class="form-control"
-                                   name="ConditionJson"
-                                   id="conditionJson"
-                                   value="@(edit?.ConditionJson ?? "")"
-                                   placeholder='VD: {"minSpent":1000000}' />
+                        <!-- Help Text -->
+                        <div class="col-12">
+                            <div class="alert alert-info mb-0">
+                                <i class="fa-solid fa-lightbulb me-2"></i>
+                                <strong>Mẹo:</strong> Nếu chọn "Ngay bây giờ" và muốn gửi ngay, nhấn nút "Gửi ngay" ở danh sách sau khi lưu.
+                            </div>
                         </div>
 
                     </div>
@@ -719,7 +635,20 @@
                 if (toastEl) new bootstrap.Toast(toastEl, { delay: 5000 }).show();
             }
 
+            const isEdit = '@(edit != null ? "true" : "false")';
             const needShow = '@((edit != null || (ViewBag.ShowErrorModal == true)) ? "true" : "false")';
+            
+            // Nếu đang edit, cập nhật form action
+            if (isEdit === "true") {
+                const form = document.getElementById('notificationForm');
+                if (form) {
+                    form.action = '@Url.Action("UpdateNotification", "Notification")';
+                }
+                
+                document.getElementById('notificationModalLabel').innerHTML =
+                    '<i class="fa-solid fa-bell me-2"></i>Cập nhật thông báo';
+            }
+            
             if (needShow === "true") {
                 const modalEl = document.getElementById('notificationModal');
                 if (modalEl) new bootstrap.Modal(modalEl).show();
@@ -760,11 +689,28 @@
 
         function openAddModal() {
             const form = document.getElementById('notificationForm');
-            if (form) form.reset();
+            if (form) {
+                form.reset();
+                // Đổi action về CreateNotification
+                form.action = '@Url.Action("CreateNotification", "Notification")';
+            }
 
             document.getElementById('notificationId').value = '0';
             document.getElementById('createdBy').value = '0';
-            document.getElementById('scheduledAt').value = '@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")';
+            document.getElementById('conditionJson').value = '';
+            
+            // Set default time to now
+            const now = new Date();
+            const formatDateTime = (date) => {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                const hours = String(date.getHours()).padStart(2, '0');
+                const minutes = String(date.getMinutes()).padStart(2, '0');
+                return `${year}-${month}-${day}T${hours}:${minutes}`;
+            };
+            
+            document.getElementById('scheduledAt').value = formatDateTime(now);
             document.getElementById('notificationModalLabel').innerHTML =
                 '<i class="fa-solid fa-bell me-2"></i>Thêm thông báo mới';
 
@@ -780,8 +726,12 @@
             const userInput = document.getElementById('targetUserId');
             if (userInput) userInput.value = '';
 
-            const condInput = document.getElementById('conditionJson');
-            if (condInput) condInput.value = '';
+            const expireInput = document.getElementById('expireAt');
+            if (expireInput) expireInput.value = '';
+
+            // Update character count
+            const charCount = document.getElementById('charCount');
+            if (charCount) charCount.textContent = '0/1000';
 
             toggleTargetFields();
         }
@@ -811,7 +761,6 @@
             const type = document.getElementById('targetType').value;
             const roleField = document.getElementById('targetRoleField');
             const userField = document.getElementById('targetUserField');
-            const condField = document.getElementById('conditionField');
 
             const roleSelect = document.getElementById('targetRoleId');
             const userInput = document.getElementById('targetUserId');
@@ -819,7 +768,6 @@
             // hide all first
             if (roleField) roleField.style.display = 'none';
             if (userField) userField.style.display = 'none';
-            if (condField) condField.style.display = 'none';
 
             if (roleSelect) roleSelect.required = false;
             if (userInput) userInput.required = false;
@@ -831,9 +779,145 @@
             } else if (type === 'User') {
                 if (userField) userField.style.display = 'block';
                 if (userInput) userInput.required = true;
-            } else if (type === 'Condition') {
-                if (condField) condField.style.display = 'block';
             }
+        }
+
+        // Character counter for message
+        document.addEventListener('DOMContentLoaded', function() {
+            const messageField = document.getElementById('message');
+            const charCount = document.getElementById('charCount');
+            
+            if (messageField && charCount) {
+                function updateCharCount() {
+                    const length = messageField.value.length;
+                    charCount.textContent = `${length}/1000`;
+                    if (length > 900) {
+                        charCount.classList.add('text-danger');
+                        charCount.classList.remove('text-muted');
+                    } else {
+                        charCount.classList.add('text-muted');
+                        charCount.classList.remove('text-danger');
+                    }
+                }
+                
+                messageField.addEventListener('input', updateCharCount);
+                updateCharCount(); // Initial count
+            }
+        });
+
+        // Quick schedule time buttons
+        function setScheduleTime(preset) {
+            const scheduledInput = document.getElementById('scheduledAt');
+            const expireInput = document.getElementById('expireAt');
+            let scheduleDate = new Date();
+            let expireDate = null;
+
+            switch(preset) {
+                case 'now':
+                    // Ngay bây giờ
+                    break;
+                
+                case '1hour':
+                    // Sau 1 giờ
+                    scheduleDate.setHours(scheduleDate.getHours() + 1);
+                    expireDate = new Date(scheduleDate);
+                    expireDate.setDate(expireDate.getDate() + 7); // Hết hạn sau 7 ngày
+                    break;
+                
+                case 'tomorrow':
+                    // Ngày mai 9h sáng
+                    scheduleDate.setDate(scheduleDate.getDate() + 1);
+                    scheduleDate.setHours(9, 0, 0, 0);
+                    expireDate = new Date(scheduleDate);
+                    expireDate.setDate(expireDate.getDate() + 7);
+                    break;
+                
+                case 'nextweek':
+                    // Tuần sau cùng giờ
+                    scheduleDate.setDate(scheduleDate.getDate() + 7);
+                    expireDate = new Date(scheduleDate);
+                    expireDate.setDate(expireDate.getDate() + 30); // Hết hạn sau 30 ngày
+                    break;
+            }
+
+            // Format to datetime-local format (YYYY-MM-DDTHH:mm)
+            const formatDateTime = (date) => {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                const hours = String(date.getHours()).padStart(2, '0');
+                const minutes = String(date.getMinutes()).padStart(2, '0');
+                return `${year}-${month}-${day}T${hours}:${minutes}`;
+            };
+
+            scheduledInput.value = formatDateTime(scheduleDate);
+            if (expireDate) {
+                expireInput.value = formatDateTime(expireDate);
+            }
+
+            // Highlight the input briefly to show it changed
+            scheduledInput.classList.add('border-success', 'border-2');
+            setTimeout(() => {
+                scheduledInput.classList.remove('border-success', 'border-2');
+            }, 1000);
+        }
+
+        // SweetAlert2 confirmation functions
+        async function confirmSendNow(event) {
+            event.preventDefault();
+            const result = await Swal.fire({
+                icon: 'question',
+                title: 'Gửi thông báo?',
+                text: 'Bạn có chắc muốn gửi ngay thông báo này?',
+                showCancelButton: true,
+                confirmButtonColor: '#667eea',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Gửi ngay',
+                cancelButtonText: 'Hủy',
+                reverseButtons: true
+            });
+            if (result.isConfirmed) {
+                event.target.submit();
+            }
+            return false;
+        }
+
+        async function confirmCancel(event) {
+            event.preventDefault();
+            const result = await Swal.fire({
+                icon: 'warning',
+                title: 'Hủy thông báo?',
+                text: 'Bạn có chắc muốn hủy thông báo này?',
+                showCancelButton: true,
+                confirmButtonColor: '#667eea',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Hủy thông báo',
+                cancelButtonText: 'Quay lại',
+                reverseButtons: true
+            });
+            if (result.isConfirmed) {
+                event.target.submit();
+            }
+            return false;
+        }
+
+        async function confirmDelete(event) {
+            event.preventDefault();
+            const result = await Swal.fire({
+                icon: 'warning',
+                title: 'Xóa thông báo?',
+                text: 'Bạn có chắc muốn xóa thông báo này?',
+                showCancelButton: true,
+                confirmButtonColor: '#667eea',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Xóa',
+                cancelButtonText: 'Hủy',
+                reverseButtons: true
+            });
+            if (result.isConfirmed) {
+                event.target.submit();
+            }
+            return false;
         }
     </script>
 }

@@ -361,7 +361,7 @@ header {
 }
 
 .price-section {
-    color: white;
+    color: #9ca3af;
 }
 
     .price-section .price-original {
@@ -694,10 +694,6 @@ footer {
     .features-grid {
         grid-template-columns: 1fr;
     }
-}
-.price-section,
-.price-section * {
-    color: #fff !important;
 }
 
     .price-section a {

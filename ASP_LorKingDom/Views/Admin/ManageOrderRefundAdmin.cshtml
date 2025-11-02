@@ -16,181 +16,7 @@
     var totalPages = (int?)ViewBag.TotalPages ?? 1;
 }
 
-<style>
-    .status-badge, .refund-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.35rem;
-        padding: 0.4rem 0.75rem;
-        border-radius: 8px;
-        font-size: 0.8rem;
-        font-weight: 600;
-        line-height: 1.2;
-    }
-
-    .refund-requested {
-        background-color: #fff3cd;
-        color: #856404;
-    }
-
-    .refund-approved {
-        background-color: #d1ecf1;
-        color: #0c5460;
-    }
-
-    .refund-rejected {
-        background-color: #f8d7da;
-        color: #721c24;
-    }
-
-    .refund-refunded {
-        background-color: #d4edda;
-        color: #155724;
-    }
-
-    .refund-processing {
-        background-color: #cfe2ff;
-        color: #084298;
-    }
-
-    .refund-cancelled {
-        background-color: #e2e3e5;
-        color: #383d41;
-    }
-
-    .refund-unknown {
-        background-color: #e2e3e5;
-        color: #383d41;
-    }
-
-    .order-id, .refund-id {
-        font-weight: 600;
-        color: #667eea;
-        cursor: pointer;
-        text-decoration: none;
-    }
-
-        .order-id:hover, .refund-id:hover {
-            text-decoration: underline;
-        }
-
-    .customer-name {
-        font-weight: 500;
-        margin: 0;
-        color: #1f2937;
-    }
-
-    .account-hint {
-        font-size: .8rem;
-        color: #6b7280;
-    }
-
-    .price-text {
-        font-weight: 600;
-        color: #28a745;
-    }
-
-    #refundDetailModal .modal-content {
-        border: none;
-        border-radius: 16px;
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-    }
-
-    #refundDetailModal .modal-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border-radius: 16px 16px 0 0;
-        padding: 1.5rem;
-        border: none;
-    }
-
-    #refundDetailModal .modal-title {
-        font-weight: 600;
-        font-size: 1.25rem;
-    }
-
-    #refundDetailModal .btn-close {
-        filter: brightness(0) invert(1);
-        opacity: 0.8;
-    }
-
-    #refundDetailModal .modal-body {
-        padding: 2rem;
-        background-color: #f8f9fa;
-    }
-
-    .refund-detail-section {
-        background-color: white;
-        padding: 1rem;
-        border-radius: 8px;
-        margin-bottom: 1rem;
-        border: 1px solid #e9ecef;
-    }
-
-        .refund-detail-section h6 {
-            font-weight: 600;
-            margin-bottom: 1rem;
-            color: #1f2937;
-        }
-
-    .detail-row {
-        display: flex;
-        justify-content: space-between;
-        padding: 0.5rem 0;
-        border-bottom: 1px solid #e9ecef;
-    }
-
-        .detail-row:last-child {
-            border-bottom: none;
-        }
-
-    .detail-label {
-        font-weight: 500;
-        color: #6b7280;
-        font-size: 0.9rem;
-    }
-
-    .detail-value {
-        color: #1f2937;
-        font-weight: 500;
-        text-align: right;
-        max-width: 60%;
-        word-break: break-word;
-    }
-
-    .total-section {
-        background-color: #f8f9fa;
-        padding: 1rem;
-        border-radius: 8px;
-        margin-top: 1rem;
-    }
-
-    .total-row {
-        display: flex;
-        justify-content: space-between;
-        padding: 0.5rem 0;
-        font-weight: 600;
-        color: #1f2937;
-    }
-
-        .total-row.grand {
-            font-size: 1.1rem;
-            color: #667eea;
-            border-top: 2px solid #e9ecef;
-            padding-top: 0.75rem;
-        }
-
-    .modal-spinner {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        min-height: 200px;
-    }
-
-        .modal-spinner.hide {
-            display: none;
-        }
-</style>
+<link rel="stylesheet" href="~/css/admin-order-refund.css" asp-append-version="true" />
 
 <div class="container-fluid px-5">
     <h1 class="mt-4">Quản Lý Hoàn Tiền / Hoàn Trả</h1>
@@ -578,6 +404,10 @@
     </div>
 </div>
 
+<!-- SweetAlert2 CSS & JS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <!-- Modal Chi tiết Refund -->
 <div class="modal fade" id="refundDetailModal" tabindex="-1" aria-labelledby="refundDetailLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -617,7 +447,12 @@
         async function viewRefundDetail(refundId) {
             const id = parseInt(refundId, 10);
             if (isNaN(id) || id <= 0) {
-                alert('ID hoàn tiền không hợp lệ');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi!',
+                    text: 'ID hoàn tiền không hợp lệ',
+                    confirmButtonColor: '#667eea'
+                });
                 return;
             }
 
@@ -784,32 +619,62 @@
             }
         }
 
-        function updateRefundStatus(refundId, newStatus) {
+        async function updateRefundStatus(refundId, newStatus) {
             if (!refundId || refundId <= 0 || !newStatus) {
-                alert('Dữ liệu không hợp lệ');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi!',
+                    text: 'Dữ liệu không hợp lệ',
+                    confirmButtonColor: '#667eea'
+                });
                 return;
             }
 
             // Confirm message
             let confirmMsg = '';
+            let confirmTitle = '';
+            let confirmIcon = 'question';
+            
             switch(newStatus) {
                 case 'Approved':
+                    confirmTitle = 'Duyệt yêu cầu hoàn tiền?';
                     confirmMsg = 'Bạn có chắc muốn DUYỆT yêu cầu hoàn tiền này?';
+                    confirmIcon = 'question';
                     break;
                 case 'Rejected':
+                    confirmTitle = 'Từ chối yêu cầu?';
                     confirmMsg = 'Bạn có chắc muốn TỪ CHỐI yêu cầu hoàn tiền này?';
+                    confirmIcon = 'warning';
                     break;
                 case 'Refunded':
+                    confirmTitle = 'Xác nhận hoàn tiền?';
                     confirmMsg = 'Xác nhận đã HOÀN TIỀN cho khách hàng?';
+                    confirmIcon = 'success';
                     break;
                 case 'Cancelled':
+                    confirmTitle = 'Hủy yêu cầu?';
                     confirmMsg = 'Bạn có chắc muốn HỦY yêu cầu hoàn tiền này?';
+                    confirmIcon = 'warning';
                     break;
                 default:
+                    confirmTitle = 'Xác nhận?';
                     confirmMsg = 'Bạn có chắc muốn thực hiện hành động này?';
+                    confirmIcon = 'question';
             }
 
-            if (!confirm(confirmMsg)) {
+            const result = await Swal.fire({
+                icon: confirmIcon,
+                title: confirmTitle,
+                text: confirmMsg,
+                showCancelButton: true,
+                confirmButtonColor: '#667eea',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Xác nhận',
+                cancelButtonText: 'Hủy bỏ',
+                reverseButtons: true
+            });
+
+            if (!result.isConfirmed) {
                 return;
             }
 

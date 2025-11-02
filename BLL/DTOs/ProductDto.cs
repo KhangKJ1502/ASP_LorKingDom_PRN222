@@ -45,7 +45,12 @@ namespace BLL.DTOs
 
         // 💡 bổ sung tiện ích hiển thị
         public bool IsOutOfStock => StockQuantity <= 0;       // tiện cho view check hết hàng
-        public bool IsOnSale { get; set; }                    // có thể set true nếu có khuyến mãi
+    public bool IsOnSale { get; set; }                    // có thể set true nếu có khuyến mãi
+
+    // Promotion info
+    public int? PromotionId { get; set; }
+    public string? PromotionCode { get; set; }
+    public decimal? PromotionDiscountPercent { get; set; }
 
         public bool IsLiked { get; set; }
     }

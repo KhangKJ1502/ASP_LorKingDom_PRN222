@@ -1,4 +1,4 @@
-﻿// BLL/Validators/PromotionValidator.cs
+// BLL/Validators/PromotionValidator.cs
 using BLL.DTOs;
 using DAL.Interfaces;
 using System;

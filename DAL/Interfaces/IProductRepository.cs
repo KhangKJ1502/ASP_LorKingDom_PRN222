@@ -23,6 +23,8 @@ namespace DAL.Interfaces
         Task<int> SetIsDeletedBySuperCategoryAsync(int superCategoryId, bool isDeleted);
         Task<(List<Product> Items, int Total)> QueryStorefrontPagedAsync(string? keyword, int page, int pageSize);
         Task<(List<Product> Items, int Total)> QueryAdminPagedAsync(string? keyword, int page, int pageSize);
+    Task<List<int>> GetProductIdsByPromotionAsync(int promotionId);
+    Task<int> SetPromotionForProductsAsync(int? promotionId, int[] productIds);
 
     }
 }

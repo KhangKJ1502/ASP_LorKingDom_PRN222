@@ -1,0 +1,248 @@
+/* Admin Promotion Management Styles */
+.search-box .form-control {
+    border: 1px solid #000 !important;
+    box-shadow: none !important;
+}
+
+.search-box .btn {
+    border: 1px solid #000 !important;
+    border-left: none !important;
+}
+
+.toast-top-right {
+    top: 120px !important;
+    right: 24px !important;
+    left: auto !important;
+    bottom: auto !important;
+}
+
+#liveToast.toast {
+    min-width: 520px;
+    padding: 1rem 1.25rem;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+}
+
+#liveToast .toast-body {
+    font-size: 1.1rem;
+    font-weight: 600;
+    word-break: break-word;
+}
+
+.deleted-row {
+    opacity: 0.6;
+    background: #f8f9fa;
+}
+
+#promotionModal .modal-content {
+    border: none;
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+}
+
+#promotionModal .modal-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 16px 16px 0 0;
+    padding: 1.5rem;
+    border: none;
+}
+
+#promotionModal .modal-title {
+    font-weight: 600;
+    font-size: 1.25rem;
+}
+
+#promotionModal .btn-close {
+    filter: brightness(0) invert(1);
+    opacity: 0.8;
+}
+
+    #promotionModal .btn-close:hover {
+        opacity: 1;
+    }
+
+#promotionModal .modal-body {
+    padding: 2rem;
+    background-color: #f8f9fa;
+}
+
+#promotionModal .form-label {
+    font-weight: 500;
+    color: #495057;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+#promotionModal .form-control,
+#promotionModal .form-select {
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    padding: 0.65rem 0.875rem;
+    transition: all 0.3s ease;
+    background-color: white;
+}
+
+    #promotionModal .form-control:focus,
+    #promotionModal .form-select:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.15);
+    }
+
+#promotionModal textarea.form-control {
+    resize: vertical;
+    min-height: 80px;
+}
+
+#promotionModal .modal-footer {
+    border-top: 1px solid #e9ecef;
+    padding: 1.25rem 2rem;
+    background-color: white;
+    border-radius: 0 0 16px 16px;
+}
+
+#promotionModal .btn {
+    padding: 0.625rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+#promotionModal .btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+}
+
+    #promotionModal .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+
+#promotionModal .btn-outline-secondary {
+    border: 2px solid #6c757d;
+    color: #6c757d;
+}
+
+    #promotionModal .btn-outline-secondary:hover {
+        background-color: #6c757d;
+        color: white;
+    }
+
+#promotionModal .info-box {
+    background-color: #e7f3ff;
+    border-left: 4px solid #667eea;
+    padding: 0.75rem 1rem;
+    border-radius: 6px;
+    margin-top: 1rem;
+}
+
+/* Enhanced form styles */
+#promotionModal .form-control-lg {
+    font-size: 1.1rem;
+    padding: 0.75rem 1rem;
+}
+
+#promotionModal .fw-bold {
+    font-weight: 600 !important;
+}
+
+#promotionModal .text-primary {
+    color: #667eea !important;
+}
+
+#promotionModal hr {
+    border-top: 2px solid #e9ecef;
+    opacity: 1;
+}
+
+/* Input group for discount percent */
+#promotionModal .input-group-text {
+    border: 2px solid #e9ecef;
+    border-left: none;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+#promotionModal .input-group .form-control:focus + .input-group-text {
+    border-color: #667eea;
+}
+
+/* Quick buttons styling */
+#promotionModal .btn-group .btn-outline-primary,
+#promotionModal .btn-group .btn-outline-secondary {
+    border-color: #667eea;
+    color: #667eea;
+    font-size: 0.875rem;
+    padding: 0.5rem 0.75rem;
+    white-space: nowrap;
+}
+
+#promotionModal .btn-group .btn-outline-primary:hover,
+#promotionModal .btn-group .btn-outline-secondary:hover {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-color: #667eea;
+    transform: translateY(-1px);
+}
+
+#promotionModal .btn-group .btn-outline-primary:active,
+#promotionModal .btn-group .btn-outline-secondary:active {
+    transform: translateY(0);
+}
+
+#promotionModal .btn-group-sm .btn {
+    font-size: 0.8rem;
+    padding: 0.35rem 0.6rem;
+}
+
+/* Character counter */
+#descCharCount {
+    font-weight: 600;
+    transition: color 0.3s ease;
+}
+
+/* Alert info box */
+#promotionModal .alert-info {
+    background: linear-gradient(135deg, #e0f2fe 0%, #dbeafe 100%);
+    border: 1px solid #0ea5e9;
+    color: #0c4a6e;
+    border-radius: 8px;
+}
+
+/* Animation for highlight */
+.border-2 {
+    border-width: 2px !important;
+}
+
+.border-success {
+    border-color: #22c55e !important;
+}
+
+/* Status radio buttons */
+#promotionModal .btn-check:checked + .btn-outline-success {
+    background-color: #22c55e;
+    border-color: #22c55e;
+    color: white;
+}
+
+#promotionModal .btn-check:checked + .btn-outline-danger {
+    background-color: #ef4444;
+    border-color: #ef4444;
+    color: white;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    #promotionModal .btn-group {
+        flex-direction: column;
+    }
+    
+    #promotionModal .btn-group .btn {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+    
+    #liveToast.toast {
+        min-width: 300px;
+    }
+}

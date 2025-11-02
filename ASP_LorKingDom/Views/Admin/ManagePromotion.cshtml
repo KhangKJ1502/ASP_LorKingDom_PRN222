@@ -18,144 +18,9 @@
     if (totalPages < 1) totalPages = 1;
 }
 
-<style>
-    .search-box .form-control {
-        border: 1px solid #000 !important;
-        box-shadow: none !important;
-    }
-
-    .search-box .btn {
-        border: 1px solid #000 !important;
-        border-left: none !important;
-    }
-
-    .toast-top-right {
-        top: 120px !important;
-        right: 24px !important;
-        left: auto !important;
-        bottom: auto !important;
-    }
-
-    #liveToast.toast {
-        min-width: 520px;
-        padding: 1rem 1.25rem;
-        border-radius: 12px;
-        box-shadow: 0 8px 24px rgba(0,0,0,.18);
-    }
-
-    #liveToast .toast-body {
-        font-size: 1.1rem;
-        font-weight: 600;
-        word-break: break-word;
-    }
-
-    .deleted-row {
-        opacity: .6;
-        background: #f8f9fa;
-    }
-
-    #promotionModal .modal-content {
-        border: none;
-        border-radius: 16px;
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-    }
-
-    #promotionModal .modal-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border-radius: 16px 16px 0 0;
-        padding: 1.5rem;
-        border: none;
-    }
-
-    #promotionModal .modal-title {
-        font-weight: 600;
-        font-size: 1.25rem;
-    }
-
-    #promotionModal .btn-close {
-        filter: brightness(0) invert(1);
-        opacity: 0.8;
-    }
-
-        #promotionModal .btn-close:hover {
-            opacity: 1;
-        }
-
-    #promotionModal .modal-body {
-        padding: 2rem;
-        background-color: #f8f9fa;
-    }
-
-    #promotionModal .form-label {
-        font-weight: 500;
-        color: #495057;
-        margin-bottom: 0.5rem;
-        font-size: 0.9rem;
-    }
-
-    #promotionModal .form-control,
-    #promotionModal .form-select {
-        border: 2px solid #e9ecef;
-        border-radius: 8px;
-        padding: 0.65rem 0.875rem;
-        transition: all 0.3s ease;
-        background-color: white;
-    }
-
-        #promotionModal .form-control:focus,
-        #promotionModal .form-select:focus {
-            border-color: #667eea;
-            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.15);
-        }
-
-    #promotionModal textarea.form-control {
-        resize: vertical;
-        min-height: 80px;
-    }
-
-    #promotionModal .modal-footer {
-        border-top: 1px solid #e9ecef;
-        padding: 1.25rem 2rem;
-        background-color: white;
-        border-radius: 0 0 16px 16px;
-    }
-
-    #promotionModal .btn {
-        padding: 0.625rem 1.5rem;
-        border-radius: 8px;
-        font-weight: 500;
-        transition: all 0.3s ease;
-    }
-
-    #promotionModal .btn-primary {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border: none;
-    }
-
-        #promotionModal .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-        }
-
-    #promotionModal .btn-outline-secondary {
-        border: 2px solid #6c757d;
-        color: #6c757d;
-    }
-
-        #promotionModal .btn-outline-secondary:hover {
-            background-color: #6c757d;
-            color: white;
-        }
-
-    #promotionModal .info-box {
-        background-color: #e7f3ff;
-        border-left: 4px solid #667eea;
-        padding: 0.75rem 1rem;
-        border-radius: 6px;
-        margin-top: 1rem;
-    }
-</style>
+<link rel="stylesheet" href="~/css/admin-promotion-manage.css" asp-append-version="true" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <div class="container-fluid px-5">
     <h1 class="mt-4">Quản Lý Khuyến Mãi</h1>
@@ -166,8 +31,7 @@
             <button class="btn btn-primary"
                     type="button"
                     data-bs-toggle="modal"
-                    data-bs-target="#promotionModal"
-                    onclick="openAddModal()">
+                    data-bs-target="#addPromotionModal">
                 <i class="fa-solid fa-plus me-1"></i> Thêm Khuyến Mãi
             </button>
         </div>
@@ -272,18 +136,26 @@
                                             <i class="fa-solid fa-pen-to-square"></i>
                                         </a>
 
+                                        <a class="btn btn-sm btn-info ms-1"
+                                           title="Quản lý sản phẩm"
+                                           asp-action="ManageProducts"
+                                           asp-controller="Promotion"
+                                           asp-route-promotionId="@x.PromotionId">
+                                            <i class="fa-solid fa-boxes-stacked"></i>
+                                        </a>
+
                                         <form method="post"
-                                              asp-action="SoftDelete"
+                                              asp-action="Delete"
                                               asp-controller="Promotion"
-                                              style="display:inline">
+                                              style="display:inline"
+                                              onsubmit="return confirmDeletePromotion(event)">
                                             @Html.AntiForgeryToken()
                                             <input type="hidden" name="id" value="@x.PromotionId" />
                                             <input type="hidden" name="keyword" value="@keyword" />
                                             <input type="hidden" name="page" value="@currentPage" />
                                             <input type="hidden" name="pageSize" value="@pageSize" />
                                             <button type="submit"
-                                                    class="btn btn-sm btn-danger"
-                                                    onclick="return confirm('Xóa mềm khuyến mãi này?')">
+                                                    class="btn btn-sm btn-danger">
                                                 <i class="fa-solid fa-trash"></i>
                                             </button>
                                         </form>
@@ -297,16 +169,9 @@
                                         @x.EndDate.ToString("dd/MM/yyyy HH:mm")
                                     </td>
                                     <td>
-                                        @if (x.IsDeleted)
-                                        {
-                                            <span class="badge bg-secondary">Đã xóa mềm</span>
-                                        }
-                                        else
-                                        {
                                             <span class="badge bg-@(x.Status == "Active" ? "success" : "warning")">
                                                 @(x.Status == "Active" ? "Đang hoạt động" : "Ngừng hoạt động")
                                             </span>
-                                        }
                                     </td>
 
                                     <td>@x.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
@@ -424,124 +289,166 @@
     </div>
 </div>
 
-<!-- Modal Add / Edit -->
+<!-- Modal Add -->
 <div class="modal fade"
-     id="promotionModal"
+     id="addPromotionModal"
      tabindex="-1"
-     aria-labelledby="promotionModalLabel"
+     aria-labelledby="addPromotionModalLabel"
      aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 id="promotionModalLabel" class="modal-title">
-                    <i class="fa-solid fa-tag me-2"></i>
-                    @(edit != null ? "Cập nhật khuyến mãi" : "Thêm khuyến mãi mới")
+                <h5 id="addPromotionModalLabel" class="modal-title">
+                    <i class="fa-solid fa-plus-circle me-2"></i>
+                    Thêm khuyến mãi mới
                 </h5>
 
                 <button type="button"
                         class="btn-close"
                         data-bs-dismiss="modal"
-                        aria-label="Close"
-                        onclick="closeModal()"></button>
+                        aria-label="Close"></button>
             </div>
 
             <form method="post"
-                  asp-action="SavePromotion"
+                  asp-action="CreatePromotion"
                   asp-controller="Promotion"
-                  id="promotionForm">
+                  id="addPromotionForm">
                 @Html.AntiForgeryToken()
 
                 <div class="modal-body">
-                    <input type="hidden" name="PromotionId" id="promotionId" value="@(edit?.PromotionId ?? 0)" />
+                    <input type="hidden" name="PromotionId" value="0" />
                     <input type="hidden" name="keyword" value="@keyword" />
                     <input type="hidden" name="page" value="@currentPage" />
                     <input type="hidden" name="pageSize" value="@pageSize" />
 
                     <div class="row g-3">
-                        <div class="col-lg-12">
-                            <label class="form-label">
-                                <i class="fa-solid fa-barcode me-1"></i>
+                        <!-- Mã khuyến mãi -->
+                        <div class="col-12">
+                            <label class="form-label fw-bold">
+                                <i class="fa-solid fa-barcode me-1 text-primary"></i>
                                 Mã khuyến mãi <span class="text-danger">*</span>
                             </label>
                             <input type="text"
-                                   class="form-control"
+                                   class="form-control form-control-lg"
                                    name="PromotionCode"
-                                   id="promotionCode"
-                                   value="@(edit?.PromotionCode ?? "")"
-                                   placeholder="VD: SUMMER2024, SALE50..."
-                                   required />
-                            <small class="form-text">Mã khuyến mãi phải duy nhất</small>
+                                   id="addPromotionCode"
+                                   placeholder="VD: SUMMER2024, SALE50, NEWYEAR2025..."
+                                   required
+                                   maxlength="50" />
+                            <small class="text-muted">💡 Mã phải duy nhất và dễ nhớ cho khách hàng</small>
                         </div>
 
+                        <!-- Discount và Status -->
                         <div class="col-lg-6">
-                            <label class="form-label">
-                                <i class="fa-solid fa-percent me-1"></i>
-                                Giảm giá (%) <span class="text-danger">*</span>
+                            <label class="form-label fw-bold">
+                                <i class="fa-solid fa-percent me-1 text-primary"></i>
+                                Phần trăm giảm giá <span class="text-danger">*</span>
                             </label>
-                            <input type="number"
-                                   step="0.01"
-                                   min="0"
-                                   max="100"
-                                   class="form-control"
-                                   name="DiscountPercent"
-                                   id="discountPercent"
-                                   value="@(edit?.DiscountPercent?.ToString("0.##") ?? "")"
-                                   placeholder="0 - 100"
-                                   required />
+                            <div class="input-group">
+                                <input type="number"
+                                       step="0.01"
+                                       min="0"
+                                       max="100"
+                                       class="form-control form-control-lg"
+                                       name="DiscountPercent"
+                                       id="addDiscountPercent"
+                                       placeholder="0"
+                                       required />
+                                <span class="input-group-text bg-primary text-white fw-bold">%</span>
+                            </div>
+                            <div class="mt-2">
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <button type="button" class="btn btn-outline-secondary" onclick="setDiscount(10, 'add')">10%</button>
+                                    <button type="button" class="btn btn-outline-secondary" onclick="setDiscount(20, 'add')">20%</button>
+                                    <button type="button" class="btn btn-outline-secondary" onclick="setDiscount(30, 'add')">30%</button>
+                                    <button type="button" class="btn btn-outline-secondary" onclick="setDiscount(50, 'add')">50%</button>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="col-lg-6">
-                            <label class="form-label">
-                                <i class="fa-solid fa-toggle-on me-1"></i>
+                            <label class="form-label fw-bold">
+                                <i class="fa-solid fa-toggle-on me-1 text-primary"></i>
                                 Trạng thái <span class="text-danger">*</span>
                             </label>
 
                             <input type="hidden"
                                    name="Status"
-                                   id="status"
-                                   value="@(edit?.Status ?? "Active")" />
+                                   id="addStatus"
+                                   value="Active" />
 
                             <div class="btn-group d-flex" role="group">
                                 <input type="radio"
                                        class="btn-check"
-                                       name="statusRadio"
-                                       id="statusActive"
+                                       name="addStatusRadio"
+                                       id="addStatusActive"
                                        value="Active"
-                                       @(((edit?.Status ?? "Active") == "Active") ? "checked" : "")
-                                       onchange="updateStatus(this.value)"
+                                       checked
+                                       onchange="updateStatus(this.value, 'add')"
                                        autocomplete="off">
-                                <label class="btn btn-outline-success" for="statusActive">
+                                <label class="btn btn-outline-success" for="addStatusActive">
                                     <i class="fa-solid fa-circle-check me-1"></i>Đang hoạt động
                                 </label>
 
                                 <input type="radio"
                                        class="btn-check"
-                                       name="statusRadio"
-                                       id="statusInactive"
+                                       name="addStatusRadio"
+                                       id="addStatusInactive"
                                        value="Inactive"
-                                       @((edit?.Status == "Inactive") ? "checked" : "")
-                                       onchange="updateStatus(this.value)"
+                                       onchange="updateStatus(this.value, 'add')"
                                        autocomplete="off">
-                                <label class="btn btn-outline-danger" for="statusInactive">
+                                <label class="btn btn-outline-danger" for="addStatusInactive">
                                     <i class="fa-solid fa-circle-xmark me-1"></i>Ngừng hoạt động
                                 </label>
                             </div>
+                            <small class="text-muted d-block mt-2">📍 Khuyến mãi chỉ áp dụng khi đang hoạt động</small>
                         </div>
 
+                        <!-- Divider -->
+                        <div class="col-12">
+                            <hr class="my-2">
+                            <h6 class="text-primary mb-3">
+                                <i class="fa-solid fa-calendar-days me-2"></i>
+                                Thời gian áp dụng
+                            </h6>
+                        </div>
 
+                        <!-- Quick Duration Buttons -->
+                        <div class="col-12">
+                            <label class="form-label fw-bold">
+                                ⚡ Chọn nhanh thời gian khuyến mãi
+                            </label>
+                            <div class="btn-group w-100" role="group">
+                                <button type="button" class="btn btn-outline-primary" onclick="setPromotionDuration('today', 'add')">
+                                    <i class="fa-solid fa-bolt me-1"></i>Hôm nay
+                                </button>
+                                <button type="button" class="btn btn-outline-primary" onclick="setPromotionDuration('weekend', 'add')">
+                                    <i class="fa-solid fa-calendar-week me-1"></i>Cuối tuần
+                                </button>
+                                <button type="button" class="btn btn-outline-primary" onclick="setPromotionDuration('week', 'add')">
+                                    <i class="fa-solid fa-calendar me-1"></i>1 tuần
+                                </button>
+                                <button type="button" class="btn btn-outline-primary" onclick="setPromotionDuration('month', 'add')">
+                                    <i class="fa-solid fa-calendar-plus me-1"></i>1 tháng
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Start Date -->
                         <div class="col-lg-6">
                             <label class="form-label">
                                 <i class="fa-solid fa-calendar-check me-1"></i>
-                                Ngày bắt đầu <span class="text-danger">*</span>
+                                Hoặc chọn ngày bắt đầu <span class="text-danger">*</span>
                             </label>
                             <input type="datetime-local"
                                    class="form-control"
                                    name="StartDate"
-                                   id="startDate"
-                                   value="@(edit != null ? edit.StartDate.ToString("yyyy-MM-ddTHH:mm") : "")"
+                                   id="addStartDate"
                                    required />
+                            <small class="text-muted">📅 Khuyến mãi có hiệu lực từ thời điểm này</small>
                         </div>
 
+                        <!-- End Date -->
                         <div class="col-lg-6">
                             <label class="form-label">
                                 <i class="fa-solid fa-calendar-xmark me-1"></i>
@@ -550,28 +457,256 @@
                             <input type="datetime-local"
                                    class="form-control"
                                    name="EndDate"
-                                   id="endDate"
-                                   value="@(edit != null ? edit.EndDate.ToString("yyyy-MM-ddTHH:mm") : "")"
+                                   id="addEndDate"
                                    required />
+                            <small class="text-muted">⏰ Khuyến mãi hết hạn sau thời điểm này</small>
                         </div>
 
-                        <div class="col-lg-12">
-                            <label class="form-label">
-                                <i class="fa-solid fa-align-left me-1"></i>
-                                Mô tả
+                        <!-- Mô tả -->
+                        <div class="col-12">
+                            <label class="form-label fw-bold">
+                                <i class="fa-solid fa-align-left me-1 text-primary"></i>
+                                Mô tả chi tiết
                             </label>
                             <textarea class="form-control"
                                       name="Description"
-                                      id="description"
-                                      rows="2"
-                                      placeholder="Nhập mô tả khuyến mãi...">@(
-                                edit?.Description ?? ""
-                                )</textarea>
+                                      id="addDescription"
+                                      rows="3"
+                                      placeholder="VD: Giảm giá đặc biệt nhân dịp khai trương. Áp dụng cho tất cả sản phẩm đồ chơi trẻ em. Không áp dụng đồng thời với khuyến mãi khác."
+                                      maxlength="500"></textarea>
+                            <div class="d-flex justify-content-between mt-1">
+                                <small class="text-muted">📝 Tối đa 500 ký tự</small>
+                                <small class="text-muted" id="addDescCharCount">0/500</small>
+                            </div>
+                        </div>
+
+                        <!-- Help Box -->
+                        <div class="col-12">
+                            <div class="alert alert-info mb-0">
+                                <i class="fa-solid fa-lightbulb me-2"></i>
+                                <strong>Mẹo:</strong> Sau khi tạo khuyến mãi, nhấn nút <i class="fa-solid fa-boxes-stacked"></i> để gán sản phẩm áp dụng.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button"
+                            class="btn btn-outline-secondary"
+                            data-bs-dismiss="modal">
+                        <i class="fa-solid fa-xmark me-1"></i>
+                        Hủy
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fa-solid fa-plus me-1"></i>
+                        Thêm mới
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Edit -->
+<div class="modal fade"
+     id="editPromotionModal"
+     tabindex="-1"
+     aria-labelledby="editPromotionModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 id="editPromotionModalLabel" class="modal-title">
+                    <i class="fa-solid fa-edit me-2"></i>
+                    Cập nhật khuyến mãi
+                </h5>
+
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+            </div>
+
+            <form method="post"
+                  asp-action="UpdatePromotion"
+                  asp-controller="Promotion"
+                  id="editPromotionForm">
+                @Html.AntiForgeryToken()
+
+                <div class="modal-body">
+                    <input type="hidden" name="PromotionId" id="editPromotionId" value="@(edit?.PromotionId ?? 0)" />
+                    <input type="hidden" name="keyword" value="@keyword" />
+                    <input type="hidden" name="page" value="@currentPage" />
+                    <input type="hidden" name="pageSize" value="@pageSize" />
+
+                    <div class="row g-3">
+                        <!-- Mã khuyến mãi -->
+                        <div class="col-12">
+                            <label class="form-label fw-bold">
+                                <i class="fa-solid fa-barcode me-1 text-primary"></i>
+                                Mã khuyến mãi <span class="text-danger">*</span>
+                            </label>
+                            <input type="text"
+                                   class="form-control form-control-lg"
+                                   name="PromotionCode"
+                                   id="editPromotionCode"
+                                   value="@(edit?.PromotionCode ?? "")"
+                                   placeholder="VD: SUMMER2024, SALE50, NEWYEAR2025..."
+                                   required
+                                   maxlength="50" />
+                            <small class="text-muted">💡 Mã phải duy nhất và dễ nhớ cho khách hàng</small>
+                        </div>
+
+                        <!-- Discount và Status -->
+                        <div class="col-lg-6">
+                            <label class="form-label fw-bold">
+                                <i class="fa-solid fa-percent me-1 text-primary"></i>
+                                Phần trăm giảm giá <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <input type="number"
+                                       step="0.01"
+                                       min="0"
+                                       max="100"
+                                       class="form-control form-control-lg"
+                                       name="DiscountPercent"
+                                       id="editDiscountPercent"
+                                       value="@(edit?.DiscountPercent?.ToString("0.##") ?? "")"
+                                       placeholder="0"
+                                       required />
+                                <span class="input-group-text bg-primary text-white fw-bold">%</span>
+                            </div>
+                            <div class="mt-2">
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <button type="button" class="btn btn-outline-secondary" onclick="setDiscount(10, 'edit')">10%</button>
+                                    <button type="button" class="btn btn-outline-secondary" onclick="setDiscount(20, 'edit')">20%</button>
+                                    <button type="button" class="btn btn-outline-secondary" onclick="setDiscount(30, 'edit')">30%</button>
+                                    <button type="button" class="btn btn-outline-secondary" onclick="setDiscount(50, 'edit')">50%</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-6">
+                            <label class="form-label fw-bold">
+                                <i class="fa-solid fa-toggle-on me-1 text-primary"></i>
+                                Trạng thái <span class="text-danger">*</span>
+                            </label>
+
+                            <input type="hidden"
+                                   name="Status"
+                                   id="editStatus"
+                                   value="@(edit?.Status ?? "Active")" />
+
+                            <div class="btn-group d-flex" role="group">
+                                <input type="radio"
+                                       class="btn-check"
+                                       name="editStatusRadio"
+                                       id="editStatusActive"
+                                       value="Active"
+                                       @(((edit?.Status ?? "Active") == "Active") ? "checked" : "")
+                                       onchange="updateStatus(this.value, 'edit')"
+                                       autocomplete="off">
+                                <label class="btn btn-outline-success" for="editStatusActive">
+                                    <i class="fa-solid fa-circle-check me-1"></i>Đang hoạt động
+                                </label>
+
+                                <input type="radio"
+                                       class="btn-check"
+                                       name="editStatusRadio"
+                                       id="editStatusInactive"
+                                       value="Inactive"
+                                       @((edit?.Status == "Inactive") ? "checked" : "")
+                                       onchange="updateStatus(this.value, 'edit')"
+                                       autocomplete="off">
+                                <label class="btn btn-outline-danger" for="editStatusInactive">
+                                    <i class="fa-solid fa-circle-xmark me-1"></i>Ngừng hoạt động
+                                </label>
+                            </div>
+                            <small class="text-muted d-block mt-2">📍 Khuyến mãi chỉ áp dụng khi đang hoạt động</small>
+                        </div>
+
+                        <!-- Divider -->
+                        <div class="col-12">
+                            <hr class="my-2">
+                            <h6 class="text-primary mb-3">
+                                <i class="fa-solid fa-calendar-days me-2"></i>
+                                Thời gian áp dụng
+                            </h6>
+                        </div>
+
+                        <!-- Quick Duration Buttons -->
+                        <div class="col-12">
+                            <label class="form-label fw-bold">
+                                ⚡ Chọn nhanh thời gian khuyến mãi
+                            </label>
+                            <div class="btn-group w-100" role="group">
+                                <button type="button" class="btn btn-outline-primary" onclick="setPromotionDuration('today', 'edit')">
+                                    <i class="fa-solid fa-bolt me-1"></i>Hôm nay
+                                </button>
+                                <button type="button" class="btn btn-outline-primary" onclick="setPromotionDuration('weekend', 'edit')">
+                                    <i class="fa-solid fa-calendar-week me-1"></i>Cuối tuần
+                                </button>
+                                <button type="button" class="btn btn-outline-primary" onclick="setPromotionDuration('week', 'edit')">
+                                    <i class="fa-solid fa-calendar me-1"></i>1 tuần
+                                </button>
+                                <button type="button" class="btn btn-outline-primary" onclick="setPromotionDuration('month', 'edit')">
+                                    <i class="fa-solid fa-calendar-plus me-1"></i>1 tháng
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Start Date -->
+                        <div class="col-lg-6">
+                            <label class="form-label">
+                                <i class="fa-solid fa-calendar-check me-1"></i>
+                                Hoặc chọn ngày bắt đầu <span class="text-danger">*</span>
+                            </label>
+                            <input type="datetime-local"
+                                   class="form-control"
+                                   name="StartDate"
+                                   id="editStartDate"
+                                   value="@(edit != null ? edit.StartDate.ToString("yyyy-MM-ddTHH:mm") : "")"
+                                   required />
+                            <small class="text-muted">📅 Khuyến mãi có hiệu lực từ thời điểm này</small>
+                        </div>
+
+                        <!-- End Date -->
+                        <div class="col-lg-6">
+                            <label class="form-label">
+                                <i class="fa-solid fa-calendar-xmark me-1"></i>
+                                Ngày kết thúc <span class="text-danger">*</span>
+                            </label>
+                            <input type="datetime-local"
+                                   class="form-control"
+                                   name="EndDate"
+                                   id="editEndDate"
+                                   value="@(edit != null ? edit.EndDate.ToString("yyyy-MM-ddTHH:mm") : "")"
+                                   required />
+                            <small class="text-muted">⏰ Khuyến mãi hết hạn sau thời điểm này</small>
+                        </div>
+
+                        <!-- Mô tả -->
+                        <div class="col-12">
+                            <label class="form-label fw-bold">
+                                <i class="fa-solid fa-align-left me-1 text-primary"></i>
+                                Mô tả chi tiết
+                            </label>
+                            <textarea class="form-control"
+                                      name="Description"
+                                      id="editDescription"
+                                      rows="3"
+                                      placeholder="VD: Giảm giá đặc biệt nhân dịp khai trương. Áp dụng cho tất cả sản phẩm đồ chơi trẻ em. Không áp dụng đồng thời với khuyến mãi khác."
+                                      maxlength="500">@(edit?.Description ?? "")</textarea>
+                            <div class="d-flex justify-content-between mt-1">
+                                <small class="text-muted">📝 Tối đa 500 ký tự</small>
+                                <small class="text-muted" id="editDescCharCount">0/500</small>
+                            </div>
                         </div>
 
                         @if (edit != null)
                         {
                             <div class="col-12">
+                                <hr class="my-2">
                                 <div class="info-box">
                                     <div class="text-muted small">
                                         <i class="fa-regular fa-clock me-1"></i>
@@ -587,20 +722,27 @@
                                 </div>
                             </div>
                         }
+
+                        <!-- Help Box -->
+                        <div class="col-12">
+                            <div class="alert alert-info mb-0">
+                                <i class="fa-solid fa-lightbulb me-2"></i>
+                                <strong>Mẹo:</strong> Sau khi cập nhật, nhấn nút <i class="fa-solid fa-boxes-stacked"></i> để quản lý sản phẩm áp dụng.
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 <div class="modal-footer">
                     <button type="button"
                             class="btn btn-outline-secondary"
-                            data-bs-dismiss="modal"
-                            onclick="closeModal()">
+                            data-bs-dismiss="modal">
                         <i class="fa-solid fa-xmark me-1"></i>
                         Hủy
                     </button>
                     <button type="submit" class="btn btn-primary">
-                        <i class="fa-solid fa-floppy-disk me-1"></i>
-                        @(edit != null ? "Lưu thay đổi" : "Thêm mới")
+                        <i class="fa-solid fa-save me-1"></i>
+                        Lưu thay đổi
                     </button>
                 </div>
             </form>
@@ -642,55 +784,46 @@
                 }, 5000);
             });
 
-            // Chỉ mở modal khi cần (có data edit hoặc được yêu cầu mở)
-            const needShow = '@((edit != null || (ViewBag.ShowModal == true)) ? "true" : "false")';
-            if (needShow === "true") {
-                // Đồng bộ radio button với giá trị Status hiện tại
-                const currentStatus = document.getElementById('status').value;
-                if (currentStatus === 'Active') {
-                    document.getElementById('statusActive').checked = true;
-                    document.getElementById('statusInactive').checked = false;
-                } else if (currentStatus === 'Inactive') {
-                    document.getElementById('statusActive').checked = false;
-                    document.getElementById('statusInactive').checked = true;
-                }
-
-                const modalEl = document.getElementById('promotionModal');
+            // Chỉ mở modal EDIT khi có data edit
+            const needShowEdit = '@(edit != null ? "true" : "false")';
+            if (needShowEdit === "true") {
+                const modalEl = document.getElementById('editPromotionModal');
                 if (modalEl) new bootstrap.Modal(modalEl).show();
             }
+            
+            // Initialize character counters
+            initCharCounter('addDescription', 'addDescCharCount');
+            initCharCounter('editDescription', 'editDescCharCount');
         });
 
-        function updateStatus(value) {
-            document.getElementById('status').value = value;
+        function updateStatus(value, formType) {
+            const statusField = formType === 'add' ? 'addStatus' : 'editStatus';
+            document.getElementById(statusField).value = value;
         }
-
-        function openAddModal() {
-            const form = document.getElementById('promotionForm');
-            form.reset();
-
-            document.getElementById('promotionModalLabel').innerHTML =
-                '<i class="fa-solid fa-tag me-2"></i>Thêm khuyến mãi mới';
-
-            document.getElementById('promotionId').value = '0';
-            document.getElementById('status').value = 'Active';
-            document.getElementById('statusActive').checked = true;
-
-            // giữ lại ngữ cảnh hiện tại
-            document.querySelector('#promotionForm input[name="keyword"]').value = '@keyword';
-            document.querySelector('#promotionForm input[name="page"]').value = '@currentPage';
-            document.querySelector('#promotionForm input[name="pageSize"]').value = '@pageSize';
-        }
-
-        function closeModal() {
-            const keyword = '@Html.Raw(keyword ?? "")';
-            const pageSize = @pageSize;
+        
+        function initCharCounter(textareaId, counterId) {
+            const descField = document.getElementById(textareaId);
+            const charCount = document.getElementById(counterId);
             
-            if (keyword) {
-                window.location.href = '@Url.Action("Search", "Promotion")' + '?keyword=' + encodeURIComponent(keyword) + '&pageSize=' + pageSize;
-            } else {
-                window.location.href = '@Url.Action("Index", "Promotion")' + '?pageSize=' + pageSize;
+            if (descField && charCount) {
+                function updateCharCount() {
+                    const length = descField.value.length;
+                    charCount.textContent = `${length}/500`;
+                    if (length > 450) {
+                        charCount.classList.add('text-danger');
+                        charCount.classList.remove('text-muted');
+                    } else {
+                        charCount.classList.add('text-muted');
+                        charCount.classList.remove('text-danger');
+                    }
+                }
+                
+                descField.addEventListener('input', updateCharCount);
+                updateCharCount(); // Initial count
             }
         }
+
+
 
         function changePageSize(newPageSize) {
           const keyword = '@Html.Raw(keyword ?? "")';
@@ -700,6 +833,106 @@
           } else {
             window.location.href = '@Url.Action("Index", "Promotion")' + '?page=1&pageSize=' + newPageSize;
           }
+        }
+
+        async function confirmDeletePromotion(event) {
+            event.preventDefault();
+            
+            const result = await Swal.fire({
+                icon: 'warning',
+                title: 'Xóa  khuyến mãi?',
+                text: 'Bạn có chắc chắn muốn xóa Vĩnh Viễn khỏi hệ thống khuyến mãi này?',
+                showCancelButton: true,
+                confirmButtonColor: '#667eea',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Xóa',
+                cancelButtonText: 'Hủy',
+                reverseButtons: true
+            });
+
+            if (result.isConfirmed) {
+                event.target.submit();
+            }
+            return false;
+        }
+
+        // Quick discount buttons
+        function setDiscount(percent, formType) {
+            const fieldId = formType === 'add' ? 'addDiscountPercent' : 'editDiscountPercent';
+            document.getElementById(fieldId).value = percent;
+            // Highlight effect
+            const input = document.getElementById(fieldId);
+            input.classList.add('border-success', 'border-2');
+            setTimeout(() => {
+                input.classList.remove('border-success', 'border-2');
+            }, 800);
+        }
+
+        // Quick promotion duration buttons
+        function setPromotionDuration(preset, formType) {
+            const startId = formType === 'add' ? 'addStartDate' : 'editStartDate';
+            const endId = formType === 'add' ? 'addEndDate' : 'editEndDate';
+            const startInput = document.getElementById(startId);
+            const endInput = document.getElementById(endId);
+            let startDate = new Date();
+            let endDate = new Date();
+
+            switch(preset) {
+                case 'today':
+                    // Hôm nay: từ bây giờ đến 23:59
+                    endDate.setHours(23, 59, 0, 0);
+                    break;
+                
+                case 'weekend':
+                    // Cuối tuần: Thứ 7 - Chủ nhật
+                    const today = startDate.getDay();
+                    const daysUntilSaturday = (6 - today + 7) % 7;
+                    if (daysUntilSaturday === 0 && today !== 6) {
+                        // If today is Sunday, start next Saturday
+                        startDate.setDate(startDate.getDate() + 6);
+                    } else if (today === 6) {
+                        // If today is Saturday, start today
+                    } else {
+                        // Go to next Saturday
+                        startDate.setDate(startDate.getDate() + daysUntilSaturday);
+                    }
+                    startDate.setHours(0, 0, 0, 0);
+                    endDate = new Date(startDate);
+                    endDate.setDate(endDate.getDate() + 1); // Sunday
+                    endDate.setHours(23, 59, 0, 0);
+                    break;
+                
+                case 'week':
+                    // 1 tuần: 7 ngày từ bây giờ
+                    endDate.setDate(endDate.getDate() + 7);
+                    break;
+                
+                case 'month':
+                    // 1 tháng: 30 ngày từ bây giờ
+                    endDate.setDate(endDate.getDate() + 30);
+                    break;
+            }
+
+            // Format to datetime-local format (YYYY-MM-DDTHH:mm)
+            const formatDateTime = (date) => {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                const hours = String(date.getHours()).padStart(2, '0');
+                const minutes = String(date.getMinutes()).padStart(2, '0');
+                return `${year}-${month}-${day}T${hours}:${minutes}`;
+            };
+
+            startInput.value = formatDateTime(startDate);
+            endInput.value = formatDateTime(endDate);
+
+            // Highlight effect
+            startInput.classList.add('border-success', 'border-2');
+            endInput.classList.add('border-success', 'border-2');
+            setTimeout(() => {
+                startInput.classList.remove('border-success', 'border-2');
+                endInput.classList.remove('border-success', 'border-2');
+            }, 1000);
         }
     </script>
 }

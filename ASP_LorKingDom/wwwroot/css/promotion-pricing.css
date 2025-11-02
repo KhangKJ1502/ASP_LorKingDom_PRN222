@@ -1,0 +1,255 @@
+/* ===================================
+   PROMOTION PRICING STYLES
+   Styles for displaying promotional prices
+   =================================== */
+
+/* Product Grid - Promotion Pricing */
+.product-card .product-price {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 8px;
+}
+
+.product-card .price-discounted {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #dc2626;
+    /* Red color for sale price */
+    background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: pulse-price 2s ease-in-out infinite;
+}
+
+.product-card .price-original {
+    font-size: 1rem;
+    color: #6b7280;
+    /* Gray color */
+    text-decoration: line-through;
+    opacity: 0.7;
+}
+
+.product-card .price-current {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #F97316;
+    /* Orange - your brand color */
+}
+
+/* Product Details Page - Promotion Pricing */
+.price-section {
+    background: linear-gradient(135deg, #fff5f5 0%, #ffe4e6 100%);
+    border: 2px solid #fecaca;
+    border-radius: 16px;
+    padding: 20px;
+    margin: 20px 0;
+    position: relative;
+    overflow: hidden;
+}
+
+.price-section::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(220, 38, 38, 0.05) 0%, transparent 70%);
+    animation: rotate-gradient 8s linear infinite;
+}
+
+.price-display {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    position: relative;
+    z-index: 1;
+}
+
+.price-display .price-discounted {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #dc2626;
+    background: linear-gradient(135deg, #dc2626 0%, #ef4444 50%, #f87171 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 0 2px 8px rgba(220, 38, 38, 0.15);
+    letter-spacing: -0.5px;
+}
+
+.price-display .price-original {
+    font-size: 1.25rem;
+    color: #9ca3af;
+    text-decoration: line-through;
+    opacity: 0.8;
+    font-weight: 500;
+}
+
+.price-display .discount-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    color: white;
+    font-size: 1rem;
+    font-weight: 700;
+    padding: 6px 12px;
+    border-radius: 20px;
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+    animation: bounce-badge 2s ease-in-out infinite;
+}
+
+.price-display .price-current {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #F97316;
+    letter-spacing: -0.5px;
+}
+
+.price-savings {
+    margin-top: 8px;
+    font-size: 0.95rem;
+    color: #059669;
+    font-weight: 600;
+    background: #d1fae5;
+    padding: 6px 12px;
+    border-radius: 8px;
+    display: inline-block;
+    position: relative;
+    z-index: 1;
+}
+
+.price-savings::before {
+    content: '🎉';
+    margin-right: 4px;
+}
+
+/* Animations */
+@keyframes pulse-price {
+    0%,
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.9;
+        transform: scale(1.02);
+    }
+}
+
+@keyframes bounce-badge {
+    0%,
+    100% {
+        transform: translateY(0) scale(1);
+    }
+
+    50% {
+        transform: translateY(-2px) scale(1.05);
+    }
+}
+
+@keyframes rotate-gradient {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Sale Tag/Badge for Product Card */
+.product-card {
+    position: relative;
+}
+
+.product-card.on-sale .product-image::after {
+    content: 'SALE';
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 6px 12px;
+    border-radius: 20px;
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+    z-index: 2;
+    animation: pulse-sale 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-sale {
+    0%,
+    100% {
+        transform: scale(1);
+        box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+    }
+
+    50% {
+        transform: scale(1.05);
+        box-shadow: 0 6px 16px rgba(220, 38, 38, 0.6);
+    }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .product-card .price-discounted {
+        font-size: 1.25rem;
+    }
+
+    .product-card .price-original {
+        font-size: 0.875rem;
+    }
+
+    .price-display .price-discounted {
+        font-size: 2rem;
+    }
+
+    .price-display .price-original {
+        font-size: 1rem;
+    }
+
+    .price-display .discount-badge {
+        font-size: 0.875rem;
+        padding: 4px 10px;
+    }
+
+    .price-section {
+        padding: 16px;
+    }
+}
+
+/* Hover effects for product cards with promotion */
+.product-card.on-sale:hover .price-discounted {
+    animation: pulse-price 0.5s ease-in-out;
+}
+
+.product-card.on-sale:hover .product-image::after {
+    animation: pulse-sale 0.5s ease-in-out;
+}
+
+/* Additional styling for promotion code display (if needed) */
+.promotion-code {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #fef3c7;
+    color: #92400e;
+    font-size: 0.875rem;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: 8px;
+    border: 1px dashed #f59e0b;
+    margin-top: 8px;
+}
+
+.promotion-code::before {
+    content: '🎫';
+}

@@ -15,7 +15,7 @@ namespace WebUI.Controllers
 {
     public class ProductController : Controller
     {
-        private readonly IProductService _productSvc;
+    private readonly IProductService _productSvc;
         private readonly ICategoryService _categorySvc;
         private readonly ISexService _sexSvc;
         private readonly IPriceRangeService _priceRangeSvc;
@@ -24,6 +24,7 @@ namespace WebUI.Controllers
         private readonly IMaterialService _materialSvc;
         private readonly IOriginService _originSvc;
         private readonly IStatisticsService _statisticsService;
+    private readonly IPromotionService _promotionSvc;
 
         public ProductController(
             IProductService productSvc,
@@ -34,7 +35,8 @@ namespace WebUI.Controllers
             IAgeService ageSvc,
             IMaterialService materialSvc,
             IOriginService originSvc,
-            IStatisticsService statisticsService)
+            IStatisticsService statisticsService,
+            IPromotionService promotionSvc)
         {
             _productSvc = productSvc;
             _categorySvc = categorySvc;
@@ -45,6 +47,56 @@ namespace WebUI.Controllers
             _materialSvc = materialSvc;
             _originSvc = originSvc;
             _statisticsService = statisticsService;
+            _promotionSvc = promotionSvc;
+        }
+
+        // ===== ASSIGN PROMOTION PAGE =====
+        [HttpGet]
+        public async Task<IActionResult> AssignPromotion(int id)
+        {
+            var dto = await _productSvc.GetByIdAsync(id);
+            if (dto == null)
+            {
+                TempData["Error"] = "Không tìm thấy sản phẩm.";
+                return RedirectToAction(nameof(Manage));
+            }
+
+            var promos = await _promotionSvc.GetActiveAsync();
+            ViewBag.Promotions = promos;
+            await LoadDropdownsAsync();
+            return View("~/Views/Admin/AssignPromotion.cshtml", dto);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AssignPromotion(int productId, int? promotionId)
+        {
+            try
+            {
+                var ok = await _productSvc.SetPromotionAsync(productId, promotionId);
+                if (ok)
+                    TempData["Success"] = promotionId.HasValue ? "Đã gán khuyến mãi cho sản phẩm." : "✅ Đã gỡ khuyến mãi khỏi sản phẩm.";
+                else
+                    TempData["Error"] = "Không tìm thấy sản phẩm hoặc cập nhật thất bại.";
+
+                return RedirectToAction(nameof(Manage));
+            }
+            catch (InvalidOperationException ex)
+            {
+                // Lỗi validation promotion
+                TempData["Error"] = $"{ex.Message}";
+                return RedirectToAction(nameof(AssignPromotion), new { id = productId });
+            }
+            catch (ArgumentException ex)
+            {
+                TempData["Error"] = $"{ex.Message}";
+                return RedirectToAction(nameof(AssignPromotion), new { id = productId });
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Lỗi: {ex.GetBaseException().Message}";
+                return RedirectToAction(nameof(Manage));
+            }
         }
 
         public async Task<IActionResult> Manage(string? q, int page = 1, int pageSize = 8)
@@ -202,16 +254,6 @@ namespace WebUI.Controllers
                 await file.CopyToAsync(fs);
 
             return "/" + Path.Combine(subFolder, name).Replace("\\", "/");
-        }
-
-        // ===== PRODUCT STATISTICS =====
-        // Admin và Warehouse được xem Product Statistics (sản phẩm), Staff không được xem
-        [HttpGet]
-        //[AdminAndWarehouseOnly]
-        public async Task<IActionResult> Statistics()
-        {
-            var stats = await _statisticsService.GetProductStatisticsAsync();
-            return View("~/Views/Admin/ProductStatistics.cshtml", stats);
         }
     }
 }

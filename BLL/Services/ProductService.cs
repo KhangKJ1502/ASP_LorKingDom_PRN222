@@ -12,6 +12,7 @@ namespace BLL.Services
     {
         private readonly IProductRepository _repo;
         private readonly IProductImageService _imageSvc;
+        private readonly IPromotionRepository _promotionRepo;
 
         // Repos cha để kiểm tra trạng thái hoạt động
         private readonly IBrandRepository _brandRepo;
@@ -25,6 +26,7 @@ namespace BLL.Services
         public ProductService(
             IProductRepository repo,
             IProductImageService imageSvc,
+            IPromotionRepository promotionRepo,
             IBrandRepository brandRepo,
             ICategoryRepository categoryRepo,
             IMaterialRepository materialRepo,
@@ -35,6 +37,7 @@ namespace BLL.Services
         {
             _repo = repo;
             _imageSvc = imageSvc;
+            _promotionRepo = promotionRepo;
 
             _brandRepo = brandRepo;
             _categoryRepo = categoryRepo;
@@ -202,7 +205,28 @@ namespace BLL.Services
                               .Select(pi => pi.ImageUrl)
                               .Where(u => !string.IsNullOrWhiteSpace(u))
                               .ToList() ?? new List<string>()
+            ,
+            // Promotion mapping - only show if promotion is active and valid
+            PromotionId = IsPromotionValid(x.Promotion) ? x.PromotionId : null,
+            PromotionCode = IsPromotionValid(x.Promotion) ? x.Promotion?.PromotionCode : null,
+            PromotionDiscountPercent = IsPromotionValid(x.Promotion) ? x.Promotion?.DiscountPercent : null,
+            IsOnSale = IsPromotionValid(x.Promotion) && x.PromotionId != null
         };
+
+        /// <summary>
+        /// Kiểm tra promotion có hợp lệ không (Active, chưa xóa, trong thời gian)
+        /// </summary>
+        private static bool IsPromotionValid(DAL.Models.Promotion? promotion)
+        {
+            if (promotion == null) return false;
+            if (promotion.IsDeleted) return false;
+            if (promotion.Status != "Active") return false;
+            
+            var now = DateTime.Now;
+            if (now < promotion.StartDate || now > promotion.EndDate) return false;
+            
+            return true;
+        }
 
         public async Task<PagedResult<ProductDto>> GetStorefrontPagedAsync(string? keyword, int page, int pageSize)
         {
@@ -226,6 +250,41 @@ namespace BLL.Services
                 Page = page,
                 PageSize = pageSize
             };
+        }
+
+        public async Task<bool> SetPromotionAsync(int productId, int? promotionId)
+        {
+            if (productId <= 0) throw new ArgumentException("Invalid productId", nameof(productId));
+
+            var product = await _repo.GetByIdAsync(productId);
+            if (product == null) return false;
+
+            // Nếu muốn gán promotion, kiểm tra promotion có hợp lệ không
+            if (promotionId.HasValue)
+            {
+                var promotion = await _promotionRepo.GetByIdAsync(promotionId.Value);
+                if (promotion == null)
+                    throw new ArgumentException("Promotion không tồn tại", nameof(promotionId));
+                
+                if (promotion.IsDeleted)
+                    throw new InvalidOperationException("Không thể gán promotion đã bị xóa");
+                
+                if (promotion.Status != "Active")
+                    throw new InvalidOperationException("Chỉ có thể gán promotion đang Active");
+                
+                var now = DateTime.Now;
+                if (now < promotion.StartDate)
+                    throw new InvalidOperationException($"Promotion chưa bắt đầu (ngày bắt đầu: {promotion.StartDate:dd/MM/yyyy})");
+                
+                if (now > promotion.EndDate)
+                    throw new InvalidOperationException($"Promotion đã hết hạn (ngày kết thúc: {promotion.EndDate:dd/MM/yyyy})");
+            }
+
+            product.PromotionId = promotionId;
+            product.UpdatedAt = DateTime.Now;
+
+            await _repo.UpdateAsync(product);
+            return true;
         }
 
 
