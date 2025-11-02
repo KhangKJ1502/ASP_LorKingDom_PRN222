@@ -1,4 +1,4 @@
-using BLL.DTOs;
+﻿using BLL.DTOs;
 using BLL.Interfaces;
 using DAL.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -13,15 +13,18 @@ namespace ASP_LorKingDom.Controllers
         private readonly ILogger<HomeController> _logger;
         private readonly IProductService _productSvc;
         private readonly IWishlistService _wishlistSvc;
+        private readonly IReviewProductService _reviewSvc; 
 
         public HomeController(
             ILogger<HomeController> logger,
             IProductService productSvc,
-            IWishlistService wishlistSvc)
+            IWishlistService wishlistSvc,
+            IReviewProductService reviewSvc) 
         {
             _logger = logger;
             _productSvc = productSvc;
             _wishlistSvc = wishlistSvc;
+            _reviewSvc = reviewSvc; 
         }
 
         // ===== helpers =====
@@ -75,7 +78,6 @@ namespace ASP_LorKingDom.Controllers
             };
         }
 
-
         public async Task<IActionResult> Index(string? q, int page = 1, int pageSize = 16)
         {
             var model = await BuildPagedModelAsync(q, page, pageSize);
@@ -88,13 +90,18 @@ namespace ASP_LorKingDom.Controllers
             var model = await BuildPagedModelAsync(q, page, pageSize);
             return PartialView("_ProductGridPartial", model);
         }
-
+      
         public async Task<IActionResult> ProductDetails(int id)
         {
             var dto = await _productSvc.GetByIdAsync(id);
             if (dto == null) return NotFound();
+
+            var reviews = await _reviewSvc.GetReviewsByProductIdAsync(id);
+            ViewBag.Reviews = reviews;
+
             var liked = await GetLikedSetAsync();
             dto.IsLiked = liked.Contains(id);
+
             return View(dto);
         }
 
