@@ -15,9 +15,9 @@ namespace BLL.Services
         private readonly IAddressRepository _repo;
         public AddressService(IAddressRepository repo) => _repo = repo;
 
-        public async Task<List<AddressDto>> ListAsync(int accountId, string? keyword)
+        public async Task<List<AddressDto>> ListAsync(int accountId)
         {
-            var list = await _repo.ListAsync(accountId, keyword);
+            var list = await _repo.ListAsync(accountId);
             return list.Select(Map).ToList();
         }
 
@@ -30,7 +30,7 @@ namespace BLL.Services
         public async Task<int> CreateAsync(int accountId, string city, string ward, string addressLine, bool setAsDefault)
         {
             AddressValidator.Validate(city, ward, addressLine);
-            var existing = await _repo.ListAsync(accountId, null);
+            var existing = await _repo.ListAsync(accountId);
             if (existing.Count >= 5)
                 throw new InvalidOperationException("Bạn chỉ được thêm tối đa 5 địa chỉ.");
 

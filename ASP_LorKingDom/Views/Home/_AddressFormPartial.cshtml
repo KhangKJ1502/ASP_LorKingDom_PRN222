@@ -101,12 +101,6 @@
 			<input name="addressLine" value="@(isEdit ? Model!.AddressLine : "")" placeholder="Số nhà, đường, thôn/xóm..." />
 		</div>
 
-		<!-- Đặt làm mặc định -->
-		<div class="flex items-center gap-2">
-			<input id="setAsDefault" type="checkbox" name="setAsDefault" @(isEdit && Model!.IsDefault ? "checked" : "") />
-			<label for="setAsDefault">Đặt làm địa chỉ mặc định</label>
-		</div>
-
 		<!-- Nút hành động -->
 		<div class="flex justify-end gap-2 pt-2">
 			<button type="button" class="addr-form-cancel">Hủy</button>

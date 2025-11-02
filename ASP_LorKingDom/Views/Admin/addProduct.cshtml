@@ -3,458 +3,491 @@
 @using Microsoft.AspNetCore.Mvc.Rendering
 
 @{
-    Layout = "_AdminLayout";
-    ViewData["Title"] = Model?.Id > 0 ? "Cập nhật sản phẩm" : "Thêm sản phẩm";
+	Layout = "_AdminLayout";
+	ViewData["Title"] = Model?.Id > 0 ? "Cập nhật sản phẩm" : "Thêm sản phẩm";
 
-    // Data từ ViewBag
-    var categories = ViewBag.Categories as List<CategoryDto> ?? new();
-    var brands = ViewBag.Brands as List<BrandDto> ?? new();
-    var materials = ViewBag.Materials as List<MaterialDto> ?? new();
-    var ages = ViewBag.Ages as List<AgeDto> ?? new();
-    var sexes = ViewBag.Sexes as List<SexDto> ?? new();
-    var origins = ViewBag.Origins as List<OriginDto> ?? new();
-    var priceRanges = ViewBag.PriceRanges as List<PriceRangeDto> ?? new();
+	// Data từ ViewBag
+	var categories = ViewBag.Categories as List<CategoryDto> ?? new();
+	var brands = ViewBag.Brands as List<BrandDto> ?? new();
+	var materials = ViewBag.Materials as List<MaterialDto> ?? new();
+	var ages = ViewBag.Ages as List<AgeDto> ?? new();
+	var sexes = ViewBag.Sexes as List<SexDto> ?? new();
+	var origins = ViewBag.Origins as List<OriginDto> ?? new();
+	var priceRanges = ViewBag.PriceRanges as List<PriceRangeDto> ?? new();
 
-    var isEdit = Model?.Id > 0;
-    var st = Model?.ProductStatus ?? "Available";
+	var isEdit = Model?.Id > 0;
+	var st = Model?.ProductStatus ?? "Available";
 
-    // SelectLists
-    var catItems = new SelectList(categories, "Id", "Name", Model?.CategoryId);
-    var brandItems = new SelectList(brands, "Id", "Name", Model?.BrandId);
-    var sexItems = new SelectList(sexes, "Id", "Name", Model?.SexId);
-    var ageItems = new SelectList(ages, "Id", "AgeRange", Model?.AgeId);
-    var matItems = new SelectList(materials, "Id", "Name", Model?.MaterialId);
-    var orgItems = new SelectList(origins, "Id", "Name", Model?.OriginId);
-    var prItems = new SelectList(
-        priceRanges.Select(pr => new { pr.Id, Text = $"{pr.PriceRangeMin:#,0} - {pr.PriceRangeMax:#,0}" }),
-        "Id", "Text", Model?.PriceRangeId
-    );
-    var statusItems = new SelectList(new[]{
-        new { Value="Available",    Text="Hoạt động" },
-        new { Value="OutOfStock",   Text="Hết hàng" },
-        new { Value="Discontinued", Text="Không còn hoạt động" },
-    }, "Value", "Text", st);
+	// SelectLists
+	var catItems = new SelectList(categories, "Id", "Name", Model?.CategoryId);
+	var brandItems = new SelectList(brands, "Id", "Name", Model?.BrandId);
+	var sexItems = new SelectList(sexes, "Id", "Name", Model?.SexId);
+	var ageItems = new SelectList(ages, "Id", "AgeRange", Model?.AgeId);
+	var matItems = new SelectList(materials, "Id", "Name", Model?.MaterialId);
+	var orgItems = new SelectList(origins, "Id", "Name", Model?.OriginId);
+	var prItems = new SelectList(
+		priceRanges.Select(pr => new { pr.Id, Text = $"{pr.PriceRangeMin:#,0} - {pr.PriceRangeMax:#,0}" }),
+		"Id", "Text", Model?.PriceRangeId
+	);
+	var statusItems = new SelectList(new[]{
+		new { Value="Available",    Text="Hoạt động" },
+		new { Value="OutOfStock",   Text="Hết hàng" },
+		new { Value="Discontinued", Text="Không còn hoạt động" },
+	}, "Value", "Text", st);
 }
 
 @section Styles {
-    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet" />
-    <link href="~/css/NewProduct.css" rel="stylesheet" asp-append-version="true" />
-    <link rel="stylesheet"
-          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
-          crossorigin="anonymous" referrerpolicy="no-referrer" />
+	<link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet" />
+	<link href="~/css/NewProduct.css" rel="stylesheet" asp-append-version="true" />
+	<link rel="stylesheet"
+		  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+		  crossorigin="anonymous" referrerpolicy="no-referrer" />
 
-    <style>
-        .toast-top-right {
-            top: 120px !important;
-            right: 24px !important;
-            left: auto !important;
-            bottom: auto !important;
-        }
+	<style>
+		.toast-top-right {
+			top: 120px !important;
+			right: 24px !important;
+			left: auto !important;
+			bottom: auto !important;
+		}
 
-        #liveToast.toast {
-            min-width: 520px;
-            padding: 1rem 1.25rem;
-            border-radius: 12px;
-            box-shadow: 0 8px 24px rgba(0,0,0,.18);
-        }
+		#liveToast.toast {
+			min-width: 520px;
+			padding: 1rem 1.25rem;
+			border-radius: 12px;
+			box-shadow: 0 8px 24px rgba(0,0,0,.18);
+		}
 
-        #liveToast .toast-body {
-            font-size: 1.05rem;
-            font-weight: 600;
-            word-break: break-word;
-        }
+		#liveToast .toast-body {
+			font-size: 1.05rem;
+			font-weight: 600;
+			word-break: break-word;
+		}
 
-        .btn-remove-img {
-            position: absolute;
-            top: -8px;
-            right: -8px;
-            width: 24px;
-            height: 24px;
-            padding: 0;
-            border: none;
-            border-radius: 50%;
-            font-weight: bold;
-            line-height: 1;
-            background: #dc3545 !important;
-            color: #fff;
-        }
+		.btn-remove-img {
+			position: absolute;
+			top: -8px;
+			right: -8px;
+			width: 24px;
+			height: 24px;
+			padding: 0;
+			border: none;
+			border-radius: 50%;
+			font-weight: bold;
+			line-height: 1;
+			background: #dc3545 !important;
+			color: #fff;
+		}
 
-            .btn-remove-img:hover {
-                background: #bb2d3b !important;
-            }
+			.btn-remove-img:hover {
+				background: #bb2d3b !important;
+			}
 
-        .upload-box {
-            border: 2px dashed #d7dce3;
-            border-radius: 12px;
-            padding: 16px;
-            text-align: center;
-            cursor: pointer;
-            transition: all .2s ease;
-            background: #fff;
-        }
+		.upload-box {
+			border: 2px dashed #d7dce3;
+			border-radius: 12px;
+			padding: 16px;
+			text-align: center;
+			cursor: pointer;
+			transition: all .2s ease;
+			background: #fff;
+		}
 
-            .upload-box:hover {
-                border-color: #9fb3c8;
-                background: #f8fafc;
-            }
+			.upload-box:hover {
+				border-color: #9fb3c8;
+				background: #f8fafc;
+			}
 
-        .preview-grid {
-            display: grid;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
-            gap: .5rem;
-        }
+		.preview-grid {
+			display: grid;
+			grid-template-columns: repeat(4, minmax(0, 1fr));
+			gap: .5rem;
+		}
 
-        .thumb {
-            width: 100%;
-            padding-top: 100%;
-            position: relative;
-            border-radius: 8px;
-            overflow: hidden;
-            background: #f1f5f9;
-        }
+		.thumb {
+			width: 100%;
+			padding-top: 100%;
+			position: relative;
+			border-radius: 8px;
+			overflow: hidden;
+			background: #f1f5f9;
+		}
 
-            .thumb > img {
-                position: absolute;
-                inset: 0;
-                width: 100%;
-                height: 100%;
-                object-fit: cover;
-            }
+			.thumb > img {
+				position: absolute;
+				inset: 0;
+				width: 100%;
+				height: 100%;
+				object-fit: cover;
+			}
 
-        .section-title {
-            font-weight: 700;
-            margin-bottom: .75rem;
-        }
+		.section-title {
+			font-weight: 700;
+			margin-bottom: .75rem;
+		}
 
-        .form-section {
-            background: #fff;
-            border: 1px solid #e5e7eb;
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 16px;
-        }
-    </style>
+		.form-section {
+			background: #fff;
+			border: 1px solid #e5e7eb;
+			border-radius: 12px;
+			padding: 16px;
+			margin-bottom: 16px;
+		}
+	</style>
 }
 
 <div class="product-page container px-4">
-    <h2 class="text-center mb-4 fw-bold text-primary">
-        @(isEdit ? "Cập nhật Sản Phẩm" : "Thêm Sản Phẩm Mới")
-    </h2>
+	<h2 class="text-center mb-4 fw-bold text-primary">
+		@(isEdit ? "Cập nhật Sản Phẩm" : "Thêm Sản Phẩm Mới")
+	</h2>
 
-    <form asp-action="Save" asp-controller="Product" method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
-        @Html.AntiForgeryToken()
-        <input type="hidden" asp-for="Id" />
-        <input type="hidden" asp-for="DescriptionHtml" id="DescriptionHidden" />
+	<form asp-action="Save" asp-controller="Product" method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+		@Html.AntiForgeryToken()
+		<input type="hidden" asp-for="Id" />
+		<input type="hidden" asp-for="DescriptionHtml" id="DescriptionHidden" />
 
-        <div class="row">
-            <!-- LEFT -->
-            <div class="col-md-6">
-                <div class="form-section">
-                    <h5 class="section-title"><i class="fas fa-info-circle me-1"></i>Thông Tin Cơ Bản</h5>
-                    <div class="row g-3">
-                        <div class="col-md-8">
-                            <label class="form-label">Tên Sản Phẩm</label>
-                            <input class="form-control" asp-for="ProductName" placeholder="Nhập tên sản phẩm" required />
-                            <span class="text-danger" asp-validation-for="ProductName"></span>
-                        </div>
+		<div class="row">
+			<!-- LEFT -->
+			<div class="col-md-6">
+				<div class="form-section">
+					<h5 class="section-title"><i class="fas fa-info-circle me-1"></i>Thông Tin Cơ Bản</h5>
+					<div class="row g-3">
+						<div class="col-md-8">
+							<label class="form-label">Tên Sản Phẩm</label>
+							<input class="form-control" asp-for="ProductName" placeholder="Nhập tên sản phẩm" required />
+							<span class="text-danger" asp-validation-for="ProductName"></span>
+						</div>
 
-                        <div class="col-md-6">
-                            <label class="form-label">Danh Mục</label>
-                            <select class="form-select" asp-for="CategoryId" asp-items="catItems" required>
-                                <option value="">-- Chọn Category --</option>
-                            </select>
-                            <span class="text-danger" asp-validation-for="CategoryId"></span>
-                        </div>
+						<div class="col-md-6">
+							<label class="form-label">Danh Mục</label>
+							<select class="form-select" asp-for="CategoryId" asp-items="catItems" required>
+								<option value="">-- Chọn Category --</option>
+							</select>
+							<span class="text-danger" asp-validation-for="CategoryId"></span>
+						</div>
 
-                        <div class="col-md-6">
-                            <label class="form-label">Thương Hiệu</label>
-                            <select class="form-select" asp-for="BrandId" asp-items="brandItems">
-                                <option value="">-- Chọn --</option>
-                            </select>
-                            <span class="text-danger" asp-validation-for="BrandId"></span>
-                        </div>
+						<div class="col-md-6">
+							<label class="form-label">Thương Hiệu</label>
+							<select class="form-select" asp-for="BrandId" asp-items="brandItems">
+								<option value="">-- Chọn --</option>
+							</select>
+							<span class="text-danger" asp-validation-for="BrandId"></span>
+						</div>
 
-                        <div class="col-md-4">
-                            <label class="form-label">Giới Tính</label>
-                            <select class="form-select" asp-for="SexId" asp-items="sexItems">
-                                <option value="">Không xác định</option>
-                            </select>
-                            <span class="text-danger" asp-validation-for="SexId"></span>
-                        </div>
+						<div class="col-md-4">
+							<label class="form-label">Giới Tính</label>
+							<select class="form-select" asp-for="SexId" asp-items="sexItems">
+								<option value="">Không xác định</option>
+							</select>
+							<span class="text-danger" asp-validation-for="SexId"></span>
+						</div>
 
-                        <div class="col-md-4">
-                            <label class="form-label">Khoảng Tuổi</label>
-                            <select class="form-select" asp-for="AgeId" asp-items="ageItems">
-                                <option value="">-- Chọn --</option>
-                            </select>
-                            <span class="text-danger" asp-validation-for="AgeId"></span>
-                        </div>
+						<div class="col-md-4">
+							<label class="form-label">Khoảng Tuổi</label>
+							<select class="form-select" asp-for="AgeId" asp-items="ageItems">
+								<option value="">-- Chọn --</option>
+							</select>
+							<span class="text-danger" asp-validation-for="AgeId"></span>
+						</div>
 
-                        <div class="col-md-4">
-                            <label class="form-label">Chất Liệu</label>
-                            <select class="form-select" asp-for="MaterialId" asp-items="matItems">
-                                <option value="">-- Chọn --</option>
-                            </select>
-                            <span class="text-danger" asp-validation-for="MaterialId"></span>
-                        </div>
+						<div class="col-md-4">
+							<label class="form-label">Chất Liệu</label>
+							<select class="form-select" asp-for="MaterialId" asp-items="matItems">
+								<option value="">-- Chọn --</option>
+							</select>
+							<span class="text-danger" asp-validation-for="MaterialId"></span>
+						</div>
 
-                        <div class="col-md-6">
-                            <label class="form-label">Nguồn Gốc</label>
-                            <select class="form-select" asp-for="OriginId" asp-items="orgItems">
-                                <option value="">-- Chọn --</option>
-                            </select>
-                            <span class="text-danger" asp-validation-for="OriginId"></span>
-                        </div>
+						<div class="col-md-6">
+							<label class="form-label">Nguồn Gốc</label>
+							<select class="form-select" asp-for="OriginId" asp-items="orgItems">
+								<option value="">-- Chọn --</option>
+							</select>
+							<span class="text-danger" asp-validation-for="OriginId"></span>
+						</div>
 
-                        <div class="col-md-6">
-                            <label class="form-label">Khoảng Giá</label>
-                            <select class="form-select" asp-for="PriceRangeId" asp-items="prItems">
-                                <option value="">-- Chọn --</option>
-                            </select>
-                            <span class="text-danger" asp-validation-for="PriceRangeId"></span>
-                        </div>
+						<div class="col-md-6">
+							<label class="form-label">Khoảng Giá</label>
+							<select class="form-select" asp-for="PriceRangeId" asp-items="prItems">
+								<option value="">-- Chọn --</option>
+							</select>
+							<span class="text-danger" asp-validation-for="PriceRangeId"></span>
+						</div>
 
-                        <div class="col-md-6">
-                            <label class="form-label">Trạng Thái</label>
-                            <select class="form-select" asp-for="ProductStatus" asp-items="statusItems"></select>
-                            <span class="text-danger" asp-validation-for="ProductStatus"></span>
-                        </div>
-                    </div>
-                </div>
+						<div class="col-md-6">
+							<label class="form-label">Trạng Thái</label>
+							<select class="form-select" asp-for="ProductStatus" asp-items="statusItems"></select>
+							<span class="text-danger" asp-validation-for="ProductStatus"></span>
+						</div>
+					</div>
+				</div>
 
-                <div class="form-section">
-                    <h5 class="section-title"><i class="fas fa-align-left me-1"></i>Miêu Tả Sản Phẩm</h5>
-                    <div id="editor-container" style="min-height:160px;"></div>
-                </div>
-            </div>
+				<div class="form-section">
+					<h5 class="section-title"><i class="fas fa-align-left me-1"></i>Miêu Tả Sản Phẩm</h5>
+					<div id="editor-container" style="min-height:160px;"></div>
+				</div>
+			</div>
 
-            <!-- RIGHT -->
-            <div class="col-md-6">
-                <div class="form-section">
-                    <h5 class="section-title"><i class="fas fa-dollar-sign me-1"></i>Giá Và Số Lượng</h5>
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label">Giá (VND)</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="fas fa-tag"></i></span>
-                                <input type="number" class="form-control" asp-for="Price" min="0" step="1" placeholder="0" required />
-                            </div>
-                            <span class="text-danger" asp-validation-for="Price"></span>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Số Lượng</label>
-                            <div class="input-group">
-                                <span class="input-group-text"><i class="fas fa-cubes"></i></span>
-                                <input type="number" class="form-control" asp-for="StockQuantity" min="0" step="1" placeholder="0" required />
-                            </div>
-                            <span class="text-danger" asp-validation-for="StockQuantity"></span>
-                        </div>
-                    </div>
-                </div>
+			<!-- RIGHT -->
+			<div class="col-md-6">
+				<div class="form-section">
+					<h5 class="section-title"><i class="fas fa-dollar-sign me-1"></i>Giá Và Số Lượng</h5>
+					<div class="row g-3">
+						<div class="col-md-6">
+							<label class="form-label">Giá (VND)</label>
+							<div class="input-group">
+								<span class="input-group-text"><i class="fas fa-tag"></i></span>
+								<input asp-for="Price"
+									   type="number"
+									   min="0"
+									   step="any"
+									   inputmode="numeric"
+									   pattern="\d*"
+									   oninput="this.value = this.value.replace(/\D/g,'');"
+									   class="form-control"
+									   placeholder="Nhập giá (VND)" />
+								<span asp-validation-for="Price" class="text-danger"></span>
+							</div>
+							<span class="text-danger" asp-validation-for="Price"></span>
+						</div>
+						<div class="col-md-6">
+							<label class="form-label">Số Lượng</label>
+							<div class="input-group">
+								<span class="input-group-text"><i class="fas fa-cubes"></i></span>
+								<input type="number" class="form-control" asp-for="StockQuantity" min="0" step="1" placeholder="0" required />
+							</div>
+							<span class="text-danger" asp-validation-for="StockQuantity"></span>
+						</div>
+					</div>
+				</div>
 
-                <div class="form-section">
-                    <h5 class="section-title"><i class="fas fa-images me-1"></i>Ảnh Sản Phẩm</h5>
+				<div class="form-section">
+					<h5 class="section-title"><i class="fas fa-images me-1"></i>Ảnh Sản Phẩm</h5>
 
-                    <div class="row g-4">
-                        <div class="row">
-                            <div class="col-md-4">
-                                <h6 class="fw-bold mb-3">Ảnh Chính</h6>
-                                <div class="upload-box" onclick="document.getElementById('mainImageUpload').click()">
-                                    <input type="file" id="mainImageUpload" name="MainImageUpload" hidden accept="image/*" />
-                                    <i class="fas fa-cloud-upload-alt"></i>
-                                    <div class="small text-muted mt-1">Nhấp để chọn ảnh</div>
-                                </div>
-                            </div>
-                            <div class="col-md-8">
-                                <h6 class="fw-bold mb-3">Xem Trước</h6>
-                                <div id="previewContainer" class="d-flex flex-wrap gap-2 position-relative">
-                                    @if (!string.IsNullOrWhiteSpace(Model?.MainImageUrl))
-                                    {
-                                        <div class="img-wrapper position-relative d-inline-block">
-                                            <img src="@Model.MainImageUrl" class="img-preview" style="max-width:120px;border-radius:8px;" />
-                                        </div>
-                                    }
-                                </div>
-                                <span class="text-danger">@Html.Raw(ViewData.ModelState["MainImageUpload"]?.Errors.FirstOrDefault()?.ErrorMessage)</span>
-                            </div>
-                        </div>
-                    </div>
+					<div class="row g-4">
+						<div class="row">
+							<div class="col-md-4">
+								<h6 class="fw-bold mb-3">Ảnh Chính</h6>
+								<div class="upload-box" onclick="document.getElementById('mainImageUpload').click()">
+									<input type="file" id="mainImageUpload" name="MainImageUpload" hidden accept="image/*" />
+									<i class="fas fa-cloud-upload-alt"></i>
+									<div class="small text-muted mt-1">Nhấp để chọn ảnh</div>
+								</div>
+							</div>
+							<div class="col-md-8">
+								<h6 class="fw-bold mb-3">Xem Trước</h6>
+								<div id="previewContainer" class="d-flex flex-wrap gap-2 position-relative">
+									@if (!string.IsNullOrWhiteSpace(Model?.MainImageUrl))
+									{
+										<div class="img-wrapper position-relative d-inline-block">
+											<img src="@Model.MainImageUrl" class="img-preview" style="max-width:120px;border-radius:8px;" />
+											<button type="button" class="btn btn-sm btn-danger btn-remove-img"
+													onclick="removeMainImage()">
+												×
+											</button>
+										</div>
+									}
 
-                    <div class="col-md-12 mt-3">
-                        <h6 class="fw-bold">Ảnh Chi Tiết (Tối thiểu 4 – Tối đa 6 ảnh)</h6>
-                        <div class="upload-box"
-                             onclick="document.getElementById('detailImagesInput').click()"
-                             ondragover="event.preventDefault()" ondrop="handleDrop(event)">
-                            <input type="file" id="detailImagesInput" name="DetailImages" multiple accept="image/*" hidden />
-                            <div><i class="fas fa-cloud-upload-alt"></i></div>
-                            <small class="text-muted">(JPEG/PNG/WEBP)</small>
-                        </div>
-                        <div id="previewGrid" class="preview-grid mt-2"></div>
+								</div>
+								<span class="text-danger">@Html.Raw(ViewData.ModelState["MainImageUpload"]?.Errors.FirstOrDefault()?.ErrorMessage)</span>
+							</div>
+						</div>
+					</div>
 
-                        @if (Model?.SecondaryImageUrls != null && Model.SecondaryImageUrls.Any())
-                        {
-                            <div class="mt-2">
-                                <div class="preview-grid">
-                                    @foreach (var u in Model.SecondaryImageUrls)
-                                    {
-                                        <div class="thumb"><img src="@u" /></div>
-                                    }
-                                </div>
-                            </div>
-                        }
-                    </div>
-                </div>
+					<div class="col-md-12 mt-3">
+						<h6 class="fw-bold">Ảnh Chi Tiết (Tối thiểu 4 – Tối đa 6 ảnh)</h6>
+						<div class="upload-box"
+							 onclick="document.getElementById('detailImagesInput').click()"
+							 ondragover="event.preventDefault()" ondrop="handleDrop(event)">
+							<input type="file" id="detailImagesInput" name="DetailImages" multiple accept="image/*" hidden />
+							<div><i class="fas fa-cloud-upload-alt"></i></div>
+							<small class="text-muted">(JPEG/PNG/WEBP)</small>
+						</div>
+						<div id="previewGrid" class="preview-grid mt-2"></div>
 
-                <div class="d-flex justify-content-end gap-3 mt-4">
-                    <a asp-action="Manage" asp-controller="Product" class="btn btn-outline-secondary">Trở về</a>
-                    <button type="submit" class="btn btn-primary px-4">
-                        <i class="fas fa-save me-2"></i>@(isEdit ? "Lưu thay đổi" : "Thêm sản phẩm")
-                    </button>
-                </div>
-            </div>
-        </div>
-    </form>
+						@if (Model?.SecondaryImageUrls != null && Model.SecondaryImageUrls.Any())
+						{
+							<div class="mt-2">
+								<div class="preview-grid">
+									@foreach (var u in Model.SecondaryImageUrls)
+									{
+										<div class="thumb position-relative" data-url="@u">
+											<img src="@u" />
+											<button type="button"
+													class="btn btn-sm btn-danger btn-remove-img"
+													onclick="removeExistingImage(this)">
+												×
+											</button>
+											<input type="hidden" name="ExistingImageUrls" value="@u" />
+										</div>
+									}
+								</div>
+							</div>
+						}
+					</div>
+				</div>
+
+				<div class="d-flex justify-content-end gap-3 mt-4">
+					<a asp-action="Manage" asp-controller="Product" class="btn btn-outline-secondary">Trở về</a>
+					<button type="submit" class="btn btn-primary px-4">
+						<i class="fas fa-save me-2"></i>@(isEdit ? "Lưu thay đổi" : "Thêm sản phẩm")
+					</button>
+				</div>
+			</div>
+		</div>
+	</form>
 </div>
 
 <!-- Toast lỗi -->
 <div class="toast-container position-fixed p-3 toast-top-right" style="z-index:2080;">
-    <div id="liveToast" class="toast align-items-center text-bg-danger border-0" role="alert" aria-live="assertive" aria-atomic="true">
-        <div class="d-flex">
-            <div class="toast-body">
-                <i class="fa-solid fa-circle-exclamation me-2"></i>
-                @Html.Raw(ViewBag.ErrorMessage)
-            </div>
-            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Đóng"></button>
-        </div>
-    </div>
+	<div id="liveToast" class="toast align-items-center text-bg-danger border-0" role="alert" aria-live="assertive" aria-atomic="true">
+		<div class="d-flex">
+			<div class="toast-body">
+				<i class="fa-solid fa-circle-exclamation me-2"></i>
+				@Html.Raw(ViewBag.ErrorMessage)
+			</div>
+			<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Đóng"></button>
+		</div>
+	</div>
 </div>
 
 @section Scripts {
-    <partial name="_ValidationScriptsPartial" />
-    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
-    <script>
-        // Quill
-        const quill = new Quill('#editor-container', {
-            theme: 'snow',
-            modules: { toolbar: [['bold','italic','underline','strike'],[{ 'list':'ordered'},{'list':'bullet'}],['link'],['clean']] }
-        });
+	<partial name="_ValidationScriptsPartial" />
+	<script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+	<script>
+		// Quill
+		const quill = new Quill('#editor-container', {
+			theme: 'snow',
+			modules: { toolbar: [['bold','italic','underline','strike'],[{ 'list':'ordered'},{'list':'bullet'}],['link'],['clean']] }
+		});
 
-        // Load mô tả khi edit
-        @if (!string.IsNullOrWhiteSpace(Model?.DescriptionHtml))
-        {
-                <text>
-                    quill.root.innerHTML = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.DescriptionHtml));
-                </text>
-        }
+		// Load mô tả khi edit
+		@if (!string.IsNullOrWhiteSpace(Model?.DescriptionHtml))
+		{
+			<text>
+								quill.root.innerHTML = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.DescriptionHtml));
+			</text>
+		}
 
-        // Trước khi submit: lấy HTML từ Quill
-        document.querySelector('form')?.addEventListener('submit', function(){
-            document.getElementById('DescriptionHidden').value = quill.root.innerHTML;
-        });
+		// Trước khi submit: lấy HTML từ Quill
+		document.querySelector('form')?.addEventListener('submit', function(){
+			document.getElementById('DescriptionHidden').value = quill.root.innerHTML;
+		});
 
-        // ===== ẢNH CHÍNH =====
-        document.getElementById('mainImageUpload')?.addEventListener('change', function (e) {
-            const file = e.target.files?.[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function () {
-                const container = document.getElementById('previewContainer');
-                container.innerHTML = "";
-                const wrap = document.createElement('div');
-                wrap.className = 'img-wrapper position-relative d-inline-block';
-                wrap.innerHTML = `
-                    <img src="${reader.result}" class="img-preview" style="max-width:120px;border-radius:8px;" />
-                    <button type="button" class="btn btn-sm btn-danger btn-remove-img" onclick="removeMainImage()">×</button>`;
-                container.appendChild(wrap);
-            };
-            reader.readAsDataURL(file);
-        });
+		// ===== ẢNH CHÍNH =====
+		document.getElementById('mainImageUpload')?.addEventListener('change', function (e) {
+			const file = e.target.files?.[0];
+			if (!file) return;
+			const reader = new FileReader();
+			reader.onload = function () {
+				const container = document.getElementById('previewContainer');
+				container.innerHTML = "";
+				const wrap = document.createElement('div');
+				wrap.className = 'img-wrapper position-relative d-inline-block';
+				wrap.innerHTML = `
+					<img src="${reader.result}" class="img-preview" style="max-width:120px;border-radius:8px;" />
+					<button type="button" class="btn btn-sm btn-danger btn-remove-img" onclick="removeMainImage()">×</button>`;
+				container.appendChild(wrap);
+			};
+			reader.readAsDataURL(file);
+		});
 
-        function removeMainImage() {
-            const container = document.getElementById('previewContainer');
-            container.innerHTML = "";
-            const input = document.getElementById('mainImageUpload');
-            if (input) input.value = "";
-        }
+		function removeMainImage() {
+			const container = document.getElementById('previewContainer');
+			container.innerHTML = "";
+			const input = document.getElementById('mainImageUpload');
+			if (input) input.value = "";
+		}
 
-        // ===== ẢNH CHI TIẾT =====
-        let selectedDetailFiles = [];
+		// ===== ẢNH CHI TIẾT =====
+		let selectedDetailFiles = [];
 
-        function handleFiles(files) {
-            const grid = document.getElementById('previewGrid');
-            grid.innerHTML = "";
+		function handleFiles(files) {
+			const grid = document.getElementById('previewGrid');
+			grid.innerHTML = "";
 
-            const list = Array.from(files).slice(0, 6);
-            selectedDetailFiles = list;
+			const list = Array.from(files).slice(0, 6);
+			selectedDetailFiles = list;
 
-            list.forEach((f, index) => {
-                const reader = new FileReader();
-                reader.onload = function () {
-                    const wrap = document.createElement('div');
-                    wrap.className = 'thumb position-relative';
-                    wrap.innerHTML = `
-                        <img src="${reader.result}" />
-                        <button type="button" class="btn btn-sm btn-danger btn-remove-img"
-                                onclick="removeDetailImage(${index})">×</button>`;
-                    grid.appendChild(wrap);
-                };
-                reader.readAsDataURL(f);
-            });
+			list.forEach((f, index) => {
+				const reader = new FileReader();
+				reader.onload = function () {
+					const wrap = document.createElement('div');
+					wrap.className = 'thumb position-relative';
+					wrap.innerHTML = `
+						<img src="${reader.result}" />
+						<button type="button" class="btn btn-sm btn-danger btn-remove-img"
+								onclick="removeDetailImage(${index})">×</button>`;
+					grid.appendChild(wrap);
+				};
+				reader.readAsDataURL(f);
+			});
 
-            syncDetailInput();
-        }
+			syncDetailInput();
+		}
 
-        function removeDetailImage(index) {
-            selectedDetailFiles.splice(index, 1);
-            redrawDetailPreviews();
-            syncDetailInput();
-        }
+		function removeDetailImage(index) {
+			selectedDetailFiles.splice(index, 1);
+			redrawDetailPreviews();
+			syncDetailInput();
+		}
 
-        function redrawDetailPreviews(){
-            const grid = document.getElementById('previewGrid');
-            grid.innerHTML = "";
-            selectedDetailFiles.forEach((f, i) => {
-                const reader = new FileReader();
-                reader.onload = function () {
-                    const wrap = document.createElement('div');
-                    wrap.className = 'thumb position-relative';
-                    wrap.innerHTML = `
-                        <img src="${reader.result}" />
-                        <button type="button" class="btn btn-sm btn-danger btn-remove-img"
-                                onclick="removeDetailImage(${i})">×</button>`;
-                    grid.appendChild(wrap);
-                };
-                reader.readAsDataURL(f);
-            });
-        }
+		function redrawDetailPreviews(){
+			const grid = document.getElementById('previewGrid');
+			grid.innerHTML = "";
+			selectedDetailFiles.forEach((f, i) => {
+				const reader = new FileReader();
+				reader.onload = function () {
+					const wrap = document.createElement('div');
+					wrap.className = 'thumb position-relative';
+					wrap.innerHTML = `
+						<img src="${reader.result}" />
+						<button type="button" class="btn btn-sm btn-danger btn-remove-img"
+								onclick="removeDetailImage(${i})">×</button>`;
+					grid.appendChild(wrap);
+				};
+				reader.readAsDataURL(f);
+			});
+		}
 
-        function syncDetailInput(){
-            const dt = new DataTransfer();
-            selectedDetailFiles.forEach(f => dt.items.add(f));
-            document.getElementById('detailImagesInput').files = dt.files;
-        }
+		function syncDetailInput(){
+			const dt = new DataTransfer();
+			selectedDetailFiles.forEach(f => dt.items.add(f));
+			document.getElementById('detailImagesInput').files = dt.files;
+		}
 
-        document.getElementById('detailImagesInput')?.addEventListener('change', e => handleFiles(e.target.files));
+		document.getElementById('detailImagesInput')?.addEventListener('change', e => handleFiles(e.target.files));
 
-        function handleDrop(e) {
-            e.preventDefault();
-            if (e.dataTransfer?.files?.length) {
-                const files = Array.from(e.dataTransfer.files).slice(0, 8);
-                handleFiles(files);
-                if (selectedDetailFiles.length < 4) {
-                    alert("Vui lòng chọn ít nhất 4 ảnh chi tiết (tối thiểu 4, tối đa 6).");
-                }
-            }
-        }
+		function handleDrop(e) {
+			e.preventDefault();
+			if (e.dataTransfer?.files?.length) {
+				const files = Array.from(e.dataTransfer.files).slice(0, 8);
+				handleFiles(files);
+				if (selectedDetailFiles.length < 4) {
+					alert("Vui lòng chọn ít nhất 4 ảnh chi tiết (tối thiểu 4, tối đa 6).");
+				}
+			}
+		}
 
-        // Toast
-        document.addEventListener('DOMContentLoaded', function () {
-            const hasError = '@(ViewBag.ShowErrorModal == true ? "true" : "false")';
-            if (hasError === "true") {
-                const toastEl = document.getElementById('liveToast');
-                if (toastEl) new bootstrap.Toast(toastEl, { delay: 5000 }).show();
-            }
-        });
-    </script>
+		// Toast
+		document.addEventListener('DOMContentLoaded', function () {
+			const hasError = '@(ViewBag.ShowErrorModal == true ? "true" : "false")';
+			if (hasError === "true") {
+				const toastEl = document.getElementById('liveToast');
+				if (toastEl) new bootstrap.Toast(toastEl, { delay: 5000 }).show();
+			}
+		});
+	</script>
+	<script>
+		function removeExistingImage(btn) {
+		  const wrap = btn.closest('.thumb');
+		  if (!wrap) return;
+		  const input = wrap.querySelector('input[name="ExistingImageUrls"]');
+		  if (input) input.remove();   // bỏ ảnh này khỏi danh sách giữ lại
+		  wrap.remove();               // ẩn preview
+		}
+	</script>
+
+
 }
 
