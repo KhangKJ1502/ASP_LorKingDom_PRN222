@@ -57,16 +57,32 @@ namespace BLL.Services
                     totalAmount += item.Quantity * item.Product.Price;
                 }
 
-                // 4. Handle address
-                if (string.IsNullOrWhiteSpace(checkoutDto.Street) ||
-                    string.IsNullOrWhiteSpace(checkoutDto.City) ||
-                    string.IsNullOrWhiteSpace(checkoutDto.District))
+                // 4. Handle address - Only validate if all address fields are provided or all are empty
+                string shippingAddressLine;
+                string shippingCity;
+                string shippingWard;
+
+                bool hasStreet = !string.IsNullOrWhiteSpace(checkoutDto.Street);
+                bool hasCity = !string.IsNullOrWhiteSpace(checkoutDto.City);
+                bool hasDistrict = !string.IsNullOrWhiteSpace(checkoutDto.District);
+
+                // If any address field is provided, all must be provided
+                if (hasStreet || hasCity || hasDistrict)
                 {
-                    return (false, "Vui lòng nhập đầy đủ địa chỉ mới", null);
+                    if (!hasStreet || !hasCity || !hasDistrict)
+                    {
+                        return (false, "Vui lòng nhập đầy đủ địa chỉ", null);
+                    }
+
+                    shippingAddressLine = checkoutDto.Street!;
+                    shippingCity = checkoutDto.City!;
+                    shippingWard = checkoutDto.District!;
                 }
-                string shippingAddressLine = checkoutDto.Street;
-                string shippingCity = checkoutDto.City;
-                string shippingWard = checkoutDto.District;
+                else
+                {
+                    // No address fields provided - this should not happen if frontend validation works
+                    return (false, "Vui lòng chọn hoặc nhập địa chỉ giao hàng", null);
+                }
 
                 // 5. Calculate shipping fee
                 decimal shippingFee = checkoutDto.ShippingMethod == "express" ? 40000 : 20000;

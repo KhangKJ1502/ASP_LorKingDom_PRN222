@@ -71,29 +71,22 @@
                         </div>
 
                         <!-- New Address Form -->
-                        <div id="new-address-form">
+                        <div id="new-address-form" style="display: none;">
                             <div class="row g-3">
                                 <div class="col-12">
-                                    <label for="newStreet" class="form-label">Địa chỉ *</label>
+                                    <label for="streetInput" class="form-label">Địa chỉ *</label>
                                     <input type="text" class="form-control" id="streetInput" name="street"
                                         placeholder="Số nhà, tên đường" />
                                 </div>
                                 <div class="col-md-6">
-                                    <label for="newCity" class="form-label">Tỉnh/Thành phố *</label>
-                                    <select class="form-select" id="cityInput" name="city">
-                                        <option value="">-- Chọn tỉnh/thành phố --</option>
-                                        <option value="hcm">TP. Hồ Chí Minh</option>
-                                        <option value="hanoi">Hà Nội</option>
-                                        <option value="danang">Đà Nẵng</option>
-                                    </select>
+                                    <label for="cityInput" class="form-label">Tỉnh/Thành phố *</label>
+                                    <input type="text" class="form-control" id="cityInput" name="city"
+                                        placeholder="VD: Hồ Chí Minh, Hà Nội, Đà Nẵng..." />
                                 </div>
                                 <div class="col-md-6">
-                                    <label for="newDistrict" class="form-label">Quận/Huyện *</label>
-                                    <select class="form-select" id="districtInput" name="district">
-                                        <option value="">-- Chọn quận/huyện --</option>
-                                        <option value="q1">Quận 1</option>
-                                        <option value="q3">Quận 3</option>
-                                    </select>
+                                    <label for="districtInput" class="form-label">Quận/Huyện *</label>
+                                    <input type="text" class="form-control" id="districtInput" name="district"
+                                        placeholder="VD: Quận 1, Quận Hải Châu..." />
                                 </div>
                             </div>
                         </div>
@@ -237,7 +230,6 @@
                         <i class="fas fa-info-circle me-2"></i>
                         <small>
                             Đơn hàng của bạn sẽ được xử lý ngay sau khi thanh toán thành công!
-                            // Bạn sẽ nhận được thông báo xác nhận qua email.
                         </small>
                     </div>
 
@@ -329,8 +321,8 @@
                 // Render saved addresses
                 addresses.forEach(function (addr, index) {
                     savedAddressesData['addr_' + addr.id] = {
-                        street: addr.addressLine,
-                        city: addr.city,
+                        street: addr.addressLine || '',
+                        city: addr.city || '',
                         district: addr.ward || ''
                     };
 
@@ -338,50 +330,48 @@
                     const label = addr.isDefault ? 'Địa chỉ mặc định' : 'Địa chỉ ' + (index + 1);
 
                     html += `
-                            <div class="saved-address-option">
-                                <input class="form-check-input" type="radio" name="addressSelection" 
-                                       id="addr_${addr.id}" value="addr_${addr.id}" ${isChecked ? 'checked' : ''} />
-                                <label class="form-check-label" for="addr_${addr.id}">
-                                    <strong>${label}</strong>
-                                    <div class="address-section-small">
-                                        ${addr.fullAddress}
+                                    <div class="saved-address-option">
+                                        <input class="form-check-input" type="radio" name="addressSelection" 
+                                               id="addr_${addr.id}" value="addr_${addr.id}" ${isChecked ? 'checked' : ''} />
+                                        <label class="form-check-label" for="addr_${addr.id}">
+                                            <strong>${label}</strong>
+                                            <div class="address-section-small">
+                                                ${addr.fullAddress}
+                                            </div>
+                                        </label>
                                     </div>
-                                </label>
-                            </div>
-                        `;
+                                `;
                 });
 
                 // Add "Thêm địa chỉ mới" option
                 html += `
-                        <div class="saved-address-option">
-                            <input class="form-check-input" type="radio" name="addressSelection" 
-                                   id="addrNew" value="new" />
-                            <label class="form-check-label" for="addrNew">
-                                <i class="fas fa-plus me-2 text-primary"></i>
-                                <strong>Thêm địa chỉ mới</strong>
-                            </label>
-                        </div>
-                    `;
+                                <div class="saved-address-option">
+                                    <input class="form-check-input" type="radio" name="addressSelection" 
+                                           id="addrNew" value="new" />
+                                    <label class="form-check-label" for="addrNew">
+                                        <i class="fas fa-plus me-2 text-primary"></i>
+                                        <strong>Thêm địa chỉ mới</strong>
+                                    </label>
+                                </div>
+                            `;
 
                 $('#savedAddressesContainer').html(html);
 
                 // Re-bind event handlers
                 $('input[name="addressSelection"]').on('change', updateAddressForm);
                 updateAddressForm(); // Initialize
-            }
-
-            // Render when no addresses found
+            }            // Render when no addresses found
             function renderNoAddresses() {
                 const html = `
-                        <div class="saved-address-option">
-                            <input class="form-check-input" type="radio" name="addressSelection" 
-                                   id="addrNew" value="new" checked />
-                            <label class="form-check-label" for="addrNew">
-                                <i class="fas fa-plus me-2 text-primary"></i>
-                                <strong>Thêm địa chỉ mới</strong>
-                            </label>
-                        </div>
-                    `;
+                                    <div class="saved-address-option">
+                                        <input class="form-check-input" type="radio" name="addressSelection" 
+                                               id="addrNew" value="new" checked />
+                                        <label class="form-check-label" for="addrNew">
+                                            <i class="fas fa-plus me-2 text-primary"></i>
+                                            <strong>Thêm địa chỉ mới</strong>
+                                        </label>
+                                    </div>
+                                `;
 
                 $('#savedAddressesContainer').html(html);
 
@@ -414,17 +404,24 @@
                     // Chọn "Thêm địa chỉ mới" → hiển thị form nhập
                     newAddressForm.show();
                     newAddressInputs.prop('required', true);
+                    // Clear values when switching to new address
+                    $('#streetInput').val('');
+                    $('#cityInput').val('');
+                    $('#districtInput').val('');
                 } else {
-                    // Chọn địa chỉ đã lưu → ẩn form, điền input ẩn
+                    // Chọn địa chỉ đã lưu → ẩn form, bỏ required, fill data
                     newAddressForm.hide();
                     newAddressInputs.prop('required', false);
-                    newAddressInputs.val('');
 
+                    // Fill inputs with saved address data (even though hidden, they will be submitted)
                     const addr = savedAddressesData[selected];
                     if (addr) {
                         $('#streetInput').val(addr.street);
                         $('#cityInput').val(addr.city);
                         $('#districtInput').val(addr.district);
+                        console.log('Filled address:', addr); // Debug
+                    } else {
+                        console.error('Address not found for:', selected); // Debug
                     }
                 }
             }
@@ -452,13 +449,13 @@
             // Tải danh sách voucher
             function loadVouchers() {
                 $('#voucherListContainer').html(`
-                            <div class="text-center py-4">
-                                <div class="spinner-border text-primary" role="status">
-                                    <span class="visually-hidden">Đang tải...</span>
-                                </div>
-                                <p class="mt-2 text-muted">Đang tải danh sách ưu đãi...</p>
-                            </div>
-                        `);
+                                        <div class="text-center py-4">
+                                            <div class="spinner-border text-primary" role="status">
+                                                <span class="visually-hidden">Đang tải...</span>
+                                            </div>
+                                            <p class="mt-2 text-muted">Đang tải danh sách ưu đãi...</p>
+                                        </div>
+                                    `);
 
                 $.ajax({
                     url: '@Url.Action("GetActiveVouchers", "Voucher")',
@@ -469,20 +466,20 @@
                             renderVouchers(result.vouchers);
                         } else {
                             $('#voucherListContainer').html(`
-                                        <div class="text-center py-5">
-                                            <i class="fas fa-ticket-alt fa-3x text-muted mb-3"></i>
-                                            <p class="text-muted">Không có ưu đãi nào khả dụng</p>
-                                        </div>
-                                    `);
+                                                    <div class="text-center py-5">
+                                                        <i class="fas fa-ticket-alt fa-3x text-muted mb-3"></i>
+                                                        <p class="text-muted">Không có ưu đãi nào khả dụng</p>
+                                                    </div>
+                                                `);
                         }
                     },
                     error: function () {
                         $('#voucherListContainer').html(`
-                                    <div class="alert alert-danger">
-                                        <i class="fas fa-exclamation-circle me-2"></i>
-                                        Không thể tải danh sách ưu đãi. Vui lòng thử lại.
-                                    </div>
-                                `);
+                                                <div class="alert alert-danger">
+                                                    <i class="fas fa-exclamation-circle me-2"></i>
+                                                    Không thể tải danh sách ưu đãi. Vui lòng thử lại.
+                                                </div>
+                                            `);
                     }
                 });
             }
@@ -517,29 +514,29 @@
                     const endDateText = `HSD: ${endDate.toLocaleDateString('vi-VN')}`;
 
                     html += `
-                                <div class="${cardClass}" data-voucher-code="${voucher.voucherCode}" data-discount="${voucher.discountAmount}">                          
-                                    <div class="voucher-card-right">
-                                        <div class="voucher-code-badge">${voucher.voucherCode}</div>
-                                        <div class="voucher-discount">
-                                            ${discountText}
-                                        </div>
-                                        <div class="voucher-details">
-                                            <div><i class="fas fa-shopping-cart me-1"></i>${minOrderText}</div>
-                                            <div><i class="far fa-clock me-1"></i>${endDateText}</div>
-                                        </div>
-                                        ${!isEligible ? `<div class="voucher-ineligible-reason"><i class="fas fa-info-circle me-1"></i>${voucher.ineligibleReason}</div>` : ''}                
-                                    </div>
-                                    <div class="voucher-card-left">
-                                        ${isEligible ? `
-                                            <button class="btn btn-sm btn-apply-voucher ${isSelected ? 'btn-success' : 'btn-primary'}"
-                                                    data-voucher-code="${voucher.voucherCode}"
-                                                    data-discount="${voucher.discountAmount}">
-                                                ${isSelected ? '<i class="fas fa-check me-1"></i>Đã áp dụng' : '<i class="fas fa-plus me-1"></i>Áp dụng'}
-                                            </button>
-                                        ` : ''}                              
-                                    </div>
-                                </div>
-                            `;
+                                            <div class="${cardClass}" data-voucher-code="${voucher.voucherCode}" data-discount="${voucher.discountAmount}">                          
+                                                <div class="voucher-card-right">
+                                                    <div class="voucher-code-badge">${voucher.voucherCode}</div>
+                                                    <div class="voucher-discount">
+                                                        ${discountText}
+                                                    </div>
+                                                    <div class="voucher-details">
+                                                        <div><i class="fas fa-shopping-cart me-1"></i>${minOrderText}</div>
+                                                        <div><i class="far fa-clock me-1"></i>${endDateText}</div>
+                                                    </div>
+                                                    ${!isEligible ? `<div class="voucher-ineligible-reason"><i class="fas fa-info-circle me-1"></i>${voucher.ineligibleReason}</div>` : ''}                
+                                                </div>
+                                                <div class="voucher-card-left">
+                                                    ${isEligible ? `
+                                                        <button class="btn btn-sm btn-apply-voucher ${isSelected ? 'btn-success' : 'btn-primary'}"
+                                                                data-voucher-code="${voucher.voucherCode}"
+                                                                data-discount="${voucher.discountAmount}">
+                                                            ${isSelected ? '<i class="fas fa-check me-1"></i>Đã áp dụng' : '<i class="fas fa-plus me-1"></i>Áp dụng'}
+                                                        </button>
+                                                    ` : ''}                              
+                                                </div>
+                                            </div>
+                                        `;
                 });
 
                 html += '</div>';
@@ -640,16 +637,41 @@
                     showConfirmButton: false
                 });
 
-                // Thêm voucher code vào form data nếu đã áp dụng
-                let formData = form.serialize();
+                // Lấy giá trị địa chỉ (quan trọng: lấy trực tiếp từ input, không dùng serialize)
+                const streetValue = $('#streetInput').val() || '';
+                const cityValue = $('#cityInput').val() || '';
+                const districtValue = $('#districtInput').val() || '';
+
+                // Debug: Log address values
+                console.log('Address values:', {
+                    street: streetValue,
+                    city: cityValue,
+                    district: districtValue
+                });
+
+                // Build form data object manually to ensure address fields are included
+                const formDataObj = {
+                    fullName: $('#fullName').val(),
+                    email: $('#email').val(),
+                    phone: $('#phone').val(),
+                    street: streetValue,
+                    city: cityValue,
+                    district: districtValue,
+                    shippingMethod: $('input[name="shippingMethod"]:checked').val(),
+                    paymentMethod: $('input[name="paymentMethod"]:checked').val()
+                };
+
+                // Thêm voucher code nếu đã áp dụng
                 if (appliedVoucherCode) {
-                    formData += '&promoCode=' + encodeURIComponent(appliedVoucherCode);
+                    formDataObj.promoCode = appliedVoucherCode;
                 }
+
+                console.log('Sending data:', formDataObj);
 
                 $.ajax({
                     url: '/Order/Create',
                     type: 'POST',
-                    data: formData,
+                    data: formDataObj,
                     headers: {
                         'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
                     },

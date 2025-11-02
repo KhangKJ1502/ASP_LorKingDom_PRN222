@@ -309,7 +309,7 @@ namespace ASP_LorKingDom.Controllers
                 if (userId == 0)
                     return Json(new { success = false, message = "Vui lòng đăng nhập" });
 
-                var addresses = await _addressService.ListAsync(userId, null);
+                var addresses = await _addressService.ListAsync(userId);
 
                 var result = addresses.Select(a => new
                 {
