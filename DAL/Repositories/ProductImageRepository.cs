@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using DAL.Interfaces;
 using DAL.Models;
-using Microsoft.EntityFrameworkCore;   
+using Microsoft.EntityFrameworkCore;
 
 namespace DAL.Repositories
 {
@@ -80,5 +80,96 @@ namespace DAL.Repositories
                 throw;
             }
         }
+        public void RemoveRange(IEnumerable<ProductImage> entities)
+        {
+            _ctx.ProductImages.RemoveRange(entities);
+        }
+
+        public async Task SaveChangesAsync()
+        {
+            await _ctx.SaveChangesAsync();
+        }
+
+        public async Task UpsertImagesAsync(
+     int productId,
+     string? mainImageUrl,
+     IEnumerable<string> keepSecondaryUrls,
+     IEnumerable<string> addSecondaryUrls,
+     bool keepMainIfNull = true)
+        {
+            await using var tx = await _ctx.Database.BeginTransactionAsync();
+            try
+            {
+                // 1) Main image
+                if (!keepMainIfNull || !string.IsNullOrWhiteSpace(mainImageUrl))
+                {
+                    // clear current main
+                    var mains = await _ctx.ProductImages
+                        .Where(x => x.ProductId == productId && x.IsMain)
+                        .ToListAsync();
+                    foreach (var m in mains) m.IsMain = false;
+
+                    if (!string.IsNullOrWhiteSpace(mainImageUrl))
+                    {
+                        await _ctx.ProductImages.AddAsync(new ProductImage
+                        {
+                            ProductId = productId,
+                            ImageUrl = mainImageUrl!,
+                            IsMain = true
+                        });
+                    }
+                    await _ctx.SaveChangesAsync();
+                }
+
+                // 2) Secondary images: delete the ones NOT in keepSecondaryUrls, keep the rest, then add new
+                var keepSet = new HashSet<string>((keepSecondaryUrls ?? Enumerable.Empty<string>())
+                                                  .Where(s => !string.IsNullOrWhiteSpace(s)).Select(s => s.Trim()),
+                                                  StringComparer.OrdinalIgnoreCase);
+
+                var secondaries = await _ctx.ProductImages
+                    .Where(x => x.ProductId == productId && !x.IsMain)
+                    .ToListAsync();
+
+                var toDelete = secondaries.Where(s => !keepSet.Contains(s.ImageUrl)).ToList();
+                if (toDelete.Count > 0)
+                {
+                    _ctx.ProductImages.RemoveRange(toDelete);
+                    await _ctx.SaveChangesAsync();
+                }
+
+                // add new (avoid duplicates, cap at 6)
+                var existingUrls = await _ctx.ProductImages
+                    .Where(x => x.ProductId == productId && !x.IsMain)
+                    .Select(x => x.ImageUrl)
+                    .ToListAsync();
+
+                var canAdd = Math.Max(0, 6 - existingUrls.Count);
+                var toAdd = (addSecondaryUrls ?? Enumerable.Empty<string>())
+                    .Select(s => (s ?? string.Empty).Trim())
+                    .Where(s => s.Length > 0 && !existingUrls.Contains(s, StringComparer.OrdinalIgnoreCase))
+                    .Take(canAdd)
+                    .Select(url => new ProductImage
+                    {
+                        ProductId = productId,
+                        ImageUrl = url,
+                        IsMain = false
+                    })
+                    .ToList();
+
+                if (toAdd.Count > 0)
+                {
+                    await _ctx.ProductImages.AddRangeAsync(toAdd);
+                    await _ctx.SaveChangesAsync();
+                }
+
+                await tx.CommitAsync();
+            }
+            catch
+            {
+                await tx.RollbackAsync();
+                throw;
+            }
+        }
+
     }
 }

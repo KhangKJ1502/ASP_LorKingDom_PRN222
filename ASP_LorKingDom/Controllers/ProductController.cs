@@ -14,8 +14,8 @@ using WebUI.Filters;
 
 namespace WebUI.Controllers
 {
-    [Authorize(AuthenticationSchemes = "AdminScheme")]
-    [AdminAndWarehouseOnly] // Warehouse: Product Management
+    //[Authorize(AuthenticationSchemes = "AdminScheme")]
+    //[AdminAndWarehouseOnly] // Warehouse: Product Management
     public class ProductController : Controller
     {
         private readonly IProductService _productSvc;
@@ -27,19 +27,21 @@ namespace WebUI.Controllers
         private readonly IMaterialService _materialSvc;
         private readonly IOriginService _originSvc;
         private readonly IStatisticsService _statisticsService;
-
+        private readonly IProductImageService _imageSvc;
         public ProductController(
-            IProductService productSvc,
-            ICategoryService categorySvc,
-            ISexService sexSvc,
-            IPriceRangeService priceRangeSvc,
-            IBrandService brandSvc,
-            IAgeService ageSvc,
-            IMaterialService materialSvc,
-            IOriginService originSvc,
-            IStatisticsService statisticsService)
+          IProductService productSvc,
+          IProductImageService imageSvc,
+          ICategoryService categorySvc,
+          ISexService sexSvc,
+          IPriceRangeService priceRangeSvc,
+          IBrandService brandSvc,
+          IAgeService ageSvc,
+          IMaterialService materialSvc,
+          IOriginService originSvc,
+          IStatisticsService statisticsService)
         {
             _productSvc = productSvc;
+            _imageSvc = imageSvc;                          // ⬅️ gán
             _categorySvc = categorySvc;
             _sexSvc = sexSvc;
             _priceRangeSvc = priceRangeSvc;
@@ -83,22 +85,25 @@ namespace WebUI.Controllers
             await LoadDropdownsAsync();
             return View("~/Views/Admin/AddProduct.cshtml", dto);
         }
-
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Save(
-     ProductDto dto,
-     IFormFile? MainImageUpload,
-     IFormFile[]? DetailImages,
-     [FromServices] IWebHostEnvironment env)
+    ProductDto dto,
+    IFormFile? MainImageUpload,
+    IFormFile[]? DetailImages,
+    string[]? ExistingImageUrls,           // 🆕 danh sách ảnh cũ còn giữ lại
+    bool? KeepMainImage,                   // 🆕 cho phép xoá ảnh chính nếu false
+    [FromServices] IWebHostEnvironment env)
         {
             const string SUB = "assets/Component/img_product";
 
             dto.SecondaryImageUrls ??= new System.Collections.Generic.List<string>();
 
+            // 🖼️ 1. Lưu file ảnh chính nếu người dùng upload mới
             if (MainImageUpload is { Length: > 0 })
                 dto.MainImageUrl = await SaveFileAsync(MainImageUpload, env, SUB);
 
+            // 🖼️ 2. Lưu các ảnh chi tiết mới upload (tối đa 6)
             if (DetailImages is { Length: > 0 })
             {
                 foreach (var f in DetailImages.Take(6))
@@ -111,7 +116,7 @@ namespace WebUI.Controllers
                 }
             }
 
-            // ⛳️ Áp ràng buộc khi tạo mới
+            // ✅ 3. Kiểm tra validation cơ bản khi thêm mới
             if (dto.Id == 0)
             {
                 if (dto.CategoryId is null) ModelState.AddModelError(nameof(dto.CategoryId), "Vui lòng chọn Danh mục.");
@@ -125,25 +130,21 @@ namespace WebUI.Controllers
                     ModelState.AddModelError("MainImageUpload", "Vui lòng chọn Ảnh chính.");
             }
 
-            // ✅ NEW: nếu có lỗi ModelState => hiển thị Toast y hệt Category
             if (!ModelState.IsValid)
             {
                 await LoadDropdownsAsync();
-
-                // Gộp thông điệp ngắn gọn cho Toast (chỉ 1–2 dòng)
-                var firstError = ModelState.Values.SelectMany(v => v.Errors).FirstOrDefault()?.ErrorMessage
-                                 ?? "Dữ liệu không hợp lệ.";
-
-                ViewBag.ErrorMessage = firstError;
-                ViewBag.ShowErrorModal = true;   // ← cờ bật Toast
+                ViewBag.ErrorMessage = ModelState.Values.SelectMany(v => v.Errors).FirstOrDefault()?.ErrorMessage ?? "Dữ liệu không hợp lệ.";
+                ViewBag.ShowErrorModal = true;
                 return View("~/Views/Admin/AddProduct.cshtml", dto);
             }
 
             try
             {
+                // 🧩 4. Lưu hoặc cập nhật sản phẩm
                 if (dto.Id == 0)
                 {
-                    await _productSvc.CreateAsync(dto);
+                    var newId = await _productSvc.CreateAsync(dto);
+                    dto.Id = newId;
                     TempData["Success"] = "Thêm sản phẩm thành công!";
                 }
                 else
@@ -153,29 +154,124 @@ namespace WebUI.Controllers
                     {
                         await LoadDropdownsAsync();
                         ViewBag.ErrorMessage = "Không tìm thấy sản phẩm để cập nhật.";
-                        ViewBag.ShowErrorModal = true;   // ← bật Toast
+                        ViewBag.ShowErrorModal = true;
                         return View("~/Views/Admin/AddProduct.cshtml", dto);
                     }
                     TempData["Success"] = "Cập nhật sản phẩm thành công!";
                 }
 
+                // 🖼️ 5. 🔁 GỌI HÀM UPSERT ẢNH (giữ lại, thêm mới, xoá cũ)
+                await _imageSvc.UpsertImagesAsync(
+                    productId: dto.Id,
+                    mainImageUrl: dto.MainImageUrl,                          // null -> giữ main cũ nếu KeepMainImage != false
+                    keepSecondaryUrls: ExistingImageUrls ?? Array.Empty<string>(),
+                    addSecondaryUrls: dto.SecondaryImageUrls ?? new List<string>(),
+                    keepMainIfNull: KeepMainImage != false
+                );
+
                 return RedirectToAction(nameof(Manage));
-            }
-            catch (DbUpdateException dbex)
-            {
-                await LoadDropdownsAsync();
-                ViewBag.ErrorMessage = "DB error: " + (dbex.InnerException?.Message ?? dbex.Message);
-                ViewBag.ShowErrorModal = true;       // ← bật Toast
-                return View("~/Views/Admin/AddProduct.cshtml", dto);
             }
             catch (Exception ex)
             {
                 await LoadDropdownsAsync();
                 ViewBag.ErrorMessage = ex.GetBaseException().Message;
-                ViewBag.ShowErrorModal = true;       // ← bật Toast
+                ViewBag.ShowErrorModal = true;
                 return View("~/Views/Admin/AddProduct.cshtml", dto);
             }
         }
+
+        //   [HttpPost]
+        //   [ValidateAntiForgeryToken]
+        //   public async Task<IActionResult> Save(
+        //ProductDto dto,
+        //IFormFile? MainImageUpload,
+        //IFormFile[]? DetailImages,
+        //[FromServices] IWebHostEnvironment env)
+        //   {
+        //       const string SUB = "assets/Component/img_product";
+
+        //       dto.SecondaryImageUrls ??= new System.Collections.Generic.List<string>();
+
+        //       if (MainImageUpload is { Length: > 0 })
+        //           dto.MainImageUrl = await SaveFileAsync(MainImageUpload, env, SUB);
+
+        //       if (DetailImages is { Length: > 0 })
+        //       {
+        //           foreach (var f in DetailImages.Take(6))
+        //           {
+        //               if (f is { Length: > 0 })
+        //               {
+        //                   var url = await SaveFileAsync(f, env, SUB);
+        //                   dto.SecondaryImageUrls.Add(url);
+        //               }
+        //           }
+        //       }
+
+        //       // ⛳️ Áp ràng buộc khi tạo mới
+        //       if (dto.Id == 0)
+        //       {
+        //           if (dto.CategoryId is null) ModelState.AddModelError(nameof(dto.CategoryId), "Vui lòng chọn Danh mục.");
+        //           if (dto.BrandId is null) ModelState.AddModelError(nameof(dto.BrandId), "Vui lòng chọn Thương hiệu.");
+        //           if (dto.SexId is null) ModelState.AddModelError(nameof(dto.SexId), "Vui lòng chọn Giới tính.");
+        //           if (dto.AgeId is null) ModelState.AddModelError(nameof(dto.AgeId), "Vui lòng chọn Khoảng tuổi.");
+        //           if (dto.MaterialId is null) ModelState.AddModelError(nameof(dto.MaterialId), "Vui lòng chọn Chất liệu.");
+        //           if (dto.OriginId is null) ModelState.AddModelError(nameof(dto.OriginId), "Vui lòng chọn Nguồn gốc.");
+        //           if (dto.PriceRangeId is null) ModelState.AddModelError(nameof(dto.PriceRangeId), "Vui lòng chọn Khoảng giá.");
+        //           if (string.IsNullOrWhiteSpace(dto.MainImageUrl))
+        //               ModelState.AddModelError("MainImageUpload", "Vui lòng chọn Ảnh chính.");
+        //       }
+
+        //       // ✅ NEW: nếu có lỗi ModelState => hiển thị Toast y hệt Category
+        //       if (!ModelState.IsValid)
+        //       {
+        //           await LoadDropdownsAsync();
+
+        //           // Gộp thông điệp ngắn gọn cho Toast (chỉ 1–2 dòng)
+        //           var firstError = ModelState.Values.SelectMany(v => v.Errors).FirstOrDefault()?.ErrorMessage
+        //                            ?? "Dữ liệu không hợp lệ.";
+
+        //           ViewBag.ErrorMessage = firstError;
+        //           ViewBag.ShowErrorModal = true;   // ← cờ bật Toast
+        //           return View("~/Views/Admin/AddProduct.cshtml", dto);
+        //       }
+
+        //       try
+        //       {
+        //           if (dto.Id == 0)
+        //           {
+        //               await _productSvc.CreateAsync(dto);
+        //               TempData["Success"] = "Thêm sản phẩm thành công!";
+        //           }
+        //           else
+        //           {
+        //               var ok = await _productSvc.UpdateAsync(dto);
+        //               if (!ok)
+        //               {
+        //                   await LoadDropdownsAsync();
+        //                   ViewBag.ErrorMessage = "Không tìm thấy sản phẩm để cập nhật.";
+        //                   ViewBag.ShowErrorModal = true;   // ← bật Toast
+        //                   return View("~/Views/Admin/AddProduct.cshtml", dto);
+        //               }
+        //               TempData["Success"] = "Cập nhật sản phẩm thành công!";
+        //           }
+
+        //           return RedirectToAction(nameof(Manage));
+        //       }
+        //       catch (DbUpdateException dbex)
+        //       {
+        //           await LoadDropdownsAsync();
+        //           ViewBag.ErrorMessage = "DB error: " + (dbex.InnerException?.Message ?? dbex.Message);
+        //           ViewBag.ShowErrorModal = true;       // ← bật Toast
+        //           return View("~/Views/Admin/AddProduct.cshtml", dto);
+        //       }
+        //       catch (Exception ex)
+        //       {
+        //           await LoadDropdownsAsync();
+        //           ViewBag.ErrorMessage = ex.GetBaseException().Message;
+        //           ViewBag.ShowErrorModal = true;       // ← bật Toast
+        //           return View("~/Views/Admin/AddProduct.cshtml", dto);
+        //       }
+        //   }
 
         private async Task LoadDropdownsAsync()
         {

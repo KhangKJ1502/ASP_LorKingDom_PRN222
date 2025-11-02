@@ -1,4 +1,5 @@
-﻿using System;
+﻿// DAL/Repositories/IProductImageRepository.cs
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,8 +16,15 @@ namespace DAL.Interfaces
         Task UnsetMainAsync(int productId);
         Task AddAsync(ProductImage entity);
         Task AddRangeAsync(IEnumerable<ProductImage> entities);
-
+        Task UpsertImagesAsync(
+       int productId,
+       string? mainImageUrl,
+       IEnumerable<string> keepSecondaryUrls,
+       IEnumerable<string> addSecondaryUrls,
+       bool keepMainIfNull = true);
         // Cho phép service bao bọc transaction khi cần
         Task ExecuteInTransactionAsync(Func<Task> action);
+        void RemoveRange(IEnumerable<ProductImage> entities);
+        Task SaveChangesAsync();
     }
 }

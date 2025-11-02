@@ -66,7 +66,17 @@ namespace BLL.Services
             if (await _repo.ExistsByNameAsync(name))
                 throw new ArgumentException("Tên sản phẩm đã tồn tại, vui lòng chọn tên khác.");
 
-         
+            var status = ProductValidator.NormalizeStatus(dto.ProductStatus);
+            if (status == "Discontinued")
+            {
+                // tuỳ policy của bạn:
+                dto.StockQuantity = 0;   // ngừng kinh doanh thì về 0
+                                         // có thể đặt IsDeleted = true ở entity nếu muốn ẩn khỏi storefront
+            }
+            else
+            {
+                status = (dto.StockQuantity > 0) ? "Available" : "OutOfStock";
+            }
             var sku = await GenerateUniqueSkuAsync();
 
             var entity = new Product
@@ -82,7 +92,7 @@ namespace BLL.Services
                 OriginId = dto.OriginId,
                 Price = dto.Price,
                 Quantity = dto.StockQuantity,
-                ProductStatus = dto.StockQuantity == 0 ? "OutOfStock" : dto.ProductStatus,
+                ProductStatus = status,
                 Description = dto.DescriptionHtml,
                 IsDeleted = false,
                 CreatedAt = DateTime.Now
@@ -116,8 +126,6 @@ namespace BLL.Services
             var e = await _repo.GetByIdAsync(dto.Id);
             if (e == null) return false;
 
-            //// ✅ Kiểm tra tất cả FK cha trong 1 lần (nếu product sẽ ở trạng thái hoạt động)
-            //await EnsureParentsActiveIfProductActiveAsync(dto);
 
             e.ProductName = nameTrim;
             e.CategoryId = dto.CategoryId;
@@ -129,24 +137,38 @@ namespace BLL.Services
             e.OriginId = dto.OriginId;
             e.Price = dto.Price;
             e.Quantity = dto.StockQuantity;
-            e.ProductStatus = dto.StockQuantity == 0 ? "OutOfStock" : dto.ProductStatus;
             e.Description = dto.DescriptionHtml;
             e.UpdatedAt = DateTime.Now;
 
+            var status = ProductValidator.NormalizeStatus(dto.ProductStatus);
+
+            if (status == "Discontinued")
+            {
+                e.ProductStatus = "Discontinued";
+                e.IsDeleted = true;      // (tuỳ chính sách: có thể để false nếu không muốn ẩn khỏi storefront)
+                e.Quantity = 0;          // (tuỳ: nhiều hệ thống cho về 0 khi ngừng kinh doanh)
+            }
+            else
+            {
+                e.IsDeleted = false;
+                e.ProductStatus = (dto.StockQuantity > 0) ? "Available" : "OutOfStock";
+            }
+
+
             await _repo.UpdateAsync(e);
 
-            // Ảnh
             var main = (dto.MainImageUrl ?? "").Trim();
             var secs = (dto.SecondaryImageUrls ?? new())
-                .Select(x => (x ?? "").Trim())
-                .Where(x => x.Length > 0)
-                .ToList();
+                        .Select(x => (x ?? "").Trim())
+                        .Where(x => x.Length > 0)
+                        .ToList();
 
             if (!string.IsNullOrWhiteSpace(main) || secs.Count > 0)
                 await _imageSvc.AddImagesAsync(e.ProductId, main, secs);
 
             return true;
         }
+
 
         private async Task<string> GenerateUniqueSkuAsync()
         {

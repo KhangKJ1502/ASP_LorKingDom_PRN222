@@ -5,8 +5,8 @@ using WebUI.Filters;
 
 namespace WebUI.Controllers
 {
-    [Authorize(AuthenticationSchemes = "AdminScheme")]
-    [AdminAndWarehouseOnly] // Warehouse: Material Management
+    //[Authorize(AuthenticationSchemes = "AdminScheme")]
+    //[AdminAndWarehouseOnly] // Warehouse: Material Management
     public class MaterialController : Controller
     {
         private readonly IMaterialService _service;

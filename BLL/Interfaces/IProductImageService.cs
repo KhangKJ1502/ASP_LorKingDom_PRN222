@@ -9,5 +9,11 @@ namespace BLL.Interfaces
     public interface IProductImageService
     {
         Task<int> AddImagesAsync(int productId, string mainImageUrl, IEnumerable<string> secondaryImageUrls);
+        Task UpsertImagesAsync(
+     int productId,
+     string? mainImageUrl,
+     IEnumerable<string> keepSecondaryUrls,
+     IEnumerable<string> addSecondaryUrls,
+     bool keepMainIfNull = true);
     }
 }

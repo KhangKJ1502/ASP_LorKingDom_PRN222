@@ -5,8 +5,8 @@ using WebUI.Filters;
 
 namespace WebUI.Controllers
 {
-    [Authorize(AuthenticationSchemes = "AdminScheme")]
-    [AdminAndWarehouseOnly] // Warehouse: Brand Management
+    //[Authorize(AuthenticationSchemes = "AdminScheme")]
+    //[AdminAndWarehouseOnly] // Warehouse: Brand Management
     public class BrandController : Controller
     {
         private readonly IBrandService _service;
