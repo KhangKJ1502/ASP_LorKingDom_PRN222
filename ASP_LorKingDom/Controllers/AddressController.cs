@@ -35,26 +35,24 @@ namespace WebUI.Controllers
         // ===== AJAX partials =====
 
         [HttpGet]
-        public async Task<IActionResult> ListPartial(string? q = null)
+        public async Task<IActionResult> ListPartial()
         {
             if (!TryGetAccountId(out var accountId)) return Challenge();
 
-            var list = await _addrSvc.ListAsync(accountId, q);
-            ViewBag.Query = q;
+            var list = await _addrSvc.ListAsync(accountId);
             return PartialView("~/Views/Home/_AddressListPartial.cshtml", list);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateAjax(string city, string ward, string addressLine, bool setAsDefault = false, string? q = null)
+        public async Task<IActionResult> CreateAjax(string city, string ward, string addressLine, bool setAsDefault = false)
         {
             if (!TryGetAccountId(out var accountId)) return Challenge();
 
             try
             {
                 await _addrSvc.CreateAsync(accountId, city, ward, addressLine, setAsDefault);
-                var list = await _addrSvc.ListAsync(accountId, q);
-                ViewBag.Query = q;
+                var list = await _addrSvc.ListAsync(accountId);
                 return PartialView("~/Views/Home/_AddressListPartial.cshtml", list);
             }
             catch (ArgumentException ex) { return BadRequest(ex.Message); }
@@ -64,7 +62,7 @@ namespace WebUI.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UpdateAjax(int id, string city, string ward, string addressLine, bool setAsDefault = false, string? q = null)
+        public async Task<IActionResult> UpdateAjax(int id, string city, string ward, string addressLine, bool setAsDefault = false)
         {
             if (!TryGetAccountId(out var accountId)) return Challenge();
 
@@ -72,8 +70,7 @@ namespace WebUI.Controllers
             {
                 var ok = await _addrSvc.UpdateAsync(accountId, id, city, ward, addressLine, setAsDefault);
                 if (!ok) return NotFound("Không tìm thấy địa chỉ để cập nhật.");
-                var list = await _addrSvc.ListAsync(accountId, q);
-                ViewBag.Query = q;
+                var list = await _addrSvc.ListAsync(accountId);
                 return PartialView("~/Views/Home/_AddressListPartial.cshtml", list);
             }
             catch (ArgumentException ex) { return BadRequest(ex.Message); }
@@ -83,7 +80,7 @@ namespace WebUI.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteAjax(int id, string? q = null)
+        public async Task<IActionResult> DeleteAjax(int id)
         {
             if (!TryGetAccountId(out var accountId)) return Challenge();
 
@@ -91,8 +88,8 @@ namespace WebUI.Controllers
             {
                 var ok = await _addrSvc.DeleteAsync(accountId, id);
                 if (!ok) return NotFound("Không tìm thấy địa chỉ để xóa.");
-                var list = await _addrSvc.ListAsync(accountId, q);
-                ViewBag.Query = q;
+                var list = await _addrSvc.ListAsync(accountId);
+             
                 return PartialView("~/Views/Home/_AddressListPartial.cshtml", list);
             }
             catch (Exception) { return StatusCode(500, "Không thể xóa địa chỉ lúc này."); }
@@ -100,7 +97,7 @@ namespace WebUI.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> SetDefaultAjax(int id, string? q = null)
+        public async Task<IActionResult> SetDefaultAjax(int id)
         {
             if (!TryGetAccountId(out var accountId)) return Challenge();
 
@@ -108,8 +105,7 @@ namespace WebUI.Controllers
             {
                 var changed = await _addrSvc.SetDefaultAsync(accountId, id);
                 if (!changed) return BadRequest("Địa chỉ đã là mặc định.");
-                var list = await _addrSvc.ListAsync(accountId, q);
-                ViewBag.Query = q;
+                var list = await _addrSvc.ListAsync(accountId);
                 return PartialView("~/Views/Home/_AddressListPartial.cshtml", list);
             }
             catch (Exception) { return StatusCode(500, "Không thể đặt mặc định lúc này."); }

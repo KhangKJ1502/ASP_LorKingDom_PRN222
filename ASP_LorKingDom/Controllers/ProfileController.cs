@@ -46,7 +46,7 @@ namespace WebUI.Controllers
         public async Task<IActionResult> Addresses(string? q = null)
         {
             if (!TryGetAccountId(out var accountId)) return Challenge();
-            var list = await _addrSvc.ListAsync(accountId, q);
+            var list = await _addrSvc.ListAsync(accountId);
             ViewBag.ActiveTab = "addresses";
             ViewBag.Query = q;
             return View("~/Views/Profile/Addresses.cshtml", list); // Model: List<AddressDto>
