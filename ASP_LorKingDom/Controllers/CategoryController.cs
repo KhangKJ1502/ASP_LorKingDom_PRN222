@@ -54,8 +54,8 @@ namespace WebUI.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SaveCategory(
-            int id, int superCategoryId, string name, bool isDeleted = false,
-            string? q = null, int page = 1, int pageSize = 8)
+     int id, int superCategoryId, string name, bool isDeleted = false,
+     string? q = null, int page = 1, int pageSize = 8)
         {
             try
             {
@@ -65,41 +65,40 @@ namespace WebUI.Controllers
                     await _service.UpdateAsync(id, superCategoryId, name, isDeleted);
 
                 TempData["Success"] = "Lưu danh mục thành công!";
-                // Giữ lại điều kiện hiện tại
                 return RedirectToAction(nameof(Manage), new { q, page, pageSize });
             }
-            catch (InvalidOperationException ex)
+            catch (ArgumentException ex)   // <— thêm block này
             {
-                // Trả về đúng kiểu PagedResult + bật toast + giữ context
+                // Giữ lại form đang sửa (nếu có) và show message thân thiện
                 object? edit = null;
                 if (id != 0)
                 {
-                    edit = await _service.GetByIdAsync(id)
-                           ?? new BLL.DTOs.CategoryDto
-                           {
-                               Id = id,
-                               SuperCategoryId = superCategoryId,
-                               Name = name,
-                               IsDeleted = isDeleted
-                           };
+                    edit = await _service.GetByIdAsync(id) ?? new BLL.DTOs.CategoryDto
+                    {
+                        Id = id,
+                        SuperCategoryId = superCategoryId,
+                        Name = name,
+                        IsDeleted = isDeleted
+                    };
                 }
 
                 return await ReturnManageViewAsync(
                     q, page, pageSize,
                     editDto: edit,
-                    error: ex.Message,
+                    error: ex.Message,   // "Tên danh mục không được vượt quá 255 ký tự."
                     showError: true
                 );
+            }
+            catch (InvalidOperationException ex)
+            {
+                return await ReturnManageViewAsync(q, page, pageSize, error: ex.Message, showError: true);
             }
             catch (Exception ex)
             {
-                return await ReturnManageViewAsync(
-                    q, page, pageSize,
-                    error: "Đã có lỗi xảy ra. " + ex.Message,
-                    showError: true
-                );
+                return await ReturnManageViewAsync(q, page, pageSize, error: "Đã có lỗi xảy ra. " + ex.Message, showError: true);
             }
         }
+
 
         // ========== Edit (mở modal) ==========
         [HttpGet]

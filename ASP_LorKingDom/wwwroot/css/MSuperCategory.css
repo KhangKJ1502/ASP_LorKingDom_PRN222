@@ -1,0 +1,82 @@
+﻿/* Tạo viền đen cho ô tìm kiếm */
+.search-box .form-control {
+    border: 1px solid #000 !important; /* viền đen */
+    box-shadow: none !important; /* bỏ hiệu ứng sáng */
+}
+
+/* Giữ độ cao đồng đều */
+.search-box .btn {
+    border: 1px solid #000 !important;
+    border-left: none !important; /* loại viền giữa input và button */
+}
+
+.toast-top-right {
+    top: 120px !important; /* chỉnh số px bạn muốn */
+    right: 24px !important;
+    left: auto !important;
+    bottom: auto !important;
+}
+
+#liveToast.toast {
+    min-width: 520px; /* tăng chiều ngang tối thiểu */
+    padding: 1rem 1.25rem; /* dày dặn hơn */
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,.18);
+}
+
+#liveToast .toast-body {
+    font-size: 1.1rem;
+    font-weight: 600;
+    word-break: break-word; /* xuống dòng gọn khi quá dài */
+}
+
+/* Pagination pill */
+.pagination-pill .page-item {
+    margin: 0;
+}
+
+.pagination-pill .page-link {
+    border: 1px solid #e5e7eb;
+    background: #fff;
+    color: #2563eb;
+    font-weight: 600;
+    min-width: 42px;
+    text-align: center;
+    padding: 8px 14px;
+    border-radius: 0;
+    transition: all .15s ease;
+    margin-left: -1px;
+}
+
+.pagination-pill .page-item:first-child .page-link {
+    border-top-left-radius: 12px;
+    border-bottom-left-radius: 12px;
+    margin-left: 0;
+    background: #f3f4f6;
+    color: #6b7280; /* « mũi tên trái xám nhạt */
+}
+
+.pagination-pill .page-item:last-child .page-link {
+    border-top-right-radius: 12px;
+    border-bottom-right-radius: 12px;
+    background: #f3f4f6;
+    color: #6b7280; /* » mũi tên phải xám nhạt */
+}
+
+.pagination-pill .page-link:hover {
+    background: #f8fafc;
+    color: #1d4ed8;
+}
+
+.pagination-pill .page-item.active .page-link {
+    background: #1677ff;
+    border-color: #1677ff;
+    color: #fff !important;
+}
+
+.pagination-pill .page-item.disabled .page-link {
+    background: #f3f4f6;
+    border-color: #e5e7eb;
+    color: #9ca3af !important;
+    pointer-events: none;
+}

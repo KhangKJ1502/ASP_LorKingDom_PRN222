@@ -1,0 +1,198 @@
+﻿/* Tạo viền đen cho ô tìm kiếm */
+.search-box .form-control {
+    border: 1px solid #000 !important;
+    box-shadow: none !important;
+}
+
+.search-box .btn {
+    border: 1px solid #000 !important;
+    border-left: none !important;
+}
+
+.toast-top-right {
+    top: 120px !important;
+    right: 24px !important;
+    left: auto !important;
+    bottom: auto !important;
+}
+
+#liveToast.toast {
+    min-width: 520px;
+    padding: 1rem 1.25rem;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,.18);
+}
+
+#liveToast .toast-body {
+    font-size: 1.1rem;
+    font-weight: 600;
+    word-break: break-word;
+}
+
+.deleted-row {
+    opacity: 0.6;
+    background: #f8f9fa;
+}
+
+/* ===== Pagination kiểu pill như ảnh ===== */
+.pagination-pill {
+    /* không cần gì ở ul */
+}
+
+    .pagination-pill .page-item {
+        margin: 0; /* dính nhau */
+    }
+
+    .pagination-pill .page-link {
+        border: 1px solid #e5e7eb; /* viền xám nhạt giữa các nút */
+        background: #fff; /* nền trắng (trang thường) */
+        color: #2563eb; /* số xanh dương */
+        font-weight: 600;
+        min-width: 42px;
+        text-align: center;
+        line-height: 1.2;
+        padding: 8px 14px;
+        border-radius: 0; /* phẳng để dính nhau */
+        transition: all .15s ease;
+        /* loại bỏ “viền đôi” ở chỗ tiếp giáp */
+        margin-left: -1px;
+    }
+
+    /* bo tròn ngoài cùng */
+    .pagination-pill .page-item:first-child .page-link {
+        border-top-left-radius: 12px;
+        border-bottom-left-radius: 12px;
+        margin-left: 0; /* không kéo đè ở phần đầu */
+    }
+
+    .pagination-pill .page-item:last-child .page-link {
+        border-top-right-radius: 12px;
+        border-bottom-right-radius: 12px;
+    }
+
+    /* hover trang thường */
+    .pagination-pill .page-link:hover,
+    .pagination-pill .page-link:focus {
+        background: #f8fafc; /* rất nhạt */
+        color: #1d4ed8; /* xanh đậm hơn chút */
+        text-decoration: none;
+        box-shadow: none;
+    }
+    /* Active: nền xanh dương tươi, chữ trắng (giống ảnh) */
+    .pagination-pill .page-item.active .page-link {
+        background: #1677ff; /* xanh kiểu Ant Design */
+        border-color: #1677ff;
+        color: #fff !important;
+    }
+
+    /* Disabled (mũi tên khi không đi tiếp được) */
+    .pagination-pill .page-item.disabled .page-link {
+        background: #f3f4f6; /* xám nhạt */
+        border-color: #e5e7eb;
+        color: #9ca3af !important; /* xám chữ */
+        pointer-events: none;
+    }
+
+/* Tăng cảm giác “pill” cho cả cụm */
+.pagination-pill {
+    filter: drop-shadow(0 1px 1px rgba(0,0,0,.04));
+}
+/* Tạo viền đen cho ô tìm kiếm */
+.search-box .form-control {
+    border: 1px solid #000 !important;
+    box-shadow: none !important;
+}
+
+.search-box .btn {
+    border: 1px solid #000 !important;
+    border-left: none !important;
+}
+
+.toast-top-right {
+    top: 120px !important;
+    right: 24px !important;
+    left: auto !important;
+    bottom: auto !important;
+}
+
+#liveToast.toast {
+    min-width: 520px;
+    padding: 1rem 1.25rem;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,.18);
+}
+
+#liveToast .toast-body {
+    font-size: 1.1rem;
+    font-weight: 600;
+    word-break: break-word;
+}
+
+.deleted-row {
+    opacity: 0.6;
+    background: #f8f9fa;
+}
+
+/* ===== Pagination kiểu pill như ảnh ===== */
+.pagination-pill {
+    /* không cần gì ở ul */
+}
+
+    .pagination-pill .page-item {
+        margin: 0; /* dính nhau */
+    }
+
+    .pagination-pill .page-link {
+        border: 1px solid #e5e7eb; /* viền xám nhạt giữa các nút */
+        background: #fff; /* nền trắng (trang thường) */
+        color: #2563eb; /* số xanh dương */
+        font-weight: 600;
+        min-width: 42px;
+        text-align: center;
+        line-height: 1.2;
+        padding: 8px 14px;
+        border-radius: 0; /* phẳng để dính nhau */
+        transition: all .15s ease;
+        /* loại bỏ “viền đôi” ở chỗ tiếp giáp */
+        margin-left: -1px;
+    }
+
+    /* bo tròn ngoài cùng */
+    .pagination-pill .page-item:first-child .page-link {
+        border-top-left-radius: 12px;
+        border-bottom-left-radius: 12px;
+        margin-left: 0; /* không kéo đè ở phần đầu */
+    }
+
+    .pagination-pill .page-item:last-child .page-link {
+        border-top-right-radius: 12px;
+        border-bottom-right-radius: 12px;
+    }
+
+    /* hover trang thường */
+    .pagination-pill .page-link:hover,
+    .pagination-pill .page-link:focus {
+        background: #f8fafc; /* rất nhạt */
+        color: #1d4ed8; /* xanh đậm hơn chút */
+        text-decoration: none;
+        box-shadow: none;
+    }
+    /* Active: nền xanh dương tươi, chữ trắng (giống ảnh) */
+    .pagination-pill .page-item.active .page-link {
+        background: #1677ff; /* xanh kiểu Ant Design */
+        border-color: #1677ff;
+        color: #fff !important;
+    }
+
+    /* Disabled (mũi tên khi không đi tiếp được) */
+    .pagination-pill .page-item.disabled .page-link {
+        background: #f3f4f6; /* xám nhạt */
+        border-color: #e5e7eb;
+        color: #9ca3af !important; /* xám chữ */
+        pointer-events: none;
+    }
+
+/* Tăng cảm giác “pill” cho cả cụm */
+.pagination-pill {
+    filter: drop-shadow(0 1px 1px rgba(0,0,0,.04));
+}

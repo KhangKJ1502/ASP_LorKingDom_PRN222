@@ -22,7 +22,7 @@ namespace ASP_LorKingDom.Controllers
             IProductService productSvc,
             IWishlistService wishlistSvc,
             IAccountService accountService,
-            IAddressService addressService)
+            IAddressService addressService,
             IReviewProductService reviewSvc)
         {
             _logger = logger;
