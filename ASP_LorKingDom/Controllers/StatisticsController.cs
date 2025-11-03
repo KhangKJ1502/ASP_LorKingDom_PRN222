@@ -5,7 +5,7 @@ using WebUI.Filters;
 
 namespace ASP_LorKingDom.Controllers
 {
-    //[Authorize(AuthenticationSchemes = "AdminScheme", Roles = "Admin,Staff,Warehouse")]
+    [Authorize(AuthenticationSchemes = "AdminScheme")]
     public class StatisticsController : Controller
     {
         private readonly IStatisticsService _statisticsService;
@@ -24,6 +24,7 @@ namespace ASP_LorKingDom.Controllers
             if (!User.IsInRole("Admin") && !User.IsInRole("Staff"))
             {
                 TempData["ErrorMessage"] = "Bạn không có quyền truy cập trang này.";
+                // Warehouse chỉ có quyền ProductStatistics
                 return RedirectToAction("ProductStatistics");
             }
 
@@ -36,10 +37,11 @@ namespace ASP_LorKingDom.Controllers
         //[AdminAndWarehouseOnly]
         public async Task<IActionResult> ProductStatistics()
         {
-            // Kiểm tra quyền: chỉ Admin và Warehouse được xem
-            if (!User.IsInRole("Admin") && !User.IsInRole("Warehouse"))
+            // Kiểm tra quyền: chỉ Admin và WareHouse được xem (lưu ý: H viết hoa như trong DB)
+            if (!User.IsInRole("Admin") && !User.IsInRole("WareHouse"))
             {
                 TempData["ErrorMessage"] = "Bạn không có quyền truy cập trang này.";
+                // Staff chỉ có quyền Dashboard
                 return RedirectToAction("Dashboard");
             }
 

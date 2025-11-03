@@ -6,6 +6,7 @@ using DAL;
 using DAL.Interfaces;
 using DAL.Repositories;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.DataProtection;
 using WebUI.BackgroundServices;
 using WebUI.Hubs;
 
@@ -23,6 +24,29 @@ builder.Services.AddHostedService<WebUI.Workers.PromotionWorkerService>();
 
 var conn = builder.Configuration.GetConnectionString("DefaultConnection")
            ?? throw new InvalidOperationException("Missing ConnectionStrings:DefaultConnection");
+
+// ===== SHARED DATA PROTECTION (để share cookie với RazorUI) =====
+var dataProtectionPath = Path.Combine(Directory.GetCurrentDirectory(), "..", "shared-keys");
+Directory.CreateDirectory(dataProtectionPath);
+
+builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(new DirectoryInfo(dataProtectionPath))
+    .SetApplicationName("LorKingDom");
+
+// ===== CORS để 2 projects có thể communicate =====
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowRazorUI", policy =>
+    {
+        policy.WithOrigins(
+            "https://localhost:7226",
+            "http://localhost:5177"
+        )
+        .AllowAnyHeader()
+        .AllowAnyMethod()
+        .AllowCredentials();
+    });
+});
 
 // ===== DI: DAL / BLL / MVC =====
 builder.Services.AddDAL(conn);
@@ -63,16 +87,29 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     })
     .AddCookie("AdminScheme", o =>
     {
-        o.LoginPath = "/AdminAuth/Login";
+        // Redirect admin login sang RazorUI
+        o.LoginPath = "/AdminAuth/RedirectToRazorUI";
         o.LogoutPath = "/AdminAuth/Logout";
         o.AccessDeniedPath = "/AdminAuth/AccessDenied";
         o.Cookie.HttpOnly = true;
         o.Cookie.IsEssential = true;
-        o.Cookie.Name = "AdminAuth";
+        o.Cookie.Name = "AdminAuth"; // SHARED cookie name với RazorUI
+        o.Cookie.Domain = null; // cho phép share giữa localhost:7777 và localhost:7226
+        o.Cookie.Path = "/"; // Cookie available cho tất cả path
         o.Cookie.SameSite = SameSiteMode.Lax;
         o.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
         o.ExpireTimeSpan = TimeSpan.FromDays(7);
         o.SlidingExpiration = false;
+
+        // Events để trace cookie
+        o.Events = new CookieAuthenticationEvents
+        {
+            OnValidatePrincipal = context =>
+            {
+                // Log cookie validation
+                return Task.CompletedTask;
+            }
+        };
     });
 // Program.cs
 builder.Services.AddScoped<IProductImageRepository, ProductImageRepository>();
@@ -136,7 +173,10 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-// Session nên đặt sau Routing
+// CORS phải đứng trước Session để share cookie
+app.UseCors("AllowRazorUI");
+
+// Session nên đặt sau CORS
 app.UseSession();
 
 app.UseAuthentication();
