@@ -1,17 +1,16 @@
 ﻿using BLL.DTOs;
 using BLL.Interfaces;
 using BLL.Services;
+using DAL.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
-using DAL.Models;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 using WebUI.Filters;
 
 namespace WebUI.Controllers
 {
-    [Authorize(AuthenticationSchemes = "AdminScheme")]
-    [AdminAndStaffOnly] // Staff: Voucher Management
+
     public class VoucherController : Controller
     {
         private readonly IVoucherService _voucherService;
@@ -32,6 +31,7 @@ namespace WebUI.Controllers
         }
 
         [HttpGet("Voucher/GetActiveVouchers")]
+        [Authorize]
         public async Task<IActionResult> GetActiveVouchers(decimal orderAmount)
         {
             var accountId = GetAccountId();
@@ -106,6 +106,7 @@ namespace WebUI.Controllers
         }
 
         [HttpPost("Voucher/ApplyVoucher")]
+        [Authorize]
         public async Task<IActionResult> ApplyVoucher(string code, decimal orderAmount)
         {
             var accountId = GetAccountId();
@@ -151,6 +152,8 @@ namespace WebUI.Controllers
         }
 
         [HttpGet("Voucher/Manage")]
+        [Authorize(AuthenticationSchemes = "AdminScheme")]
+        [AdminAndStaffOnly] // Staff: Voucher Management
         public async Task<IActionResult> ManageVouchers(string? q, string? voucherType, string? status, int page = 1, int pageSize = 10, bool showDeleted = false)
         {
             try
@@ -275,6 +278,8 @@ namespace WebUI.Controllers
         }
 
         [HttpGet("Voucher/Details/{id}")]
+        [Authorize(AuthenticationSchemes = "AdminScheme")]
+        [AdminAndStaffOnly] // Staff: Voucher Management
         public async Task<IActionResult> GetVoucherDetail(int id)
         {
             try

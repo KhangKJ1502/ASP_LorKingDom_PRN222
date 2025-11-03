@@ -13,7 +13,7 @@ namespace ASP_LorKingDom.Controllers
         private readonly ILogger<HomeController> _logger;
         private readonly IProductService _productSvc;
         private readonly IWishlistService _wishlistSvc;
-        private readonly IReviewProductService _reviewSvc; 
+        private readonly IReviewProductService _reviewSvc;
         private readonly IAccountService _accountService;
         private readonly IAddressService _addressService;
 
@@ -22,7 +22,7 @@ namespace ASP_LorKingDom.Controllers
             IProductService productSvc,
             IWishlistService wishlistSvc,
             IAccountService accountService,
-            IAddressService addressService)
+            IAddressService addressService,
             IReviewProductService reviewSvc)
         {
             _logger = logger;
@@ -30,7 +30,7 @@ namespace ASP_LorKingDom.Controllers
             _wishlistSvc = wishlistSvc;
             _accountService = accountService;
             _addressService = addressService;
-            _reviewSvc = reviewSvc; 
+            _reviewSvc = reviewSvc;
         }
 
         // ===== helpers =====
@@ -96,7 +96,7 @@ namespace ASP_LorKingDom.Controllers
             var model = await BuildPagedModelAsync(q, page, pageSize);
             return PartialView("_ProductGridPartial", model);
         }
-      
+
         public async Task<IActionResult> ProductDetails(int id)
         {
             var dto = await _productSvc.GetByIdAsync(id);
