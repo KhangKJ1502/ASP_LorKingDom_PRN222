@@ -533,6 +533,8 @@
 </div>
 
 @section Scripts {
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
     <script>
         // ===== Staff info lấy từ Razor (=> từ Claims => ID thật, vd "22")
@@ -801,7 +803,12 @@
 
         document.getElementById('sendBtn').addEventListener('click', async () => {
             if (!currentConv) {
-                alert("⚠️ Chưa chọn hội thoại");
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Chưa chọn hội thoại',
+                    text: '⚠️ Vui lòng chọn một hội thoại trước khi gửi tin nhắn',
+                    confirmButtonColor: '#667eea'
+                });
                 return;
             }
             const el = document.getElementById('txt');
@@ -812,6 +819,12 @@
                 await conn.invoke("SendMessage", currentConv, STAFF_ID, v);
             } catch (err) {
                 console.error('SendMessage error:', err);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi gửi tin nhắn',
+                    text: 'Không thể gửi tin nhắn. Vui lòng thử lại.',
+                    confirmButtonColor: '#667eea'
+                });
             }
         });
 

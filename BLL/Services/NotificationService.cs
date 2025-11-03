@@ -79,6 +79,11 @@ namespace BLL.Services
         {
             await ValidateCreateAsync(dto);
 
+            // ✅ Validate CreatedBy account exists
+            var createdByAccount = await _accountRepo.GetByIdAsync(dto.CreatedBy);
+            if (createdByAccount == null)
+                throw new InvalidOperationException($"Người tạo #{dto.CreatedBy} không tồn tại");
+
             var entity = new Notification
             {
                 Title = dto.Title.Trim(),
@@ -112,12 +117,21 @@ namespace BLL.Services
         public async Task UpdateAsync(NotificationUpdateDto dto)
         {
             var entity = await _notificationRepo.GetByIdAsync(dto.NotificationId)
-                         ?? throw new KeyNotFoundException($"Không tìm thấy thông báo ID {dto.NotificationId}");
+                         ?? throw new KeyNotFoundException($"Không tìm thấy thông báo #{dto.NotificationId}");
 
-            if (entity.IsSent) throw new InvalidOperationException("Không thể sửa thông báo đã gửi");
-            if (entity.IsCanceled) throw new InvalidOperationException("Không thể sửa thông báo đã hủy");
+            if (entity.IsSent) throw new InvalidOperationException("Không thể chỉnh sửa thông báo đã gửi");
+            if (entity.IsCanceled) throw new InvalidOperationException("Không thể chỉnh sửa thông báo đã hủy");
 
             await ValidateUpdateAsync(dto, entity);
+
+            // ✅ Validate CreatedBy account exists (nếu thay đổi)
+            if (entity.CreatedBy != dto.CreatedBy)
+            {
+                var createdByAccount = await _accountRepo.GetByIdAsync(dto.CreatedBy);
+                if (createdByAccount == null)
+                    throw new InvalidOperationException($"Người tạo #{dto.CreatedBy} không tồn tại");
+                entity.CreatedBy = dto.CreatedBy;
+            }
 
             entity.Title = dto.Title.Trim();
             entity.Message = dto.Message.Trim();
@@ -140,15 +154,17 @@ namespace BLL.Services
             });
         }
 
-        public async Task DeleteAsync(int id)
+        public async Task<bool> DeleteAsync(int id)
         {
-            var entity = await _notificationRepo.GetByIdAsync(id)
-                         ?? throw new KeyNotFoundException($"Không tìm thấy thông báo ID {id}");
+            var entity = await _notificationRepo.GetByIdAsync(id);
+            if (entity == null)
+                return false; // Không tìm thấy
 
-            if (entity.IsSent) throw new InvalidOperationException("Không thể xóa thông báo đã gửi");
+            // Chỉ cho phép xóa thông báo chưa gửi
+            if (entity.IsSent)
+                throw new InvalidOperationException("Không thể xóa thông báo đã gửi");
 
-            await _notificationRepo.DeleteAsync(id);
-
+            // CRITICAL FIX: Thêm log TRƯỚC KHI xóa Notification
             await _logRepo.AddAsync(new NotificationLog
             {
                 NotificationId = id,
@@ -156,15 +172,21 @@ namespace BLL.Services
                 Details = $"Thông báo bị xóa: {entity.Title}",
                 SentAt = DateTime.UtcNow
             });
+
+            // Xóa Notification (cascade sẽ xóa luôn log vừa tạo ở trên - đây là expected behavior)
+            await _notificationRepo.DeleteAsync(id);
+
+            return true;
         }
+
 
         public async Task CancelAsync(int id)
         {
             var entity = await _notificationRepo.GetByIdAsync(id)
-                         ?? throw new KeyNotFoundException($"Không tìm thấy thông báo ID {id}");
+                         ?? throw new KeyNotFoundException($"Không tìm thấy thông báo #{id}");
 
             if (entity.IsSent) throw new InvalidOperationException("Không thể hủy thông báo đã gửi");
-            if (entity.IsCanceled) throw new InvalidOperationException("Thông báo đã được hủy trước đó");
+            if (entity.IsCanceled) throw new InvalidOperationException("Thông báo đã bị hủy trước đó");
 
             await _notificationRepo.CancelAsync(id);
 
@@ -180,10 +202,10 @@ namespace BLL.Services
         public async Task SendNowAsync(int id)
         {
             var notif = await _notificationRepo.GetByIdAsync(id)
-                        ?? throw new KeyNotFoundException($"Không tìm thấy thông báo ID {id}");
+                        ?? throw new KeyNotFoundException($"Không tìm thấy thông báo #{id}");
 
-            if (notif.IsCanceled) throw new InvalidOperationException("Thông báo đã bị hủy");
-            if (notif.IsSent) throw new InvalidOperationException("Thông báo đã gửi trước đó");
+            if (notif.IsCanceled) throw new InvalidOperationException("Không thể gửi thông báo đã bị hủy");
+            if (notif.IsSent) throw new InvalidOperationException("Thông báo đã được gửi trước đó");
 
             await DispatchOneAsync(notif, DateTime.UtcNow);
         }
@@ -244,11 +266,11 @@ namespace BLL.Services
         private async Task ValidateCreateAsync(NotificationCreateDto dto)
         {
             if (string.IsNullOrWhiteSpace(dto.Title))
-                throw new InvalidOperationException("Tiêu đề không được rỗng");
+                throw new InvalidOperationException("Tiêu đề không được để trống");
             if (dto.Title.Length > 200)
                 throw new InvalidOperationException("Tiêu đề không được vượt quá 200 ký tự");
             if (string.IsNullOrWhiteSpace(dto.Message))
-                throw new InvalidOperationException("Nội dung không được rỗng");
+                throw new InvalidOperationException("Nội dung không được để trống");
             if (dto.Message.Length > 1000)
                 throw new InvalidOperationException("Nội dung không được vượt quá 1000 ký tự");
 
@@ -256,9 +278,9 @@ namespace BLL.Services
                 throw new InvalidOperationException($"Tiêu đề '{dto.Title}' đã tồn tại");
 
             if (!IsValidType(dto.Type))
-                throw new InvalidOperationException($"Type '{dto.Type}' không hợp lệ. Phải là: General, Order, Promotion, System");
+                throw new InvalidOperationException($"Loại thông báo '{dto.Type}' không hợp lệ (General, Order, Promotion, System)");
             if (!IsValidTargetType(dto.TargetType))
-                throw new InvalidOperationException($"TargetType '{dto.TargetType}' không hợp lệ. Phải là: All, SingleUser, ByRole, ByCondition");
+                throw new InvalidOperationException($"Đối tượng nhận '{dto.TargetType}' không hợp lệ (All, SingleUser, ByRole, ByCondition)");
 
             await ValidateTargetType(dto.TargetType, dto.TargetRoleId, dto.TargetUserId, dto.ConditionJson);
 
@@ -267,7 +289,7 @@ namespace BLL.Services
                 throw new InvalidOperationException("Thời gian gửi không được ở quá khứ");
 
             if (dto.ExpireAt.HasValue && dto.ExpireAt.Value <= dto.ScheduledAt)
-                throw new InvalidOperationException("Thời gian hết hạn phải sau thời gian hiển thị");
+                throw new InvalidOperationException("Thời gian hết hạn phải sau thời gian gửi");
         }
 
         private async Task ValidateUpdateAsync(NotificationUpdateDto dto, Notification existingEntity)
@@ -285,9 +307,9 @@ namespace BLL.Services
             }
 
             if (!IsValidType(dto.Type))
-                throw new InvalidOperationException($"Type '{dto.Type}' không hợp lệ");
+                throw new InvalidOperationException($"Loại thông báo '{dto.Type}' không hợp lệ (General, Order, Promotion, System)");
             if (!IsValidTargetType(dto.TargetType))
-                throw new InvalidOperationException($"TargetType '{dto.TargetType}' không hợp lệ");
+                throw new InvalidOperationException($"Đối tượng nhận '{dto.TargetType}' không hợp lệ (All, SingleUser, ByRole, ByCondition)");
 
             await ValidateTargetType(dto.TargetType, dto.TargetRoleId, dto.TargetUserId, dto.ConditionJson);
 
@@ -296,7 +318,7 @@ namespace BLL.Services
                 throw new InvalidOperationException("Thời gian gửi không được ở quá khứ");
 
             if (dto.ExpireAt.HasValue && dto.ExpireAt.Value <= dto.ScheduledAt)
-                throw new InvalidOperationException("Thời gian hết hạn phải sau thời gian hiển thị");
+                throw new InvalidOperationException("Thời gian hết hạn phải sau thời gian gửi");
         }
 
         private async Task ValidateTargetType(string targetType, int? targetRoleId, int? targetUserId, string? conditionJson)
@@ -305,17 +327,17 @@ namespace BLL.Services
             {
                 case "SingleUser":
                     if (!targetUserId.HasValue || targetUserId.Value <= 0)
-                        throw new InvalidOperationException("Phải chỉ định TargetUserId hợp lệ khi TargetType = SingleUser");
+                        throw new InvalidOperationException("Phải chỉ định người dùng khi chọn đối tượng 'Một người dùng'");
                     var user = await _accountRepo.GetByIdAsync(targetUserId.Value)
-                               ?? throw new InvalidOperationException($"User ID {targetUserId.Value} không tồn tại");
+                               ?? throw new InvalidOperationException($"Người dùng #{targetUserId.Value} không tồn tại");
                     _ = user;
                     break;
 
                 case "ByRole":
                     if (!targetRoleId.HasValue || targetRoleId.Value <= 0)
-                        throw new InvalidOperationException("Phải chỉ định TargetRoleId hợp lệ khi TargetType = ByRole");
+                        throw new InvalidOperationException("Phải chỉ định vai trò khi chọn đối tượng 'Theo vai trò'");
                     var role = await _roleRepo.GetByIdAsync(targetRoleId.Value)
-                               ?? throw new InvalidOperationException($"Role ID {targetRoleId.Value} không tồn tại");
+                               ?? throw new InvalidOperationException($"Vai trò #{targetRoleId.Value} không tồn tại");
                     _ = role;
                     break;
 

@@ -76,7 +76,7 @@
 								@if (User.IsInRole("Admin") || User.IsInRole("Staff"))
 								{
 									<li>
-										<a asp-controller="Admin" asp-action="Dashboard">
+										<a asp-controller="Statistics" asp-action="Dashboard">
 											<i class="fas fa-chart-line"></i> Thống Kê Doanh Thu
 										</a>
 									</li>
@@ -85,7 +85,7 @@
 								@if (User.IsInRole("Admin") || User.IsInRole("WareHouse"))
 								{
 									<li>
-										<a asp-controller="Product" asp-action="Statistics">
+										<a asp-controller="Statistics" asp-action="ProductStatistics">
 											<i class="fas fa-chart-bar"></i> Thống Kê Sản Phẩm
 										</a>
 									</li>
@@ -102,7 +102,7 @@
 							</a>
 							<ul class="cat-sub-menu">
 								<li>
-									<a asp-controller="Promotion" asp-action="Manage">Quản lý Khuyến Mãi</a>
+									<a asp-controller="Promotion" asp-action="Index">Quản lý Khuyến Mãi</a>
 
 								</li>
 								<li>
@@ -152,10 +152,10 @@
 							</a>
 							<ul class="cat-sub-menu">
 								<li>
-									<a asp-controller="AccountStaff" asp-action="Manage">Danh Sách Nhân Viên</a>
+									<a asp-controller="AccountStaff" asp-action="Index">Danh Sách Nhân Viên</a>
 								</li>
 								<li>
-									<a asp-controller="AccountCustomer" asp-action="Manage">Danh Sách Khách Hàng</a>
+									<a asp-controller="AccountCustomer" asp-action="Index">Danh Sách Khách Hàng</a>
 								</li>
 							</ul>
 						</li>
@@ -172,7 +172,7 @@
 									<a asp-controller="Order" asp-action="Manage">Quản lý đơn hàng</a>
 								</li>
 								<li>
-									<a asp-controller="OrderRefundAdmin" asp-action="Manage">Quản lý huỷ đơn hàng</a>
+									<a asp-controller="OrderRefundAdmin" asp-action="Index">Quản lý huỷ đơn hàng</a>
 								</li>
 							</ul>
 						</li>

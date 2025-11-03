@@ -26,12 +26,21 @@
     var sku = Model?.Sku ?? "—";
     var stock = Model?.StockQuantity ?? 0;
 
+    // Nếu product có promotion, tính giá giảm
+    decimal? originalPrice = null;
+    decimal? discountedPrice = null;
+    if (Model?.PromotionId != null && Model.PromotionDiscountPercent.HasValue && Model.PromotionDiscountPercent.Value > 0)
+    {
+        originalPrice = Model.Price;
+        discountedPrice = Model.Price * (1 - Model.PromotionDiscountPercent.Value / 100m);
+    }
     // Giả lập dữ liệu đánh giá (sẽ thay bằng API)
     var reviews = ViewBag.Reviews as List<ReviewProductDto> ?? new List<ReviewProductDto>();
     var avgRating = reviews.Any() ? Math.Round(reviews.Average(r => r.Rating), 1) : 0.0;
     var totalReviews = reviews.Count;
 }
 <link href="~/css/productDetail.css" rel="stylesheet" asp-append-version="true" />
+<link href="~/css/promotion-pricing.css" rel="stylesheet" asp-append-version="true" />
 
 <main class="container">
     <!-- Product Detail Section -->
@@ -81,7 +90,17 @@
             <!-- Price -->
             <div class="price-section">
                 <div class="price-display">
-                    <span class="price-current">@((Model?.Price ?? 0m).ToString("n0")) ₫</span>
+                    @if (discountedPrice.HasValue)
+                    {
+                        <span class="price-discounted">@discountedPrice!.Value.ToString("n0") ₫</span>
+                        <span class="price-original"><del>@originalPrice!.Value.ToString("n0") ₫</del></span>
+                        var discount = (int)Math.Round(Model!.PromotionDiscountPercent!.Value);
+                        <span class="discount-badge">-@discount% </span>
+                    }
+                    else
+                    {
+                        <span class="price-current">@((Model?.Price ?? 0m).ToString("n0")) ₫</span>
+                    }
                 </div>
             </div>
 

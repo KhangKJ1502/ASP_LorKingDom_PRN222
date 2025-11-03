@@ -20,6 +20,8 @@
 	  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
 	  crossorigin="anonymous" referrerpolicy="no-referrer">
 <link rel="stylesheet" href="~/css/wishlist.css" asp-append-version="true" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <div class="offcanvas offcanvas-end wishlist-canvas" tabindex="-1" style="width:800px"
 	 id="wishlistOffcanvas" aria-labelledby="wishlistTitle">
@@ -96,7 +98,12 @@
 					wlCount.textContent = wlList.querySelectorAll('.wl-card').length;
 					attachWishlistEvents(); // re-bind events
 				} catch {
-					alert('Không thể tải danh sách yêu thích.');
+					Swal.fire({
+						icon: 'error',
+						title: 'Lỗi!',
+						text: 'Không thể tải danh sách yêu thích.',
+						confirmButtonColor: '#667eea'
+					});
 				}
 			});
 		}
@@ -113,8 +120,21 @@
 					if (resp.ok) {
 						btn.closest('.wl-card').remove();
 						wlCount.textContent = wlList.querySelectorAll('.wl-card').length;
+						Swal.fire({
+							icon: 'success',
+							title: 'Đã xóa!',
+							text: 'Sản phẩm đã được xóa khỏi danh sách yêu thích.',
+							confirmButtonColor: '#667eea',
+							timer: 2000,
+							timerProgressBar: true
+						});
 					} else {
-						alert('Không thể xóa sản phẩm.');
+						Swal.fire({
+							icon: 'error',
+							title: 'Lỗi!',
+							text: 'Không thể xóa sản phẩm.',
+							confirmButtonColor: '#667eea'
+						});
 					}
 				});
 			});
@@ -124,12 +144,39 @@
 		const clearAll = document.getElementById('wl-clear-all');
 		if (clearAll) {
 			clearAll.addEventListener('click', async () => {
-				const resp = await fetch('/Wishlist/Clear', { method: 'POST' });
-				if (resp.ok) {
-					wlList.innerHTML = '<div class="text-muted mx-3">Danh sách yêu thích của bạn đang trống.</div>';
-					wlCount.textContent = 0;
-				} else {
-					alert('Không thể xóa danh sách.');
+				const result = await Swal.fire({
+					icon: 'warning',
+					title: 'Xóa tất cả?',
+					text: 'Bạn có chắc muốn xóa tất cả sản phẩm trong danh sách yêu thích?',
+					showCancelButton: true,
+					confirmButtonColor: '#667eea',
+					cancelButtonColor: '#6c757d',
+					confirmButtonText: 'Xóa tất cả',
+					cancelButtonText: 'Hủy',
+					reverseButtons: true
+				});
+
+				if (result.isConfirmed) {
+					const resp = await fetch('/Wishlist/Clear', { method: 'POST' });
+					if (resp.ok) {
+						wlList.innerHTML = '<div class="text-muted mx-3">Danh sách yêu thích của bạn đang trống.</div>';
+						wlCount.textContent = 0;
+						Swal.fire({
+							icon: 'success',
+							title: 'Đã xóa!',
+							text: 'Đã xóa tất cả sản phẩm khỏi danh sách yêu thích.',
+							confirmButtonColor: '#667eea',
+							timer: 2000,
+							timerProgressBar: true
+						});
+					} else {
+						Swal.fire({
+							icon: 'error',
+							title: 'Lỗi!',
+							text: 'Không thể xóa danh sách.',
+							confirmButtonColor: '#667eea'
+						});
+					}
 				}
 			});
 		}

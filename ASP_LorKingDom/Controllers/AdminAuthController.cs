@@ -68,28 +68,28 @@ namespace WebUI.Controllers
                         ExpiresUtc = rememberMe ? DateTimeOffset.UtcNow.AddDays(7) : null
                     });
 
-                // Redirect dựa trên role
-                string redirectUrl;
-                if (!string.IsNullOrEmpty(returnUrl))
+                // Phân quyền redirect theo role
+                string defaultRedirect;
+                if (roleName == "Warehouse"|| roleName == "Admin")
                 {
-                    redirectUrl = returnUrl;
+                    // Warehouse chỉ xem được Product Statistics
+                    defaultRedirect = "/Statistics/ProductStatistics";
                 }
-                else if (roleName == "WareHouse")
+                else if (roleName == "Staff" || roleName == "Admin")
                 {
-                    // Warehouse không được xem Dashboard, redirect đến Product Management
-                    redirectUrl = "/Product/Manage";
+                    // Admin và Staff xem được Dashboard
+                    defaultRedirect = "/Statistics/Dashboard";
                 }
                 else
                 {
-                    // Admin và Staff xem Dashboard
-                    redirectUrl = "/Admin/Dashboard";
+                    defaultRedirect = "/Statistics/Dashboard";
                 }
 
                 return Json(new
                 {
                     success = true,
                     message = $"Đăng nhập thành công! Chào mừng {roleName}.",
-                    redirectUrl = redirectUrl
+                    redirectUrl = returnUrl ?? defaultRedirect
                 });
             }
             catch (Exception ex)

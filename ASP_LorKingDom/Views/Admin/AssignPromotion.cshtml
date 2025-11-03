@@ -1,0 +1,67 @@
+@model BLL.DTOs.ProductDto
+@{
+    var promotions = ViewBag.Promotions as List<BLL.DTOs.PromotionDto> ?? new List<BLL.DTOs.PromotionDto>();
+}
+<link href="~/css/admin-promotion.css" rel="stylesheet" asp-append-version="true" />
+
+<div class="admin-promotion-page">
+    <div class="promotion-page-header">
+        <h2>🎯 Gán Khuyến Mãi Cho Sản Phẩm</h2>
+        <p>Chọn chương trình khuyến mãi để áp dụng cho sản phẩm này</p>
+    </div>
+
+    @if (TempData["Error"] != null)
+    {
+        <div style="background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); border: 2px solid #ef4444; border-radius: 12px; padding: 16px 20px; margin-bottom: 24px; color: #991b1b; font-weight: 600;">
+            ⚠️ @TempData["Error"]
+        </div>
+    }
+
+    <div class="product-info-card">
+        <h4>@Model.ProductName</h4>
+        <p><strong>SKU:</strong> <span style="font-family: monospace; background: #f1f5f9; padding: 4px 8px; border-radius: 6px;">@Model.Sku</span></p>
+        <div class="product-price-display">
+            Giá hiện tại: @Model.Price.ToString("N0") ₫
+        </div>
+        @if (Model.PromotionId != null && !string.IsNullOrEmpty(Model.PromotionCode))
+        {
+            <div class="promotion-info-banner" style="margin-top: 16px;">
+                <strong>Đang áp dụng:</strong> @Model.PromotionCode (@Model.PromotionDiscountPercent% giảm)
+            </div>
+        }
+    </div>
+
+    <div class="promotion-form-container">
+        <form asp-action="AssignPromotion" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="productId" value="@Model.Id" />
+            
+            <div class="promotion-form-group">
+                <label for="promotionId">Chương trình khuyến mãi</label>
+                <select id="promotionId" name="promotionId" class="promotion-select">
+                    <option value="">-- Không gán khuyến mãi --</option>
+                    @foreach (var p in promotions)
+                    {
+                        if (Model.PromotionId == p.PromotionId)
+                        {
+                            <option value="@p.PromotionId" selected="selected">
+                                @p.PromotionCode - @p.Description (@(p.DiscountPercent ?? 0)% OFF)
+                            </option>
+                        }
+                        else
+                        {
+                            <option value="@p.PromotionId">
+                                @p.PromotionCode - @p.Description (@(p.DiscountPercent ?? 0)% OFF)
+                            </option>
+                        }
+                    }
+                </select>
+            </div>
+            
+            <div class="btn-group-actions">
+                <button type="submit" class="btn-promotion btn-promotion-primary">Lưu thay đổi</button>
+                <a href="@Url.Action("Manage", "Product")" class="btn-promotion btn-promotion-secondary">Quay lại</a>
+            </div>
+        </form>
+    </div>
+</div>

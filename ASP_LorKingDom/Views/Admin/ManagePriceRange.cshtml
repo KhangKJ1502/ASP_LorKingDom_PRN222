@@ -4,44 +4,7 @@
 	ViewData["Title"] = "Quản Lý Khoảng Giá";
 	var q = (string?)ViewBag.Query ?? "";
 }
-<style>
-	/* Tạo viền đen cho ô tìm kiếm */
-	.search-box .form-control {
-		border: 1px solid #000 !important;
-		box-shadow: none !important;
-	}
-
-	.search-box .btn {
-		border: 1px solid #000 !important;
-		border-left: none !important;
-	}
-
-	.toast-top-right {
-		top: 120px !important;
-		right: 24px !important;
-		left: auto !important;
-		bottom: auto !important;
-	}
-
-	#liveToast.toast {
-		min-width: 520px;
-		padding: 1rem 1.25rem;
-		border-radius: 12px;
-		box-shadow: 0 8px 24px rgba(0,0,0,.18);
-	}
-
-	#liveToast .toast-body {
-		font-size: 1.1rem;
-		font-weight: 600;
-		word-break: break-word;
-	}
-
-	.deleted-row {
-		opacity: .6;
-		background: #f8f9fa;
-	}
-</style>
-
+<link rel="stylesheet" href="~/css/MPriceRange.css" asp-append-version="true" />
 <div class="container-fluid px-5">
 	<h1 class="mt-4">Quản Lý Khoảng Giá</h1>
 

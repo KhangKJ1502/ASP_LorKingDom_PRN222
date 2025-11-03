@@ -4,45 +4,7 @@
     ViewData["Title"] = "Quản Lí Thương Hiệu";
     var q = (string?)ViewBag.Query ?? "";
 }
-<style>
-    /* Tạo viền đen cho ô tìm kiếm */
-    .search-box .form-control {
-        border: 1px solid #000 !important; /* viền đen */
-        box-shadow: none !important; /* bỏ hiệu ứng sáng */
-    }
-
-    /* Giữ độ cao đồng đều */
-    .search-box .btn {
-        border: 1px solid #000 !important;
-        border-left: none !important; /* loại viền giữa input và button */
-    }
-
-    .toast-top-right {
-        top: 120px !important; /* chỉnh số px bạn muốn */
-        right: 24px !important;
-        left: auto !important;
-        bottom: auto !important;
-    }
-
-    #liveToast.toast {
-        min-width: 520px; /* tăng chiều ngang tối thiểu */
-        padding: 1rem 1.25rem; /* dày dặn hơn */
-        border-radius: 12px;
-        box-shadow: 0 8px 24px rgba(0,0,0,.18);
-    }
-
-    #liveToast .toast-body {
-        font-size: 1.1rem;
-        font-weight: 600;
-        word-break: break-word; /* xuống dòng gọn khi quá dài */
-    }
-
-    .deleted-row {
-        opacity: 0.6;
-        background: #f8f9fa;
-    }
-</style>
-
+<link rel="stylesheet" href="~/css/MBrand.css" asp-append-version="true" />
 <div class="container-fluid px-5">
     <h1 class="mt-4">Quản Lí Thương Hiệu</h1>
 

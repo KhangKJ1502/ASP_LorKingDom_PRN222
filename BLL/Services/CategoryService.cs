@@ -44,7 +44,13 @@ public class CategoryService : ICategoryService
             ?? throw new InvalidOperationException("Nhóm danh mục tổng không tồn tại.");
         if (!isDeleted && super.IsDeleted)
             throw new InvalidOperationException("Không thể tạo danh mục hoạt động vì Nhóm danh mục tổng đang không hoạt động.");
-
+        var dto = new CategoryDto
+        {
+            SuperCategoryId = superCategoryId,
+            Name = (name ?? string.Empty).Trim(),
+            IsDeleted = isDeleted
+        };
+        CategoryValidator.Validate(dto);
         // optional: validate superCategoryId tồn tại
         var entity = new Category
         {

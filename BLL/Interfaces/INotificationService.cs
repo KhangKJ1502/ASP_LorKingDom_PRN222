@@ -11,7 +11,7 @@ namespace BLL.Interfaces
 
         Task<NotificationDto> CreateAsync(NotificationCreateDto dto);
         Task UpdateAsync(NotificationUpdateDto dto);
-        Task DeleteAsync(int id);
+        Task<bool> DeleteAsync(int id);
 
         Task CancelAsync(int id);
         Task SendNowAsync(int id);

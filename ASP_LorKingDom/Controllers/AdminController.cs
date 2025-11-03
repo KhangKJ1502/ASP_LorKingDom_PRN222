@@ -10,21 +10,10 @@ namespace ASP_LorKingDom.Controllers
     public class AdminController : Controller
     {
         private readonly IAccountService _accountService;
-        private readonly IStatisticsService _statisticsService;
 
-        public AdminController(IAccountService accountService, IStatisticsService statisticsService)
+        public AdminController(IAccountService accountService)
         {
             _accountService = accountService;
-            _statisticsService = statisticsService;
-        }
-
-        // Admin và Staff được xem Dashboard (doanh thu), Warehouse không được xem
-        [HttpGet]
-        [AdminAndStaffOnly]
-        public async Task<IActionResult> Dashboard()
-        {
-            var stats = await _statisticsService.GetDashboardStatisticsAsync();
-            return View(stats);
         }
 
         [HttpGet]

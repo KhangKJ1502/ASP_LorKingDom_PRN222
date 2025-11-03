@@ -17,7 +17,9 @@ builder.Configuration
     .AddUserSecrets<Program>(optional: true)
     .AddEnvironmentVariables();
 
+// Background Workers
 builder.Services.AddHostedService<NotificationWorkerService>();
+builder.Services.AddHostedService<WebUI.Workers.PromotionWorkerService>();
 
 var conn = builder.Configuration.GetConnectionString("DefaultConnection")
            ?? throw new InvalidOperationException("Missing ConnectionStrings:DefaultConnection");

@@ -15,201 +15,9 @@
     if (totalPages < 1) totalPages = 1;
 }
 
-<style>
-    .search-box .form-control {
-        border: 1px solid #000 !important;
-        box-shadow: none !important;
-    }
-
-    .search-box .btn {
-        border: 1px solid #000 !important;
-        border-left: none !important;
-    }
-
-    .toast-top-right {
-        top: 120px !important;
-        right: 24px !important;
-        left: auto !important;
-        bottom: auto !important;
-    }
-
-    #liveToast.toast {
-        min-width: 520px;
-        padding: 1rem 1.25rem;
-        border-radius: 12px;
-        box-shadow: 0 8px 24px rgba(0,0,0,.18);
-    }
-
-    #liveToast .toast-body {
-        font-size: 1.1rem;
-        font-weight: 600;
-        word-break: break-word;
-    }
-
-    .deleted-row {
-        opacity: .6;
-        background: #f8f9fa;
-    }
-
-    /* Custom Modal Styling */
-    #customerModal .modal-content {
-        border: none;
-        border-radius: 16px;
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-    }
-
-    #customerModal .modal-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border-radius: 16px 16px 0 0;
-        padding: 1.5rem;
-        border: none;
-    }
-
-    #customerModal .modal-title {
-        font-weight: 600;
-        font-size: 1.25rem;
-    }
-
-    #customerModal .btn-close {
-        filter: brightness(0) invert(1);
-        opacity: 0.8;
-    }
-
-        #customerModal .btn-close:hover {
-            opacity: 1;
-        }
-
-    #customerModal .modal-body {
-        padding: 2rem;
-        background-color: #f8f9fa;
-    }
-
-    #customerModal .form-label {
-        font-weight: 500;
-        color: #495057;
-        margin-bottom: 0.5rem;
-        font-size: 0.9rem;
-    }
-
-    #customerModal .form-control,
-    #customerModal .form-select {
-        border: 2px solid #e9ecef;
-        border-radius: 8px;
-        padding: 0.65rem 0.875rem;
-        transition: all 0.3s ease;
-        background-color: white;
-    }
-
-        #customerModal .form-control:focus,
-        #customerModal .form-select:focus {
-            border-color: #667eea;
-            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.15);
-        }
-
-        #customerModal .form-control:disabled {
-            background-color: #e9ecef;
-            color: #6c757d;
-        }
-
-    #customerModal .text-danger {
-        color: #dc3545;
-    }
-
-    #customerModal .modal-footer {
-        border-top: 1px solid #e9ecef;
-        padding: 1.25rem 2rem;
-        background-color: white;
-        border-radius: 0 0 16px 16px;
-    }
-
-    #customerModal .btn {
-        padding: 0.625rem 1.5rem;
-        border-radius: 8px;
-        font-weight: 500;
-        transition: all 0.3s ease;
-    }
-
-    #customerModal .btn-primary {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border: none;
-    }
-
-        #customerModal .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-        }
-
-    #customerModal .btn-outline-secondary {
-        border: 2px solid #6c757d;
-        color: #6c757d;
-    }
-
-        #customerModal .btn-outline-secondary:hover {
-            background-color: #6c757d;
-            color: white;
-        }
-
-    #customerModal .form-text {
-        font-size: 0.85rem;
-        color: #6c757d;
-        margin-top: 0.25rem;
-    }
-
-    #customerModal .info-box {
-        background-color: #e7f3ff;
-        border-left: 4px solid #667eea;
-        padding: 0.75rem 1rem;
-        border-radius: 6px;
-        margin-top: 1rem;
-    }
-
-    #customerModal .avatar-preview {
-        width: 100px;
-        height: 100px;
-        border-radius: 50%;
-        border: 3px solid #667eea;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    }
-
-    #customerModal .avatar-placeholder {
-        width: 100px;
-        height: 100px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-size: 2.5rem;
-        font-weight: 700;
-        border: 3px solid #667eea;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    }
-
-    /* Table Avatar */
-    .customer-avatar {
-        width: 45px;
-        height: 45px;
-        border-radius: 50%;
-        object-fit: cover;
-        border: 2px solid #e9ecef;
-    }
-
-    .avatar-placeholder-small {
-        width: 45px;
-        height: 45px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-weight: 600;
-        font-size: 1rem;
-        border: 2px solid #e9ecef;
-    }
-</style>
+<link rel="stylesheet" href="~/css/admin-customer.css" asp-append-version="true" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <div class="container-fluid px-5">
     <h1 class="mt-4">Quản Lý Khách Hàng</h1>
@@ -256,11 +64,17 @@
 
             @if (TempData["Error"] is string e)
             {
-                <div class="alert alert-danger">@e</div>
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="fa-solid fa-circle-exclamation me-2"></i>@e
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
             }
             @if (TempData["Success"] is string s)
             {
-                <div class="alert alert-success">@s</div>
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="fa-solid fa-circle-check me-2"></i>@s
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
             }
 
             <div class="table-responsive">
@@ -291,6 +105,33 @@
                                            asp-route-id="@customer.Id" asp-route-q="@query" asp-route-pageSize="@pageSize">
                                             <i class="fa-solid fa-pen-to-square"></i>
                                         </a>
+                                        
+                                        @if (!customer.IsDeleted)
+                                        {
+                                            <form method="post" asp-action="BlockAccount" asp-controller="AccountCustomer" 
+                                                  style="display:inline;" onsubmit="return confirmBlockCustomer(event);">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@customer.Id" />
+                                                <input type="hidden" name="q" value="@query" />
+                                                <input type="hidden" name="pageSize" value="@pageSize" />
+                                                <button type="submit" class="btn btn-sm btn-danger" title="Vô hiệu hóa">
+                                                    <i class="fa-solid fa-ban"></i>
+                                                </button>
+                                            </form>
+                                        }
+                                        else
+                                        {
+                                            <form method="post" asp-action="UnblockAccount" asp-controller="AccountCustomer" 
+                                                  style="display:inline;" onsubmit="return confirmUnblockCustomer(event);">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@customer.Id" />
+                                                <input type="hidden" name="q" value="@query" />
+                                                <input type="hidden" name="pageSize" value="@pageSize" />
+                                                <button type="submit" class="btn btn-sm btn-success" title="Khôi phục">
+                                                    <i class="fa-solid fa-rotate-left"></i>
+                                                </button>
+                                            </form>
+                                        }
                                     </td>
                                     <td>
                                         @if (!string.IsNullOrEmpty(customer.Image))
@@ -448,17 +289,17 @@
 <div class="modal fade" id="customerModal" tabindex="-1" aria-labelledby="customerModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 id="customerModalLabel" class="modal-title">
+            <div class="modal-header bg-gradient">
+                <h5 id="customerModalLabel" class="modal-title text-white">
                     <i class="fa-solid fa-user-pen me-2"></i>
                     Cập nhật thông tin khách hàng
                 </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="closeModal()"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
 
             <form method="post" asp-action="SaveCustomer" asp-controller="AccountCustomer" id="customerForm">
                 @Html.AntiForgeryToken()
-                <div class="modal-body">
+                <div class="modal-body" style="background: #f8fafc;">
                     <input type="hidden" name="Id" id="customerId" value="@(edit?.Id ?? 0)" />
                     <input type="hidden" name="q" value="@query" />
                     <input type="hidden" name="pageSize" value="@pageSize" />
@@ -470,11 +311,11 @@
                             <div class="col-12 text-center mb-3">
                                 @if (!string.IsNullOrEmpty(edit.Image))
                                 {
-                                    <img src="@edit.Image" alt="Avatar" class="avatar-preview" />
+                                    <img src="@edit.Image" alt="Avatar" class="avatar-preview" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 4px solid #667eea; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);" />
                                 }
                                 else
                                 {
-                                    <div class="avatar-placeholder">
+                                    <div class="avatar-placeholder" style="width: 120px; height: 120px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; display: inline-flex; align-items: center; justify-content: center; font-size: 3rem; font-weight: bold; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);">
                                         @(edit.AccountName?.Substring(0, 1).ToUpper() ?? "U")
                                     </div>
                                 }
@@ -482,46 +323,70 @@
                         }
 
                         <div class="col-lg-6">
-                            <label class="form-label">
-                                <i class="fa-solid fa-user me-1"></i>
+                            <label class="form-label fw-bold">
+                                <i class="fa-solid fa-user me-1 text-primary"></i>
                                 Tên khách hàng <span class="text-danger">*</span>
                             </label>
-                            <input type="text" class="form-control" name="AccountName" id="accountName"
+                            <input type="text" class="form-control form-control-lg" name="AccountName" id="accountName"
                                    value="@(edit?.AccountName ?? "")" placeholder="Nhập tên khách hàng" required />
                         </div>
 
                         <div class="col-lg-6">
-                            <label class="form-label">
-                                <i class="fa-solid fa-phone me-1"></i>
+                            <label class="form-label fw-bold">
+                                <i class="fa-solid fa-phone me-1 text-primary"></i>
                                 Số điện thoại
                             </label>
-                            <input type="text" class="form-control" name="PhoneNumber" id="phoneNumber"
+                            <input type="text" class="form-control form-control-lg" name="PhoneNumber" id="phoneNumber"
                                    value="@(edit?.PhoneNumber ?? "")" placeholder="Nhập số điện thoại" />
                         </div>
 
+                        <!-- Divider -->
+                        <div class="col-12">
+                            <hr class="my-2">
+                            <h6 class="text-primary mb-3">
+                                <i class="fa-solid fa-info-circle me-2"></i>
+                                Thông tin hệ thống
+                            </h6>
+                        </div>
+
                         <div class="col-lg-6">
-                            <label class="form-label">
-                                <i class="fa-solid fa-envelope me-1"></i>
+                            <label class="form-label fw-bold">
+                                <i class="fa-solid fa-envelope me-1 text-primary"></i>
                                 Email
                             </label>
-                            <input type="email" class="form-control" value="@(edit?.Email ?? "")" disabled />
-                            <small class="form-text">
-                                <i class="fa-solid fa-info-circle me-1"></i>Email không thể thay đổi
+                            <input type="email" class="form-control" value="@(edit?.Email ?? "")" disabled style="background-color: #f1f5f9; cursor: not-allowed;" />
+                            <small class="text-muted d-block mt-1">
+                                <i class="fa-solid fa-lock me-1"></i>Email không thể thay đổi
                             </small>
                         </div>
 
                         <div class="col-lg-6">
-                            <label class="form-label">
-                                <i class="fa-solid fa-right-to-bracket me-1"></i>
+                            <label class="form-label fw-bold">
+                                <i class="fa-solid fa-right-to-bracket me-1 text-primary"></i>
                                 Phương thức đăng nhập
                             </label>
-                            <input type="text" class="form-control" value="@(edit?.Provider ?? "Local")" disabled />
+                            @{
+                                var providerBadge = edit?.Provider switch
+                                {
+                                    "Google" => "<span class='badge bg-danger fs-6'><i class='fa-brands fa-google me-1'></i>Google</span>",
+                                    "Facebook" => "<span class='badge bg-info fs-6'><i class='fa-brands fa-facebook me-1'></i>Facebook</span>",
+                                    _ => "<span class='badge bg-secondary fs-6'><i class='fa-solid fa-user me-1'></i>Local</span>"
+                                };
+                            }
+                            <div class="form-control" style="background-color: #f1f5f9; cursor: not-allowed; border: none; padding: 0.5rem;">
+                                @Html.Raw(providerBadge)
+                            </div>
+                        </div>
+
+                        <!-- Divider -->
+                        <div class="col-12">
+                            <hr class="my-2">
                         </div>
 
                         <div class="col-lg-12">
-                            <label class="form-label">
-                                <i class="fa-solid fa-toggle-on me-1"></i>
-                                Trạng thái <span class="text-danger">*</span>
+                            <label class="form-label fw-bold">
+                                <i class="fa-solid fa-toggle-on me-1 text-primary"></i>
+                                Trạng thái tài khoản <span class="text-danger">*</span>
                             </label>
                             <input type="hidden" name="Status" id="status" value="@(edit?.Status ?? "Hoạt Động")" />
                             <input type="hidden" name="IsDeleted" id="isDeleted" value="@((edit?.IsDeleted ?? false).ToString().ToLower())" />
@@ -537,22 +402,27 @@
                                        checked="@((edit?.IsDeleted ?? false) ? "checked" : null)"
                                        onchange="updateStatus(true)" autocomplete="off">
                                 <label class="btn btn-outline-danger" for="statusInactive">
-                                    <i class="fa-solid fa-ban me-1"></i>Vô hiệu
+                                    <i class="fa-solid fa-ban me-1"></i>Vô hiệu hóa
                                 </label>
                             </div>
+                            <small class="text-muted d-block mt-2">
+                                <i class="fa-solid fa-info-circle me-1"></i>
+                                Tài khoản bị vô hiệu sẽ không thể đăng nhập vào hệ thống
+                            </small>
                         </div>
 
                         @if (edit != null)
                         {
                             <div class="col-12">
-                                <div class="info-box">
+                                <hr class="my-2">
+                                <div style="background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%); border-radius: 12px; padding: 16px; border-left: 4px solid #667eea;">
                                     <div class="text-muted small">
-                                        <i class="fa-regular fa-clock me-1"></i>
+                                        <i class="fa-regular fa-clock me-2 text-primary"></i>
                                         <strong>Ngày tạo:</strong> @(edit.CreatedAt.ToString("dd/MM/yyyy HH:mm"))
                                         @if (edit.UpdatedAt != null)
                                         {
                                             <span class="ms-3">
-                                                <i class="fa-solid fa-rotate me-1"></i>
+                                                <i class="fa-solid fa-rotate me-2 text-primary"></i>
                                                 <strong>Cập nhật:</strong> @edit.UpdatedAt?.ToString("dd/MM/yyyy HH:mm")
                                             </span>
                                         }
@@ -563,13 +433,13 @@
                     </div>
                 </div>
 
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" onclick="closeModal()">
-                        <i class="fa-solid fa-xmark me-1"></i>
+                <div class="modal-footer" style="background: #f8fafc;">
+                    <button type="button" class="btn btn-outline-secondary btn-lg" data-bs-dismiss="modal">
+                        <i class="fa-solid fa-xmark me-2"></i>
                         Hủy
                     </button>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fa-solid fa-floppy-disk me-1"></i>
+                    <button type="submit" class="btn btn-lg" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none;">
+                        <i class="fa-solid fa-save me-2"></i>
                         Lưu thay đổi
                     </button>
                 </div>
@@ -578,18 +448,7 @@
     </div>
 </div>
 
-<!-- Toast Notification -->
-<div class="toast-container position-fixed p-3 toast-top-right" style="z-index:2080;">
-    <div id="liveToast" class="toast align-items-center text-bg-danger border-0" role="alert" aria-live="assertive" aria-atomic="true">
-        <div class="d-flex">
-            <div class="toast-body fs-5 fw-semibold">
-                <i class="fa-solid fa-circle-exclamation me-2"></i>
-                @ViewBag.ErrorMessage
-            </div>
-            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Đóng"></button>
-        </div>
-    </div>
-</div>
+
 
 <!-- Font Awesome 6 -->
 <link rel="stylesheet"
@@ -612,16 +471,77 @@
             window.location.href = '@Url.Action("Index", "AccountCustomer")' + '?page=1&pageSize=' + newPageSize;
           }
         }
+        
+        // Clean up empty fields before submit
+        document.getElementById('customerForm')?.addEventListener('submit', function(e) {
+            const phoneInput = document.getElementById('phoneNumber');
+            if (phoneInput && !phoneInput.value.trim()) {
+                phoneInput.removeAttribute('name'); // Don't send empty phone
+            }
+        });
+        
+        // Toast Helper
+        function showToast(msg, isError) {
+            Swal.fire({
+                icon: isError ? 'error' : 'success',
+                title: isError ? 'Lỗi!' : 'Thành công!',
+                text: msg,
+                confirmButtonColor: '#667eea',
+                timer: 3000,
+                timerProgressBar: true
+            });
+        }
+        
+        // Confirm Block Customer
+        async function confirmBlockCustomer(event) {
+            event.preventDefault();
+            
+            const result = await Swal.fire({
+                icon: 'warning',
+                title: 'Vô hiệu hóa khách hàng?',
+                text: 'Khách hàng sẽ không thể đăng nhập vào hệ thống.',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: '<i class="fa-solid fa-ban me-1"></i> Vô hiệu hóa',
+                cancelButtonText: 'Hủy',
+                reverseButtons: true
+            });
+
+            if (result.isConfirmed) {
+                event.target.submit();
+            }
+            return false;
+        }
+        
+        // Confirm Unblock Customer
+        async function confirmUnblockCustomer(event) {
+            event.preventDefault();
+            
+            const result = await Swal.fire({
+                icon: 'question',
+                title: 'Khôi phục khách hàng?',
+                text: 'Khách hàng sẽ có thể đăng nhập trở lại.',
+                showCancelButton: true,
+                confirmButtonColor: '#22c55e',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: '<i class="fa-solid fa-check-circle me-1"></i> Khôi phục',
+                cancelButtonText: 'Hủy',
+                reverseButtons: true
+            });
+
+            if (result.isConfirmed) {
+                event.target.submit();
+            }
+            return false;
+        }
 
         document.addEventListener('DOMContentLoaded', function () {
-            // Hiển thị toast nếu có lỗi
-            const hasError = '@(ViewBag.ShowErrorModal == true ? "true" : "false")';
-            if (hasError === "true") {
-                const toastEl = document.getElementById('liveToast');
-                if (toastEl) {
-                    const toast = new bootstrap.Toast(toastEl, { delay: 5000 });
-                    toast.show();
-                }
+            // Show error message if any
+            const hasError = '@((ViewBag.ShowErrorModal == true) ? "true" : "false")';
+            if (hasError === 'true') {
+                const msg = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.ErrorMessage ?? ""));
+                if (msg) showToast(msg, true);
             }
 
             // Hiển thị modal nếu cần
@@ -630,17 +550,17 @@
                 const modalEl = document.getElementById('customerModal');
                 if (modalEl) new bootstrap.Modal(modalEl).show();
             }
-        });
-
-        function closeModal() {
-            const query = '@Html.Raw(query ?? "")';
-            const pageSize = @pageSize;
             
-            if (query) {
-                window.location.href = '@Url.Action("Search", "AccountCustomer")' + '?q=' + encodeURIComponent(query) + '&pageSize=' + pageSize;
-            } else {
-                window.location.href = '@Url.Action("Index", "AccountCustomer")' + '?pageSize=' + pageSize;
-            }
-        }
+            // Add animation to form inputs
+            document.querySelectorAll('.form-control, .form-control-lg').forEach(input => {
+                input.addEventListener('focus', function() {
+                    this.style.transform = 'translateY(-2px)';
+                    this.style.transition = 'all 0.3s ease';
+                });
+                input.addEventListener('blur', function() {
+                    this.style.transform = 'translateY(0)';
+                });
+            });
+        });
     </script>
 }
