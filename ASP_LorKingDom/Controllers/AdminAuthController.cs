@@ -19,6 +19,21 @@ namespace WebUI.Controllers
             _emailOtpService = emailOtpService;
         }
 
+        /// <summary>
+        /// Redirect admin login sang RazorUI project
+        /// </summary>
+        [HttpGet]
+        public IActionResult RedirectToRazorUI(string? returnUrl = null)
+        {
+            // Encode returnUrl để pass qua RazorUI
+            var encodedReturnUrl = string.IsNullOrEmpty(returnUrl)
+                ? ""
+                : $"?returnUrl={Uri.EscapeDataString(returnUrl)}";
+
+            var razorUILoginUrl = $"https://localhost:7226/AdminAuth/Login{encodedReturnUrl}";
+            return Redirect(razorUILoginUrl);
+        }
+
         [HttpGet]
         public IActionResult Login(string? returnUrl = null)
         {
@@ -70,7 +85,7 @@ namespace WebUI.Controllers
 
                 // Phân quyền redirect theo role
                 string defaultRedirect;
-                if (roleName == "Warehouse"|| roleName == "Admin")
+                if (roleName == "Warehouse" || roleName == "Admin")
                 {
                     // Warehouse chỉ xem được Product Statistics
                     defaultRedirect = "/Statistics/ProductStatistics";
@@ -104,12 +119,19 @@ namespace WebUI.Controllers
         public async Task<IActionResult> Logout()
         {
             await HttpContext.SignOutAsync("AdminScheme");
-            return RedirectToAction("Login");
+            return RedirectToAction("RedirectToRazorUI"); // Login
         }
 
         [HttpGet]
-        public IActionResult AccessDenied()
+        public async Task<IActionResult> AccessDeniedAsync()
         {
+            string? role = "";
+
+            var adminAuth = await HttpContext.AuthenticateAsync("AdminScheme");
+            if (adminAuth.Succeeded)
+                role = adminAuth.Principal?.FindFirst(ClaimTypes.Role)?.Value;
+
+            ViewBag.Role = role;
             return View();
         }
 

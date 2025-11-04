@@ -1,24 +1,18 @@
-﻿using System;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using BLL.DTOs;
+using BLL.Interfaces;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using BLL.DTOs;
-using BLL.Interfaces;
 using WebUI.Filters;
 
 
 namespace WebUI.Controllers
 {
-    //[Authorize(AuthenticationSchemes = "AdminScheme")]
-    //[AdminAndWarehouseOnly] // Warehouse: Product Management
+    [Authorize(AuthenticationSchemes = "AdminScheme")]
+    [AdminAndWarehouseOnly] // Warehouse: Product Management
     public class ProductController : Controller
     {
-    private readonly IProductService _productSvc;
+        private readonly IProductService _productSvc;
         private readonly ICategoryService _categorySvc;
         private readonly ISexService _sexSvc;
         private readonly IPriceRangeService _priceRangeSvc;
@@ -27,7 +21,7 @@ namespace WebUI.Controllers
         private readonly IMaterialService _materialSvc;
         private readonly IOriginService _originSvc;
         private readonly IStatisticsService _statisticsService;
-    private readonly IPromotionService _promotionSvc;
+        private readonly IPromotionService _promotionSvc;
 
 
         private readonly IProductImageService _imageSvc;

@@ -13,7 +13,7 @@ namespace ASP_LorKingDom.Controllers
         private readonly ILogger<HomeController> _logger;
         private readonly IProductService _productSvc;
         private readonly IWishlistService _wishlistSvc;
-        private readonly IReviewProductService _reviewSvc; 
+        private readonly IReviewProductService _reviewSvc;
         private readonly IAccountService _accountService;
         private readonly IAddressService _addressService;
 
@@ -30,7 +30,7 @@ namespace ASP_LorKingDom.Controllers
             _wishlistSvc = wishlistSvc;
             _accountService = accountService;
             _addressService = addressService;
-            _reviewSvc = reviewSvc; 
+            _reviewSvc = reviewSvc;
         }
 
         // ===== helpers =====
@@ -96,7 +96,7 @@ namespace ASP_LorKingDom.Controllers
             var model = await BuildPagedModelAsync(q, page, pageSize);
             return PartialView("_ProductGridPartial", model);
         }
-      
+
         public async Task<IActionResult> ProductDetails(int id)
         {
             var dto = await _productSvc.GetByIdAsync(id);
@@ -145,13 +145,20 @@ namespace ASP_LorKingDom.Controllers
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 if (string.IsNullOrEmpty(userId))
+                {
+                    _logger.LogWarning("ProfileOverview: No user ID found in claims");
                     return Unauthorized();
+                }
 
                 var account = await _accountService.GetByIdAsync(int.Parse(userId));
                 if (account == null)
+                {
+                    _logger.LogWarning("ProfileOverview: Account not found for user ID {UserId}", userId);
                     return NotFound();
+                }
 
-                return PartialView("_ProfileOverview", account);
+                _logger.LogInformation("ProfileOverview: Loading for user {UserId}", userId);
+                return PartialView("~/Views/Home/_ProfileOverview.cshtml", account);
             }
             catch (Exception ex)
             {

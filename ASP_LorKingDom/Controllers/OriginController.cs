@@ -5,8 +5,8 @@ using WebUI.Filters;
 
 namespace WebUI.Controllers
 {
-    //[Authorize(AuthenticationSchemes = "AdminScheme")]
-    //[AdminAndWarehouseOnly] // Warehouse: Origin Management
+    [Authorize(AuthenticationSchemes = "AdminScheme")]
+    [AdminAndWarehouseOnly] // Warehouse: Origin Management
     public class OriginController : Controller
     {
         private readonly IOriginService _service;

@@ -87,7 +87,27 @@
         </div>
         <h1>Truy cập bị từ chối</h1>
         <p>Bạn không có quyền truy cập vào trang này. Vui lòng liên hệ quản trị viên nếu bạn cho rằng đây là lỗi.</p>
-        <a href="@Url.Action("Dashboard", "Admin")" class="btn-primary">
+
+        @{
+            string role = ViewBag.Role as string ?? "";
+            string redirectAction = "";
+            string redirectController = "";
+
+            switch (role)
+            {
+                case "Staff":
+                    redirectAction = "Dashboard";
+                    redirectController = "Statistics";
+                    break;
+
+                case "WareHouse":
+                    redirectAction = "ProductStatistics";
+                    redirectController = "Statistics";
+                    break;
+            }
+        }
+
+        <a href="@Url.Action(redirectAction, redirectController)" class="btn-primary">
             <i class="fas fa-arrow-left me-2"></i> Quay lại Dashboard
         </a>
     </div>
