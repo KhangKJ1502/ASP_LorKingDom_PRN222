@@ -44,7 +44,7 @@ namespace WebUI.Controllers
             }
         }
 
-        [HttpGet("/Home/Order")]
+        [HttpGet("/Order/OrderHistory")]
         [Authorize]
         public async Task<IActionResult> OrderHistory(int page = 1)
         {
@@ -235,7 +235,8 @@ namespace WebUI.Controllers
         }
 
         [HttpPost("/Order/CancelOrder")]
-        public async Task<IActionResult> CancelOrder([FromBody] dynamic request)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CancelOrder([FromForm] int? orderId)
         {
             var accountId = GetAccountId();
             if (accountId == 0)
@@ -243,10 +244,11 @@ namespace WebUI.Controllers
 
             try
             {
-                int orderId = (int)request.orderId;
+                if (!orderId.HasValue || orderId.Value <= 0)
+                    return Json(new { success = false, message = "Thiếu thông tin đơn hàng!" });
 
                 // Verify order belongs to user
-                var order = await _orderService.GetOrderByIdAsync(orderId);
+                var order = await _orderService.GetOrderByIdAsync(orderId.Value);
                 if (order == null)
                     return Json(new { success = false, message = "Không tìm thấy đơn hàng!" });
 
@@ -258,7 +260,7 @@ namespace WebUI.Controllers
                     return Json(new { success = false, message = "Không thể hủy đơn hàng ở trạng thái này!" });
 
                 // Update status to cancelled (5)
-                var success = await _orderService.UpdateOrderStatusAsync(orderId, 5);
+                var success = await _orderService.UpdateOrderStatusAsync(orderId.Value, 5);
 
                 if (success)
                 {

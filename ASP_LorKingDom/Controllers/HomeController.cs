@@ -145,13 +145,20 @@ namespace ASP_LorKingDom.Controllers
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 if (string.IsNullOrEmpty(userId))
+                {
+                    _logger.LogWarning("ProfileOverview: No user ID found in claims");
                     return Unauthorized();
+                }
 
                 var account = await _accountService.GetByIdAsync(int.Parse(userId));
                 if (account == null)
+                {
+                    _logger.LogWarning("ProfileOverview: Account not found for user ID {UserId}", userId);
                     return NotFound();
+                }
 
-                return PartialView("_ProfileOverview", account);
+                _logger.LogInformation("ProfileOverview: Loading for user {UserId}", userId);
+                return PartialView("~/Views/Home/_ProfileOverview.cshtml", account);
             }
             catch (Exception ex)
             {

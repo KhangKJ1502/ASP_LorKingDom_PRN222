@@ -1,4 +1,10 @@
-﻿(function () {
+﻿// ===== DEPRECATED =====
+// This file is now deprecated. All profile tab logic has been moved to Profile.cshtml inline script
+// to better support AJAX-loaded partial views with embedded scripts.
+// Kept for reference only.
+
+/*
+(function () {
     const tabs = document.querySelectorAll(".profile-tab");
     const content = document.getElementById("profile-content");
 
@@ -89,3 +95,4 @@
         if (defaultTab) handleTab(defaultTab);
     });
 })();
+*/

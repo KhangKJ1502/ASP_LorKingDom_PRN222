@@ -302,9 +302,11 @@
                 <label class="profile-label">
                     Mật khẩu
                 </label>
-                <button type="button" class="profile-btn profile-btn-secondary" id="changePasswordBtn" style="width: 100%; justify-content: center;">
+                <button type="button" class="profile-btn profile-btn-secondary" id="changePasswordBtn"
+                    style="width: 100%; justify-content: center;">
                     <svg class="h-4 w-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
                     </svg>
                     Đổi mật khẩu
                 </button>
@@ -330,13 +332,15 @@
 </div>
 
 <!-- Change Password Modal -->
-<div class="modal fade" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
+<div class="modal fade" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordModalLabel"
+    aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="changePasswordModalLabel" style="color: #f97316; font-weight: 700;">
                     <svg class="h-5 w-5 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
                     </svg>
                     Đổi mật khẩu
                 </h5>
@@ -348,29 +352,232 @@
                         <label for="currentPassword" class="form-label" style="font-weight: 600; color: #374151;">
                             Mật khẩu hiện tại <span class="text-danger">*</span>
                         </label>
-                        <input type="password" class="form-control" id="currentPassword" name="currentPassword" required style="border: 2px solid #fed7aa; border-radius: 8px;">
+                        <input type="password" class="form-control" id="currentPassword" name="currentPassword" required
+                            style="border: 2px solid #fed7aa; border-radius: 8px;">
                     </div>
                     <div class="mb-3">
                         <label for="newPassword" class="form-label" style="font-weight: 600; color: #374151;">
                             Mật khẩu mới <span class="text-danger">*</span>
                         </label>
-                        <input type="password" class="form-control" id="newPassword" name="newPassword" required style="border: 2px solid #fed7aa; border-radius: 8px;">
+                        <input type="password" class="form-control" id="newPassword" name="newPassword" required
+                            style="border: 2px solid #fed7aa; border-radius: 8px;">
                         <small class="text-muted">Mật khẩu phải có ít nhất 8 ký tự</small>
                     </div>
                     <div class="mb-3">
                         <label for="confirmPassword" class="form-label" style="font-weight: 600; color: #374151;">
                             Xác nhận mật khẩu mới <span class="text-danger">*</span>
                         </label>
-                        <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required style="border: 2px solid #fed7aa; border-radius: 8px;">
+                        <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required
+                            style="border: 2px solid #fed7aa; border-radius: 8px;">
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                <button type="button" class="btn btn-primary" id="submitChangePassword" style="background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); border: none;">
+                <button type="button" class="btn btn-primary" id="submitChangePassword"
+                    style="background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); border: none;">
                     Đổi mật khẩu
                 </button>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+    // Initialize profile overview functionality
+    window.initializeProfileOverview = function () {
+        const profileForm = document.getElementById('profileForm');
+        const resetBtn = document.getElementById('resetBtn');
+        const avatarInput = document.getElementById('avatarInput');
+        const avatarPreview = document.getElementById('avatarPreview');
+
+        // Handle avatar preview
+        if (avatarInput) {
+            avatarInput.addEventListener('change', function (e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        avatarPreview.src = e.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+
+        // Handle reset button
+        if (resetBtn) {
+            resetBtn.addEventListener('click', function () {
+                profileForm.reset();
+                // Reset avatar preview to original
+                const originalAvatar = '@(string.IsNullOrEmpty(Model.Image) ? "/Assets/image/avatar/avatar-illustrated-02.png" : Model.Image)';
+                avatarPreview.src = originalAvatar;
+            });
+        }
+
+        // Handle profile form submission
+        if (profileForm) {
+            profileForm.addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                const formData = new FormData();
+                formData.append('accountName', document.getElementById('accountName').value);
+                formData.append('phoneNumber', document.getElementById('phoneNumber').value);
+
+                if (avatarInput && avatarInput.files[0]) {
+                    formData.append('avatar', avatarInput.files[0]);
+                }
+
+                // Get anti-forgery token
+                const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+                $.ajax({
+                    url: '/Home/UpdateProfile',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    headers: {
+                        'RequestVerificationToken': token
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Thành công!',
+                                text: 'Cập nhật thông tin thành công!',
+                                timer: 2000
+                            }).then(() => {
+                                // Reload profile overview
+                                $.ajax({
+                                    url: '/Home/ProfileOverview',
+                                    type: 'GET',
+                                    success: function (html) {
+                                        $('#profile-content').html(html);
+                                        if (typeof window.initializeProfileOverview === 'function') {
+                                            window.initializeProfileOverview();
+                                        }
+                                        if (typeof window.handleChangePassword === 'function') {
+                                            window.handleChangePassword();
+                                        }
+                                    }
+                                });
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Lỗi',
+                                text: response.message || 'Có lỗi xảy ra khi cập nhật.'
+                            });
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("Error updating profile:", error);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Lỗi',
+                            text: 'Đã xảy ra lỗi khi cập nhật thông tin.'
+                        });
+                    }
+                });
+            });
+        }
+    };
+
+    // Handle change password
+    window.handleChangePassword = function () {
+        const changePasswordBtn = document.getElementById('changePasswordBtn');
+        const submitChangePassword = document.getElementById('submitChangePassword');
+        const changePasswordForm = document.getElementById('changePasswordForm');
+
+        if (changePasswordBtn) {
+            changePasswordBtn.addEventListener('click', function () {
+                const modal = new bootstrap.Modal(document.getElementById('changePasswordModal'));
+                modal.show();
+            });
+        }
+
+        if (submitChangePassword && changePasswordForm) {
+            submitChangePassword.addEventListener('click', function () {
+                const currentPassword = document.getElementById('currentPassword').value;
+                const newPassword = document.getElementById('newPassword').value;
+                const confirmPassword = document.getElementById('confirmPassword').value;
+
+                if (!currentPassword || !newPassword || !confirmPassword) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Thiếu thông tin',
+                        text: 'Vui lòng điền đầy đủ thông tin.'
+                    });
+                    return;
+                }
+
+                if (newPassword !== confirmPassword) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Lỗi',
+                        text: 'Mật khẩu mới và xác nhận mật khẩu không khớp.'
+                    });
+                    return;
+                }
+
+                if (newPassword.length < 8) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Lỗi',
+                        text: 'Mật khẩu phải có ít nhất 8 ký tự.'
+                    });
+                    return;
+                }
+
+                // Get anti-forgery token
+                const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+                $.ajax({
+                    url: '/Home/ChangePassword',
+                    type: 'POST',
+                    data: {
+                        currentPassword: currentPassword,
+                        newPassword: newPassword,
+                        confirmPassword: confirmPassword,
+                        __RequestVerificationToken: token
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Thành công!',
+                                text: 'Đổi mật khẩu thành công!',
+                                timer: 2000
+                            }).then(() => {
+                                const modal = bootstrap.Modal.getInstance(document.getElementById('changePasswordModal'));
+                                modal.hide();
+                                changePasswordForm.reset();
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Lỗi',
+                                text: response.message || 'Có lỗi xảy ra khi đổi mật khẩu.'
+                            });
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("Error changing password:", error);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Lỗi',
+                            text: 'Đã xảy ra lỗi khi đổi mật khẩu.'
+                        });
+                    }
+                });
+            });
+        }
+    };
+
+    // Initialize on load
+    $(document).ready(function () {
+        initializeProfileOverview();
+        handleChangePassword();
+    });
+</script>

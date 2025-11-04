@@ -100,9 +100,10 @@
         cursor: not-allowed;
         pointer-events: none;
     }
-        border-radius: 9999px;
-        font-size: 0.875rem;
-        font-weight: 600;
+
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 600;
     }
 
     .status-pending {
@@ -334,7 +335,8 @@
 <div class="bg-white rounded-xl border-2 border-orange-100 shadow-sm p-6">
     <div class="flex justify-content-between align-items-center mb-4">
         <h2 class="text-2xl font-bold" style="color: #f97316;">Lịch sử đơn hàng</h2>
-        <span class="text-sm text-gray-600">Tổng: <strong>@Model.Total đơn hàng</strong> | Trang @Model.Page/@Model.TotalPages</span>
+        <span class="text-sm text-gray-600">Tổng: <strong>@Model.Total đơn hàng</strong> | Trang
+            @Model.Page/@Model.TotalPages</span>
     </div>
 
     <!-- Filter Tabs -->
@@ -465,9 +467,8 @@
                                 @if (order.OrderDetails.Any(d => !d.Reviewed))
                                 {
                                     <!-- Nếu có sản phẩm chưa đánh giá - chuyển sang tab pending reviews -->
-                                    <button class="btn-write-review"
-                                            onclick="navigateToReviewsTab('pending')"
-                                            style="background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); color: white; padding: 0.625rem 1rem; border-radius: 0.5rem; border: none; font-weight: 600; cursor: pointer; transition: all 0.3s ease; white-space: nowrap; display: inline-flex; align-items: center; gap: 0.5rem;">
+                                    <button class="btn-write-review" onclick="navigateToReviewsTab('pending')"
+                                        style="background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); color: white; padding: 0.625rem 1rem; border-radius: 0.5rem; border: none; font-weight: 600; cursor: pointer; transition: all 0.3s ease; white-space: nowrap; display: inline-flex; align-items: center; gap: 0.5rem;">
                                         <i class="fas fa-star"></i> Đánh giá sản phẩm
                                     </button>
                                 }
@@ -479,8 +480,8 @@
 
                                     <!-- Nếu đã có đánh giá - chuyển sang tab reviewed và highlight -->
                                     <button class="btn btn-outline-success btn-sm d-flex align-items-center gap-1"
-                                            onclick="openReviewPopup(@reviewedProductId)"
-                                            style="font-weight: 600; padding: 0.5rem 1rem; border-radius: 0.5rem;">
+                                        onclick="openReviewPopup(@reviewedProductId)"
+                                        style="font-weight: 600; padding: 0.5rem 1rem; border-radius: 0.5rem;">
                                         <i class="fas fa-eye"></i> Xem đánh giá
                                     </button>
                                 }
@@ -512,7 +513,8 @@
                     @if (Model.HasPrev)
                     {
                         <li class="page-item">
-                            <a class="page-link" href="#" data-page="@(Model.Page - 1)" onclick="loadOrderPage(@(Model.Page - 1)); return false;">
+                            <a class="page-link" href="#" data-page="@(Model.Page - 1)"
+                                onclick="loadOrderPage(@(Model.Page - 1)); return false;">
                                 <i class="fas fa-chevron-left"></i> Trước
                             </a>
                         </li>
@@ -558,14 +560,16 @@
                             </li>
                         }
                         <li class="page-item">
-                            <a class="page-link" href="#" data-page="@Model.TotalPages" onclick="loadOrderPage(@Model.TotalPages); return false;">@Model.TotalPages</a>
+                            <a class="page-link" href="#" data-page="@Model.TotalPages"
+                                onclick="loadOrderPage(@Model.TotalPages); return false;">@Model.TotalPages</a>
                         </li>
                     }
 
                     @if (Model.HasNext)
                     {
                         <li class="page-item">
-                            <a class="page-link" href="#" data-page="@(Model.Page + 1)" onclick="loadOrderPage(@(Model.Page + 1)); return false;">
+                            <a class="page-link" href="#" data-page="@(Model.Page + 1)"
+                                onclick="loadOrderPage(@(Model.Page + 1)); return false;">
                                 Sau <i class="fas fa-chevron-right"></i>
                             </a>
                         </li>
@@ -581,3 +585,136 @@
         </div>
     }
 </div>
+
+<script>
+    // Filter tabs functionality
+    window.initializeOrderFilters = function () {
+        const filterTabs = document.querySelectorAll('.filter-tab');
+        const orderCards = document.querySelectorAll('.order-card');
+
+        filterTabs.forEach(tab => {
+            tab.addEventListener('click', function () {
+                // Update active tab
+                filterTabs.forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+
+                const filterStatus = this.dataset.status;
+
+                // Filter orders
+                orderCards.forEach(card => {
+                    if (filterStatus === 'all') {
+                        card.classList.remove('hidden');
+                    } else {
+                        const cardStatus = card.dataset.status;
+                        if (cardStatus === filterStatus) {
+                            card.classList.remove('hidden');
+                        } else {
+                            card.classList.add('hidden');
+                        }
+                    }
+                });
+            });
+        });
+    };
+
+    // Load order page via AJAX
+    window.loadOrderPage = function (page) {
+        $.ajax({
+            url: '/Order/OrderHistory',
+            type: 'GET',
+            data: { page: page },
+            success: function (html) {
+                $('#profile-content').html(html);
+
+                // Re-initialize filters
+                if (typeof window.initializeOrderFilters === 'function') {
+                    window.initializeOrderFilters();
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error("Error loading order page:", error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi',
+                    text: 'Không thể tải trang đơn hàng.'
+                });
+            }
+        });
+    };
+
+    // Cancel order functionality
+    window.cancelOrder = function (orderId) {
+        console.log('cancelOrder called with orderId:', orderId);
+        Swal.fire({
+            title: 'Xác nhận hủy đơn',
+            text: 'Bạn có chắc chắn muốn hủy đơn hàng này không?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: 'Hủy đơn',
+            cancelButtonText: 'Đóng'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const token = $('input[name="__RequestVerificationToken"]').val();
+                console.log('Sending cancel request for order:', orderId);
+                console.log('Anti-forgery token:', token ? 'Found' : 'Not found');
+
+                // Create form data with token
+                const formData = new FormData();
+                formData.append('orderId', orderId);
+                formData.append('__RequestVerificationToken', token);
+
+                $.ajax({
+                    url: '/Order/CancelOrder',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function (response) {
+                        console.log('Cancel order response:', response);
+                        if (response.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Thành công',
+                                text: 'Đơn hàng đã được hủy thành công!',
+                                timer: 2000
+                            }).then(() => {
+                                // Reload current page
+                                window.location.reload();
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Lỗi',
+                                text: response.message || 'Không thể hủy đơn hàng.'
+                            });
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("Error canceling order:", error);
+                        console.error("XHR:", xhr);
+                        console.error("Status:", xhr.status);
+                        console.error("Response:", xhr.responseText);
+
+                        let errorMessage = 'Đã xảy ra lỗi khi hủy đơn hàng.';
+                        if (xhr.status === 400 && xhr.responseJSON) {
+                            errorMessage = xhr.responseJSON.message || errorMessage;
+                        }
+
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Lỗi',
+                            text: errorMessage
+                        });
+                    }
+                });
+            }
+        });
+    };
+
+    // Initialize on load
+    $(document).ready(function () {
+        initializeOrderFilters();
+    });
+</script>

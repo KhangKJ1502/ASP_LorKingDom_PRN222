@@ -161,9 +161,12 @@
                         Ví
                     </button>
 
-                    <button class="profile-tab rounded-lg px-4 py-3 flex items-center justify-center gap-2 text-sm font-medium transition-all" data-tab="reviews">
+                    <button
+                        class="profile-tab rounded-lg px-4 py-3 flex items-center justify-center gap-2 text-sm font-medium transition-all"
+                        data-tab="reviews">
                         <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
                         </svg>
                         Reviews
                     </button>
@@ -555,7 +558,7 @@
 
         // Use jQuery AJAX like Login page
         $.ajax({
-            url: '/Home/Order',
+            url: '/Order/OrderHistory',
             type: 'GET',
             data: { page: page },
             success: function (html) {
@@ -799,6 +802,22 @@
         const content = document.getElementById("profile-content");
         const tabs = document.querySelectorAll(".profile-tab");
 
+        // Tab content mapping (fallback cho tabs chưa implement)
+        const tabContents = {
+            wishlist: `
+                <div class="bg-white rounded-xl border-2 border-orange-100 shadow-sm p-8">
+                    <h2 class="text-2xl font-bold text-orange-600 mb-4">Danh sách yêu thích</h2>
+                    <p class="text-gray-600">Danh sách yêu thích của bạn đang trống. Hãy thêm sản phẩm yêu thích!</p>
+                </div>
+            `,
+            settings: `
+                <div class="bg-white rounded-xl border-2 border-orange-100 shadow-sm p-8">
+                    <h2 class="text-2xl font-bold text-orange-600 mb-4">Cài đặt tài khoản</h2>
+                    <p class="text-gray-600">Quản lý cài đặt và bảo mật tài khoản.</p>
+                </div>
+            `
+        };
+
         // Check URL hash to determine active tab
         function getActiveTabFromHash() {
             const hash = window.location.hash.substring(1); // Remove '#'
@@ -810,8 +829,10 @@
             window.history.replaceState(null, null, '#' + tabName);
         }
 
-        // Load tab content
-        function loadTab(tabName) {
+        // Load tab content - expose to window for global access
+        window.loadTab = async function (tabName) {
+            console.log('loadTab called with:', tabName);
+
             // Update active state
             tabs.forEach(t => t.classList.remove("active"));
             const activeTab = document.querySelector(`[data-tab="${tabName}"]`);
@@ -826,25 +847,41 @@
 
             // Handle overview tab - load from partial view
             if (tabName === "overview") {
+                console.log('Loading overview tab...');
                 // Use jQuery AJAX like Login page
                 $.ajax({
                     url: '/Home/ProfileOverview',
                     type: 'GET',
                     success: function (html) {
+                        console.log('ProfileOverview loaded successfully');
                         content.html(html);
+
+                        // Execute scripts in the loaded HTML
+                        const scripts = content.find('script');
+                        scripts.each(function () {
+                            console.log('Executing script from ProfileOverview');
+                            eval($(this).text());
+                        });
 
                         // Initialize profile overview form after content is loaded
                         if (typeof window.initializeProfileOverview === 'function') {
+                            console.log('Calling initializeProfileOverview');
                             window.initializeProfileOverview();
+                        } else {
+                            console.warn('initializeProfileOverview function not found');
                         }
 
                         // Initialize change password handler
                         if (typeof window.handleChangePassword === 'function') {
+                            console.log('Calling handleChangePassword');
                             window.handleChangePassword();
+                        } else {
+                            console.warn('handleChangePassword function not found');
                         }
                     },
                     error: function (xhr, status, error) {
                         console.error("Error loading profile overview:", error);
+                        console.error("XHR:", xhr);
                         content.html(`
                             <div class="bg-white rounded-xl border-2 border-orange-100 shadow-sm p-8">
                                 <h2 class="text-2xl font-bold text-red-600 mb-4">Lỗi</h2>
@@ -858,11 +895,20 @@
 
             // Handle addresses tab
             if (tabName === "addresses") {
+                console.log('Loading addresses tab...');
                 $.ajax({
-                    url: '/addresses/partial',
+                    url: '/Address/ListPartial',
                     type: 'GET',
                     success: function (html) {
+                        console.log('Addresses loaded successfully');
                         content.html(html);
+
+                        // Execute scripts in the loaded HTML
+                        const scripts = content.find('script');
+                        scripts.each(function() {
+                            console.log('Executing script from Addresses');
+                            eval($(this).text());
+                        });
 
                         // Trigger DOMContentLoaded for partial
                         const evt = new Event('DOMContentLoaded');
@@ -870,10 +916,11 @@
                     },
                     error: function (xhr, status, error) {
                         console.error("Error loading addresses:", error);
+                        console.error("XHR:", xhr);
                         content.html(`
                             <div class="bg-white rounded-xl border-2 border-orange-100 shadow-sm p-8">
-                                <h2 class="text-2xl font-bold text-red-600 mb-4">Error</h2>
-                                <p class="text-gray-600">Unable to load addresses. Please try again.</p>
+                                <h2 class="text-2xl font-bold text-red-600 mb-4">Lỗi</h2>
+                                <p class="text-gray-600">Không thể tải danh sách địa chỉ. Vui lòng thử lại.</p>
                             </div>
                         `);
                     }
@@ -883,19 +930,32 @@
 
             // Handle orders tab - load from partial view
             if (tabName === "orders") {
+                console.log('Loading orders tab...');
                 $.ajax({
-                    url: '/Home/Order',
+                    url: '/Order/OrderHistory',
                     type: 'GET',
                     success: function (html) {
+                        console.log('OrderHistory loaded successfully');
                         content.html(html);
+
+                        // Execute scripts in the loaded HTML
+                        const scripts = content.find('script');
+                        scripts.each(function () {
+                            console.log('Executing script from OrderHistory');
+                            eval($(this).text());
+                        });
 
                         // Initialize order filters after content is loaded
                         if (typeof window.initializeOrderFilters === 'function') {
+                            console.log('Calling initializeOrderFilters');
                             window.initializeOrderFilters();
+                        } else {
+                            console.warn('initializeOrderFilters function not found');
                         }
                     },
                     error: function (xhr, status, error) {
                         console.error("Error loading orders:", error);
+                        console.error("XHR:", xhr);
                         content.html(`
                             <div class="bg-white rounded-xl border-2 border-orange-100 shadow-sm p-8">
                                 <h2 class="text-2xl font-bold text-red-600 mb-4">Error</h2>
@@ -908,9 +968,40 @@
             }
 
             if (tabName === "reviews") {
-        await loadReviewsContent();
-        return;
-    }
+                await loadReviewsContent();
+                return;
+            }
+
+            // Handle wallets tab
+            if (tabName === "wallets") {
+                console.log('Loading wallets tab...');
+                $.ajax({
+                    url: '/Wallet/Partial',
+                    type: 'GET',
+                    success: function (html) {
+                        console.log('Wallet loaded successfully');
+                        content.html(html);
+
+                        // Execute scripts in the loaded HTML
+                        const scripts = content.find('script');
+                        scripts.each(function() {
+                            console.log('Executing script from Wallet');
+                            eval($(this).text());
+                        });
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("Error loading wallet:", error);
+                        console.error("XHR:", xhr);
+                        content.html(`
+                            <div class="bg-white rounded-xl border-2 border-orange-100 shadow-sm p-8">
+                                <h2 class="text-2xl font-bold text-red-600 mb-4">Lỗi</h2>
+                                <p class="text-gray-600">Không thể tải thông tin ví. Vui lòng thử lại.</p>
+                            </div>
+                        `);
+                    }
+                });
+                return;
+            }
 
             // Handle other tabs with predefined content
             if (tabContents[tabName]) {
@@ -918,40 +1009,20 @@
             }
         }
 
-        // Tab content mapping
-        const tabContents = {
-            overview: `
-                <div class="bg-white rounded-xl border-2 border-orange-100 shadow-sm p-8">
-                    <h2 class="text-2xl font-bold text-orange-600 mb-4">Welcome back, John!</h2>
-                    <p class="text-gray-600">Here you can manage your orders, wishlist, and account settings.</p>
-                </div>
-            `,
-            wishlist: `
-                <div class="bg-white rounded-xl border-2 border-orange-100 shadow-sm p-8">
-                    <h2 class="text-2xl font-bold text-orange-600 mb-4">My Wishlist</h2>
-                    <p class="text-gray-600">Your wishlist is currently empty. Start adding your favorite items!</p>
-                </div>
-            `,
-            settings: `
-                <div class="bg-white rounded-xl border-2 border-orange-100 shadow-sm p-8">
-                    <h2 class="text-2xl font-bold text-orange-600 mb-4">Account Settings</h2>
-                    <p class="text-gray-600">Manage your account preferences and security settings.</p>
-                </div>
-            `
-        };
-
         // Handle tab clicks
         tabs.forEach(tab => {
             tab.addEventListener("click", function (e) {
                 e.preventDefault();
                 const tabName = this.getAttribute("data-tab");
-                loadTab(tabName);
+                console.log('Tab clicked:', tabName);
+                window.loadTab(tabName);
             });
         });
 
         // Load initial tab based on hash
         const initialTab = getActiveTabFromHash();
-        loadTab(initialTab);
+        console.log('Initial tab:', initialTab);
+        window.loadTab(initialTab);
     })();
 
     // Load reviews content
@@ -1012,21 +1083,21 @@
 
                 sessionStorage.removeItem('reviewsTabType');
             }, 200);
-        
-        // Scroll to top of content
-        content.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    } catch (error) {
-        console.error("Error loading reviews:", error);
-        content.innerHTML = `
+
+            // Scroll to top of content
+            content.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } catch (error) {
+            console.error("Error loading reviews:", error);
+            content.innerHTML = `
             <div class="bg-white rounded-xl border-2 border-orange-100 shadow-sm p-8 text-center">
                 <h2 class="text-2xl font-bold text-red-600 mb-4">Lỗi</h2>
                 <p class="text-gray-600">Không thể tải đánh giá. Vui lòng thử lại sau.</p>
             </div>
         `;
+        }
     }
-}
 
-// Highlight review by product ID
+    // Highlight review by product ID
     function highlightReviewByProductId(productId) {
         console.log('Highlighting review for product:', productId);
 
@@ -1035,40 +1106,37 @@
 
         if (reviewCard) {
             console.log('Found review card for product:', productId);
-        
-        // Highlight card với animation
-        reviewCard.style.border = '3px solid #f97316';
-        reviewCard.style.boxShadow = '0 0 30px rgba(249, 115, 22, 0.5)';
-        reviewCard.style.backgroundColor = '#fff5ec';
-        reviewCard.style.transition = 'all 0.3s ease';
-        
-        // Scroll to card
-        setTimeout(() => {
-            reviewCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }, 300);
-        
-        // Blink effect
-        let blinkCount = 0;
-        const blinkInterval = setInterval(() => {
-            reviewCard.style.backgroundColor = blinkCount % 2 === 0 ? '#fff5ec' : '#ffffff';
-            blinkCount++;
-            
-            if (blinkCount >= 6) {
-                clearInterval(blinkInterval);
-                
-                // Remove highlight after animation
-                setTimeout(() => {
-                    reviewCard.style.border = '2px solid #fed7aa';
-                    reviewCard.style.boxShadow = '';
-                    reviewCard.style.backgroundColor = 'white';
-                }, 500);
-            }
-        }, 300);
+
+            // Highlight card với animation
+            reviewCard.style.border = '3px solid #f97316';
+            reviewCard.style.boxShadow = '0 0 30px rgba(249, 115, 22, 0.5)';
+            reviewCard.style.backgroundColor = '#fff5ec';
+            reviewCard.style.transition = 'all 0.3s ease';
+
+            // Scroll to card
+            setTimeout(() => {
+                reviewCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 300);
+
+            // Blink effect
+            let blinkCount = 0;
+            const blinkInterval = setInterval(() => {
+                reviewCard.style.backgroundColor = blinkCount % 2 === 0 ? '#fff5ec' : '#ffffff';
+                blinkCount++;
+
+                if (blinkCount >= 6) {
+                    clearInterval(blinkInterval);
+
+                    // Remove highlight after animation
+                    setTimeout(() => {
+                        reviewCard.style.border = '2px solid #fed7aa';
+                        reviewCard.style.boxShadow = '';
+                        reviewCard.style.backgroundColor = 'white';
+                    }, 500);
+                }
+            }, 300);
         } else {
             console.warn('Review card not found for product:', productId);
         }
     }
 </script>
-
-
-
