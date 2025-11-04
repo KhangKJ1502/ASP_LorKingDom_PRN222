@@ -237,6 +237,11 @@ namespace BLL.Services
             return await _orderRepo.UpdateOrderStatusAsync(orderId, newStatusId);
         }
 
+        public async Task<bool> UpdateOrderStatusAsync(int orderId, int newStatusId, int? changedBy, string? note = null)
+        {
+            return await _orderRepo.UpdateOrderStatusAsync(orderId, newStatusId, changedBy, note);
+        }
+
         private OrderDto MapToDto(Order order)
         {
             // Tính tổng tiền sản phẩm
@@ -276,6 +281,9 @@ namespace BLL.Services
                 RefundStatus = order.RefundStatus,
                 IsDeleted = order.IsDeleted,
                 CreatedAt = order.CreatedAt,
+                // Thông tin OrderRefund (nếu có)
+                OrderRefundStatus = order.OrderRefund?.RefundStatus,
+                OrderRefundId = order.OrderRefund?.RefundId,
                 OrderDetails = order.OrderDetails?.Select(od => new OrderDetailDto
                 {
                     OrderDetailId = od.OrderDetailId,

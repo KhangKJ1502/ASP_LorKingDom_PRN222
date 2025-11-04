@@ -11,6 +11,7 @@ namespace BLL.Interfaces
         // Admin methods
         Task<PagedResult<OrderDto>> GetAllOrdersAsync(string? query, int? statusId, DateTime? dateFrom, DateTime? dateTo, int page, int pageSize);
         Task<bool> UpdateOrderStatusAsync(int orderId, int newStatusId);
+        Task<bool> UpdateOrderStatusAsync(int orderId, int newStatusId, int? changedBy, string? note = null);
 
         // Review Product 
         Task<List<PendingReviewDto>> GetPendingReviewProductsAsync(int accountId);

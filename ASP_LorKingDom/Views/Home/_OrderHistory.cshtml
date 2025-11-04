@@ -448,12 +448,7 @@
                                 Xem chi tiết
                             </a>
 
-                            @if (order.StatusId == 1 || order.StatusId == 2)
-                            {
-                                <button class="btn-cancel" onclick="cancelOrder(@order.OrderId)">
-                                    Hủy đơn
-                                </button>
-                            }
+
 
                             @if (order.StatusId == 4)
                             {

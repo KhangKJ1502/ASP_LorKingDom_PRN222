@@ -25,6 +25,10 @@
         public bool IsDeleted { get; set; }
         public DateTime CreatedAt { get; set; }
 
+        // Thông tin OrderRefund (nếu có)
+        public string? OrderRefundStatus { get; set; } // Requested, Approved, Rejected, Refunded...
+        public long? OrderRefundId { get; set; }
+
         public List<OrderDetailDto> OrderDetails { get; set; } = new();
     }
 

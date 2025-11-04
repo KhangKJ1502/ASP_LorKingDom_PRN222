@@ -114,6 +114,50 @@ namespace DAL.Repositories
             return true;
         }
 
+        public async Task<bool> UpdateOrderStatusAsync(int orderId, int newStatusId, int? changedBy, string? note = null)
+        {
+            var order = await _db.Orders.FirstOrDefaultAsync(o => o.OrderId == orderId && !o.IsDeleted);
+            if (order == null)
+                return false;
+
+            // Cập nhật status của order
+            order.StatusId = newStatusId;
+            order.UpdatedAt = DateTime.UtcNow;
+
+            // Tạo OrderStatusHistory để tracking
+            var statusHistory = new OrderStatusHistory
+            {
+                OrderId = orderId,
+                StatusId = newStatusId,
+                ChangedBy = changedBy,
+                Note = note,
+                ChangedAt = DateTime.UtcNow,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _db.OrderStatusHistories.Add(statusHistory);
+            await _db.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> UpdateOrderRefundStatusAsync(int orderId, string refundStatus)
+        {
+            // CHECK constraint cho phép: "Full" hoặc "None"
+            var validStatuses = new[] { "Full", "None" };
+            if (!validStatuses.Contains(refundStatus))
+                throw new ArgumentException($"Invalid RefundStatus: {refundStatus}. Valid values: {string.Join(", ", validStatuses)}");
+
+            var order = await _db.Orders.FirstOrDefaultAsync(o => o.OrderId == orderId && !o.IsDeleted);
+            if (order == null)
+                return false;
+
+            order.RefundStatus = refundStatus;
+            order.UpdatedAt = DateTime.UtcNow;
+
+            await _db.SaveChangesAsync();
+            return true;
+        }
+
 		public async Task<List<Order>> GetByAccountIdAsync(int accountId)
 		{
 			return await _db.Orders
@@ -151,5 +195,23 @@ namespace DAL.Repositories
 			}
 		}
 
+		public async Task UpdateAsync(Order order)
+		{
+			if (order == null)
+				throw new ArgumentNullException(nameof(order));
+
+			// Re-query entity to avoid tracking conflicts
+			var tracked = await _db.Orders
+				.FirstOrDefaultAsync(o => o.OrderId == order.OrderId && !o.IsDeleted);
+			
+			if (tracked == null)
+				throw new InvalidOperationException($"Order {order.OrderId} not found");
+
+			// Update only RefundStatus (the field we need to change)
+			tracked.RefundStatus = order.RefundStatus;
+			tracked.UpdatedAt = DateTime.UtcNow;
+
+			await _db.SaveChangesAsync();
+		}
 	}
 }

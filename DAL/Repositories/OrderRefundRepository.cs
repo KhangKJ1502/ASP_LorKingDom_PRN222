@@ -137,7 +137,7 @@ namespace DAL.Repositories
                     if (cancelledStatus != null)
                     {
                         refund.Order.StatusId = cancelledStatus.StatusId;
-                        refund.Order.RefundStatus = "Refunded";
+                        refund.Order.RefundStatus = "Full"; // ✅ CHECK constraint: "Full" hoặc "None"
                         refund.Order.UpdatedAt = DateTime.Now;
                         
                         // Tạo OrderStatusHistory để tracking
@@ -155,24 +155,17 @@ namespace DAL.Repositories
                 }
             }
             
-            // ✅ CẬP NHẬT ORDER: Khi approve refund request
-            if (newStatus == "Approved" && refund.Order != null)
-            {
-                refund.Order.RefundStatus = "Approved";
-                refund.Order.UpdatedAt = DateTime.Now;
-            }
-            
-            // ✅ CẬP NHẬT ORDER: Khi reject refund request
+            // ✅ CẬP NHẬT ORDER: Khi reject refund request → Update Order.RefundStatus = "Rejected"
             if (newStatus == "Rejected" && refund.Order != null)
             {
-                refund.Order.RefundStatus = "Rejected";
+                refund.Order.RefundStatus = "Rejected"; // Từ chối → Cho phép gửi lại yêu cầu
                 refund.Order.UpdatedAt = DateTime.Now;
             }
             
-            // ✅ CẬP NHẬT ORDER: Khi processing refund
-            if (newStatus == "Processing" && refund.Order != null)
+            // ✅ CẬP NHẬT ORDER: Khi approve/processing → Giữ "Requested" hoặc update
+            if ((newStatus == "Approved" || newStatus == "Processing") && refund.Order != null)
             {
-                refund.Order.RefundStatus = "Processing";
+                refund.Order.RefundStatus = "Requested"; // Đang xử lý hoàn tiền
                 refund.Order.UpdatedAt = DateTime.Now;
             }
 
@@ -203,9 +196,57 @@ namespace DAL.Repositories
             refund.RefundStatus = "Requested";
 
             _context.OrderRefunds.Add(refund);
+            
+            // ✅ CẬP NHẬT ORDER: Khi tạo refund request → Update Order.RefundStatus = "Requested"
+            var order = await _context.Orders.FindAsync(refund.OrderId);
+            if (order != null)
+            {
+                order.RefundStatus = "Requested"; // Có yêu cầu hoàn tiền đang chờ xử lý
+                order.UpdatedAt = DateTime.Now;
+            }
+            
             await _context.SaveChangesAsync();
 
             return refund.RefundId;
+        }
+
+        // Get OrderRefunds by OrderId
+        public async Task<IList<OrderRefund>> GetByOrderIdAsync(int orderId)
+        {
+            return await _context.OrderRefunds
+                .Include(r => r.Account)
+                .Include(r => r.RequestedByNavigation)
+                .Include(r => r.ApprovedByNavigation)
+                .Include(r => r.Order)
+                .Where(r => r.OrderId == orderId)
+                .AsNoTracking()
+                .ToListAsync();
+        }
+
+        // Update OrderRefund entity
+        public async Task UpdateAsync(OrderRefund refund)
+        {
+            if (refund == null)
+                throw new ArgumentNullException(nameof(refund));
+
+            // Re-query entity to avoid tracking conflicts
+            var tracked = await _context.OrderRefunds
+                .FirstOrDefaultAsync(r => r.RefundId == refund.RefundId);
+            
+            if (tracked == null)
+                throw new InvalidOperationException($"OrderRefund {refund.RefundId} not found");
+
+            // Update properties
+            tracked.RefundStatus = refund.RefundStatus;
+            tracked.RequestedBy = refund.RequestedBy;
+            tracked.RefundMode = refund.RefundMode;
+            tracked.ApprovedBy = refund.ApprovedBy;
+            tracked.ApprovedAt = refund.ApprovedAt;
+            tracked.ProcessedAt = refund.ProcessedAt;
+            tracked.WalletTransactionId = refund.WalletTransactionId;
+            tracked.UpdatedAt = DateTime.Now;
+
+            await _context.SaveChangesAsync();
         }
     }
 }

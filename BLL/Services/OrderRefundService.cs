@@ -12,10 +12,12 @@ namespace BLL.Services
     public class OrderRefundService : IOrderRefundService
     {
         private readonly IOrderRefundRepository _repo;
+        private readonly IOrderRepository _orderRepo;
 
-        public OrderRefundService(IOrderRefundRepository repo)
+        public OrderRefundService(IOrderRefundRepository repo, IOrderRepository orderRepo)
         {
             _repo = repo;
+            _orderRepo = orderRepo;
         }
 
         // Search + paging cho trang Index
@@ -147,44 +149,6 @@ namespace BLL.Services
             }
 
             await _repo.UpdateStatusAsync(refundId, newStatus, staffAccountId);
-        }
-
-        public async Task<long> CreateRefundRequestAsync(
-            int orderId,
-            int accountId,
-            int requestedByAccountId,
-            string refundMode)
-        {
-            // Validate inputs
-            if (orderId <= 0)
-                throw new ArgumentException("OrderId must be greater than 0", nameof(orderId));
-
-            if (accountId <= 0)
-                throw new ArgumentException("AccountId must be greater than 0", nameof(accountId));
-
-            if (requestedByAccountId <= 0)
-                throw new ArgumentException("RequestedByAccountId must be greater than 0", nameof(requestedByAccountId));
-
-            if (string.IsNullOrWhiteSpace(refundMode))
-                throw new ArgumentException("RefundMode is required", nameof(refundMode));
-
-            var entity = new OrderRefund
-            {
-                OrderId = orderId,
-                AccountId = accountId,
-                RequestedBy = requestedByAccountId,
-                ApprovedBy = null,
-                RefundMode = refundMode,
-                RefundStatus = "Requested",
-                WalletTransactionId = null,
-                CreatedAt = DateTime.Now,
-                ApprovedAt = null,
-                ProcessedAt = null,
-                UpdatedAt = DateTime.Now
-            };
-
-            var newId = await _repo.CreateAsync(entity);
-            return newId;
         }
 
         // ========== helpers ==========

@@ -12,15 +12,18 @@ namespace WebUI.Controllers
         private readonly IOrderService _orderService;
         private readonly ICartService _cartService;
         private readonly IAccountService _accountService;
+        private readonly IOrderRefundService _orderRefundService;
 
         public OrderController(
             IOrderService orderService,
             ICartService cartService,
-            IAccountService accountService)
+            IAccountService accountService,
+            IOrderRefundService orderRefundService)
         {
             _orderService = orderService;
             _cartService = cartService;
             _accountService = accountService;
+            _orderRefundService = orderRefundService;
         }
 
         [HttpGet("/Home/OrderDetails")]
@@ -197,7 +200,10 @@ namespace WebUI.Controllers
         {
             try
             {
-                var success = await _orderService.UpdateOrderStatusAsync(orderId, statusId);
+                // Get current admin/staff ID
+                var adminId = GetAccountId();
+                
+                var success = await _orderService.UpdateOrderStatusAsync(orderId, statusId, adminId, "Admin/Staff cập nhật trạng thái");
                 if (success)
                 {
                     return Json(new { success = true, message = "Cập nhật trạng thái thành công!" });
@@ -227,47 +233,6 @@ namespace WebUI.Controllers
                 }
 
                 return Json(new { success = true, order = order });
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = $"Lỗi: {ex.Message}" });
-            }
-        }
-
-        [HttpPost("/Order/CancelOrder")]
-        public async Task<IActionResult> CancelOrder([FromBody] dynamic request)
-        {
-            var accountId = GetAccountId();
-            if (accountId == 0)
-                return Json(new { success = false, message = "Vui lòng đăng nhập!" });
-
-            try
-            {
-                int orderId = (int)request.orderId;
-
-                // Verify order belongs to user
-                var order = await _orderService.GetOrderByIdAsync(orderId);
-                if (order == null)
-                    return Json(new { success = false, message = "Không tìm thấy đơn hàng!" });
-
-                if (order.AccountId != accountId)
-                    return Json(new { success = false, message = "Bạn không có quyền hủy đơn hàng này!" });
-
-                // Only allow cancel if order is pending (1) or confirmed (2)
-                if (order.StatusId != 1 && order.StatusId != 2)
-                    return Json(new { success = false, message = "Không thể hủy đơn hàng ở trạng thái này!" });
-
-                // Update status to cancelled (5)
-                var success = await _orderService.UpdateOrderStatusAsync(orderId, 5);
-
-                if (success)
-                {
-                    return Json(new { success = true, message = "Hủy đơn hàng thành công!" });
-                }
-                else
-                {
-                    return Json(new { success = false, message = "Không thể hủy đơn hàng!" });
-                }
             }
             catch (Exception ex)
             {

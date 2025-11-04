@@ -634,72 +634,7 @@
         }
     };
 
-    // Cancel order functionality
-    window.cancelOrder = function (orderId) {
-        Swal.fire({
-            title: 'Xác nhận hủy đơn',
-            text: 'Bạn có chắc chắn muốn hủy đơn hàng #' + orderId + ' không?',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#dc2626',
-            cancelButtonColor: '#6b7280',
-            confirmButtonText: 'Hủy đơn',
-            cancelButtonText: 'Không'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                // Show loading
-                Swal.fire({
-                    title: 'Đang xử lý...',
-                    allowOutsideClick: false,
-                    didOpen: () => Swal.showLoading()
-                });
 
-                // Get anti-forgery token
-                const token = $('input[name="__RequestVerificationToken"]').val();
-
-                // Use jQuery AJAX like Login page
-                $.ajax({
-                    url: '/Order/CancelOrder',
-                    type: 'POST',
-                    contentType: 'application/json',
-                    data: JSON.stringify({ orderId: orderId }),
-                    headers: {
-                        'RequestVerificationToken': token
-                    },
-                    success: function (data) {
-                        if (data.success) {
-                            Swal.fire({
-                                title: 'Thành công!',
-                                text: data.message || 'Hủy đơn hàng thành công!',
-                                icon: 'success',
-                                confirmButtonColor: '#10b981'
-                            }).then(() => {
-                                // Reload to orders tab
-                                window.location.href = '/Home/Profile#orders';
-                                window.location.reload();
-                            });
-                        } else {
-                            Swal.fire({
-                                title: 'Lỗi!',
-                                text: data.message || 'Không thể hủy đơn hàng!',
-                                icon: 'error',
-                                confirmButtonColor: '#dc2626'
-                            });
-                        }
-                    },
-                    error: function (xhr, status, error) {
-                        console.error('Error:', error);
-                        Swal.fire({
-                            title: 'Lỗi!',
-                            text: 'Có lỗi xảy ra khi hủy đơn hàng!',
-                            icon: 'error',
-                            confirmButtonColor: '#dc2626'
-                        });
-                    }
-                });
-            }
-        });
-    };
 
     // Return order functionality (placeholder)
     window.returnOrder = function (orderId) {

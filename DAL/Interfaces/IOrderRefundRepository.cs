@@ -15,7 +15,11 @@ namespace DAL.Interfaces
 
         Task<OrderRefund?> GetByIdAsync(long refundId);
 
+        Task<IList<OrderRefund>> GetByOrderIdAsync(int orderId);
+
         Task UpdateStatusAsync(long refundId, string newStatus, int staffAccountId);
+
+        Task UpdateAsync(OrderRefund refund);
 
         Task<long> CreateAsync(OrderRefund refund);
     }
