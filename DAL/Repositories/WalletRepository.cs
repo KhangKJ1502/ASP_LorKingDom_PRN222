@@ -19,6 +19,12 @@ namespace DAL.Repositories
                 .FirstOrDefaultAsync(w => w.AccountId == accountId);
         }
 
+        public async Task<Wallet?> GetByIdAsync(int walletId)
+        {
+            return await _db.Wallets
+                .FirstOrDefaultAsync(w => w.WalletId == walletId);
+        }
+
         public async Task AddAsync(Wallet wallet)
         {
             await _db.Wallets.AddAsync(wallet);
@@ -27,6 +33,12 @@ namespace DAL.Repositories
         public async Task<bool> ExistsByAccountIdAsync(int accountId)
         {
             return await _db.Wallets.AnyAsync(w => w.AccountId == accountId);
+        }
+
+        public async Task UpdateAsync(Wallet wallet)
+        {
+            wallet.UpdatedAt = DateTime.Now;
+            _db.Wallets.Update(wallet);
         }
 
         public async Task SaveChangesAsync()
