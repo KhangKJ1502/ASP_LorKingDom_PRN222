@@ -158,19 +158,19 @@ namespace DAL.Repositories
             return true;
         }
 
-		public async Task<List<Order>> GetByAccountIdAsync(int accountId)
-		{
-			return await _db.Orders
-				.Include(o => o.Status)
-				.Include(o => o.Account)
-				.Include(o => o.Voucher)
-				.Include(o => o.OrderDetails)
-					.ThenInclude(od => od.Product)
-						.ThenInclude(p => p.ProductImages)
-				.Where(o => o.AccountId == accountId && !o.IsDeleted)
-				.OrderByDescending(o => o.OrderDate)
-				.ToListAsync();
-		}
+        public async Task<List<Order>> GetByAccountIdAsync(int accountId)
+        {
+            return await _db.Orders
+                .Include(o => o.Status)
+                .Include(o => o.Account)
+                .Include(o => o.Voucher)
+                .Include(o => o.OrderDetails)
+                    .ThenInclude(od => od.Product)
+                        .ThenInclude(p => p.ProductImages)
+                .Where(o => o.AccountId == accountId && !o.IsDeleted)
+                .OrderByDescending(o => o.OrderDate)
+                .ToListAsync();
+        }
 
         public async Task<Order?> GetByIdAsync(int orderId)
         {
@@ -193,37 +193,37 @@ namespace DAL.Repositories
 				.ToListAsync();
 		}
 
-		public async Task<bool> UpdateOrderDetailAsync(OrderDetail orderDetail)
-		{
-			try
-			{
-				_db.OrderDetails.Update(orderDetail);
-				await _db.SaveChangesAsync();
-				return true;
-			}
-			catch
-			{
-				return false;
-			}
-		}
+        public async Task<bool> UpdateOrderDetailAsync(OrderDetail orderDetail)
+        {
+            try
+            {
+                _db.OrderDetails.Update(orderDetail);
+                await _db.SaveChangesAsync();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
 
-		public async Task UpdateAsync(Order order)
-		{
-			if (order == null)
-				throw new ArgumentNullException(nameof(order));
+        public async Task UpdateAsync(Order order)
+        {
+            if (order == null)
+                throw new ArgumentNullException(nameof(order));
 
-			// Re-query entity to avoid tracking conflicts
-			var tracked = await _db.Orders
-				.FirstOrDefaultAsync(o => o.OrderId == order.OrderId && !o.IsDeleted);
-			
-			if (tracked == null)
-				throw new InvalidOperationException($"Order {order.OrderId} not found");
+            // Re-query entity to avoid tracking conflicts
+            var tracked = await _db.Orders
+                .FirstOrDefaultAsync(o => o.OrderId == order.OrderId && !o.IsDeleted);
 
-			// Update only RefundStatus (the field we need to change)
-			tracked.RefundStatus = order.RefundStatus;
-			tracked.UpdatedAt = DateTime.UtcNow;
+            if (tracked == null)
+                throw new InvalidOperationException($"Order {order.OrderId} not found");
 
-			await _db.SaveChangesAsync();
-		}
-	}
+            // Update only RefundStatus (the field we need to change)
+            tracked.RefundStatus = order.RefundStatus;
+            tracked.UpdatedAt = DateTime.UtcNow;
+
+            await _db.SaveChangesAsync();
+        }
+    }
 }

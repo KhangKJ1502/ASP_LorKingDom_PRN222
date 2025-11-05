@@ -466,7 +466,12 @@
                     </div>
 
                     <div class="order-footer">
-                        <div class="order-total">Tổng: @order.TotalAmount.ToString("N0") ₫</div>
+                        @{
+                            var subtotalOrder = order.OrderDetails.Sum(x => x.Total);
+                            var finalAmountOrder = subtotalOrder + order.ShippingFee - order.DiscountAmount -
+                            order.PaidByWalletAmount;
+                        }
+                        <div class="order-total">Tổng: @finalAmountOrder.ToString("N0") ₫</div>
                         <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
                             <a href="/Home/OrderDetails?id=@order.OrderId" class="btn-view-detail">
                                 Xem chi tiết
