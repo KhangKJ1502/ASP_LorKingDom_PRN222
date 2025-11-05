@@ -162,7 +162,7 @@ namespace BLL.Services
                     Amount = dto.Amount,
                     BalanceBefore = balanceBefore,
                     BalanceAfter = balanceAfter,
-                    Method = null, // ✅ FIX: Set NULL thay vì "Manual" (vì top-up thủ công không cần method cụ thể)
+                    Method = null, // Top-up thủ công không cần method cụ thể
                     Status = "Completed",
                     Reason = dto.Reason ?? "Nạp tiền vào ví",
                     IdempotencyKey = Guid.NewGuid().ToString(),
@@ -179,7 +179,6 @@ namespace BLL.Services
                 wallet.UpdatedAt = DateTime.Now;
                 await _walletRepo.UpdateAsync(wallet);
 
-                // CRITICAL: Chỉ gọi SaveChanges MỘT LẦN duy nhất
                 await _walletRepo.SaveChangesAsync();
 
                 return new TopUpResultDto
@@ -204,5 +203,7 @@ namespace BLL.Services
                 };
             }
         }
+
+
     }
 }
