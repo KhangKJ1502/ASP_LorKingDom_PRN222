@@ -30,10 +30,6 @@ namespace WebUI.Controllers
             "Khánh Hòa", "Bình Dương", "Đồng Nai", "Bà Rịa - Vũng Tàu", "Cà Mau"
         };
 
-        // ===== CRUD chuẩn (non-AJAX) =====
-
-        // ===== AJAX partials =====
-
         [HttpGet]
         public async Task<IActionResult> ListPartial()
         {
@@ -110,9 +106,6 @@ namespace WebUI.Controllers
             }
             catch (Exception) { return StatusCode(500, "Không thể đặt mặc định lúc này."); }
         }
-
-
-        // ===== Form partials (Add / Edit) =====
 
         [HttpGet]
         public IActionResult FormPartialCreate()

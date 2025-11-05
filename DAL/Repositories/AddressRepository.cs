@@ -37,7 +37,7 @@ public class AddressRepository : IAddressRepository
         await _context.SaveChangesAsync();
     }
 
-    public async Task DeleteAsync(Address entity) // ⬅️ xóa cứng
+    public async Task DeleteAsync(Address entity) 
     {
         _context.Addresses.Remove(entity);
         await _context.SaveChangesAsync();
@@ -46,7 +46,7 @@ public class AddressRepository : IAddressRepository
     public async Task<int> CountActiveAsync(int accountId)
     {
         return await _context.Addresses
-            .CountAsync(a => a.AccountId == accountId); // ⬅️ không lọc IsDeleted
+            .CountAsync(a => a.AccountId == accountId); 
     }
 
     public async Task<Address?> GetDefaultAsync(int accountId)

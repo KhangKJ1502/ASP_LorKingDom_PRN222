@@ -1,5 +1,4 @@
-﻿// DAL/Repositories/ProductRepository.cs
-using DAL.Interfaces;
+﻿using DAL.Interfaces;
 using DAL.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -44,11 +43,11 @@ namespace DAL.Repositories
             return await _ctx.Products
                 .Include(p => p.Category)
                 .Include(p => p.Brand)
-                .Include(p => p.Material)     // ✅ thêm
-                .Include(p => p.Age)          // ✅ thêm
-                .Include(p => p.Sex)          // ✅ thêm
-                .Include(p => p.Origin)       // ✅ thêm
-                .Include(p => p.PriceRange)   // ✅ thêm (nếu muốn hiện mức giá)
+                .Include(p => p.Material)    
+                .Include(p => p.Age)         
+                .Include(p => p.Sex)          
+                .Include(p => p.Origin)       
+                .Include(p => p.PriceRange)   
                 .Include(p => p.ProductImages)
                 .Include(p => p.Promotion)
                 .FirstOrDefaultAsync(p => p.ProductId == id);
@@ -93,15 +92,13 @@ namespace DAL.Repositories
                 p.IsDeleted = isDeleted;
                 if (isDeleted)
                 {
-                    p.ProductStatus = "Discontinued";                 // ✅ rõ nghĩa khi OFF
+                    p.ProductStatus = "Discontinued";               
                 }
             }
 
             await _ctx.SaveChangesAsync();
             return items.Count;
         }
-
-        // ✅ NEW: cascade Category → Product
         public async Task<int> SetIsDeletedByCategoryAsync(int categoryId, bool isDeleted)
         {
             var items = await _ctx.Products
@@ -120,7 +117,6 @@ namespace DAL.Repositories
         }
         public async Task<int> SetIsDeletedByMaterialAsync(int materialId, bool isDeleted)
         {
-            // Nếu dùng EF Core 7+/8 có thể dùng ExecuteUpdateAsync; dưới đây là cách tương thích rộng:
             var items = await _ctx.Products
                 .Where(p => p.MaterialId == materialId)
                 .ToListAsync();
@@ -129,7 +125,7 @@ namespace DAL.Repositories
             {
                 p.IsDeleted = isDeleted;
                 if (isDeleted)
-                    p.ProductStatus = "Discontinued"; // rõ nghĩa khi OFF
+                    p.ProductStatus = "Discontinued";
             }
 
             await _ctx.SaveChangesAsync();
@@ -137,7 +133,6 @@ namespace DAL.Repositories
         }
         public async Task<int> SetIsDeletedByOriginAsync(int originId, bool isDeleted)
         {
-            // Nếu bạn dùng EF Core 7+/8 có thể chuyển sang ExecuteUpdateAsync để tối ưu.
             var items = await _ctx.Products
                 .Where(p => p.OriginId == originId)
                 .ToListAsync();
@@ -146,7 +141,7 @@ namespace DAL.Repositories
             {
                 p.IsDeleted = isDeleted;
                 if (isDeleted)
-                    p.ProductStatus = "Discontinued"; // rõ nghĩa khi OFF
+                    p.ProductStatus = "Discontinued"; 
             }
 
             await _ctx.SaveChangesAsync();
@@ -178,7 +173,7 @@ namespace DAL.Repositories
                 .AsNoTracking()
                 .Include(p => p.Category)
                 .Include(p => p.Brand)
-                .Include(p => p.ProductImages) // để lấy MainImageUrl
+                .Include(p => p.ProductImages) 
                 .Include(p => p.Promotion)
                 .Where(p =>
                     p.IsDeleted == false &&
@@ -211,7 +206,6 @@ namespace DAL.Repositories
         }
         public async Task<int> SetIsDeletedBySuperCategoryAsync(int superCategoryId, bool isDeleted)
         {
-            // Dựa trên quan hệ: Product.Category.SuperCategoryId == superCategoryId
             var items = await _ctx.Products
                 .Where(p => p.Category != null && p.Category.SuperCategoryId == superCategoryId)
                 .ToListAsync();
@@ -235,7 +229,7 @@ namespace DAL.Repositories
                 .AsNoTracking()
                 .Include(p => p.Category)
                 .Include(p => p.Brand)
-                .Include(p => p.ProductImages) // để có ảnh chính
+                .Include(p => p.ProductImages)
                 .Include(p => p.Promotion)
                 .AsQueryable();
 
@@ -262,7 +256,6 @@ namespace DAL.Repositories
                 return (items, total);
             }
 
-            // Get product ids currently assigned to a promotion
             public Task<List<int>> GetProductIdsByPromotionAsync(int promotionId)
             {
                 return _ctx.Products
@@ -271,7 +264,6 @@ namespace DAL.Repositories
                     .ToListAsync();
             }
 
-            // Bulk set PromotionId for a set of products (use ExecuteUpdateAsync for efficiency)
             public async Task<int> SetPromotionForProductsAsync(int? promotionId, int[] productIds)
             {
                 if (productIds == null || productIds.Length == 0) return 0;

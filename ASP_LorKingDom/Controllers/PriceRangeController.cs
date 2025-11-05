@@ -33,7 +33,7 @@ namespace WebUI.Controllers
                 TempData["Success"] = "Thêm khoảng giá thành công!";
                 return RedirectToAction(nameof(Manage), new { q });
             }
-            catch (ArgumentException ex) // lỗi validator (ví dụ Min > Max, trùng, v.v.)
+            catch (ArgumentException ex) 
             {
                 var list = await _service.GetAllAsync(q);
                 ViewBag.Query = q;
@@ -59,7 +59,6 @@ namespace WebUI.Controllers
             }
         }
 
-        // ===== Update =====
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdatePriceRange(int id, decimal priceRangeMin, decimal priceRangeMax, bool isDeleted, string? q = null)
@@ -79,7 +78,6 @@ namespace WebUI.Controllers
                 var list = await _service.GetAllAsync(q);
                 ViewBag.Query = q;
 
-                // Giữ lại dữ liệu đang sửa để mở lại modal
                 var dto = await _service.GetByIdAsync(id) ?? new BLL.DTOs.PriceRangeDto
                 {
                     Id = id,

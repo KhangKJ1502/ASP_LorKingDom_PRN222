@@ -66,7 +66,6 @@ namespace DAL.Repositories
 
         public async Task<int> SetIsDeletedBySuperCategoryAsync(int superCategoryId, bool isDeleted)
         {
-            // EF Core 7 có thể dùng ExecuteUpdateAsync, nhưng để tương thích rộng, update từng entity
             var items = await _context.Categories
                 .Where(c => c.SuperCategoryId == superCategoryId)
                 .ToListAsync();

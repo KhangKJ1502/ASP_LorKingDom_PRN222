@@ -20,7 +20,7 @@ namespace DAL.Repositories
         public async Task<List<ProductImage>> GetByProductIdAsync(int productId)
         {
             return await _ctx.ProductImages
-                .Where(x => x.ProductId == productId)                 // ProductId
+                .Where(x => x.ProductId == productId)                
                 .OrderByDescending(x => x.IsMain)
                 .ThenByDescending(x => x.CreatedAt)
                 .ToListAsync();
@@ -29,21 +29,21 @@ namespace DAL.Repositories
         public async Task<ProductImage?> GetMainAsync(int productId)
         {
             return await _ctx.ProductImages
-                .Where(x => x.ProductId == productId && x.IsMain)     // ProductId
+                .Where(x => x.ProductId == productId && x.IsMain)     
                 .FirstOrDefaultAsync();
         }
 
         public async Task<int> CountSecondaryAsync(int productId)
         {
             return await _ctx.ProductImages
-                .Where(x => x.ProductId == productId && !x.IsMain)    // ProductId
-                .CountAsync();                                        // cần using Microsoft.EntityFrameworkCore
+                .Where(x => x.ProductId == productId && !x.IsMain)   
+                .CountAsync();                                       
         }
 
         public async Task UnsetMainAsync(int productId)
         {
             var currents = await _ctx.ProductImages
-                .Where(x => x.ProductId == productId && x.IsMain)     // ProductId
+                .Where(x => x.ProductId == productId && x.IsMain)     
                 .ToListAsync();
 
             if (currents.Count == 0) return;
@@ -121,7 +121,6 @@ namespace DAL.Repositories
                     await _ctx.SaveChangesAsync();
                 }
 
-                // 2) Secondary images: delete the ones NOT in keepSecondaryUrls, keep the rest, then add new
                 var keepSet = new HashSet<string>((keepSecondaryUrls ?? Enumerable.Empty<string>())
                                                   .Where(s => !string.IsNullOrWhiteSpace(s)).Select(s => s.Trim()),
                                                   StringComparer.OrdinalIgnoreCase);
@@ -137,7 +136,6 @@ namespace DAL.Repositories
                     await _ctx.SaveChangesAsync();
                 }
 
-                // add new (avoid duplicates, cap at 6)
                 var existingUrls = await _ctx.ProductImages
                     .Where(x => x.ProductId == productId && !x.IsMain)
                     .Select(x => x.ImageUrl)

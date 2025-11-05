@@ -29,7 +29,6 @@
 							</button>
 						}
 
-						<!-- ✏️ Edit (btn-warning style) -->
 						<button type="button"
 								class="addr-btn-edit btn btn-sm btn-warning"
 								data-id="@a.Id"
@@ -37,7 +36,6 @@
 							<i class="fa-solid fa-pen-to-square"></i>
 						</button>
 
-						<!-- 🗑️ Delete (btn-danger style) -->
 						<button type="button"
 								class="addr-btn-delete btn btn-sm btn-danger"
 								data-id="@a.Id"
@@ -47,8 +45,7 @@
 					</div>
 				</div>
 
-				<h4 class="font-semibold">Home Address</h4>
-				<p class="text-gray-600">@a.AddressLine</p>
+				<h4 class="font-semibold">@a.AddressLine</h4>
 				<p class="text-gray-600">@a.City@(string.IsNullOrWhiteSpace(a.Ward) ? "" : $", {a.Ward}")</p>
 			</div>
 		}

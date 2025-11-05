@@ -74,7 +74,6 @@
                                     <td>@x.Id</td>
 
                                     <td style="white-space:nowrap">
-                                        <!-- Nút Edit mở modal -->
                                         <a class="btn btn-sm btn-warning ms-1" title="Cập nhật"
                                            asp-action="Edit" asp-controller="SuperCategory"
                                            asp-route-id="@x.Id" asp-route-q="@q">
@@ -133,7 +132,7 @@
         </div>
     </div>
 </div>
-<!-- Modal Edit SuperCategory -->
+<!-- Modal Edit -->
 <div class="modal fade @(ViewBag.EditSuperCategory != null ? "show d-block" : "")"
      id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="@(ViewBag.EditSuperCategory == null)">
     <div class="modal-dialog modal-dialog-centered">
@@ -185,7 +184,6 @@
         </div>
     </div>
 </div>
-@* modal báo lỗi *@
 
 <div class="toast-container position-fixed p-3 toast-top-right" style="z-index:2080;">
     <div id="liveToast" class="toast align-items-center text-bg-danger border-0" role="alert" aria-live="assertive" aria-atomic="true">
@@ -204,20 +202,18 @@
 
 @section Scripts {
     <script>
-        // Hiển thị toast 5s khi có lỗi
         document.addEventListener('DOMContentLoaded', function () {
             const hasError = '@(ViewBag.ShowErrorModal == true ? "true" : "false")';
             if (hasError === "true") {
                 const toastEl = document.getElementById('liveToast');
                 if (toastEl) {
-                    const toast = new bootstrap.Toast(toastEl, { delay: 5000 }); // 5 giây
+                    const toast = new bootstrap.Toast(toastEl, { delay: 5000 });
                     toast.show();
                 }
             }
         });
     </script>
 
-    @* Khóa nền khi có modal Edit hoặc khi muốn che nền *@
     @if (ViewBag.EditSuperCategory != null || ViewBag.ShowErrorModal == true)
     {
         <script>
@@ -229,7 +225,6 @@
 
 
 @section Styles {
-    <!-- Font Awesome 6 -->
     <link rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
           crossorigin="anonymous" referrerpolicy="no-referrer" />

@@ -20,7 +20,7 @@ namespace WebUI.Controllers
         }
 
         [HttpGet("Wishlist/ListPartial")]
-        [IgnoreAntiforgeryToken] // GET nên bỏ check token
+        [IgnoreAntiforgeryToken] 
         public async Task<IActionResult> ListPartial(string? wq)
         {
             if (!TryGetAccountId(out var accountId))
@@ -39,7 +39,7 @@ namespace WebUI.Controllers
                 return Unauthorized();
 
             await _svc.RemoveAsync(accountId, productId);
-            return Ok(); // 200
+            return Ok();
         }
 
         [HttpPost("Wishlist/Clear")]

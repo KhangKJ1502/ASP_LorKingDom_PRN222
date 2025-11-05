@@ -104,7 +104,6 @@ namespace BLL.Services
 
             bool wasDefault = entity.IsDefault;
 
-            // XÓA CỨNG
             await _repo.DeleteAsync(entity);
 
             if (wasDefault)

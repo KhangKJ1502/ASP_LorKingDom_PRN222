@@ -8,7 +8,7 @@
 <div class="container-fluid px-5">
     <h1 class="mt-4">Quản Lí Chất Liệu</h1>
 
-    <!-- Form thêm mới -->
+    <!-- modal add -->
     <form class="mt-4" asp-action="AddMaterial" asp-controller="Material" method="post">
         @Html.AntiForgeryToken()
         <input type="hidden" name="q" value="@q" />
@@ -116,7 +116,7 @@
     </div>
 </div>
 
-<!-- Modal Edit Material -->
+<!-- Modal Edit -->
 @{
     var edit = ViewBag.EditMaterial as BLL.DTOs.MaterialDto;
 }

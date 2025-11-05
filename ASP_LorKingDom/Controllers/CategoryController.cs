@@ -18,7 +18,6 @@ namespace WebUI.Controllers
             _superService = superService;
         }
 
-        // ========== Helpers ==========
         private async Task<IActionResult> ReturnManageViewAsync(
             string? q, int page, int pageSize,
             object? editDto = null,
@@ -42,7 +41,6 @@ namespace WebUI.Controllers
             return View("~/Views/Admin/ManageCategory.cshtml", paged);
         }
 
-        // ========== Manage ==========
         public async Task<IActionResult> Manage(string? q, int page = 1, int pageSize = 8)
         {
             if (page <= 0) page = 1;
@@ -79,7 +77,6 @@ namespace WebUI.Controllers
             }
         }
 
-        // ===== Update =====
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateCategory(
@@ -120,8 +117,6 @@ namespace WebUI.Controllers
             }
         }
 
-
-        // ========== Edit (mở modal) ==========
         [HttpGet]
         public async Task<IActionResult> Edit(int id, string? q = null, int page = 1, int pageSize = 8)
         {
@@ -132,7 +127,6 @@ namespace WebUI.Controllers
                 return RedirectToAction(nameof(Manage), new { q, page, pageSize });
             }
 
-            // Trả về Manage với EditCategory để mở modal
             return await ReturnManageViewAsync(q, page, pageSize, editDto: dto);
         }
     }

@@ -16,7 +16,6 @@ namespace WebUI.Controllers
             _service = service;
         }
 
-        // ===== Helper: luôn trả về PagedResult và set ViewBag =====
         private async Task<IActionResult> ReturnManageViewAsync(
             string? q, int page, int pageSize,
             object? editDto = null,
@@ -42,7 +41,6 @@ namespace WebUI.Controllers
             return View("~/Views/Admin/ManageSuperCategory.cshtml", paged);
         }
 
-        // ===== GET: /SuperCategory/Manage =====
         public async Task<IActionResult> Manage(string? q, int page = 1, int pageSize = 8)
             => await ReturnManageViewAsync(q, page, pageSize);
 
@@ -58,9 +56,8 @@ namespace WebUI.Controllers
                 TempData["Success"] = "Thêm danh mục tổng thành công!";
                 return RedirectToAction(nameof(Manage), new { q, page, pageSize });
             }
-            catch (ArgumentException ex) // lỗi validator nếu có
+            catch (ArgumentException ex)
             {
-                // nhớ đưa lại tên vừa nhập để user không phải gõ lại
                 ViewBag.LastName = name;
                 return await ReturnManageViewAsync(q, page, pageSize, error: ex.Message, showError: true);
             }
@@ -76,7 +73,6 @@ namespace WebUI.Controllers
             }
         }
 
-        // ===== POST: /SuperCategory/UpdateSuperCategory =====
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateSuperCategory(
@@ -118,7 +114,6 @@ namespace WebUI.Controllers
             }
         }
 
-        // ===== GET: /SuperCategory/Edit/{id} (mở modal) =====
         [HttpGet]
         public async Task<IActionResult> Edit(int id, string? q = null, int page = 1, int pageSize = 8)
         {

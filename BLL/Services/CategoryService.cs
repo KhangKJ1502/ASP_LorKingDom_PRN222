@@ -7,7 +7,7 @@ using DAL.Models;
 public class CategoryService : ICategoryService
 {
     private readonly ICategoryRepository _repo;
-    private readonly ISuperCategoryRepository _superRepo; // nếu cần validate
+    private readonly ISuperCategoryRepository _superRepo;
     private readonly IProductRepository _productRepo;
     public CategoryService(ICategoryRepository repo, ISuperCategoryRepository superRepo, IProductRepository productRepo)
     {
@@ -51,7 +51,6 @@ public class CategoryService : ICategoryService
             IsDeleted = isDeleted
         };
         CategoryValidator.Validate(dto);
-        // optional: validate superCategoryId tồn tại
         var entity = new Category
         {
             SuperCategoryId = superCategoryId,
@@ -89,12 +88,10 @@ public class CategoryService : ICategoryService
         if (isDeleted)
         {
             await _productRepo.SetIsDeletedByCategoryAsync(id, true);
-            // Quy ước: bật lại Category không tự bật Product (giữ như trước)
         }
         return true;
     }
 
-    // ✅ Phân trang
     public async Task<PagedResult<CategoryDto>> GetPagedAsync(string? keyword, int page, int pageSize)
     {
         var (items, total) = await _repo.QueryPagedAsync(keyword, page, pageSize);

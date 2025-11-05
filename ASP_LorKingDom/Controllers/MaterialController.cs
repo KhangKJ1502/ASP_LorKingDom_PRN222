@@ -33,7 +33,7 @@ namespace WebUI.Controllers
                 TempData["Success"] = "Thêm chất liệu thành công!";
                 return RedirectToAction(nameof(Manage), new { q });
             }
-            catch (ArgumentException ex) // lỗi validator
+            catch (ArgumentException ex)
             {
                 var list = await _service.GetAllAsync(q);
                 ViewBag.Query = q;
@@ -79,7 +79,6 @@ namespace WebUI.Controllers
                 ViewBag.ErrorMessage = ex.Message;
                 ViewBag.ShowErrorModal = true;
 
-                // Giữ lại data đang sửa để mở lại modal
                 var dto = await _service.GetByIdAsync(id) ?? new BLL.DTOs.MaterialDto
                 {
                     Id = id,

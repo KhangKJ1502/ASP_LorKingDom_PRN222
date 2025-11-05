@@ -179,7 +179,8 @@
             </div>
         </div>
     </div>
-    <!-- Bootstrap Address Modal -->
+
+    <!-- Address - Quynh-->
     <div class="modal fade" id="addrModal" tabindex="-1" aria-labelledby="addrModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
@@ -242,7 +243,7 @@
 
     @section Scripts {
         <script src="~/js/profile.js" asp-append-version="true"></script>
-        <script src="~/js/addresses.js" asp-append-version="true"></script>
+      <script src="~/js/addresses.js" asp-append-version="true"></script>
         <script src="~/js/reviews.js" asp-append-version="true"></script>
     }
 </div>
@@ -827,8 +828,8 @@
                 });
                 return;
             }
-
-            // Handle addresses tab
+            
+            //  =========================================================Address - Quynh========================================================================
             if (tabName === "addresses") {
                 console.log('Loading addresses tab...');
                 $.ajax({
@@ -838,14 +839,12 @@
                         console.log('Addresses loaded successfully');
                         content.html(html);
 
-                        // Execute scripts in the loaded HTML
                         const scripts = content.find('script');
                         scripts.each(function() {
                             console.log('Executing script from Addresses');
                             eval($(this).text());
                         });
 
-                        // Trigger DOMContentLoaded for partial
                         const evt = new Event('DOMContentLoaded');
                         document.dispatchEvent(evt);
                     },
@@ -862,7 +861,8 @@
                 });
                 return;
             }
-
+            //=======================================================================================================================================================
+            
             // Handle orders tab - load from partial view
             if (tabName === "orders") {
                 console.log('Loading orders tab...');

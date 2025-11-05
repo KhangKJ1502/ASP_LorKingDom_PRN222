@@ -15,7 +15,7 @@
 <div class="container-fluid px-5">
 	<h1 class="mt-4">Quản Lí Danh Mục</h1>
 
-	<!-- Form thêm mới -->
+	<!--modal thêm  -->
 	<form class="mt-4" asp-action="AddCategory" asp-controller="Category" method="post">
     @Html.AntiForgeryToken()
     <input type="hidden" name="q" value="@q" />
@@ -49,7 +49,6 @@
     </div>
 </form>
 
-	<!-- Danh sách -->
 	<div class="card mb-4 mt-4">
 		<div class="card-header d-flex justify-content-between align-items-center">
 			<div><i class="fa-solid fa-table me-1"></i> Danh Sách Danh Mục</div>
@@ -152,7 +151,7 @@
 	</div>
 </div>
 
-<!-- Modal Edit Category -->
+<!-- Modal Edit -->
 <div class="modal fade @(ViewBag.EditCategory != null ? "show d-block" : "")"
 	 id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="@(ViewBag.EditCategory == null)">
 	<div class="modal-dialog modal-dialog-centered">
@@ -215,7 +214,6 @@
 	</div>
 </div>
 
-<!-- Toast báo lỗi -->
 <div class="toast-container position-fixed p-3 toast-top-right" style="z-index:2080;">
 	<div id="liveToast" class="toast align-items-center text-bg-danger border-0" role="alert" aria-live="assertive" aria-atomic="true">
 		<div class="d-flex">

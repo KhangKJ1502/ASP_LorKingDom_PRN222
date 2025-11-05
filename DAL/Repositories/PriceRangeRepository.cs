@@ -24,21 +24,16 @@ namespace DAL.Repositories
 
             if (!string.IsNullOrWhiteSpace(keyword))
             {
-                // 1) Thử parse "a - b"
                 if (TryParseRange(keyword, out var iMin, out var iMax))
                 {
-                    // Lấy các khoảng GIAO với [iMin, iMax]
                     q = q.Where(x => !(x.PriceRangeMax < iMin || x.PriceRangeMin > iMax));
                 }
-                // 2) Thử parse 1 số
                 else if (TryParseNumber(keyword, out var value))
                 {
-                    // Bao chứa hoặc trùng biên
                     q = q.Where(x =>
                         (x.PriceRangeMin <= value && x.PriceRangeMax >= value) ||
                         x.PriceRangeMin == value || x.PriceRangeMax == value);
                 }
-                // 3) Nếu nhập text lạ → không thêm điều kiện (để ra full / hoặc bạn có thể .Where(false))
             }
 
             return await q.OrderByDescending(x => x.CreatedAt).ToListAsync();
@@ -64,18 +59,14 @@ namespace DAL.Repositories
             return TryParseNumber(parts[0], out min) && TryParseNumber(parts[1], out max) && min <= max;
         }
 
-        // Nhận "500,000", "500.000", "500000" → 500000
         private static bool TryParseNumber(string input, out decimal value)
         {
             value = 0;
             if (string.IsNullOrWhiteSpace(input)) return false;
 
-            // Bỏ mọi ký tự không phải số hoặc dấu thập phân
-            // Ở VN, thường dấu phẩy là phân tách nghìn, ta loại bỏ , . cách
             var cleaned = Regex.Replace(input, @"[^\d]", "");
             if (cleaned.Length == 0) return false;
 
-            // Parse theo Invariant vì ta đã bỏ phân tách nghìn
             return decimal.TryParse(cleaned, NumberStyles.Number, CultureInfo.InvariantCulture, out value);
         }
 
@@ -95,8 +86,6 @@ namespace DAL.Repositories
             _context.PriceRanges.Update(entity);
             await _context.SaveChangesAsync();
         }
-
-        // Kiểm tra trùng (cùng min và max)
         public async Task<bool> ExistsAsync(decimal min, decimal max, int? excludeId = null)
         {
             return await _context.PriceRanges.AnyAsync(x =>

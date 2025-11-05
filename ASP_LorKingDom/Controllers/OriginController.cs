@@ -23,7 +23,6 @@ namespace WebUI.Controllers
             return View("~/Views/Admin/ManageOrigin.cshtml", list);
         }
 
-        // ===== Add =====
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddOrigin(string name, bool isDeleted = false, string? q = null)
@@ -34,7 +33,7 @@ namespace WebUI.Controllers
                 TempData["Success"] = "Thêm xuất xứ thành công!";
                 return RedirectToAction(nameof(Manage), new { q });
             }
-            catch (ArgumentException ex) // nếu có validator ném lỗi
+            catch (ArgumentException ex) 
             {
                 var list = await _service.GetAllAsync(q);
                 ViewBag.Query = q;
@@ -60,7 +59,6 @@ namespace WebUI.Controllers
             }
         }
 
-        // ===== Update =====
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateOrigin(int id, string name, bool isDeleted, string? q = null)
@@ -80,7 +78,6 @@ namespace WebUI.Controllers
                 var list = await _service.GetAllAsync(q);
                 ViewBag.Query = q;
 
-                // Giữ lại data đang sửa để mở lại modal
                 var dto = await _service.GetByIdAsync(id)
                           ?? new BLL.DTOs.OriginDto { Id = id, Name = name, IsDeleted = isDeleted };
                 ViewBag.EditOrigin = dto;

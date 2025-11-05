@@ -7,8 +7,8 @@ public interface IAddressRepository
     Task<Address?> GetAsync(int accountId, int addressId);
     Task AddAsync(Address entity);
     Task UpdateAsync(Address entity);
-    Task DeleteAsync(Address entity);              // ⬅️ đổi từ SoftDelete → Delete (xóa cứng)
-    Task<int> CountActiveAsync(int accountId);    // đếm tất cả địa chỉ hiện có (không dùng IsDeleted nữa)
+    Task DeleteAsync(Address entity);          
+    Task<int> CountActiveAsync(int accountId);   
     Task<Address?> GetDefaultAsync(int accountId);
     Task<List<Address>> GetAllForAccountAsync(int accountId);
 }

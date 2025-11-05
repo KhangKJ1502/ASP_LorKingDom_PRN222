@@ -76,7 +76,6 @@ namespace BLL.Services
             {
                 await _productRepo.SetIsDeletedByBrandAsync(id, true);
             }
-            // Theo yêu cầu: khi bật lại Brand, KHÔNG tự bật lại product.
 
             return true;
         }

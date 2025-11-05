@@ -5,7 +5,6 @@
     const getToken = () => tokenInput?.value ?? "";
     let bsModal;
 
-    /* ========= TOAST ========= */
     function ensureToastStyles() {
         if (document.getElementById("toast-style")) return;
         const css = `
@@ -50,13 +49,11 @@
         if (timeout > 0) setTimeout(close, timeout);
     }
 
-    /* ========= FETCH HELPERS ========= */
     async function fetchHtmlOrToast(url, options, successMsg) {
         try {
             const res = await fetch(url, { credentials: "same-origin", ...options });
             const text = await res.text();
             if (!res.ok) {
-                // server trả BadRequest/NotFound/500 với message text
                 showToast("error", text || "Có lỗi xảy ra.");
                 return null;
             }
@@ -68,7 +65,6 @@
         }
     }
 
-    /* ========= MODAL / RENDER ========= */
     function ensureModal() {
         if (!bsModal) {
             bsModal = new bootstrap.Modal(modalEl, { backdrop: 'static', keyboard: true });

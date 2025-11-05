@@ -77,7 +77,6 @@ namespace BLL.Services
             if (isDeleted)
             {
                 await _productRepo.SetIsDeletedByMaterialAsync(id, true);
-                // Khi bật lại Material: KHÔNG tự bật Product con (giữ quy ước như Brand)
             }
             return true;
         }

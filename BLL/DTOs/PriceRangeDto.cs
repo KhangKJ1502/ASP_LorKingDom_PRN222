@@ -9,8 +9,6 @@ namespace BLL.DTOs
         public decimal PriceRangeMax { get; set; }
         public bool IsDeleted { get; set; }
         public DateTime? CreatedAt { get; set; }
-
-        // Hiển thị thân thiện
         public string DisplayRange => $"{PriceRangeMin:N0} - {PriceRangeMax:N0}";
     }
 }

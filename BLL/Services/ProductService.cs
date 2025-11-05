@@ -14,7 +14,6 @@ namespace BLL.Services
         private readonly IProductImageService _imageSvc;
         private readonly IPromotionRepository _promotionRepo;
 
-        // Repos cha để kiểm tra trạng thái hoạt động
         private readonly IBrandRepository _brandRepo;
         private readonly ICategoryRepository _categoryRepo;
         private readonly IMaterialRepository _materialRepo;
@@ -63,7 +62,7 @@ namespace BLL.Services
         public async Task<int> CreateAsync(ProductDto dto)
         {
             if (dto == null) throw new ArgumentNullException(nameof(dto));
-            dto.Id = 0; // tạo mới
+            dto.Id = 0; 
             ProductValidator.ValidateForCreate(dto);
             var name = dto.ProductName.Trim();
             if (await _repo.ExistsByNameAsync(name))
@@ -72,9 +71,7 @@ namespace BLL.Services
             var status = ProductValidator.NormalizeStatus(dto.ProductStatus);
             if (status == "Discontinued")
             {
-                // tuỳ policy của bạn:
-                dto.StockQuantity = 0;   // ngừng kinh doanh thì về 0
-                                         // có thể đặt IsDeleted = true ở entity nếu muốn ẩn khỏi storefront
+               
             }
             else
             {
@@ -103,7 +100,6 @@ namespace BLL.Services
 
             await _repo.AddAsync(entity);
 
-            // Ảnh
             var main = (dto.MainImageUrl ?? "").Trim();
             var secs = (dto.SecondaryImageUrls ?? new())
                 .Select(x => (x ?? "").Trim())
@@ -148,8 +144,7 @@ namespace BLL.Services
             if (status == "Discontinued")
             {
                 e.ProductStatus = "Discontinued";
-                e.IsDeleted = true;      // (tuỳ chính sách: có thể để false nếu không muốn ẩn khỏi storefront)
-                e.Quantity = 0;          // (tuỳ: nhiều hệ thống cho về 0 khi ngừng kinh doanh)
+                e.IsDeleted = true;   
             }
             else
             {
@@ -216,8 +211,8 @@ namespace BLL.Services
 
             CategoryName = x.Category?.CategoryName,
             BrandName = x.Brand?.BrandName,
-            MaterialName = x.Material?.MaterialName,      // đổi theo field thực tế
-            AgeRange = x.Age?.AgeRange,               // hoặc AgeName
+            MaterialName = x.Material?.MaterialName,      
+            AgeRange = x.Age?.AgeRange,               
             SexName = x.Sex?.SexName,
             OriginName = x.Origin?.OriginName,
 
@@ -228,16 +223,12 @@ namespace BLL.Services
                               .Where(u => !string.IsNullOrWhiteSpace(u))
                               .ToList() ?? new List<string>()
             ,
-            // Promotion mapping - only show if promotion is active and valid
             PromotionId = IsPromotionValid(x.Promotion) ? x.PromotionId : null,
             PromotionCode = IsPromotionValid(x.Promotion) ? x.Promotion?.PromotionCode : null,
             PromotionDiscountPercent = IsPromotionValid(x.Promotion) ? x.Promotion?.DiscountPercent : null,
             IsOnSale = IsPromotionValid(x.Promotion) && x.PromotionId != null
         };
 
-        /// <summary>
-        /// Kiểm tra promotion có hợp lệ không (Active, chưa xóa, trong thời gian)
-        /// </summary>
         private static bool IsPromotionValid(DAL.Models.Promotion? promotion)
         {
             if (promotion == null) return false;
@@ -252,7 +243,6 @@ namespace BLL.Services
 
         public async Task<PagedResult<ProductDto>> GetStorefrontPagedAsync(string? keyword, int page, int pageSize)
         {
-            // Gọi xuống repo để lọc + phân trang ngay trong DB (tối ưu)
             var (items, total) = await _repo.QueryStorefrontPagedAsync(keyword, page, pageSize);
             return new PagedResult<ProductDto>
             {
@@ -281,7 +271,6 @@ namespace BLL.Services
             var product = await _repo.GetByIdAsync(productId);
             if (product == null) return false;
 
-            // Nếu muốn gán promotion, kiểm tra promotion có hợp lệ không
             if (promotionId.HasValue)
             {
                 var promotion = await _promotionRepo.GetByIdAsync(promotionId.Value);

@@ -75,7 +75,6 @@ namespace BLL.Services
             if (isDeleted)
             {
                 await _productRepo.SetIsDeletedByOriginAsync(id, true);
-                // Khi bật lại Origin: KHÔNG tự bật Product con (theo quy ước)
             }
             return true;
         }

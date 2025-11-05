@@ -7,7 +7,6 @@
 	var cities = ViewBag.Cities as List<string> ?? new();
 }
 <style>
-	/* Trường nhập: bo tròn + viền xám */
 	#addr-scope form.space-y-4 input:not([type="checkbox"]),
 	#addr-scope form.space-y-4 select {
 		border: 2px solid #d1d5db;
@@ -78,7 +77,7 @@
 			<input type="hidden" name="id" value="@Model.Id" />
 		}
 
-		<!-- Thành phố -->
+		<!-- thành phố -->
 		<div class="grid grid-cols-1 gap-3">
 			<label>Thành phố</label>
 			<select name="city">
@@ -101,7 +100,6 @@
 			<input name="addressLine" value="@(isEdit ? Model!.AddressLine : "")" placeholder="Số nhà, đường, thôn/xóm..." />
 		</div>
 
-		<!-- Nút hành động -->
 		<div class="flex justify-end gap-2 pt-2">
 			<button type="button" class="addr-form-cancel">Hủy</button>
 			<button type="submit" class="btn-orange">@btnText</button>

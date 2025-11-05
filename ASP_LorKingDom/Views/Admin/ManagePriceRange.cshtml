@@ -74,7 +74,6 @@
 									<td>@x.Id</td>
 
 									<td style="white-space:nowrap">
-										<!-- Nút Edit mở modal -->
 										<a class="btn btn-sm btn-warning ms-1" title="Cập nhật"
 										   asp-action="Edit" asp-controller="PriceRange"
 										   asp-route-id="@x.Id" asp-route-q="@q">
@@ -112,7 +111,7 @@
 	</div>
 </div>
 
-<!-- Modal Edit PriceRange -->
+<!-- Modal Edit -->
 <div class="modal fade @(ViewBag.EditPriceRange != null ? "show d-block" : "")"
 	 id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="@(ViewBag.EditPriceRange == null)">
 	<div class="modal-dialog modal-dialog-centered">
@@ -172,7 +171,6 @@
 	</div>
 </div>
 
-@* modal báo lỗi *@
 <div class="toast-container position-fixed p-3 toast-top-right" style="z-index:2080;">
 	<div id="liveToast" class="toast align-items-center text-bg-danger border-0" role="alert" aria-live="assertive" aria-atomic="true">
 		<div class="d-flex">

@@ -40,7 +40,7 @@ namespace WebUI.Controllers
 
         {
             _productSvc = productSvc;
-            _imageSvc = imageSvc;                          // ⬅️ gán
+            _imageSvc = imageSvc;                          
             _categorySvc = categorySvc;
             _sexSvc = sexSvc;
             _priceRangeSvc = priceRangeSvc;
@@ -52,7 +52,6 @@ namespace WebUI.Controllers
             _promotionSvc = promotionSvc;
         }
 
-        // ===== ASSIGN PROMOTION PAGE =====
         [HttpGet]
         public async Task<IActionResult> AssignPromotion(int id)
         {
@@ -85,7 +84,6 @@ namespace WebUI.Controllers
             }
             catch (InvalidOperationException ex)
             {
-                // Lỗi validation promotion
                 TempData["Error"] = $"{ex.Message}";
                 return RedirectToAction(nameof(AssignPromotion), new { id = productId });
             }
@@ -140,18 +138,16 @@ namespace WebUI.Controllers
        ProductDto dto,
        IFormFile? MainImageUpload,
        IFormFile[]? DetailImages,
-       string[]? ExistingImageUrls,    // giữ lại ảnh cũ (khi Add thường trống)
-       bool? KeepMainImage,            // cho đồng nhất chữ ký
+       string[]? ExistingImageUrls,    
+       bool? KeepMainImage,          
        [FromServices] IWebHostEnvironment env)
         {
             const string SUB = "assets/Component/img_product";
             dto.SecondaryImageUrls ??= new List<string>();
 
-            // 1) Ảnh chính
             if (MainImageUpload is { Length: > 0 })
                 dto.MainImageUrl = await SaveFileAsync(MainImageUpload, env, SUB);
 
-            // 2) Ảnh chi tiết mới (tối đa 6)
             if (DetailImages is { Length: > 0 })
             {
                 foreach (var f in DetailImages.Take(6))
@@ -164,7 +160,6 @@ namespace WebUI.Controllers
                 }
             }
 
-            // 3) Validate khi tạo mới
             if (dto.CategoryId is null) ModelState.AddModelError(nameof(dto.CategoryId), "Vui lòng chọn Danh mục.");
             if (dto.BrandId is null) ModelState.AddModelError(nameof(dto.BrandId), "Vui lòng chọn Thương hiệu.");
             if (dto.SexId is null) ModelState.AddModelError(nameof(dto.SexId), "Vui lòng chọn Giới tính.");
@@ -185,18 +180,16 @@ namespace WebUI.Controllers
 
             try
             {
-                // 4) Tạo sản phẩm
                 var newId = await _productSvc.CreateAsync(dto);
                 dto.Id = newId;
                 TempData["Success"] = "Thêm sản phẩm thành công!";
 
-                // 5) Upsert ảnh (Add: chủ yếu là thêm mới)
                 await _imageSvc.UpsertImagesAsync(
                     productId: dto.Id,
                     mainImageUrl: dto.MainImageUrl,
                     keepSecondaryUrls: ExistingImageUrls ?? Array.Empty<string>(),
                     addSecondaryUrls: dto.SecondaryImageUrls ?? new List<string>(),
-                    keepMainIfNull: true  // luôn giữ nếu null (Add thường đã có ảnh)
+                    keepMainIfNull: true  
                 );
 
                 return RedirectToAction(nameof(Manage));
@@ -210,25 +203,22 @@ namespace WebUI.Controllers
             }
         }
 
-        // ===== POST: /Product/Update =====
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Update(
             ProductDto dto,
             IFormFile? MainImageUpload,
             IFormFile[]? DetailImages,
-            string[]? ExistingImageUrls,   // ảnh cũ được giữ lại
-            bool? KeepMainImage,           // nếu false => cho phép xoá main cũ khi không upload mới
+            string[]? ExistingImageUrls,   
+            bool? KeepMainImage,         
             [FromServices] IWebHostEnvironment env)
         {
             const string SUB = "assets/Component/img_product";
             dto.SecondaryImageUrls ??= new List<string>();
 
-            // 1) Ảnh chính mới (nếu có)
             if (MainImageUpload is { Length: > 0 })
                 dto.MainImageUrl = await SaveFileAsync(MainImageUpload, env, SUB);
 
-            // 2) Ảnh chi tiết mới (tối đa 6)
             if (DetailImages is { Length: > 0 })
             {
                 foreach (var f in DetailImages.Take(6))
@@ -241,7 +231,6 @@ namespace WebUI.Controllers
                 }
             }
 
-            // 3) Validate cơ bản (tuỳ business có thể nới lỏng hơn khi Update)
             if (dto.Id == 0)
             {
                 await LoadDropdownsAsync();
@@ -260,7 +249,6 @@ namespace WebUI.Controllers
 
             try
             {
-                // 4) Cập nhật sản phẩm
                 var ok = await _productSvc.UpdateAsync(dto);
                 if (!ok)
                 {
@@ -271,13 +259,12 @@ namespace WebUI.Controllers
                 }
                 TempData["Success"] = "Cập nhật sản phẩm thành công!";
 
-                // 5) Upsert ảnh (giữ/xoá theo lựa chọn)
                 await _imageSvc.UpsertImagesAsync(
                     productId: dto.Id,
-                    mainImageUrl: dto.MainImageUrl,                          // null → giữ hay xoá tuỳ KeepMainIfNull
+                    mainImageUrl: dto.MainImageUrl,                        
                     keepSecondaryUrls: ExistingImageUrls ?? Array.Empty<string>(),
                     addSecondaryUrls: dto.SecondaryImageUrls ?? new List<string>(),
-                    keepMainIfNull: KeepMainImage != false                   // false => xoá main cũ nếu không upload mới
+                    keepMainIfNull: KeepMainImage != false            
                 );
 
                 return RedirectToAction(nameof(Manage));
@@ -290,99 +277,6 @@ namespace WebUI.Controllers
                 return View("~/Views/Admin/AddProduct.cshtml", dto);
             }
         }
-
-        //   [HttpPost]
-        //   [ValidateAntiForgeryToken]
-        //   public async Task<IActionResult> Save(
-        //ProductDto dto,
-        //IFormFile? MainImageUpload,
-        //IFormFile[]? DetailImages,
-        //[FromServices] IWebHostEnvironment env)
-        //   {
-        //       const string SUB = "assets/Component/img_product";
-
-        //       dto.SecondaryImageUrls ??= new System.Collections.Generic.List<string>();
-
-        //       if (MainImageUpload is { Length: > 0 })
-        //           dto.MainImageUrl = await SaveFileAsync(MainImageUpload, env, SUB);
-
-        //       if (DetailImages is { Length: > 0 })
-        //       {
-        //           foreach (var f in DetailImages.Take(6))
-        //           {
-        //               if (f is { Length: > 0 })
-        //               {
-        //                   var url = await SaveFileAsync(f, env, SUB);
-        //                   dto.SecondaryImageUrls.Add(url);
-        //               }
-        //           }
-        //       }
-
-        //       // ⛳️ Áp ràng buộc khi tạo mới
-        //       if (dto.Id == 0)
-        //       {
-        //           if (dto.CategoryId is null) ModelState.AddModelError(nameof(dto.CategoryId), "Vui lòng chọn Danh mục.");
-        //           if (dto.BrandId is null) ModelState.AddModelError(nameof(dto.BrandId), "Vui lòng chọn Thương hiệu.");
-        //           if (dto.SexId is null) ModelState.AddModelError(nameof(dto.SexId), "Vui lòng chọn Giới tính.");
-        //           if (dto.AgeId is null) ModelState.AddModelError(nameof(dto.AgeId), "Vui lòng chọn Khoảng tuổi.");
-        //           if (dto.MaterialId is null) ModelState.AddModelError(nameof(dto.MaterialId), "Vui lòng chọn Chất liệu.");
-        //           if (dto.OriginId is null) ModelState.AddModelError(nameof(dto.OriginId), "Vui lòng chọn Nguồn gốc.");
-        //           if (dto.PriceRangeId is null) ModelState.AddModelError(nameof(dto.PriceRangeId), "Vui lòng chọn Khoảng giá.");
-        //           if (string.IsNullOrWhiteSpace(dto.MainImageUrl))
-        //               ModelState.AddModelError("MainImageUpload", "Vui lòng chọn Ảnh chính.");
-        //       }
-
-        //       // ✅ NEW: nếu có lỗi ModelState => hiển thị Toast y hệt Category
-        //       if (!ModelState.IsValid)
-        //       {
-        //           await LoadDropdownsAsync();
-
-        //           // Gộp thông điệp ngắn gọn cho Toast (chỉ 1–2 dòng)
-        //           var firstError = ModelState.Values.SelectMany(v => v.Errors).FirstOrDefault()?.ErrorMessage
-        //                            ?? "Dữ liệu không hợp lệ.";
-
-        //           ViewBag.ErrorMessage = firstError;
-        //           ViewBag.ShowErrorModal = true;   // ← cờ bật Toast
-        //           return View("~/Views/Admin/AddProduct.cshtml", dto);
-        //       }
-
-        //       try
-        //       {
-        //           if (dto.Id == 0)
-        //           {
-        //               await _productSvc.CreateAsync(dto);
-        //               TempData["Success"] = "Thêm sản phẩm thành công!";
-        //           }
-        //           else
-        //           {
-        //               var ok = await _productSvc.UpdateAsync(dto);
-        //               if (!ok)
-        //               {
-        //                   await LoadDropdownsAsync();
-        //                   ViewBag.ErrorMessage = "Không tìm thấy sản phẩm để cập nhật.";
-        //                   ViewBag.ShowErrorModal = true;   // ← bật Toast
-        //                   return View("~/Views/Admin/AddProduct.cshtml", dto);
-        //               }
-        //               TempData["Success"] = "Cập nhật sản phẩm thành công!";
-        //           }
-
-        //           return RedirectToAction(nameof(Manage));
-        //       }
-        //       catch (DbUpdateException dbex)
-        //       {
-        //           await LoadDropdownsAsync();
-        //           ViewBag.ErrorMessage = "DB error: " + (dbex.InnerException?.Message ?? dbex.Message);
-        //           ViewBag.ShowErrorModal = true;       // ← bật Toast
-        //           return View("~/Views/Admin/AddProduct.cshtml", dto);
-        //       }
-        //       catch (Exception ex)
-        //       {
-        //           await LoadDropdownsAsync();
-        //           ViewBag.ErrorMessage = ex.GetBaseException().Message;
-        //           ViewBag.ShowErrorModal = true;       // ← bật Toast
-        //           return View("~/Views/Admin/AddProduct.cshtml", dto);
-        //       }
-        //   }
 
         private async Task LoadDropdownsAsync()
         {
