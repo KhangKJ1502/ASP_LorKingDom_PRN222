@@ -46,15 +46,22 @@ namespace BLL.Services
                     return (false, "Giỏ hàng của bạn đang trống", null);
                 }
 
-                // 3. Validate stock & calculate total
-                decimal totalAmount = 0;
+                // 3. Calculate amounts:
+                // - totalAmountOriginal: Tổng giá gốc (không sale) - lưu vào DB
+                // - subtotalAfterSale: Tổng giá sau sale - dùng để tính voucher và hiển thị
+                decimal totalAmountOriginal = 0;  // Giá gốc không sale
+                decimal subtotalAfterSale = 0;     // Giá sau sale
+
                 foreach (var item in cart?.CartItems ?? new List<CartItem>())
                 {
                     if (item.Product.IsDeleted || item.Quantity > item.Product.Quantity)
                     {
                         return (false, $"Sản phẩm '{item.Product.ProductName}' hết hàng", null);
                     }
-                    totalAmount += item.Quantity * item.Product.Price;
+                    // Giá gốc (không sale)
+                    totalAmountOriginal += item.Quantity * item.Product.Price;
+                    // Giá sau sale (PriceAtThatTime đã bao gồm promotion)
+                    subtotalAfterSale += item.Quantity * item.PriceAtThatTime;
                 }
 
                 // 4. Handle address - Only validate if all address fields are provided or all are empty
@@ -114,18 +121,18 @@ namespace BLL.Services
                             return (false, "Bạn đã sử dụng mã này trước đó", null);
                         }
                     }
-                    // Kiểm tra min order
-                    if (voucher.MinOrderAmount.HasValue && totalAmount < voucher.MinOrderAmount.Value)
+                    // Kiểm tra min order (dựa trên giá sau sale)
+                    if (voucher.MinOrderAmount.HasValue && subtotalAfterSale < voucher.MinOrderAmount.Value)
                     {
                         return (false, $"Đơn hàng phải từ {voucher.MinOrderAmount.Value:N0}₫ mới dùng được mã này", null);
                     }
 
-                    // 🎯 TÍNH DISCOUNT DỰA VÀO VOUCHER TYPE
+                    // 🎯 TÍNH DISCOUNT DỰA VÀO VOUCHER TYPE (tính trên giá sau sale)
                     var voucherType = voucher.VoucherType?.VoucherTypeName?.ToLower() ?? "";
                     if (voucherType.Contains("percent") || voucherType.Contains("%"))
                     {
                         // Voucher phần trăm
-                        discount = totalAmount * voucher.DiscountValue / 100;
+                        discount = subtotalAfterSale * voucher.DiscountValue / 100;
                         // Áp dụng max discount nếu có
                         if (voucher.MaxDiscountAmount.HasValue && discount > voucher.MaxDiscountAmount.Value)
                         {
@@ -139,8 +146,9 @@ namespace BLL.Services
                     }
                 }
 
-                // 7. Calculate final amount
-                decimal finalAmount = totalAmount + shippingFee - discount;
+                // 7. Calculate final amount for payment (not saved to DB)
+                // finalAmount = subtotalAfterSale + shipping - voucher
+                decimal finalAmount = subtotalAfterSale + shippingFee - discount;
                 finalAmount = Math.Max(finalAmount, 0);
 
                 // 8. Create order
@@ -156,7 +164,7 @@ namespace BLL.Services
                     ShippingWard = shippingWard,
                     ShippingMethod = checkoutDto.ShippingMethod,
                     OrderDate = DateTime.UtcNow,
-                    TotalAmount = finalAmount,
+                    TotalAmount = totalAmountOriginal,  // Lưu giá gốc (không sale)
                     PaidByWalletAmount = 0, // Adjust if you have wallet feature
                     PaidByExternalAmount = finalAmount,
                     RefundStatus = "None",
@@ -167,14 +175,15 @@ namespace BLL.Services
                 // 9. Create order details
                 foreach (var cartItem in cart?.CartItems ?? new List<CartItem>())
                 {
+                    // Use PriceAtThatTime from cart (which already includes promotion discount)
                     var orderDetail = new OrderDetail
                     {
                         Order = order,
                         ProductId = cartItem.ProductId,
                         Quantity = cartItem.Quantity,
-                        UnitPrice = cartItem.Product.Price,
+                        UnitPrice = cartItem.PriceAtThatTime,
                         Discount = 0,
-                        Total = cartItem.Quantity * cartItem.Product.Price,
+                        Total = cartItem.Quantity * cartItem.PriceAtThatTime,
                         IsDeleted = false,
                         Reviewed = false,
                         CreatedAt = DateTime.UtcNow
@@ -244,8 +253,8 @@ namespace BLL.Services
 
         private OrderDto MapToDto(Order order)
         {
-            // Tính tổng tiền sản phẩm
-            var subtotal = order.OrderDetails?.Sum(od => od.Total ?? 0) ?? 0;
+            // Tính tổng tiền sản phẩm sau sale (từ OrderDetails)
+            var subtotalAfterSale = order.OrderDetails?.Sum(od => od.Total ?? 0) ?? 0;
 
             // Xác định phí vận chuyển dựa trên ShippingMethod
             decimal shippingFee = 0;
@@ -254,8 +263,11 @@ namespace BLL.Services
             else if (order.ShippingMethod?.ToLower() == "express")
                 shippingFee = 40000;
 
-            // Tính discount amount
-            var discountAmount = subtotal + shippingFee - order.TotalAmount;
+            // Tính discount amount từ voucher
+            // Formula: subtotalAfterSale + shippingFee - discountAmount - walletAmount = paidByExternal
+            // => discountAmount = subtotalAfterSale + shippingFee - walletAmount - paidByExternal
+            var discountAmount = subtotalAfterSale + shippingFee - order.PaidByWalletAmount - order.PaidByExternalAmount;
+            discountAmount = Math.Max(0, discountAmount); // Không cho âm
 
             return new OrderDto
             {
@@ -275,7 +287,7 @@ namespace BLL.Services
                 ShippingFee = shippingFee,
                 DiscountAmount = discountAmount,
                 OrderDate = order.OrderDate,
-                TotalAmount = order.TotalAmount,
+                TotalAmount = order.TotalAmount,  // Giá gốc không sale
                 PaidByWalletAmount = order.PaidByWalletAmount,
                 PaidByExternalAmount = order.PaidByExternalAmount,
                 RefundStatus = order.RefundStatus,
@@ -301,87 +313,87 @@ namespace BLL.Services
             };
         }
 
-		public async Task<List<PendingReviewDto>> GetPendingReviewProductsAsync(int accountId)
-		{
-			var orders = await _orderRepo.GetByAccountIdAsync(accountId);
+        public async Task<List<PendingReviewDto>> GetPendingReviewProductsAsync(int accountId)
+        {
+            var orders = await _orderRepo.GetByAccountIdAsync(accountId);
 
-			var deliveredOrders = orders
-				.Where(o => o.StatusId == 4 && !o.IsDeleted) // Status 4 = Delivered
-				.ToList();
+            var deliveredOrders = orders
+                .Where(o => o.StatusId == 4 && !o.IsDeleted) // Status 4 = Delivered
+                .ToList();
 
-			var pendingReviews = new List<PendingReviewDto>();
+            var pendingReviews = new List<PendingReviewDto>();
 
-			foreach (var order in deliveredOrders)
-			{
-				var orderDetails = await _orderRepo.GetOrderDetailsByOrderIdAsync(order.OrderId);
+            foreach (var order in deliveredOrders)
+            {
+                var orderDetails = await _orderRepo.GetOrderDetailsByOrderIdAsync(order.OrderId);
 
-				foreach (var detail in orderDetails.Where(d => !d.Reviewed && !d.IsDeleted))
-				{
-					var product = await _productRepo.GetByIdAsync(detail.ProductId);
-					if (product != null && !product.IsDeleted)
-					{
-						pendingReviews.Add(new PendingReviewDto
-						{
-							ProductId = product.ProductId,
-							ProductName = product.ProductName,
-							MainImageUrl = product.ProductImages?.FirstOrDefault(i => i.IsMain)?.ImageUrl,
-							PurchaseDate = order.OrderDate,
-							OrderId = order.OrderId,
-							Price = detail.UnitPrice
-						});
-					}
-				}
-			}
+                foreach (var detail in orderDetails.Where(d => !d.Reviewed && !d.IsDeleted))
+                {
+                    var product = await _productRepo.GetByIdAsync(detail.ProductId);
+                    if (product != null && !product.IsDeleted)
+                    {
+                        pendingReviews.Add(new PendingReviewDto
+                        {
+                            ProductId = product.ProductId,
+                            ProductName = product.ProductName,
+                            MainImageUrl = product.ProductImages?.FirstOrDefault(i => i.IsMain)?.ImageUrl,
+                            PurchaseDate = order.OrderDate,
+                            OrderId = order.OrderId,
+                            Price = detail.UnitPrice
+                        });
+                    }
+                }
+            }
 
-			return pendingReviews.OrderByDescending(p => p.PurchaseDate).ToList();
-		}
+            return pendingReviews.OrderByDescending(p => p.PurchaseDate).ToList();
+        }
 
-		public async Task<bool> CanReviewProductAsync(int accountId, int productId)
-		{
-			var orders = await _orderRepo.GetByAccountIdAsync(accountId);
+        public async Task<bool> CanReviewProductAsync(int accountId, int productId)
+        {
+            var orders = await _orderRepo.GetByAccountIdAsync(accountId);
 
-			var hasDeliveredOrder = orders.Any(o =>
-				o.StatusId == 4 && // Delivered
-				!o.IsDeleted &&
-				o.OrderDetails.Any(od => od.ProductId == productId && !od.IsDeleted)
-			);
+            var hasDeliveredOrder = orders.Any(o =>
+                o.StatusId == 4 && // Delivered
+                !o.IsDeleted &&
+                o.OrderDetails.Any(od => od.ProductId == productId && !od.IsDeleted)
+            );
 
-			return hasDeliveredOrder;
-		}
+            return hasDeliveredOrder;
+        }
 
-		public async Task MarkProductAsReviewedAsync(int accountId, int productId)
-		{
-			var orders = await _orderRepo.GetByAccountIdAsync(accountId);
+        public async Task MarkProductAsReviewedAsync(int accountId, int productId)
+        {
+            var orders = await _orderRepo.GetByAccountIdAsync(accountId);
 
-			foreach (var order in orders.Where(o => o.StatusId == 4 && !o.IsDeleted))
-			{
-				var orderDetails = await _orderRepo.GetOrderDetailsByOrderIdAsync(order.OrderId);
-				var detail = orderDetails.FirstOrDefault(od => od.ProductId == productId && !od.IsDeleted);
+            foreach (var order in orders.Where(o => o.StatusId == 4 && !o.IsDeleted))
+            {
+                var orderDetails = await _orderRepo.GetOrderDetailsByOrderIdAsync(order.OrderId);
+                var detail = orderDetails.FirstOrDefault(od => od.ProductId == productId && !od.IsDeleted);
 
-				if (detail != null)
-				{
-					detail.Reviewed = true;
-					await _orderRepo.UpdateOrderDetailAsync(detail);
-				}
-			}
-		}
+                if (detail != null)
+                {
+                    detail.Reviewed = true;
+                    await _orderRepo.UpdateOrderDetailAsync(detail);
+                }
+            }
+        }
 
-		public async Task UnmarkProductAsReviewedAsync(int accountId, int productId)
-		{
-			var orders = await _orderRepo.GetByAccountIdAsync(accountId);
+        public async Task UnmarkProductAsReviewedAsync(int accountId, int productId)
+        {
+            var orders = await _orderRepo.GetByAccountIdAsync(accountId);
 
-			foreach (var order in orders.Where(o => o.StatusId == 4 && !o.IsDeleted))
-			{
-				var orderDetails = await _orderRepo.GetOrderDetailsByOrderIdAsync(order.OrderId);
-				var detail = orderDetails.FirstOrDefault(od => od.ProductId == productId && !od.IsDeleted);
+            foreach (var order in orders.Where(o => o.StatusId == 4 && !o.IsDeleted))
+            {
+                var orderDetails = await _orderRepo.GetOrderDetailsByOrderIdAsync(order.OrderId);
+                var detail = orderDetails.FirstOrDefault(od => od.ProductId == productId && !od.IsDeleted);
 
-				if (detail != null)
-				{
-					detail.Reviewed = false;
-					await _orderRepo.UpdateOrderDetailAsync(detail);
-				}
-			}
-		}
+                if (detail != null)
+                {
+                    detail.Reviewed = false;
+                    await _orderRepo.UpdateOrderDetailAsync(detail);
+                }
+            }
+        }
 
-	}
+    }
 }

@@ -19,6 +19,9 @@ namespace DAL.Repositories
                 .Include(c => c.CartItems)
                 .ThenInclude(ci => ci.Product)
                 .ThenInclude(p => p.ProductImages)
+                .Include(c => c.CartItems)
+                .ThenInclude(ci => ci.Product)
+                .ThenInclude(p => p.Promotion)
                 .FirstOrDefaultAsync(c => c.AccountId == accountId);
         }
 
@@ -38,13 +41,16 @@ namespace DAL.Repositories
 
         public async Task<Product?> GetProductByIdAsync(int productId)
         {
-            return await _db.Products.FirstOrDefaultAsync(p => p.ProductId == productId);
+            return await _db.Products
+                .Include(p => p.Promotion)
+                .FirstOrDefaultAsync(p => p.ProductId == productId);
         }
 
         public async Task<CartItem?> GetCartItemByIdAsync(int cartItemId)
         {
             return await _db.CartItems
                 .Include(ci => ci.Product)
+                .ThenInclude(p => p.Promotion)
                 .FirstOrDefaultAsync(ci => ci.CartItemId == cartItemId);
         }
 
