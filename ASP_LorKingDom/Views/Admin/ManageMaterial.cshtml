@@ -9,8 +9,9 @@
     <h1 class="mt-4">Quản Lí Chất Liệu</h1>
 
     <!-- Form thêm mới -->
-    <form class="mt-4" asp-action="SaveMaterial" asp-controller="Material" method="post">
+    <form class="mt-4" asp-action="AddMaterial" asp-controller="Material" method="post">
         @Html.AntiForgeryToken()
+        <input type="hidden" name="q" value="@q" />
         <div class="row g-2 align-items-end">
             <input type="hidden" name="id" value="0" />
             <div class="col-md-4">
@@ -33,6 +34,7 @@
             </div>
         </div>
     </form>
+
 
     <div class="card mb-4 mt-4">
         <div class="card-header d-flex justify-content-between align-items-center">
@@ -127,8 +129,9 @@
                 <a href="@Url.Action("Manage", "Material")" class="btn-close"></a>
             </div>
 
-            <form method="post" asp-action="SaveMaterial" asp-controller="Material">
+            <form method="post" asp-action="UpdateMaterial" asp-controller="Material">
                 @Html.AntiForgeryToken()
+                <input type="hidden" name="q" value="@q" />
                 <div class="modal-body">
                     <input type="hidden" name="id" value="@(edit?.Id ?? 0)" />
 
@@ -148,9 +151,6 @@
                             <option value="false" selected="@(edit?.IsDeleted == false)">Hoạt động (0)</option>
                             <option value="true" selected="@(edit?.IsDeleted == true)">Không hoạt động (1)</option>
                         </select>
-                        <div class="form-text">
-                            Chọn “Không hoạt động” tương đương đặt IsDeleted = 1.
-                        </div>
                     </div>
 
                     <div class="mb-2 text-muted small">
@@ -160,7 +160,7 @@
                 </div>
 
                 <div class="modal-footer">
-                    <a href="@Url.Action("Manage", "Material")" class="btn btn-outline-secondary">Hủy</a>
+                    <a href="@Url.Action("Manage", "Material", new { q })" class="btn btn-outline-secondary">Hủy</a>
                     <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
                 </div>
             </form>

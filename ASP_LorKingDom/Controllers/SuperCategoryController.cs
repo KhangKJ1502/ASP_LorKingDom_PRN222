@@ -5,8 +5,8 @@ using WebUI.Filters;
 
 namespace WebUI.Controllers
 {
-    [Authorize(AuthenticationSchemes = "AdminScheme")]
-    [AdminAndWarehouseOnly] // Warehouse: Super Category Management
+    //[Authorize(AuthenticationSchemes = "AdminScheme")]
+    //[AdminAndWarehouseOnly] // Warehouse: Super Category Management
     public class SuperCategoryController : Controller
     {
         private readonly ISuperCategoryService _service;
@@ -46,51 +46,75 @@ namespace WebUI.Controllers
         public async Task<IActionResult> Manage(string? q, int page = 1, int pageSize = 8)
             => await ReturnManageViewAsync(q, page, pageSize);
 
-        // ===== POST: /SuperCategory/SaveSuperCategory =====
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> SaveSuperCategory(
-            int id, string name, bool isDeleted = false,
+        public async Task<IActionResult> AddSuperCategory(
+    string name, bool isDeleted = false,
+    string? q = null, int page = 1, int pageSize = 8)
+        {
+            try
+            {
+                await _service.CreateAsync(name, isDeleted);
+                TempData["Success"] = "Thêm danh mục tổng thành công!";
+                return RedirectToAction(nameof(Manage), new { q, page, pageSize });
+            }
+            catch (ArgumentException ex) // lỗi validator nếu có
+            {
+                // nhớ đưa lại tên vừa nhập để user không phải gõ lại
+                ViewBag.LastName = name;
+                return await ReturnManageViewAsync(q, page, pageSize, error: ex.Message, showError: true);
+            }
+            catch (InvalidOperationException ex)
+            {
+                ViewBag.LastName = name;
+                return await ReturnManageViewAsync(q, page, pageSize, error: ex.Message, showError: true);
+            }
+            catch (Exception ex)
+            {
+                ViewBag.LastName = name;
+                return await ReturnManageViewAsync(q, page, pageSize, error: "Đã có lỗi xảy ra. " + ex.Message, showError: true);
+            }
+        }
+
+        // ===== POST: /SuperCategory/UpdateSuperCategory =====
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateSuperCategory(
+            int id, string name, bool isDeleted,
             string? q = null, int page = 1, int pageSize = 8)
         {
             try
             {
-                if (id == 0)
-                    await _service.CreateAsync(name, isDeleted);
+                var ok = await _service.UpdateAsync(id, name, isDeleted);
+                if (!ok)
+                    TempData["Error"] = "Không tìm thấy danh mục tổng.";
                 else
-                    await _service.UpdateAsync(id, name, isDeleted);
+                    TempData["Success"] = "Cập nhật danh mục tổng thành công!";
 
-                TempData["Success"] = "Lưu thành công!";
                 return RedirectToAction(nameof(Manage), new { q, page, pageSize });
+            }
+            catch (ArgumentException ex)
+            {
+                var edit = await _service.GetByIdAsync(id) ?? new BLL.DTOs.SuperCategoryDto
+                {
+                    Id = id,
+                    Name = name,
+                    IsDeleted = isDeleted
+                };
+                return await ReturnManageViewAsync(q, page, pageSize,
+                    editDto: edit, error: ex.Message, showError: true);
             }
             catch (InvalidOperationException ex)
             {
-                object? edit = null;
-
-                // Hiển thị lại modal Edit nếu đang sửa
-                if (id != 0)
-                {
-                    edit = await _service.GetByIdAsync(id)
-                           ?? new BLL.DTOs.SuperCategoryDto
-                           {
-                               Id = id,
-                               Name = name,
-                               IsDeleted = isDeleted
-                           };
-                }
-                // Nếu đang thêm mới, bạn có thể dùng ViewBag.LastName để fill lại input name ở View
-                if (id == 0) ViewBag.LastName = name;
-
+                var edit = await _service.GetByIdAsync(id);
                 return await ReturnManageViewAsync(q, page, pageSize,
-                    editDto: edit,
-                    error: ex.Message,
-                    showError: true);
+                    editDto: edit, error: ex.Message, showError: true);
             }
             catch (Exception ex)
             {
+                var edit = await _service.GetByIdAsync(id);
                 return await ReturnManageViewAsync(q, page, pageSize,
-                    error: "Đã có lỗi xảy ra. " + ex.Message,
-                    showError: true);
+                    editDto: edit, error: "Đã có lỗi xảy ra. " + ex.Message, showError: true);
             }
         }
 

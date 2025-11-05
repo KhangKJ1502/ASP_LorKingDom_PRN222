@@ -8,9 +8,9 @@
 <div class="container-fluid px-5">
 	<h1 class="mt-4">Quản Lý Khoảng Giá</h1>
 
-	<!-- Form thêm mới -->
-	<form class="mt-4" asp-action="SavePriceRange" asp-controller="PriceRange" method="post">
+	<form class="mt-4" asp-action="AddPriceRange" asp-controller="PriceRange" method="post">
 		@Html.AntiForgeryToken()
+		<input type="hidden" name="q" value="@q" />
 		<input type="hidden" name="id" value="0" />
 		<div class="row g-2 align-items-end">
 			<div class="col-auto">
@@ -27,6 +27,7 @@
 			</div>
 		</div>
 	</form>
+
 
 	<div class="card mb-4 mt-4">
 		<div class="card-header d-flex justify-content-between align-items-center">
@@ -121,8 +122,9 @@
 				<a href="@Url.Action("Manage", "PriceRange")" class="btn-close"></a>
 			</div>
 
-			<form method="post" asp-action="SavePriceRange" asp-controller="PriceRange">
+			<form method="post" asp-action="UpdatePriceRange" asp-controller="PriceRange">
 				@Html.AntiForgeryToken()
+				<input type="hidden" name="q" value="@q" />
 				<div class="modal-body">
 					@{
 						var edit = ViewBag.EditPriceRange as BLL.DTOs.PriceRangeDto;
@@ -162,7 +164,7 @@
 				</div>
 
 				<div class="modal-footer">
-					<a href="@Url.Action("Manage", "PriceRange")" class="btn btn-outline-secondary">Hủy</a>
+					<a href="@Url.Action("Manage", "PriceRange", new { q })" class="btn btn-outline-secondary">Hủy</a>
 					<button type="submit" class="btn btn-primary">Lưu thay đổi</button>
 				</div>
 			</form>

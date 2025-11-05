@@ -5,8 +5,8 @@ using WebUI.Filters;
 
 namespace WebUI.Controllers
 {
-    [Authorize(AuthenticationSchemes = "AdminScheme")]
-    [AdminAndWarehouseOnly] // Warehouse: Price Range Management
+    //[Authorize(AuthenticationSchemes = "AdminScheme")]
+    //[AdminAndWarehouseOnly] // Warehouse: Price Range Management
     public class PriceRangeController : Controller
     {
         private readonly IPriceRangeService _service;
@@ -25,43 +25,88 @@ namespace WebUI.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> SavePriceRange(int id, decimal priceRangeMin, decimal priceRangeMax, bool isDeleted = false)
+        public async Task<IActionResult> AddPriceRange(decimal priceRangeMin, decimal priceRangeMax, bool isDeleted = false, string? q = null)
         {
             try
             {
-                if (id == 0)
-                    await _service.CreateAsync(priceRangeMin, priceRangeMax, isDeleted);
-                else
-                    await _service.UpdateAsync(id, priceRangeMin, priceRangeMax, isDeleted);
-
-                TempData["Success"] = "Lưu thành công!";
-                return RedirectToAction(nameof(Manage));
+                await _service.CreateAsync(priceRangeMin, priceRangeMax, isDeleted);
+                TempData["Success"] = "Thêm khoảng giá thành công!";
+                return RedirectToAction(nameof(Manage), new { q });
+            }
+            catch (ArgumentException ex) // lỗi validator (ví dụ Min > Max, trùng, v.v.)
+            {
+                var list = await _service.GetAllAsync(q);
+                ViewBag.Query = q;
+                ViewBag.ErrorMessage = ex.Message;
+                ViewBag.ShowErrorModal = true;
+                return View("~/Views/Admin/ManagePriceRange.cshtml", list);
             }
             catch (InvalidOperationException ex)
             {
-                var list = await _service.GetAllAsync();
-                ViewBag.Query = null;
+                var list = await _service.GetAllAsync(q);
+                ViewBag.Query = q;
                 ViewBag.ErrorMessage = ex.Message;
                 ViewBag.ShowErrorModal = true;
-
-                if (id != 0)
-                {
-                    var dto = await _service.GetByIdAsync(id)
-                              ?? new BLL.DTOs.PriceRangeDto
-                              {
-                                  Id = id,
-                                  PriceRangeMin = priceRangeMin,
-                                  PriceRangeMax = priceRangeMax,
-                                  IsDeleted = isDeleted
-                              };
-                    ViewBag.EditPriceRange = dto;
-                }
-
                 return View("~/Views/Admin/ManagePriceRange.cshtml", list);
             }
             catch (Exception ex)
             {
-                var list = await _service.GetAllAsync();
+                var list = await _service.GetAllAsync(q);
+                ViewBag.Query = q;
+                ViewBag.ErrorMessage = "Đã có lỗi xảy ra: " + ex.Message;
+                ViewBag.ShowErrorModal = true;
+                return View("~/Views/Admin/ManagePriceRange.cshtml", list);
+            }
+        }
+
+        // ===== Update =====
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdatePriceRange(int id, decimal priceRangeMin, decimal priceRangeMax, bool isDeleted, string? q = null)
+        {
+            try
+            {
+                var ok = await _service.UpdateAsync(id, priceRangeMin, priceRangeMax, isDeleted);
+                if (!ok)
+                    TempData["Error"] = "Không tìm thấy khoảng giá.";
+                else
+                    TempData["Success"] = "Cập nhật khoảng giá thành công!";
+
+                return RedirectToAction(nameof(Manage), new { q });
+            }
+            catch (ArgumentException ex)
+            {
+                var list = await _service.GetAllAsync(q);
+                ViewBag.Query = q;
+
+                // Giữ lại dữ liệu đang sửa để mở lại modal
+                var dto = await _service.GetByIdAsync(id) ?? new BLL.DTOs.PriceRangeDto
+                {
+                    Id = id,
+                    PriceRangeMin = priceRangeMin,
+                    PriceRangeMax = priceRangeMax,
+                    IsDeleted = isDeleted
+                };
+                ViewBag.EditPriceRange = dto;
+
+                ViewBag.ErrorMessage = ex.Message;
+                ViewBag.ShowErrorModal = true;
+                return View("~/Views/Admin/ManagePriceRange.cshtml", list);
+            }
+            catch (InvalidOperationException ex)
+            {
+                var list = await _service.GetAllAsync(q);
+                ViewBag.Query = q;
+                ViewBag.EditPriceRange = await _service.GetByIdAsync(id);
+                ViewBag.ErrorMessage = ex.Message;
+                ViewBag.ShowErrorModal = true;
+                return View("~/Views/Admin/ManagePriceRange.cshtml", list);
+            }
+            catch (Exception ex)
+            {
+                var list = await _service.GetAllAsync(q);
+                ViewBag.Query = q;
+                ViewBag.EditPriceRange = await _service.GetByIdAsync(id);
                 ViewBag.ErrorMessage = "Đã có lỗi xảy ra: " + ex.Message;
                 ViewBag.ShowErrorModal = true;
                 return View("~/Views/Admin/ManagePriceRange.cshtml", list);

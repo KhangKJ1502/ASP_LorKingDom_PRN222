@@ -141,10 +141,19 @@
 		@(isEdit ? "Cập nhật Sản Phẩm" : "Thêm Sản Phẩm Mới")
 	</h2>
 
-	<form asp-action="Save" asp-controller="Product" method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+	
+	<form asp-action="@(isEdit ? "Update" : "Add")"
+		  asp-controller="Product"
+		  method="post"
+		  enctype="multipart/form-data"
+		  class="needs-validation" novalidate>
 		@Html.AntiForgeryToken()
 		<input type="hidden" asp-for="Id" />
 		<input type="hidden" asp-for="DescriptionHtml" id="DescriptionHidden" />
+
+		<!-- Thêm dòng này để điều khiển xoá/giữ ảnh chính khi không upload ảnh mới -->
+		<input type="hidden" name="KeepMainImage" id="KeepMainImage" value="true" />
+
 
 		<div class="row">
 			<!-- LEFT -->
@@ -392,12 +401,15 @@
 			reader.readAsDataURL(file);
 		});
 
-		function removeMainImage() {
+				function removeMainImage() {
 			const container = document.getElementById('previewContainer');
 			container.innerHTML = "";
 			const input = document.getElementById('mainImageUpload');
 			if (input) input.value = "";
+			const keep = document.getElementById('KeepMainImage');
+			if (keep) keep.value = "false";  // ← khi submit mà không có main mới => xoá main cũ
 		}
+
 
 		// ===== ẢNH CHI TIẾT =====
 		let selectedDetailFiles = [];

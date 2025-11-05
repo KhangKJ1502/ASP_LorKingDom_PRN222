@@ -5,8 +5,8 @@ using WebUI.Filters;
 
 namespace WebUI.Controllers
 {
-    [Authorize(AuthenticationSchemes = "AdminScheme")]
-    [AdminAndWarehouseOnly] // Warehouse: Material Management
+    //[Authorize(AuthenticationSchemes = "AdminScheme")]
+    //[AdminAndWarehouseOnly] // Warehouse: Material Management
     public class MaterialController : Controller
     {
         private readonly IMaterialService _service;
@@ -25,42 +25,91 @@ namespace WebUI.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> SaveMaterial(int id, string name, string? description, bool isDeleted = false)
+        public async Task<IActionResult> AddMaterial(string name, string? description, bool isDeleted = false, string? q = null)
         {
             try
             {
-                if (id == 0)
-                    await _service.CreateAsync(name, description, isDeleted);
-                else
-                    await _service.UpdateAsync(id, name, description, isDeleted);
-
-                TempData["Success"] = "Lưu chất liệu thành công!";
-                return RedirectToAction(nameof(Manage));
+                await _service.CreateAsync(name, description, isDeleted);
+                TempData["Success"] = "Thêm chất liệu thành công!";
+                return RedirectToAction(nameof(Manage), new { q });
+            }
+            catch (ArgumentException ex) // lỗi validator
+            {
+                var list = await _service.GetAllAsync(q);
+                ViewBag.Query = q;
+                ViewBag.ErrorMessage = ex.Message;
+                ViewBag.ShowErrorModal = true;
+                return View("~/Views/Admin/ManageMaterial.cshtml", list);
             }
             catch (InvalidOperationException ex)
             {
-                var list = await _service.GetAllAsync();
+                var list = await _service.GetAllAsync(q);
+                ViewBag.Query = q;
                 ViewBag.ErrorMessage = ex.Message;
                 ViewBag.ShowErrorModal = true;
-
-                if (id != 0)
-                {
-                    var dto = await _service.GetByIdAsync(id)
-                              ?? new BLL.DTOs.MaterialDto { Id = id, Name = name, Description = description, IsDeleted = isDeleted };
-                    ViewBag.EditMaterial = dto;
-                }
-
                 return View("~/Views/Admin/ManageMaterial.cshtml", list);
             }
             catch (Exception ex)
             {
-                var list = await _service.GetAllAsync();
+                var list = await _service.GetAllAsync(q);
+                ViewBag.Query = q;
                 ViewBag.ErrorMessage = "Đã có lỗi xảy ra. " + ex.Message;
                 ViewBag.ShowErrorModal = true;
                 return View("~/Views/Admin/ManageMaterial.cshtml", list);
             }
         }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateMaterial(int id, string name, string? description, bool isDeleted, string? q = null)
+        {
+            try
+            {
+                var ok = await _service.UpdateAsync(id, name, description, isDeleted);
+                if (!ok)
+                    TempData["Error"] = "Không tìm thấy chất liệu.";
+                else
+                    TempData["Success"] = "Cập nhật chất liệu thành công!";
 
+                return RedirectToAction(nameof(Manage), new { q });
+            }
+            catch (ArgumentException ex)
+            {
+                var list = await _service.GetAllAsync(q);
+                ViewBag.Query = q;
+                ViewBag.ErrorMessage = ex.Message;
+                ViewBag.ShowErrorModal = true;
+
+                // Giữ lại data đang sửa để mở lại modal
+                var dto = await _service.GetByIdAsync(id) ?? new BLL.DTOs.MaterialDto
+                {
+                    Id = id,
+                    Name = name,
+                    Description = description,
+                    IsDeleted = isDeleted
+                };
+                ViewBag.EditMaterial = dto;
+
+                return View("~/Views/Admin/ManageMaterial.cshtml", list);
+            }
+            catch (InvalidOperationException ex)
+            {
+                var list = await _service.GetAllAsync(q);
+                ViewBag.Query = q;
+                ViewBag.ErrorMessage = ex.Message;
+                ViewBag.ShowErrorModal = true;
+                ViewBag.EditMaterial = await _service.GetByIdAsync(id);
+                return View("~/Views/Admin/ManageMaterial.cshtml", list);
+            }
+            catch (Exception ex)
+            {
+                var list = await _service.GetAllAsync(q);
+                ViewBag.Query = q;
+                ViewBag.ErrorMessage = "Đã có lỗi xảy ra. " + ex.Message;
+                ViewBag.ShowErrorModal = true;
+                ViewBag.EditMaterial = await _service.GetByIdAsync(id);
+                return View("~/Views/Admin/ManageMaterial.cshtml", list);
+            }
+        }
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {

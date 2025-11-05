@@ -5,8 +5,8 @@ using WebUI.Filters;
 
 namespace WebUI.Controllers
 {
-    [Authorize(AuthenticationSchemes = "AdminScheme")]
-    [AdminAndWarehouseOnly] // Warehouse: Origin Management
+    //[Authorize(AuthenticationSchemes = "AdminScheme")]
+    //[AdminAndWarehouseOnly] // Warehouse: Origin Management
     public class OriginController : Controller
     {
         private readonly IOriginService _service;
@@ -23,38 +23,86 @@ namespace WebUI.Controllers
             return View("~/Views/Admin/ManageOrigin.cshtml", list);
         }
 
+        // ===== Add =====
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> SaveOrigin(int id, string name, bool isDeleted = false)
+        public async Task<IActionResult> AddOrigin(string name, bool isDeleted = false, string? q = null)
         {
             try
             {
-                if (id == 0)
-                    await _service.CreateAsync(name, isDeleted);
-                else
-                    await _service.UpdateAsync(id, name, isDeleted);
-
-                TempData["Success"] = "Lưu xuất xứ thành công!";
-                return RedirectToAction(nameof(Manage));
+                await _service.CreateAsync(name, isDeleted);
+                TempData["Success"] = "Thêm xuất xứ thành công!";
+                return RedirectToAction(nameof(Manage), new { q });
+            }
+            catch (ArgumentException ex) // nếu có validator ném lỗi
+            {
+                var list = await _service.GetAllAsync(q);
+                ViewBag.Query = q;
+                ViewBag.ErrorMessage = ex.Message;
+                ViewBag.ShowErrorModal = true;
+                return View("~/Views/Admin/ManageOrigin.cshtml", list);
             }
             catch (InvalidOperationException ex)
             {
-                var list = await _service.GetAllAsync();
+                var list = await _service.GetAllAsync(q);
+                ViewBag.Query = q;
                 ViewBag.ErrorMessage = ex.Message;
                 ViewBag.ShowErrorModal = true;
-
-                if (id != 0)
-                {
-                    var dto = await _service.GetByIdAsync(id)
-                              ?? new BLL.DTOs.OriginDto { Id = id, Name = name, IsDeleted = isDeleted };
-                    ViewBag.EditOrigin = dto;
-                }
-
                 return View("~/Views/Admin/ManageOrigin.cshtml", list);
             }
             catch (Exception ex)
             {
-                var list = await _service.GetAllAsync();
+                var list = await _service.GetAllAsync(q);
+                ViewBag.Query = q;
+                ViewBag.ErrorMessage = "Đã có lỗi xảy ra. " + ex.Message;
+                ViewBag.ShowErrorModal = true;
+                return View("~/Views/Admin/ManageOrigin.cshtml", list);
+            }
+        }
+
+        // ===== Update =====
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateOrigin(int id, string name, bool isDeleted, string? q = null)
+        {
+            try
+            {
+                var ok = await _service.UpdateAsync(id, name, isDeleted);
+                if (!ok)
+                    TempData["Error"] = "Không tìm thấy xuất xứ.";
+                else
+                    TempData["Success"] = "Cập nhật xuất xứ thành công!";
+
+                return RedirectToAction(nameof(Manage), new { q });
+            }
+            catch (ArgumentException ex)
+            {
+                var list = await _service.GetAllAsync(q);
+                ViewBag.Query = q;
+
+                // Giữ lại data đang sửa để mở lại modal
+                var dto = await _service.GetByIdAsync(id)
+                          ?? new BLL.DTOs.OriginDto { Id = id, Name = name, IsDeleted = isDeleted };
+                ViewBag.EditOrigin = dto;
+
+                ViewBag.ErrorMessage = ex.Message;
+                ViewBag.ShowErrorModal = true;
+                return View("~/Views/Admin/ManageOrigin.cshtml", list);
+            }
+            catch (InvalidOperationException ex)
+            {
+                var list = await _service.GetAllAsync(q);
+                ViewBag.Query = q;
+                ViewBag.EditOrigin = await _service.GetByIdAsync(id);
+                ViewBag.ErrorMessage = ex.Message;
+                ViewBag.ShowErrorModal = true;
+                return View("~/Views/Admin/ManageOrigin.cshtml", list);
+            }
+            catch (Exception ex)
+            {
+                var list = await _service.GetAllAsync(q);
+                ViewBag.Query = q;
+                ViewBag.EditOrigin = await _service.GetByIdAsync(id);
                 ViewBag.ErrorMessage = "Đã có lỗi xảy ra. " + ex.Message;
                 ViewBag.ShowErrorModal = true;
                 return View("~/Views/Admin/ManageOrigin.cshtml", list);

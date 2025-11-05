@@ -16,36 +16,38 @@
 	<h1 class="mt-4">Quản Lí Danh Mục</h1>
 
 	<!-- Form thêm mới -->
-	<form class="mt-4" asp-action="SaveCategory" asp-controller="Category" method="post">
-		@Html.AntiForgeryToken()
-		<input type="hidden" name="id" value="0" />
+	<form class="mt-4" asp-action="AddCategory" asp-controller="Category" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="q" value="@q" />
+    
+    <input type="hidden" name="pageSize" value="@pageSize" />
+    <input type="hidden" name="id" value="0" />
 
-		<div class="row g-2 align-items-end">
-			<div class="col-md-4">
-				<label class="form-label">Nhóm Danh Mục Tổng</label>
-				<select class="form-select" name="superCategoryId" required>
-					<option value="">-- Chọn Nhóm Danh Mục Tổng --</option>
-					@if (supers != null && supers.Any())
-					{
-						foreach (var s in supers)
-						{
-							<option value="@s.Id">@s.Name</option>
-						}
-					}
-				</select>
-			</div>
+    <div class="row g-2 align-items-end">
+        <div class="col-md-4">
+            <label class="form-label">Nhóm Danh Mục Tổng</label>
+            <select class="form-select" name="superCategoryId" required>
+                <option value="">-- Chọn Nhóm Danh Mục Tổng --</option>
+                @if (supers != null && supers.Any())
+                {
+                    foreach (var s in supers)
+                    {
+                        <option value="@s.Id">@s.Name</option>
+                    }
+                }
+            </select>
+        </div>
 
-			<div class="col-md-4">
-				<label class="form-label">Tên Danh Mục</label>
-				<input type="text" name="name" class="form-control" required />
-			</div>
+        <div class="col-md-4">
+            <label class="form-label">Tên Danh Mục</label>
+            <input type="text" name="name" class="form-control" required />
+        </div>
 
-
-			<div class="col-md-2">
-				<button class="btn btn-primary w-100" type="submit">Thêm Danh Mục</button>
-			</div>
-		</div>
-	</form>
+        <div class="col-md-2">
+            <button class="btn btn-primary w-100" type="submit">Thêm Danh Mục</button>
+        </div>
+    </div>
+</form>
 
 	<!-- Danh sách -->
 	<div class="card mb-4 mt-4">
@@ -160,54 +162,55 @@
 				<a href="@Url.Action("Manage", "Category")" class="btn-close"></a>
 			</div>
 
-			<form method="post" asp-action="SaveCategory" asp-controller="Category">
-				@Html.AntiForgeryToken()
-				<div class="modal-body">
-					@{
-						var edit = ViewBag.EditCategory as BLL.DTOs.CategoryDto;
-					}
-					<input type="hidden" name="id" value="@(edit?.Id ?? 0)" />
+			<form method="post" asp-action="UpdateCategory" asp-controller="Category">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="q" value="@q" />
+    <input type="hidden" name="pageSize" value="@pageSize" />
 
-					<div class="mb-3">
-						<label class="form-label">Nhóm Danh Mục Tổng</label>
-						<select class="form-select" name="superCategoryId" required>
-							<option value="">-- Chọn Nhóm Danh Mục Tổng --</option>
-							@if (supers != null && supers.Any())
-							{
-								foreach (var s in supers)
-								{
-									<option value="@s.Id" selected="@(s.Id == edit?.SuperCategoryId)">
-										@s.Name
-									</option>
-								}
-							}
-						</select>
-					</div>
+    <div class="modal-body">
+        @{
+            var edit = ViewBag.EditCategory as BLL.DTOs.CategoryDto;
+        }
+        <input type="hidden" name="id" value="@(edit?.Id ?? 0)" />
 
-					<div class="mb-3">
-						<label class="form-label">Tên Danh Mục</label>
-						<input type="text" class="form-control" name="name" value="@(edit?.Name ?? "")" required />
-					</div>
+        <div class="mb-3">
+            <label class="form-label">Nhóm Danh Mục Tổng</label>
+            <select class="form-select" name="superCategoryId" required>
+                <option value="">-- Chọn Nhóm Danh Mục Tổng --</option>
+                @if (supers != null && supers.Any())
+                {
+                    foreach (var s in supers)
+                    {
+                        <option value="@s.Id" selected="@(s.Id == edit?.SuperCategoryId)">@s.Name</option>
+                    }
+                }
+            </select>
+        </div>
 
-					<div class="mb-3">
-						<label class="form-label">Trạng thái</label>
-						<select class="form-select" name="isDeleted" required>
-							<option value="false" selected="@(edit?.IsDeleted == false)">Hoạt động (0)</option>
-							<option value="true" selected="@(edit?.IsDeleted == true)">Không hoạt động (1)</option>
-						</select>
-					</div>
+        <div class="mb-3">
+            <label class="form-label">Tên Danh Mục</label>
+            <input type="text" class="form-control" name="name" value="@(edit?.Name ?? "")" required />
+        </div>
 
-					<div class="mb-2 text-muted small">
-						<i class="fa-regular fa-clock me-1"></i>
-						Ngày tạo: @(edit?.CreatedAt?.ToString("dd/MM/yyyy HH:mm") ?? "—")
-					</div>
-				</div>
+        <div class="mb-3">
+            <label class="form-label">Trạng thái</label>
+            <select class="form-select" name="isDeleted" required>
+                <option value="false" selected="@(edit?.IsDeleted == false)">Hoạt động (0)</option>
+                <option value="true" selected="@(edit?.IsDeleted == true)">Không hoạt động (1)</option>
+            </select>
+        </div>
 
-				<div class="modal-footer">
-					<a href="@Url.Action("Manage", "Category")" class="btn btn-outline-secondary">Hủy</a>
-					<button type="submit" class="btn btn-primary">Lưu thay đổi</button>
-				</div>
-			</form>
+        <div class="mb-2 text-muted small">
+            <i class="fa-regular fa-clock me-1"></i>
+            Ngày tạo: @(edit?.CreatedAt?.ToString("dd/MM/yyyy HH:mm") ?? "—")
+        </div>
+    </div>
+
+    <div class="modal-footer">
+        <a href="@Url.Action("Manage", "Category", new { q, page, pageSize })" class="btn btn-outline-secondary">Hủy</a>
+        <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
+    </div>
+</form>
 		</div>
 	</div>
 </div>

@@ -8,9 +8,9 @@
 <div class="container-fluid px-5">
     <h1 class="mt-4">Quản Lí Xuất Xứ</h1>
 
-    <!-- Form thêm mới -->
-    <form class="mt-4" asp-action="SaveOrigin" asp-controller="Origin" method="post">
+    <form class="mt-4" asp-action="AddOrigin" asp-controller="Origin" method="post">
         @Html.AntiForgeryToken()
+        <input type="hidden" name="q" value="@q" />
         <label class="form-label">Tên Xuất Xứ</label>
         <input type="hidden" name="id" value="0" />
         <input type="text" name="name" class="form-control d-inline-block w-auto" required />
@@ -108,8 +108,9 @@
                 <a href="@Url.Action("Manage", "Origin")" class="btn-close"></a>
             </div>
 
-            <form method="post" asp-action="SaveOrigin" asp-controller="Origin">
+            <form method="post" asp-action="UpdateOrigin" asp-controller="Origin">
                 @Html.AntiForgeryToken()
+                <input type="hidden" name="q" value="@q" />
                 <div class="modal-body">
                     <input type="hidden" name="id" value="@(edit?.Id ?? 0)" />
 
@@ -134,7 +135,7 @@
                 </div>
 
                 <div class="modal-footer">
-                    <a href="@Url.Action("Manage", "Origin")" class="btn btn-outline-secondary">Hủy</a>
+                    <a href="@Url.Action("Manage", "Origin", new { q })" class="btn btn-outline-secondary">Hủy</a>
                     <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
                 </div>
             </form>

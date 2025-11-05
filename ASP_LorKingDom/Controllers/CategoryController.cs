@@ -5,8 +5,8 @@ using WebUI.Filters;
 
 namespace WebUI.Controllers
 {
-    [Authorize(AuthenticationSchemes = "AdminScheme")]
-    [AdminAndWarehouseOnly] // Warehouse: Category Management
+    //[Authorize(AuthenticationSchemes = "AdminScheme")]
+    //[AdminAndWarehouseOnly] // Warehouse: Category Management
     public class CategoryController : Controller
     {
         private readonly ICategoryService _service;
@@ -50,52 +50,73 @@ namespace WebUI.Controllers
             return await ReturnManageViewAsync(q, page, pageSize);
         }
 
-        // ========== Save ==========
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> SaveCategory(
-     int id, int superCategoryId, string name, bool isDeleted = false,
-     string? q = null, int page = 1, int pageSize = 8)
+        public async Task<IActionResult> AddCategory(
+    int superCategoryId, string name, bool isDeleted = false,
+    string? q = null, int page = 1, int pageSize = 8)
         {
             try
             {
-                if (id == 0)
-                    await _service.CreateAsync(superCategoryId, name, isDeleted);
-                else
-                    await _service.UpdateAsync(id, superCategoryId, name, isDeleted);
-
-                TempData["Success"] = "Lưu danh mục thành công!";
+                await _service.CreateAsync(superCategoryId, name, isDeleted);
+                TempData["Success"] = "Thêm danh mục thành công!";
                 return RedirectToAction(nameof(Manage), new { q, page, pageSize });
             }
-            catch (ArgumentException ex)   // <— thêm block này
+            catch (ArgumentException ex)
             {
-                // Giữ lại form đang sửa (nếu có) và show message thân thiện
-                object? edit = null;
-                if (id != 0)
-                {
-                    edit = await _service.GetByIdAsync(id) ?? new BLL.DTOs.CategoryDto
-                    {
-                        Id = id,
-                        SuperCategoryId = superCategoryId,
-                        Name = name,
-                        IsDeleted = isDeleted
-                    };
-                }
-
-                return await ReturnManageViewAsync(
-                    q, page, pageSize,
-                    editDto: edit,
-                    error: ex.Message,   // "Tên danh mục không được vượt quá 255 ký tự."
-                    showError: true
-                );
+                return await ReturnManageViewAsync(q, page, pageSize,
+                    error: ex.Message, showError: true);
             }
             catch (InvalidOperationException ex)
             {
-                return await ReturnManageViewAsync(q, page, pageSize, error: ex.Message, showError: true);
+                return await ReturnManageViewAsync(q, page, pageSize,
+                    error: ex.Message, showError: true);
             }
             catch (Exception ex)
             {
-                return await ReturnManageViewAsync(q, page, pageSize, error: "Đã có lỗi xảy ra. " + ex.Message, showError: true);
+                return await ReturnManageViewAsync(q, page, pageSize,
+                    error: "Đã có lỗi xảy ra. " + ex.Message, showError: true);
+            }
+        }
+
+        // ===== Update =====
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateCategory(
+            int id, int superCategoryId, string name, bool isDeleted,
+            string? q = null, int page = 1, int pageSize = 8)
+        {
+            try
+            {
+                var ok = await _service.UpdateAsync(id, superCategoryId, name, isDeleted);
+                if (!ok)
+                    TempData["Error"] = "Không tìm thấy danh mục.";
+                else
+                    TempData["Success"] = "Cập nhật danh mục thành công!";
+
+                return RedirectToAction(nameof(Manage), new { q, page, pageSize });
+            }
+            catch (ArgumentException ex)
+            {
+                var edit = await _service.GetByIdAsync(id) ?? new BLL.DTOs.CategoryDto
+                {
+                    Id = id,
+                    SuperCategoryId = superCategoryId,
+                    Name = name,
+                    IsDeleted = isDeleted
+                };
+                return await ReturnManageViewAsync(q, page, pageSize,
+                    editDto: edit, error: ex.Message, showError: true);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return await ReturnManageViewAsync(q, page, pageSize,
+                    error: ex.Message, showError: true);
+            }
+            catch (Exception ex)
+            {
+                return await ReturnManageViewAsync(q, page, pageSize,
+                    error: "Đã có lỗi xảy ra. " + ex.Message, showError: true);
             }
         }
 
