@@ -79,6 +79,7 @@ namespace DAL
 
             // Nhánh Wallets
             services.AddScoped<IWalletRepository, WalletRepository>();
+            services.AddScoped<IWalletTransactionRepository, WalletTransactionRepository>();
 
             return services;
         }

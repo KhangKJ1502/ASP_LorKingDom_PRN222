@@ -68,6 +68,39 @@ namespace WebUI.Controllers
             }
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> TopUp([FromBody] TopUpWalletDto dto)
+        {
+            var accountId = GetCurrentAccountId();
+            if (accountId == 0) return Json(new { success = false, message = "Unauthorized" });
+
+            try
+            {
+                var result = await _walletService.TopUpAsync(accountId, dto);
+
+                if (result.Success)
+                {
+                    var wallet = await _walletService.GetByAccountIdAsync(accountId);
+                    var html = await RenderPartialToStringAsync("Wallets", wallet);
+
+                    return Json(new
+                    {
+                        success = true,
+                        message = result.Message,
+                        newBalance = result.NewBalance,
+                        html = html
+                    });
+                }
+
+                return Json(new { success = false, message = result.Message });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Có lỗi xảy ra: " + ex.Message });
+            }
+        }
+
         private async Task<string> RenderPartialToStringAsync(string viewName, object model)
         {
             if (string.IsNullOrEmpty(viewName))
