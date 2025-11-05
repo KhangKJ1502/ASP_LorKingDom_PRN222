@@ -172,7 +172,19 @@ namespace DAL.Repositories
 				.ToListAsync();
 		}
 
-		public async Task<List<OrderDetail>> GetOrderDetailsByOrderIdAsync(int orderId)
+        public async Task<Order?> GetByIdAsync(int orderId)
+        {
+            return await _db.Orders
+                .Include(o => o.Status)
+                .Include(o => o.Account)
+                .Include(o => o.Voucher)
+                .Include(o => o.OrderDetails)
+                    .ThenInclude(od => od.Product)
+                        .ThenInclude(p => p.ProductImages)
+                .FirstOrDefaultAsync(o => o.OrderId == orderId && !o.IsDeleted);
+        }
+
+        public async Task<List<OrderDetail>> GetOrderDetailsByOrderIdAsync(int orderId)
 		{
 			return await _db.OrderDetails
 				.Include(od => od.Product)

@@ -1,0 +1,102 @@
+﻿@model BLL.DTOs.CustomerRefundStatusDto
+@{
+    ViewData["Title"] = "Chi tiết hoàn tiền #" + Model.RefundId;
+}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+    /* Giống style của MyRefunds.cshtml */
+    .refund-container { max-width: 900px; margin: 2rem auto; padding: 0 1rem; }
+    .refund-header { background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); color: white; padding: 2rem; border-radius: 1rem; margin-bottom: 2rem; box-shadow: 0 10px 30px rgba(249, 115, 22, 0.3); }
+    .detail-card { background: white; border: 2px solid #fed7aa; border-radius: 1rem; padding: 2rem; }
+    .detail-row { display: flex; justify-content: space-between; padding: 0.75rem 0; border-bottom: 1px solid #f3f4f6; }
+    .detail-row:last-child { border-bottom: none; }
+    .status-badge { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; border-radius: 9999px; font-size: 0.875rem; font-weight: 600; }
+    .refund-requested { background: #fef3c7; color: #92400e; }
+    .refund-approved { background: #dbeafe; color: #1e40af; }
+    .refund-refunded { background: #d1fae5; color: #065f46; }
+    .refund-rejected { background: #fee2e2; color: #991b1b; }
+    .refund-processing { background: #e0e7ff; color: #3730a3; }
+</style>
+
+<div class="refund-container">
+    <div class="refund-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="mb-0">
+                    <i class="fas fa-file-invoice-dollar me-2"></i>
+                    Chi tiết hoàn tiền
+                </h1>
+                <p class="mb-0 mt-2 opacity-90">Mã: #@Model.RefundId.ToString().PadLeft(6, '0')</p>
+            </div>
+            <span class="status-badge @Model.StatusBadgeClass">
+                @Model.RefundStatusDisplay
+            </span>
+        </div>
+    </div>
+
+    <div class="detail-card">
+        <h5 class="mb-3"><i class="fas fa-info-circle me-2"></i>Thông tin đơn hàng</h5>
+        <div class="detail-row">
+            <strong>Mã đơn hàng:</strong>
+            <span>@Model.OrderCode</span>
+        </div>
+        <div class="detail-row">
+            <strong>Số tiền hoàn:</strong>
+            <span class="text-danger fw-bold" style="font-size: 1.25rem;">@Model.RefundAmount.ToString("N0")đ</span>
+        </div>
+        <div class="detail-row">
+            <strong>Phương thức hoàn tiền:</strong>
+            <span>@Model.RefundMode</span>
+        </div>
+
+        <hr class="my-4">
+
+        <h5 class="mb-3"><i class="fas fa-clock me-2"></i>Thời gian xử lý</h5>
+        <div class="detail-row">
+            <strong>Ngày gửi yêu cầu:</strong>
+            <span>@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</span>
+        </div>
+        @if (Model.ApprovedAt.HasValue)
+        {
+            <div class="detail-row">
+                <strong>Ngày duyệt:</strong>
+                <span>@Model.ApprovedAt.Value.ToString("dd/MM/yyyy HH:mm")</span>
+            </div>
+        }
+        @if (Model.ProcessedAt.HasValue)
+        {
+            <div class="detail-row">
+                <strong>Ngày hoàn tiền:</strong>
+                <span>@Model.ProcessedAt.Value.ToString("dd/MM/yyyy HH:mm")</span>
+            </div>
+        }
+
+        @if (!string.IsNullOrEmpty(Model.Reason))
+        {
+            <hr class="my-4">
+            <h5 class="mb-3"><i class="fas fa-comment me-2"></i>Lý do hoàn tiền</h5>
+            <div class="alert alert-light">@Model.Reason</div>
+        }
+
+        <hr class="my-4">
+
+        <h5 class="mb-3"><i class="fas fa-stream me-2"></i>Tiến trình xử lý</h5>
+        <div class="timeline">
+            @foreach (var step in Model.Timeline)
+            {
+                <div class="timeline-item">
+                    <strong>@step.Label</strong>
+                    <p class="text-muted small mb-0">@step.At.ToString("dd/MM/yyyy HH:mm")</p>
+                </div>
+            }
+        </div>
+
+        <div class="text-center mt-4">
+            <a href="@Url.Action("MyRefunds")" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Quay lại danh sách
+            </a>
+        </div>
+    </div>
+</div>

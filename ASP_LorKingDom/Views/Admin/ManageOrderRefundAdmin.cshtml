@@ -244,22 +244,22 @@
                                         {
                                             <button type="button" class="btn btn-sm btn-success me-1"
                                                     onclick="updateRefundStatus(@refund.RefundId, 'Approved')"
-                                                    title="Duyệt">
-                                                <i class="fas fa-check-circle"></i>
+                                                    title="Duyệt yêu cầu">
+                                                <i class="fas fa-check-circle"></i> Duyệt
                                             </button>
 
                                             <button type="button" class="btn btn-sm btn-danger"
                                                     onclick="updateRefundStatus(@refund.RefundId, 'Rejected')"
                                                     title="Từ chối">
-                                                <i class="fas fa-times-circle"></i>
+                                                <i class="fas fa-times-circle"></i> Từ chối
                                             </button>
                                         }
                                         else if (refund.RefundStatus == "Approved")
                                         {
                                             <button type="button" class="btn btn-sm btn-primary"
-                                                    onclick="updateRefundStatus(@refund.RefundId, 'Refunded')"
-                                                    title="Đánh dấu đã hoàn tiền">
-                                                <i class="fas fa-money-bill-wave"></i>
+                                                    onclick="confirmRefundToWallet(@refund.RefundId, '@refund.RefundMode')"
+                                                    title="Xác nhận hoàn tiền vào ví">
+                                                <i class="fas fa-money-bill-wave"></i> Hoàn tiền
                                             </button>
                                         }
                                         else
@@ -268,7 +268,7 @@
                                                     class="btn btn-sm btn-secondary"
                                                     onclick="viewRefundDetail(@refund.RefundId)"
                                                     title="Xem chi tiết">
-                                                <i class="fas fa-eye"></i>
+                                                <i class="fas fa-eye"></i> Chi tiết
                                             </button>
                                         }
                                     </td>
@@ -678,6 +678,105 @@
                 return;
             }
 
+            submitRefundStatus(refundId, newStatus);
+        }
+
+
+        // Hàm xác nhận hoàn tiền vào ví
+        async function confirmRefundToWallet(refundId, refundMode, refundAmount = null) {
+            try {
+                // 1) Nếu chưa có refundAmount thì gọi API lấy chi tiết
+                if (refundAmount == null) {
+                    // Mở loading - KHÔNG await
+                    Swal.fire({
+                        title: 'Đang tải số tiền hoàn...',
+                        allowOutsideClick: false,
+                        didOpen: () => { Swal.showLoading(); }
+                    });
+
+                    // Dựng URL đúng với [HttpGet("GetRefundDetail/{id}")]
+                    // Url.Action trả về "/OrderRefundAdmin/GetRefundDetail"
+                    const baseDetailUrl = '@Url.Action("GetRefundDetail", "OrderRefundAdmin")';
+                    const detailUrl = `${baseDetailUrl}/${encodeURIComponent(refundId)}`;
+
+                    const res = await fetch(detailUrl, {
+                        method: 'GET',
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+
+                    // Đọc text trước để phòng trường hợp server trả HTML (redirect/401/404)
+                    const text = await res.text();
+                    let payload = null;
+                    try { payload = JSON.parse(text); } catch { payload = null; }
+
+                    if (!res.ok) {
+                        const msg = (payload && payload.message) || `HTTP ${res.status}`;
+                        throw new Error(msg);
+                    }
+                    if (!payload) {
+                        throw new Error('Phản hồi không phải JSON hợp lệ');
+                    }
+
+                    refundAmount = Number(payload.refundAmount) || 0;
+                    Swal.close();
+                }
+
+                // 2) Hiển thị confirm theo RefundMode
+                const amountFormatted = new Intl.NumberFormat('vi-VN').format(refundAmount);
+                let confirmMessage = '';
+                let confirmIcon = 'question';
+
+                if (refundMode === 'Wallet') {
+                    confirmMessage =
+                        `Xác nhận hoàn <strong style="color:#f97316;">${amountFormatted}đ</strong> vào ví LorKingDom của khách hàng?<br><br>` +
+                        `<div style="background:#d1fae5;padding:12px;border-radius:8px;margin-top:10px;">` +
+                        `<span style="color:#059669;font-weight:600;">✓ Tiền sẽ tự động được cộng vào số dư ví</span>` +
+                        `</div>`;
+                } else if (refundMode === 'BankTransfer') {
+                    confirmMessage =
+                        `Xác nhận bạn đã chuyển khoản <strong style="color:#f97316;">${amountFormatted}đ</strong> cho khách hàng?<br><br>` +
+                        `<div style="background:#fee2e2;padding:12px;border-radius:8px;margin-top:10px;">` +
+                        `<span style="color:#dc2626;font-weight:600;">⚠ Hãy đảm bảo bạn đã thực hiện chuyển khoản ngân hàng</span>` +
+                        `</div>`;
+                    confirmIcon = 'warning';
+                } else {
+                    confirmMessage =
+                        `Xác nhận đã hoàn <strong style="color:#f97316;">${amountFormatted}đ</strong> cho khách hàng bằng phương thức <strong>${refundMode}</strong>?`;
+                }
+
+                const result = await Swal.fire({
+                    icon: confirmIcon,
+                    title: 'Xác nhận hoàn tiền',
+                    html: confirmMessage,
+                    showCancelButton: true,
+                    confirmButtonColor: '#10b981',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: '<i class="fas fa-check me-2"></i>Xác nhận hoàn tiền',
+                    cancelButtonText: 'Hủy bỏ',
+                    reverseButtons: true,
+                    width: '500px'
+                });
+
+                if (result.isConfirmed) {
+                    submitRefundStatus(refundId, 'Refunded');
+                }
+            } catch (err) {
+                Swal.close();
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi',
+                    text: `Không lấy được thông tin hoàn tiền: ${(err && err.message) || 'Không xác định'}`
+                });
+                console.error('confirmRefundToWallet error:', err);
+            }
+        }
+
+
+        // Hàm submit form 
+        function submitRefundStatus(refundId, newStatus) {
             // Create and submit form
             const form = document.createElement('form');
             form.method = 'POST';
@@ -707,6 +806,7 @@
             document.body.appendChild(form);
             form.submit();
         }
+
 
         function escapeHtml(text) {
             if (!text) return '';

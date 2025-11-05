@@ -18,5 +18,11 @@ namespace BLL.Interfaces
         Task<OrderRefundDetailDto?> GetDetailForModalAsync(long refundId);
 
         Task ApproveOrUpdateStatusAsync(long refundId, string newStatus, int staffAccountId);
+
+        // NEW: Customer functions
+        Task<RefundRequestResultDto> CreateRefundRequestAsync(int accountId, CreateRefundRequestDto dto);
+        Task<List<CustomerRefundStatusDto>> GetCustomerRefundHistoryAsync(int accountId);
+        Task<CustomerRefundStatusDto?> GetCustomerRefundDetailAsync(int accountId, long refundId);
+        Task<bool> CanRequestRefundAsync(int orderId, int accountId);
     }
 }

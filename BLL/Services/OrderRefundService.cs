@@ -232,5 +232,174 @@ namespace BLL.Services
                 _ => ($"Trạng thái: {status}", "refund-badge refund-unknown")
             };
         }
+
+        public async Task<bool> CanRequestRefundAsync(int orderId, int accountId)
+        {
+            var order = await _orderRepo.GetByIdAsync(orderId);
+
+            if (order == null || order.AccountId != accountId)
+                return false;
+
+            if (order.StatusId != 4)
+                return false;
+
+            if (order.RefundStatus == "Requested" || order.RefundStatus == "Full")
+                return false;
+
+            var existingRefunds = await _repo.GetByOrderIdAsync(orderId);
+            if (existingRefunds.Any(r => r.RefundStatus != "Rejected" && r.RefundStatus != "Cancelled"))
+                return false;
+
+            return true;
+        }
+
+        public async Task<RefundRequestResultDto> CreateRefundRequestAsync(int accountId, CreateRefundRequestDto dto)
+        {
+            if (dto.OrderId <= 0)
+                return new RefundRequestResultDto { Success = false, Message = "OrderId không hợp lệ" };
+
+            if (string.IsNullOrWhiteSpace(dto.Reason) || dto.Reason.Length < 10)
+                return new RefundRequestResultDto { Success = false, Message = "Vui lòng nhập lý do ít nhất 10 ký tự" };
+
+            var validModes = new[] { "Wallet", "OriginalPayment", "BankTransfer", "Cash" };
+            if (!validModes.Contains(dto.RefundMode))
+                return new RefundRequestResultDto { Success = false, Message = "Phương thức hoàn tiền không hợp lệ" };
+
+            if (!await CanRequestRefundAsync(dto.OrderId, accountId))
+                return new RefundRequestResultDto
+                {
+                    Success = false,
+                    Message = "Đơn hàng này không thể yêu cầu hoàn tiền. Chỉ có thể hoàn tiền cho đơn hàng đã giao."
+                };
+
+            var order = await _orderRepo.GetByIdAsync(dto.OrderId);
+            if (order == null)
+                return new RefundRequestResultDto { Success = false, Message = "Không tìm thấy đơn hàng" };
+
+            try
+            {
+                var refund = new OrderRefund
+                {
+                    OrderId = dto.OrderId,
+                    AccountId = accountId,
+                    RequestedBy = accountId,
+                    RefundMode = dto.RefundMode,
+                    RefundStatus = "Requested",
+                    TotalAmount = order.TotalAmount,
+                    RefundAmount = order.TotalAmount, 
+                    Reason = dto.Reason,
+                    CreatedAt = DateTime.Now,
+                    UpdatedAt = DateTime.Now
+                };
+
+                var refundId = await _repo.CreateAsync(refund);
+
+                return new RefundRequestResultDto
+                {
+                    Success = true,
+                    Message = "Yêu cầu hoàn tiền đã được gửi thành công. Chúng tôi sẽ xem xét và phản hồi sớm nhất.",
+                    RefundId = refundId
+                };
+            }
+            catch (Exception ex)
+            {
+                return new RefundRequestResultDto
+                {
+                    Success = false,
+                    Message = $"Có lỗi xảy ra: {ex.Message}"
+                };
+            }
+        }
+
+        public async Task<List<CustomerRefundStatusDto>> GetCustomerRefundHistoryAsync(int accountId)
+        {
+            var orders = await _orderRepo.GetByAccountIdAsync(accountId);
+            var orderIds = orders.Select(o => o.OrderId).ToList();
+
+            var allRefunds = new List<OrderRefund>();
+            foreach (var orderId in orderIds)
+            {
+                var refunds = await _repo.GetByOrderIdAsync(orderId);
+                allRefunds.AddRange(refunds);
+            }
+
+            return allRefunds
+                .OrderByDescending(r => r.CreatedAt)
+                .Select(MapToCustomerDto)
+                .ToList();
+        }
+
+        public async Task<CustomerRefundStatusDto?> GetCustomerRefundDetailAsync(int accountId, long refundId)
+        {
+            var refund = await _repo.GetByIdAsync(refundId);
+
+            if (refund == null || refund.AccountId != accountId)
+                return null;
+
+            return MapToCustomerDto(refund);
+        }
+
+        // ========== Helper Methods ==========
+
+        private static CustomerRefundStatusDto MapToCustomerDto(OrderRefund r)
+        {
+            var (displayText, badgeClass) = GetStatusPresentation(r.RefundStatus);
+
+            var timeline = BuildTimeline(r);
+
+            return new CustomerRefundStatusDto
+            {
+                RefundId = r.RefundId,
+                OrderId = r.OrderId,
+                OrderCode = SafeOrderCode(r.Order),
+                RefundStatus = r.RefundStatus,
+                RefundStatusDisplay = displayText,
+                RefundMode = GetRefundModeDisplay(r.RefundMode),
+                RefundAmount = r.RefundAmount,
+                Reason = r.Reason,
+                CreatedAt = r.CreatedAt,
+                ApprovedAt = r.ApprovedAt,
+                ProcessedAt = r.ProcessedAt,
+                StatusBadgeClass = badgeClass,
+                Timeline = timeline
+            };
+        }
+
+        private static List<RefundStepDto> BuildTimeline(OrderRefund r)
+        {
+            var steps = new List<RefundStepDto>
+    {
+        new RefundStepDto { Label = "Gửi yêu cầu hoàn tiền", At = r.CreatedAt }
+    };
+
+            if (r.ApprovedAt.HasValue)
+            {
+                var label = r.RefundStatus == "Rejected"
+                    ? "Yêu cầu bị từ chối"
+                    : "Yêu cầu được chấp nhận";
+                steps.Add(new RefundStepDto { Label = label, At = r.ApprovedAt.Value });
+            }
+
+            if (r.ProcessedAt.HasValue && r.RefundStatus == "Refunded")
+            {
+                steps.Add(new RefundStepDto { Label = "Hoàn tiền thành công", At = r.ProcessedAt.Value });
+            }
+
+            return steps;
+        }
+
+        private static string GetRefundModeDisplay(string mode)
+        {
+            return mode switch
+            {
+                "Wallet" => "💰 Ví LorKingDom",
+                "OriginalPayment" => "💳 Phương thức thanh toán gốc",
+                "BankTransfer" => "🏦 Chuyển khoản ngân hàng",
+                "Cash" => "💵 Tiền mặt",
+                _ => mode
+            };
+        }
+
+
     }
 }

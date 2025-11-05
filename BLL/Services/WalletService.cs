@@ -10,7 +10,7 @@ namespace BLL.Services
         private readonly IWalletRepository _walletRepo;
         private readonly IWalletTransactionRepository _transactionRepo;
 
-        // Constants cho transaction
+        // Constants transaction
         private const string DIRECTION_CREDIT = "CR";  // Tiền vào
         private const string DIRECTION_DEBIT = "DR";   // Tiền ra
         private const string TXN_TYPE_TOPUP = "TopUp";
@@ -158,11 +158,11 @@ namespace BLL.Services
                     WalletId = wallet.WalletId,
                     AccountId = accountId,
                     TxnType = TXN_TYPE_TOPUP,
-                    Direction = DIRECTION_CREDIT, // CR = Credit = Tiền vào
+                    Direction = DIRECTION_CREDIT, 
                     Amount = dto.Amount,
                     BalanceBefore = balanceBefore,
                     BalanceAfter = balanceAfter,
-                    Method = null, // Top-up thủ công không cần method cụ thể
+                    Method = null, 
                     Status = "Completed",
                     Reason = dto.Reason ?? "Nạp tiền vào ví",
                     IdempotencyKey = Guid.NewGuid().ToString(),
@@ -170,7 +170,6 @@ namespace BLL.Services
                     CompletedAt = DateTime.Now
                 };
 
-                // Add transaction to context (KHÔNG save ngay)
                 await _transactionRepo.AddAsync(transaction);
 
                 // Update wallet balance
@@ -191,10 +190,9 @@ namespace BLL.Services
             }
             catch (Exception ex)
             {
-                // Log chi tiết để debug
-                Console.WriteLine($"❌ TopUp Error: {ex.Message}");
-                Console.WriteLine($"❌ Inner Exception: {ex.InnerException?.Message}");
-                Console.WriteLine($"❌ Stack Trace: {ex.StackTrace}");
+                Console.WriteLine($"TopUp Error: {ex.Message}");
+                Console.WriteLine($"Inner Exception: {ex.InnerException?.Message}");
+                Console.WriteLine($"Stack Trace: {ex.StackTrace}");
 
                 return new TopUpResultDto
                 {
