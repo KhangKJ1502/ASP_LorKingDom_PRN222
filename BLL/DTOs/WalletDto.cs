@@ -27,4 +27,28 @@
         public decimal NewBalance { get; set; }
         public long? TransactionId { get; set; }
     }
+
+    public class WalletTransactionDto
+    {
+        public long WalletTransactionId { get; set; }
+        public string TxnType { get; set; } = string.Empty;
+        public string Direction { get; set; } = string.Empty;
+        public decimal Amount { get; set; }
+        public decimal BalanceBefore { get; set; }
+        public decimal BalanceAfter { get; set; }
+        public string? Method { get; set; }
+        public string Status { get; set; } = string.Empty;
+        public string? Reason { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime? CompletedAt { get; set; }
+    }
+
+    public class TransactionHistoryDto
+    {
+        public List<WalletTransactionDto> Transactions { get; set; } = new();
+        public int TotalCount { get; set; }
+        public int CurrentPage { get; set; }
+        public int PageSize { get; set; }
+        public int TotalPages => (int)Math.Ceiling((double)TotalCount / PageSize);
+    }
 }

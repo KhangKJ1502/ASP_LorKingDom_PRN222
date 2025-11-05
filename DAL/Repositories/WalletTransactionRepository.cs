@@ -28,6 +28,13 @@ namespace DAL.Repositories
                 .ToListAsync();
         }
 
+        public async Task<int> GetTotalCountByWalletIdAsync(int walletId)
+        {
+            return await _db.WalletTransactions
+                .Where(t => t.WalletId == walletId)
+                .CountAsync();
+        }
+
         public async Task SaveChangesAsync()
         {
             await _db.SaveChangesAsync();

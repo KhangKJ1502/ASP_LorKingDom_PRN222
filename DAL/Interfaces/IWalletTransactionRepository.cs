@@ -6,6 +6,7 @@ namespace DAL.Interfaces
     {
         Task AddAsync(WalletTransaction transaction);
         Task<List<WalletTransaction>> GetByWalletIdAsync(int walletId, int pageSize = 20, int pageNumber = 1);
+        Task<int> GetTotalCountByWalletIdAsync(int walletId);
         Task SaveChangesAsync();
     }
 }

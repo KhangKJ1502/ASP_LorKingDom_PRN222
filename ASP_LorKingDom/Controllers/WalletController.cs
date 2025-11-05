@@ -68,6 +68,16 @@ namespace WebUI.Controllers
             }
         }
 
+        [HttpGet]
+        public async Task<IActionResult> TransactionHistory(int page = 1, int pageSize = 10)
+        {
+            var accountId = GetCurrentAccountId();
+            if (accountId == 0) return Unauthorized();
+
+            var history = await _walletService.GetTransactionHistoryAsync(accountId, page, pageSize);
+            return PartialView(history);
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> TopUp([FromBody] TopUpWalletDto dto)
