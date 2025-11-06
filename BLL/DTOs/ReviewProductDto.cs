@@ -18,6 +18,7 @@
         public string? ProductName { get; set; }
         public int LikeCount { get; set; }
         public int DislikeCount { get; set; }
+        public string? UserReaction { get; set; }       
         public List<ReviewProductReplyDto> Replies { get; set; } = new();
         public List<string> ImageUrls { get; set; } = new();
     }

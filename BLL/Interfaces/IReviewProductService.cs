@@ -19,5 +19,6 @@ namespace BLL.Interfaces
         Task<bool> HasUserReviewedAsync(int productId, int accountId);
         Task<ReviewProductDto?> GetReviewByProductAndAccountAsync(int productId, int accountId);
         Task<List<ReviewProductDto>> GetReviewsByProductIdAsync(int productId);
+        Task<List<ReviewProductDto>> GetReviewsByProductIdAsync(int productId, int? accountId);
     }
 }

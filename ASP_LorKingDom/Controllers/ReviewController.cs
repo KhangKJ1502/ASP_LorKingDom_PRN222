@@ -13,18 +13,21 @@ namespace WebUI.Controllers
 		private readonly IOrderService _orderService;
 		private readonly IProductService _productService;
 		private readonly IWebHostEnvironment _env;
+        private readonly IReviewProductReactionService _reactionService;
 
-		public ReviewController(
+        public ReviewController(
 			IReviewProductService reviewService,
 			IOrderService orderService,
 			IProductService productService,
-			IWebHostEnvironment env)
+			IWebHostEnvironment env,
+            IReviewProductReactionService reactionService)
 		{
 			_reviewService = reviewService;
 			_orderService = orderService;
 			_productService = productService;
 			_env = env;
-		}
+            _reactionService = reactionService;
+        }
 
 		private int GetCurrentAccountId()
 		{
@@ -64,7 +67,32 @@ namespace WebUI.Controllers
 			}
 		}
 
-		[HttpGet]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize]
+        public async Task<IActionResult> ReactToReview([FromBody] ReactRequest request)
+        {
+            var accountId = GetCurrentAccountId();
+            if (accountId == 0)
+                return Json(new { success = false, error = "Vui lòng đăng nhập" });
+
+            try
+            {
+                var success = await _reactionService.ReactAsync(
+                    request.ReviewId,
+                    accountId,
+                    request.ReactionType
+                );
+
+                return Json(new { success });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, error = ex.Message });
+            }
+        }
+
+        [HttpGet]
 		public async Task<IActionResult> GetReviewData(int productId)
 		{
 			try
@@ -270,7 +298,13 @@ namespace WebUI.Controllers
 		}
 	}
 
-	public class CreateReviewRequest
+    // class helper
+    public class ReactRequest
+    {
+        public int ReviewId { get; set; }
+        public string ReactionType { get; set; } = string.Empty;
+    }
+    public class CreateReviewRequest
 	{
 		public int ProductId { get; set; }
 		public int Rating { get; set; }
