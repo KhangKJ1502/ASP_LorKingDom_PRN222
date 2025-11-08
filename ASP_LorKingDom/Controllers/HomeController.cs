@@ -102,12 +102,15 @@ namespace ASP_LorKingDom.Controllers
             var dto = await _productSvc.GetByIdAsync(id);
             if (dto == null) return NotFound();
 
-            var reviews = await _reviewSvc.GetReviewsByProductIdAsync(id);
+            var accountId = User.Identity?.IsAuthenticated == true
+                ? int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0")
+                : (int?)null;
+
+            var reviews = await _reviewSvc.GetReviewsByProductIdAsync(id, accountId);
             ViewBag.Reviews = reviews;
 
             var liked = await GetLikedSetAsync();
             dto.IsLiked = liked.Contains(id);
-
             return View(dto);
         }
 

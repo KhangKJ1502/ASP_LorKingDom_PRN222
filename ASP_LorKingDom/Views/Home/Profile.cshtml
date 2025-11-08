@@ -139,18 +139,6 @@
                         </svg>
                         Địa chỉ
                     </button>
-
-                    <button
-                        class="profile-tab rounded-lg px-4 py-3 flex items-center justify-center gap-2 text-sm font-medium transition-all"
-                        data-tab="settings">
-                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
-                        Settings
-                    </button>
                     <button
                         class="profile-tab rounded-lg px-4 py-3 flex items-center justify-center gap-2 text-sm font-medium transition-all"
                         data-tab="wallets">
@@ -194,30 +182,6 @@
             </div>
         </div>
     </div>
-    @* <!-- Main Content -->
-	<div class="lg:col-span-3">
-		<!-- Tabs -->
-		<div class="grid grid-cols-5 bg-white border-2 border-orange-100 rounded-xl p-1 mb-6">
-			<button class="profile-tab active rounded-lg px-4 py-3 flex items-center justify-center gap-2 text-sm font-medium transition-all"
-					data-tab="overview">
-				<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-						  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-				</svg>
-				Overview
-			</button>
-
-			<button class="profile-tab rounded-lg px-4 py-3 flex items-center justify-center gap-2 text-sm font-medium transition-all"
-					data-tab="orders">
-				<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-						  d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-				</svg>
-				Orders
-			</button>
-
-
-		</div> *@
 
     <!-- Review Popup Modal -->
     <div class="modal fade" id="reviewPopupModal" tabindex="-1" aria-hidden="true">
@@ -243,7 +207,7 @@
 
     @section Scripts {
         <script src="~/js/profile.js" asp-append-version="true"></script>
-      <script src="~/js/addresses.js" asp-append-version="true"></script>
+        <script src="~/js/addresses.js" asp-append-version="true"></script>
         <script src="~/js/reviews.js" asp-append-version="true"></script>
     }
 </div>
@@ -733,345 +697,56 @@
         });
     };
 
-    // ===== PROFILE PAGE LOGIC =====
-    (function () {
-        const content = document.getElementById("profile-content");
-        const tabs = document.querySelectorAll(".profile-tab");
+    // ===== TAB NAVIGATION =====
+    // Tab navigation logic has been moved to /js/profile.js for better maintainability
+    // All tab loading, AJAX calls, and script execution are handled there
 
-        // Tab content mapping (fallback cho tabs chưa implement)
-        const tabContents = {
-            wishlist: `
-                <div class="bg-white rounded-xl border-2 border-orange-100 shadow-sm p-8">
-                    <h2 class="text-2xl font-bold text-orange-600 mb-4">Danh sách yêu thích</h2>
-                    <p class="text-gray-600">Danh sách yêu thích của bạn đang trống. Hãy thêm sản phẩm yêu thích!</p>
-                </div>
-            `,
-            settings: `
-                <div class="bg-white rounded-xl border-2 border-orange-100 shadow-sm p-8">
-                    <h2 class="text-2xl font-bold text-orange-600 mb-4">Cài đặt tài khoản</h2>
-                    <p class="text-gray-600">Quản lý cài đặt và bảo mật tài khoản.</p>
-                </div>
-            `
-        };
+    // ===== HELPER FUNCTIONS =====
 
-        // Check URL hash to determine active tab
-        function getActiveTabFromHash() {
-            const hash = window.location.hash.substring(1); // Remove '#'
-            return hash || 'overview';
-        }
-
-        // Set URL hash when tab changes
-        function setTabHash(tabName) {
-            window.history.replaceState(null, null, '#' + tabName);
-        }
-
-        // Load tab content - expose to window for global access
-        window.loadTab = async function (tabName) {
-            console.log('loadTab called with:', tabName);
-
-            // Update active state
-            tabs.forEach(t => t.classList.remove("active"));
-            const activeTab = document.querySelector(`[data-tab="${tabName}"]`);
-            if (activeTab) {
-                activeTab.classList.add("active");
-            }
-
-            // Set hash
-            setTabHash(tabName);
-
-            const content = $('#profile-content');
-
-            // Handle overview tab - load from partial view
-            if (tabName === "overview") {
-                console.log('Loading overview tab...');
-                // Use jQuery AJAX like Login page
-                $.ajax({
-                    url: '/Home/ProfileOverview',
-                    type: 'GET',
-                    success: function (html) {
-                        console.log('ProfileOverview loaded successfully');
-                        content.html(html);
-
-                        // Execute scripts in the loaded HTML
-                        const scripts = content.find('script');
-                        scripts.each(function () {
-                            console.log('Executing script from ProfileOverview');
-                            eval($(this).text());
-                        });
-
-                        // Initialize profile overview form after content is loaded
-                        if (typeof window.initializeProfileOverview === 'function') {
-                            console.log('Calling initializeProfileOverview');
-                            window.initializeProfileOverview();
-                        } else {
-                            console.warn('initializeProfileOverview function not found');
-                        }
-
-                        // Initialize change password handler
-                        if (typeof window.handleChangePassword === 'function') {
-                            console.log('Calling handleChangePassword');
-                            window.handleChangePassword();
-                        } else {
-                            console.warn('handleChangePassword function not found');
-                        }
-                    },
-                    error: function (xhr, status, error) {
-                        console.error("Error loading profile overview:", error);
-                        console.error("XHR:", xhr);
-                        content.html(`
-                            <div class="bg-white rounded-xl border-2 border-orange-100 shadow-sm p-8">
-                                <h2 class="text-2xl font-bold text-red-600 mb-4">Lỗi</h2>
-                                <p class="text-gray-600">Không thể tải thông tin. Vui lòng thử lại.</p>
-                            </div>
-                        `);
-                    }
-                });
-                return;
-            }
-            
-            //  =========================================================Address - Quynh========================================================================
-            if (tabName === "addresses") {
-                console.log('Loading addresses tab...');
-                $.ajax({
-                    url: '/Address/ListPartial',
-                    type: 'GET',
-                    success: function (html) {
-                        console.log('Addresses loaded successfully');
-                        content.html(html);
-
-                        const scripts = content.find('script');
-                        scripts.each(function() {
-                            console.log('Executing script from Addresses');
-                            eval($(this).text());
-                        });
-
-                        const evt = new Event('DOMContentLoaded');
-                        document.dispatchEvent(evt);
-                    },
-                    error: function (xhr, status, error) {
-                        console.error("Error loading addresses:", error);
-                        console.error("XHR:", xhr);
-                        content.html(`
-                            <div class="bg-white rounded-xl border-2 border-orange-100 shadow-sm p-8">
-                                <h2 class="text-2xl font-bold text-red-600 mb-4">Lỗi</h2>
-                                <p class="text-gray-600">Không thể tải danh sách địa chỉ. Vui lòng thử lại.</p>
-                            </div>
-                        `);
-                    }
-                });
-                return;
-            }
-            //=======================================================================================================================================================
-            
-            // Handle orders tab - load from partial view
-            if (tabName === "orders") {
-                console.log('Loading orders tab...');
-                $.ajax({
-                    url: '/Order/OrderHistory',
-                    type: 'GET',
-                    success: function (html) {
-                        console.log('OrderHistory loaded successfully');
-                        content.html(html);
-
-                        // Execute scripts in the loaded HTML
-                        const scripts = content.find('script');
-                        scripts.each(function () {
-                            console.log('Executing script from OrderHistory');
-                            eval($(this).text());
-                        });
-
-                        // Initialize order filters after content is loaded
-                        if (typeof window.initializeOrderFilters === 'function') {
-                            console.log('Calling initializeOrderFilters');
-                            window.initializeOrderFilters();
-                        } else {
-                            console.warn('initializeOrderFilters function not found');
-                        }
-                    },
-                    error: function (xhr, status, error) {
-                        console.error("Error loading orders:", error);
-                        console.error("XHR:", xhr);
-                        content.html(`
-                            <div class="bg-white rounded-xl border-2 border-orange-100 shadow-sm p-8">
-                                <h2 class="text-2xl font-bold text-red-600 mb-4">Error</h2>
-                                <p class="text-gray-600">Unable to load order history. Please try again.</p>
-                            </div>
-                        `);
-                    }
-                });
-                return;
-            }
-
-            if (tabName === "reviews") {
-                await loadReviewsContent();
-                return;
-            }
-
-            // Handle wallets tab
-            if (tabName === "wallets") {
-                console.log('Loading wallets tab...');
-                $.ajax({
-                    url: '/Wallet/Partial',
-                    type: 'GET',
-                    success: function (html) {
-                        console.log('Wallet loaded successfully');
-                        content.html(html);
-
-                        // Execute scripts in the loaded HTML
-                        const scripts = content.find('script');
-                        scripts.each(function() {
-                            console.log('Executing script from Wallet');
-                            eval($(this).text());
-                        });
-                    },
-                    error: function (xhr, status, error) {
-                        console.error("Error loading wallet:", error);
-                        console.error("XHR:", xhr);
-                        content.html(`
-                            <div class="bg-white rounded-xl border-2 border-orange-100 shadow-sm p-8">
-                                <h2 class="text-2xl font-bold text-red-600 mb-4">Lỗi</h2>
-                                <p class="text-gray-600">Không thể tải thông tin ví. Vui lòng thử lại.</p>
-                            </div>
-                        `);
-                    }
-                });
-                return;
-            }
-
-            // Handle other tabs with predefined content
-            if (tabContents[tabName]) {
-                content.html(tabContents[tabName]);
-            }
-        }
-
-        // Handle tab clicks
-        tabs.forEach(tab => {
-            tab.addEventListener("click", function (e) {
-                e.preventDefault();
-                const tabName = this.getAttribute("data-tab");
-                console.log('Tab clicked:', tabName);
-                window.loadTab(tabName);
-            });
-        });
-
-        // Load initial tab based on hash
-        const initialTab = getActiveTabFromHash();
-        console.log('Initial tab:', initialTab);
-        window.loadTab(initialTab);
-    })();
-
-    // Load reviews content
-    async function loadReviewsContent() {
-        const content = document.getElementById("profile-content");
-
-        // Show loading
-        content.innerHTML = `
-            <div class="bg-white rounded-xl border-2 border-orange-100 shadow-sm p-8 text-center">
-                <div class="spinner-border text-orange-500" role="status">
-                    <span class="sr-only">Đang tải...</span>
-                </div>
-                <p class="mt-3 text-gray-600">Đang tải đánh giá...</p>
-            </div>
-        `;
-
-        try {
-            const res = await fetch("/Review/Partial", {
-                method: "GET",
-                credentials: "same-origin"
-            });
-
-            if (!res.ok) {
-                throw new Error('Failed to load reviews');
-            }
-
-            const html = await res.text();
-            content.innerHTML = html;
-
-            // Sau khi load xong, xử lý highlight và switch tab
-            setTimeout(() => {
-                const tabType = sessionStorage.getItem('reviewsTabType');
-                const productId = sessionStorage.getItem('highlightProductId');
-
-                console.log('🔄 Processing stored navigation:', { tabType, productId });
-
-                // Switch to correct tab (pending hoặc reviewed)
-                if (tabType === 'reviewed') {
-                    const reviewedTab = document.querySelector('.review-tab[data-tab="reviewed"]');
-                    if (reviewedTab) {
-                        console.log('✅ Switching to reviewed tab');
-                        reviewedTab.click();
-                    }
-                } else if (tabType === 'pending') {
-                    const pendingTab = document.querySelector('.review-tab[data-tab="pending"]');
-                    if (pendingTab) {
-                        console.log('✅ Switching to pending tab');
-                        pendingTab.click();
-                    }
-                }
-
-                // Highlight và scroll đến review của product
-                if (productId) {
-                    console.log('🎯 Attempting to highlight product:', productId);
-                    highlightReviewByProductId(parseInt(productId));
-                    sessionStorage.removeItem('highlightProductId');
-                }
-
-                sessionStorage.removeItem('reviewsTabType');
-            }, 200);
-
-            // Scroll to top of content
-            content.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        } catch (error) {
-            console.error("Error loading reviews:", error);
-            content.innerHTML = `
-            <div class="bg-white rounded-xl border-2 border-orange-100 shadow-sm p-8 text-center">
-                <h2 class="text-2xl font-bold text-red-600 mb-4">Lỗi</h2>
-                <p class="text-gray-600">Không thể tải đánh giá. Vui lòng thử lại sau.</p>
-            </div>
-        `;
-        }
-    }
-
-    // Highlight review by product ID
-    function highlightReviewByProductId(productId) {
+    /**
+     * Highlight review card by product ID
+     * Called from profile.js after reviews tab is loaded
+     */
+    window.highlightReviewByProductId = function (productId) {
         console.log('Highlighting review for product:', productId);
 
-        // Tìm review card có data-product-id khớp
-        const reviewCard = document.querySelector(`.my-review-card[data-product-id="${productId}"], .pending-review-card[data-product-id="${productId}"]`);
+        const reviewCard = document.querySelector(
+            `.my-review-card[data-product-id="${productId}"], .pending-review-card[data-product-id="${productId}"]`
+        );
 
-        if (reviewCard) {
-            console.log('Found review card for product:', productId);
-
-            // Highlight card với animation
-            reviewCard.style.border = '3px solid #f97316';
-            reviewCard.style.boxShadow = '0 0 30px rgba(249, 115, 22, 0.5)';
-            reviewCard.style.backgroundColor = '#fff5ec';
-            reviewCard.style.transition = 'all 0.3s ease';
-
-            // Scroll to card
-            setTimeout(() => {
-                reviewCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }, 300);
-
-            // Blink effect
-            let blinkCount = 0;
-            const blinkInterval = setInterval(() => {
-                reviewCard.style.backgroundColor = blinkCount % 2 === 0 ? '#fff5ec' : '#ffffff';
-                blinkCount++;
-
-                if (blinkCount >= 6) {
-                    clearInterval(blinkInterval);
-
-                    // Remove highlight after animation
-                    setTimeout(() => {
-                        reviewCard.style.border = '2px solid #fed7aa';
-                        reviewCard.style.boxShadow = '';
-                        reviewCard.style.backgroundColor = 'white';
-                    }, 500);
-                }
-            }, 300);
-        } else {
+        if (!reviewCard) {
             console.warn('Review card not found for product:', productId);
+            return;
         }
-    }
+
+        console.log('Found review card for product:', productId);
+
+        // Apply highlight styles
+        reviewCard.style.border = '3px solid #f97316';
+        reviewCard.style.boxShadow = '0 0 30px rgba(249, 115, 22, 0.5)';
+        reviewCard.style.backgroundColor = '#fff5ec';
+        reviewCard.style.transition = 'all 0.3s ease';
+
+        // Scroll to card
+        setTimeout(() => {
+            reviewCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 300);
+
+        // Blink animation
+        let blinkCount = 0;
+        const blinkInterval = setInterval(() => {
+            reviewCard.style.backgroundColor = blinkCount % 2 === 0 ? '#fff5ec' : '#ffffff';
+            blinkCount++;
+
+            if (blinkCount >= 6) {
+                clearInterval(blinkInterval);
+                // Remove highlight after animation
+                setTimeout(() => {
+                    reviewCard.style.border = '2px solid #fed7aa';
+                    reviewCard.style.boxShadow = '';
+                    reviewCard.style.backgroundColor = 'white';
+                }, 500);
+            }
+        }, 300);
+    };
 </script>

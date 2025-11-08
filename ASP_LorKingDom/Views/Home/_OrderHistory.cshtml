@@ -232,6 +232,28 @@
         box-shadow: 0 10px 20px rgba(220, 38, 38, 0.3);
     }
 
+    .btn-view-refund-status {
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        color: white;
+        padding: 0.625rem 1.5rem;
+        border-radius: 0.5rem;
+        border: none;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+        .btn-view-refund-status:hover {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(37, 99, 235, 0.3);
+        }
+
     .btn-return {
         background: white;
         color: #10b981;
@@ -444,7 +466,12 @@
                     </div>
 
                     <div class="order-footer">
-                        <div class="order-total">Tổng: @order.TotalAmount.ToString("N0") ₫</div>
+                        @{
+                            var subtotalOrder = order.OrderDetails.Sum(x => x.Total);
+                            var finalAmountOrder = subtotalOrder + order.ShippingFee - order.DiscountAmount -
+                            order.PaidByWalletAmount;
+                        }
+                        <div class="order-total">Tổng: @finalAmountOrder.ToString("N0") ₫</div>
                         <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
                             <a href="/Home/OrderDetails?id=@order.OrderId" class="btn-view-detail">
                                 Xem chi tiết
@@ -454,33 +481,50 @@
 
                             @if (order.StatusId == 4)
                             {
-                                <button class="btn-return" onclick="returnOrder(@order.OrderId)">
-                                    Hoàn trả
-                                </button>
+                                @* ========== NÚT HOÀN TRẢ - Kiểm tra RefundStatus ========== *@
+                                @if (string.IsNullOrEmpty(order.RefundStatus) || order.RefundStatus == "None")
+                                {
+                                    <!-- Chưa có yêu cầu hoàn tiền → Hiện nút Hoàn trả -->
+                                    <button class="btn-return" onclick="returnOrder(@order.OrderId)">
+                                        <i class="fas fa-undo"></i> Hoàn trả
+                                    </button>
+                                }
+                                else if (order.RefundStatus == "Rejected")
+                                {
+                                    <!-- Yêu cầu bị từ chối → Cho phép gửi lại -->
+                                    <button class="btn-return" onclick="returnOrder(@order.OrderId)">
+                                        <i class="fas fa-redo"></i> Gửi lại yêu cầu
+                                    </button>
+                                }
+                                else if (order.RefundStatus == "Requested" || order.RefundStatus == "Full")
+                                {
+                                    <!-- Đang có yêu cầu hoàn tiền hoặc đã hoàn → Hiện nút Xem trạng thái -->
+                                    <a href="/OrderRefund/MyRefunds" class="btn-view-refund-status">
+                                        <i class="fas fa-eye"></i> Xem trạng thái hoàn tiền
+                                    </a>
+                                }
 
-                                @* Kiểm tra xem có sản phẩm nào chưa đánh giá không *@
+                                @* ========== NÚT ĐÁNH GIÁ SẢN PHẨM ========== *@
                                 @if (order.OrderDetails.Any(d => !d.Reviewed))
                                 {
-                                    <!-- Nếu có sản phẩm chưa đánh giá - chuyển sang tab pending reviews -->
                                     <button class="btn-write-review" onclick="navigateToReviewsTab('pending')"
-                                        style="background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); color: white; padding: 0.625rem 1rem; border-radius: 0.5rem; border: none; font-weight: 600; cursor: pointer; transition: all 0.3s ease; white-space: nowrap; display: inline-flex; align-items: center; gap: 0.5rem;">
+                                            style="background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); color: white; padding: 0.625rem 1rem; border-radius: 0.5rem; border: none; font-weight: 600; cursor: pointer; transition: all 0.3s ease; white-space: nowrap; display: inline-flex; align-items: center; gap: 0.5rem;">
                                         <i class="fas fa-star"></i> Đánh giá sản phẩm
                                     </button>
                                 }
 
                                 @if (order.OrderDetails.Any(d => d.Reviewed))
                                 {
-                                    @* Lấy productId của sản phẩm đầu tiên đã được đánh giá - INLINE *@
                                     var reviewedProductId = order.OrderDetails.FirstOrDefault(d => d.Reviewed)?.ProductId ?? 0;
-
-                                    <!-- Nếu đã có đánh giá - chuyển sang tab reviewed và highlight -->
                                     <button class="btn btn-outline-success btn-sm d-flex align-items-center gap-1"
-                                        onclick="openReviewPopup(@reviewedProductId)"
-                                        style="font-weight: 600; padding: 0.5rem 1rem; border-radius: 0.5rem;">
+                                            onclick="openReviewPopup(@reviewedProductId)"
+                                            style="font-weight: 600; padding: 0.5rem 1rem; border-radius: 0.5rem;">
                                         <i class="fas fa-eye"></i> Xem đánh giá
                                     </button>
                                 }
                             }
+
+
                         </div>
                     </div>
                 </div>
@@ -707,6 +751,104 @@
             }
         });
     };
+
+    function returnOrder(orderId) {
+        Swal.fire({
+            title: 'Yêu cầu hoàn trả hàng',
+            html: `
+                <div style="text-align: left;">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Lý do hoàn trả <span class="text-danger">*</span></label>
+                        <textarea id="refundReason" class="form-control" rows="4"
+                            placeholder="Vui lòng mô tả lý do bạn muốn hoàn trả đơn hàng này (tối thiểu 10 ký tự)..."></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Phương thức hoàn tiền <span class="text-danger">*</span></label>
+                        <select id="refundMode" class="form-select">
+                            <option value="Wallet">💰 Hoàn về ví LorKingDom</option>
+                            <option value="BankTransfer">🏦 Chuyển khoản ngân hàng</option>
+                        </select>
+                    </div>
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Lưu ý:</strong> Yêu cầu hoàn tiền sẽ được xem xét trong vòng 24-48h.
+                        Bạn có thể theo dõi trạng thái trong phần "Lịch sử hoàn tiền".
+                    </div>
+                </div>
+            `,
+            showCancelButton: true,
+            confirmButtonColor: '#10b981',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: '<i class="fas fa-paper-plane me-2"></i>Gửi yêu cầu',
+            cancelButtonText: 'Hủy',
+            width: '600px',
+            preConfirm: () => {
+                const reason = document.getElementById('refundReason').value.trim();
+                const mode = document.getElementById('refundMode').value;
+
+                if (!reason || reason.length < 10) {
+                    Swal.showValidationMessage('Vui lòng nhập lý do ít nhất 10 ký tự');
+                    return false;
+                }
+
+                return { reason, mode };
+            }
+        }).then((result) => {
+            if (result.isConfirmed && result.value) {
+                submitRefundRequest(orderId, result.value.reason, result.value.mode);
+            }
+        });
+    }
+
+    function submitRefundRequest(orderId, reason, mode) {
+        const token = $('input[name="__RequestVerificationToken"]').val();
+
+        $.ajax({
+            url: '/OrderRefund/SubmitRequest',
+            type: 'POST',
+            contentType: 'application/json',
+            headers: {
+                'RequestVerificationToken': token
+            },
+            data: JSON.stringify({
+                orderId: orderId,
+                reason: reason,
+                refundMode: mode
+            }),
+            success: function (response) {
+                if (response.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Thành công!',
+                        html: `
+                            ${response.message}<br><br>
+                            <a href="/OrderRefund/MyRefunds" class="btn btn-primary btn-sm">
+                                <i class="fas fa-eye me-2"></i>Xem trạng thái hoàn tiền
+                            </a>
+                        `,
+                        confirmButtonColor: '#10b981'
+                    }).then(() => {
+                        location.reload();
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Lỗi',
+                        text: response.message,
+                        confirmButtonColor: '#ef4444'
+                    });
+                }
+            },
+            error: function (xhr) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi',
+                    text: 'Không thể gửi yêu cầu. Vui lòng thử lại sau.',
+                    confirmButtonColor: '#ef4444'
+                });
+            }
+        });
+    }
 
     // Initialize on load
     $(document).ready(function () {

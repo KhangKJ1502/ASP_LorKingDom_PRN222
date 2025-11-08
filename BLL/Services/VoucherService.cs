@@ -34,22 +34,35 @@ namespace BLL.Services
 
         public async Task<int> CreateAsync(VoucherDto dto)
         {
+            // Validation cơ bản
             if (string.IsNullOrWhiteSpace(dto.VoucherCode))
-                throw new ArgumentException("Voucher code cannot be empty.");
+                throw new ArgumentException("Mã voucher không được để trống.");
+
             if (await _repo.VoucherCodeExistsAsync(dto.VoucherCode))
-                throw new ArgumentException("Voucher code already exists.");
+                throw new ArgumentException("Mã voucher đã tồn tại.");
+
             if (dto.StartDate >= dto.EndDate)
-                throw new ArgumentException("Start date must be before end date.");
+                throw new ArgumentException("Ngày bắt đầu phải nhỏ hơn ngày kết thúc.");
+
             if (dto.DiscountValue <= 0)
-                throw new ArgumentException("Discount value must be positive.");
+                throw new ArgumentException("Giá trị giảm giá phải lớn hơn 0.");
+
+            // VALIDATION MỚI: Số tiền giảm phải nhỏ hơn đơn hàng tối thiểu
+            if (dto.MinOrderAmount.HasValue && dto.MinOrderAmount.Value > 0)
+            {
+                if (dto.DiscountValue >= dto.MinOrderAmount.Value)
+                {
+                    throw new ArgumentException($"Số tiền giảm ({dto.DiscountValue:N0} VND) phải nhỏ hơn đơn hàng tối thiểu ({dto.MinOrderAmount.Value:N0} VND).");
+                }
+            }
 
             var voucher = new Voucher
             {
                 VoucherTypeId = dto.VoucherTypeId,
                 CreateBy = dto.CreateBy,
-                VoucherCode = dto.VoucherCode.Trim(),
+                VoucherCode = dto.VoucherCode.Trim().ToUpper(),
                 DiscountValue = dto.DiscountValue,
-                MaxDiscountAmount = dto.MaxDiscountAmount,
+                MaxDiscountAmount = 0, // Mặc định = 0 vì không dùng giảm theo %
                 MinOrderAmount = dto.MinOrderAmount,
                 UsageLimitPerUser = dto.UsageLimitPerUser,
                 IsStackable = dto.IsStackable,
@@ -68,23 +81,36 @@ namespace BLL.Services
             if (existing == null || existing.Status == "Inactive")
                 return false;
 
+            // Validation
             if (await _repo.VoucherCodeExistsAsync(dto.VoucherCode, id))
-                throw new ArgumentException("Voucher code already exists.");
+                throw new ArgumentException("Mã voucher đã tồn tại.");
+
             if (dto.StartDate >= dto.EndDate)
-                throw new ArgumentException("Start date must be before end date.");
+                throw new ArgumentException("Ngày bắt đầu phải nhỏ hơn ngày kết thúc.");
+
             if (dto.DiscountValue <= 0)
-                throw new ArgumentException("Discount value must be positive.");
+                throw new ArgumentException("Giá trị giảm giá phải lớn hơn 0.");
+
+            // VALIDATION MỚI: Số tiền giảm phải nhỏ hơn đơn hàng tối thiểu
+            if (dto.MinOrderAmount.HasValue && dto.MinOrderAmount.Value > 0)
+            {
+                if (dto.DiscountValue >= dto.MinOrderAmount.Value)
+                {
+                    throw new ArgumentException($"Số tiền giảm ({dto.DiscountValue:N0} VND) phải nhỏ hơn đơn hàng tối thiểu ({dto.MinOrderAmount.Value:N0} VND).");
+                }
+            }
 
             existing.VoucherTypeId = dto.VoucherTypeId;
             existing.CreateBy = dto.CreateBy;
-            existing.VoucherCode = dto.VoucherCode.Trim();
+            existing.VoucherCode = dto.VoucherCode.Trim().ToUpper();
             existing.DiscountValue = dto.DiscountValue;
-            existing.MaxDiscountAmount = dto.MaxDiscountAmount;
+            existing.MaxDiscountAmount = 0; // Mặc định = 0
             existing.MinOrderAmount = dto.MinOrderAmount;
             existing.UsageLimitPerUser = dto.UsageLimitPerUser;
             existing.IsStackable = dto.IsStackable;
             existing.StartDate = dto.StartDate;
             existing.EndDate = dto.EndDate;
+            existing.Status = dto.Status ?? existing.Status; // Cho phép cập nhật status
             existing.UpdatedAt = DateTime.Now;
 
             return await _repo.UpdateAsync(existing);
@@ -112,13 +138,11 @@ namespace BLL.Services
 
         public async Task<(bool isValid, string message, VoucherDto? voucher)> ApplyVoucherAsync(string code, int accountId, decimal orderAmount)
         {
-            // Sử dụng Validator để validate
             var (isValid, message, voucherEntity) = await _validator.ValidateForApplyAsync(code, accountId, orderAmount);
 
             if (!isValid || voucherEntity == null)
                 return (isValid, message, null);
 
-            // Convert entity sang DTO
             var voucherDto = MapToDto(voucherEntity);
             return (true, message, voucherDto);
         }

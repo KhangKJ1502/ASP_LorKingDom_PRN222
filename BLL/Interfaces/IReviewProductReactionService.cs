@@ -4,7 +4,8 @@ namespace BLL.Interfaces
 {
     public interface IReviewProductReactionService
     {
-        Task<int> AddOrUpdateReactionAsync(int reviewProductId, int accountId, string reactionType);
-        Task<bool> RemoveReactionAsync(int reviewProductId, int accountId);
+        Task<bool> ReactAsync(int reviewId, int accountId, string reactionType); // "Like" or "Dislike"
+        Task<bool> RemoveReactionAsync(int reviewId, int accountId);
+        Task<string?> GetUserReactionAsync(int reviewId, int accountId);
     }
 }

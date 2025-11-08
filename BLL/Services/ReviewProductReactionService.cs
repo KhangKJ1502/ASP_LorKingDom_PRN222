@@ -15,44 +15,56 @@ namespace BLL.Services
             _repo = repo;
         }
 
-        public async Task<int> AddOrUpdateReactionAsync(int reviewProductId, int accountId, string reactionType)
+        public async Task<bool> ReactAsync(int reviewId, int accountId, string reactionType)
         {
-            if (reactionType != "Like" && reactionType != "Dislike")
-                throw new ArgumentException("Reaction type must be 'Like' or 'Dislike'");
+            if (!new[] { "Like", "Dislike" }.Contains(reactionType))
+                throw new ArgumentException("Reaction must be Like or Dislike");
 
-            var existing = await _repo.GetByUserAndReviewAsync(reviewProductId, accountId);
+            var existing = await _repo.GetByUserAndReviewAsync(reviewId, accountId);
 
             if (existing == null)
             {
                 var reaction = new ReviewProductReaction
                 {
-                    ReviewProductId = reviewProductId,
+                    ReviewProductId = reviewId,
                     AccountId = accountId,
                     ReactionType = reactionType,
+                    IsDeleted = false,
                     CreatedAt = DateTime.Now
                 };
-                return await _repo.CreateAsync(reaction);
-            }
-            else if (existing.ReactionType == reactionType)
-            {
-                await _repo.DeleteAsync(existing.ReactionProductId);
-                return existing.ReactionProductId;
+                return await _repo.CreateAsync(reaction) > 0;
             }
             else
             {
-                existing.ReactionType = reactionType;
-                existing.CreatedAt = DateTime.Now;
-                await _repo.UpdateAsync(existing);
-                return existing.ReactionProductId;
+                if (existing.ReactionType == reactionType)
+                {
+                    // Cùng loại → xóa mềm (IsDeleted = true)
+                    existing.IsDeleted = true;
+                    return await _repo.UpdateAsync(existing);
+                }
+                else
+                {
+                    // Khác loại → chuyển Like ↔ Dislike
+                    existing.ReactionType = reactionType;
+                    // Không có UpdatedAt → bỏ qua
+                    return await _repo.UpdateAsync(existing);
+                }
             }
         }
 
-        public async Task<bool> RemoveReactionAsync(int reviewProductId, int accountId)
+        public async Task<bool> RemoveReactionAsync(int reviewId, int accountId)
         {
-            var existing = await _repo.GetByUserAndReviewAsync(reviewProductId, accountId);
-            if (existing == null) return false;
+            var reaction = await _repo.GetByUserAndReviewAsync(reviewId, accountId);
+            if (reaction == null || reaction.IsDeleted) return false;
 
-            return await _repo.DeleteAsync(existing.ReactionProductId);
+            reaction.IsDeleted = true;
+            return await _repo.UpdateAsync(reaction);
+        }
+
+        public async Task<string?> GetUserReactionAsync(int reviewId, int accountId)
+        {
+            var reaction = await _repo.GetByUserAndReviewAsync(reviewId, accountId);
+            return reaction != null && !reaction.IsDeleted ? reaction.ReactionType : null;
         }
     }
 }

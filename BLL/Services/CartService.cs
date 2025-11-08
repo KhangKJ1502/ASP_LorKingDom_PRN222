@@ -14,6 +14,23 @@ namespace BLL.Services
             _cartRepo = cartRepo;
         }
 
+        /// <summary>
+        /// Calculate final price after applying promotion discount
+        /// </summary>
+        private decimal GetFinalPrice(Product product)
+        {
+            if (product.Promotion != null &&
+                product.Promotion.Status == "Active" &&
+                product.Promotion.StartDate <= DateTime.Now &&
+                product.Promotion.EndDate >= DateTime.Now &&
+                product.Promotion.DiscountPercent.HasValue)
+            {
+                var discount = product.Promotion.DiscountPercent.Value / 100m;
+                return product.Price * (1 - discount);
+            }
+            return product.Price;
+        }
+
         public async Task<CartDto?> GetByAccountIdAsync(int accountId)
         {
             var cart = await _cartRepo.GetByAccountIdAsync(accountId);
@@ -33,6 +50,9 @@ namespace BLL.Services
                 var product = item.Product;
                 if (product != null)
                 {
+                    // Calculate current final price (with promotion if applicable)
+                    var finalPrice = GetFinalPrice(product);
+
                     dto.CartItems.Add(new CartItemDto
                     {
                         CartItemId = item.CartItemId,
@@ -44,7 +64,7 @@ namespace BLL.Services
                         AddedAt = item.AddedAt,
                         ProductName = product.ProductName,
                         MainImageUrl = product.ProductImages.FirstOrDefault(i => i.IsMain)?.ImageUrl ?? product.ProductImages.FirstOrDefault()?.ImageUrl ?? "/assets/placeholder.jpg",
-                        CurrentPrice = product.Price
+                        CurrentPrice = finalPrice
                     });
                 }
             }
@@ -52,44 +72,47 @@ namespace BLL.Services
             return dto;
         }
 
-		public async Task AddToCartAsync(int accountId, int productId, int quantity)
-		{
-			if (quantity < 1) throw new ArgumentException("Quantity must be at least 1");
+        public async Task AddToCartAsync(int accountId, int productId, int quantity)
+        {
+            if (quantity < 1) throw new ArgumentException("Quantity must be at least 1");
 
-			var cart = await _cartRepo.GetOrCreateByAccountIdAsync(accountId);
+            var cart = await _cartRepo.GetOrCreateByAccountIdAsync(accountId);
 
-			var product = await _cartRepo.GetProductByIdAsync(productId);
-			if (product == null)
-				throw new InvalidOperationException("Product not found");
+            var product = await _cartRepo.GetProductByIdAsync(productId);
+            if (product == null)
+                throw new InvalidOperationException("Product not found");
 
-			if (product.Quantity < quantity)
-				throw new InvalidOperationException($"Not enough stock for {product.ProductName}. Available: {product.Quantity}");
+            if (product.Quantity < quantity)
+                throw new InvalidOperationException($"Not enough stock for {product.ProductName}. Available: {product.Quantity}");
 
-			var existingItem = cart.CartItems.FirstOrDefault(ci => ci.ProductId == productId && ci.Status == "Active");
-			if (existingItem != null)
-			{
-				existingItem.Quantity += quantity;
-				existingItem.PriceAtThatTime = product.Price;
-				await _cartRepo.UpdateCartItemAsync(existingItem);
-			}
-			else
-			{
-				var newItem = new CartItem
-				{
-					CartId = cart.CartId,
-					ProductId = productId,
-					Quantity = quantity,
-					PriceAtThatTime = product.Price,
-					Status = "Active",
-					AddedAt = DateTime.Now
-				};
-				await _cartRepo.AddCartItemAsync(newItem);
-			}
+            // Calculate final price (with promotion if applicable)
+            var finalPrice = GetFinalPrice(product);
 
-			cart.UpdatedAt = DateTime.Now;
-		}
+            var existingItem = cart.CartItems.FirstOrDefault(ci => ci.ProductId == productId && ci.Status == "Active");
+            if (existingItem != null)
+            {
+                existingItem.Quantity += quantity;
+                existingItem.PriceAtThatTime = finalPrice;
+                await _cartRepo.UpdateCartItemAsync(existingItem);
+            }
+            else
+            {
+                var newItem = new CartItem
+                {
+                    CartId = cart.CartId,
+                    ProductId = productId,
+                    Quantity = quantity,
+                    PriceAtThatTime = finalPrice,
+                    Status = "Active",
+                    AddedAt = DateTime.Now
+                };
+                await _cartRepo.AddCartItemAsync(newItem);
+            }
 
-		public async Task UpdateCartItemQuantityAsync(int cartItemId, int newQuantity)
+            cart.UpdatedAt = DateTime.Now;
+        }
+
+        public async Task UpdateCartItemQuantityAsync(int cartItemId, int newQuantity)
         {
             if (newQuantity < 1) throw new ArgumentException("Quantity must be at least 1");
 

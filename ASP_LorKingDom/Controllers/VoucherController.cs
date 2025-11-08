@@ -213,67 +213,94 @@ namespace WebUI.Controllers
 
         [HttpPost("Voucher/Create")]
         [ValidateAntiForgeryToken]
+        [Authorize(AuthenticationSchemes = "AdminScheme")]
+        [AdminAndStaffOnly]
         public async Task<IActionResult> CreateVoucher(VoucherDto dto)
         {
             try
             {
+                // Lấy AccountId từ session/cookie của người đang đăng nhập
+                var currentAccountId = GetAccountId();
+                if (currentAccountId == 0)
+                    return Json(new { success = false, error = "Vui lòng đăng nhập" });
+
+                // Gán CreateBy = AccountId hiện tại
+                dto.CreateBy = currentAccountId;
+
                 var voucherId = await _voucherService.CreateAsync(dto);
-                return Json(new { message = "Voucher created successfully", voucherId });
+                return Json(new { success = true, message = "Voucher created successfully", voucherId });
             }
             catch (Exception ex)
             {
-                return BadRequest(new { error = ex.Message });
+                return Json(new { success = false, error = ex.Message });
             }
         }
 
         [HttpPost("Voucher/Edit/{id}")]
         [ValidateAntiForgeryToken]
+        [Authorize(AuthenticationSchemes = "AdminScheme")]
+        [AdminAndStaffOnly]
         public async Task<IActionResult> EditVoucher(int id, VoucherDto dto)
         {
             try
             {
+                var currentAccountId = GetAccountId();
+                if (currentAccountId == 0)
+                    return Json(new { success = false, error = "Vui lòng đăng nhập" });
+
+                // Giữ nguyên CreateBy cũ, không cho sửa
+                var existing = await _voucherService.GetByIdAsync(id);
+                if (existing != null)
+                {
+                    dto.CreateBy = existing.CreateBy;
+                }
+
                 var success = await _voucherService.UpdateAsync(id, dto);
                 if (!success)
-                    return BadRequest(new { error = "Failed to update voucher" });
-                return Json(new { message = "Voucher updated successfully" });
+                    return Json(new { success = false, error = "Failed to update voucher" });
+                return Json(new { success = true, message = "Voucher updated successfully" });
             }
             catch (Exception ex)
             {
-                return BadRequest(new { error = ex.Message });
+                return Json(new { success = false, error = ex.Message });
             }
         }
 
         [HttpPost("Voucher/Delete/{id}")]
         [ValidateAntiForgeryToken]
+        [Authorize(AuthenticationSchemes = "AdminScheme")]
+        [AdminAndStaffOnly]
         public async Task<IActionResult> SoftDeleteVoucher(int id)
         {
             try
             {
                 var success = await _voucherService.SoftDeleteAsync(id);
                 if (!success)
-                    return BadRequest(new { error = "Không thể xóa voucher" });
-                return Json(new { message = "Voucher đã được chuyển vào thùng rác" });
+                    return Json(new { success = false, error = "Không thể xóa voucher" });
+                return Json(new { success = true, message = "Voucher đã được chuyển vào thùng rác" });
             }
             catch (Exception ex)
             {
-                return BadRequest(new { error = ex.Message });
+                return Json(new { success = false, error = ex.Message });
             }
         }
 
         [HttpPost("Voucher/Restore/{id}")]
         [ValidateAntiForgeryToken]
+        [Authorize(AuthenticationSchemes = "AdminScheme")]
+        [AdminAndStaffOnly]
         public async Task<IActionResult> RestoreVoucher(int id)
         {
             try
             {
                 var success = await _voucherService.RestoreAsync(id);
                 if (!success)
-                    return BadRequest(new { error = "Không thể khôi phục voucher" });
-                return Json(new { message = "Voucher đã được khôi phục" });
+                    return Json(new { success = false, error = "Không thể khôi phục voucher" });
+                return Json(new { success = true, message = "Voucher đã được khôi phục" });
             }
             catch (Exception ex)
             {
-                return BadRequest(new { error = ex.Message });
+                return Json(new { success = false, error = ex.Message });
             }
         }
 

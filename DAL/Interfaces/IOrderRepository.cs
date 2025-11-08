@@ -20,5 +20,7 @@ namespace DAL.Interfaces
 		Task<List<Order>> GetByAccountIdAsync(int accountId);
 		Task<List<OrderDetail>> GetOrderDetailsByOrderIdAsync(int orderId);
 		Task<bool> UpdateOrderDetailAsync(OrderDetail orderDetail);
-	}
+
+        Task<Order?> GetByIdAsync(int orderId);
+    }
 }

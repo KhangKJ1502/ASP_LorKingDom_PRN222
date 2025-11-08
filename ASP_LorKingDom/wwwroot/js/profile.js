@@ -1,84 +1,232 @@
-﻿// ===== DEPRECATED =====
-// This file is now deprecated. All profile tab logic has been moved to Profile.cshtml inline script
-// to better support AJAX-loaded partial views with embedded scripts.
-// Kept for reference only.
+﻿/**
+ * Profile Page - Tab Management & AJAX Loading
+ * Handles all profile page tabs with dynamic content loading
+ */
 
-/*
 (function () {
+    "use strict";
+
     const tabs = document.querySelectorAll(".profile-tab");
     const content = document.getElementById("profile-content");
 
+    // Tab content mapping (fallback for tabs without dynamic content)
+    const tabContents = {
+        wishlist: `
+            <div class="bg-white rounded-xl border-2 border-orange-100 shadow-sm p-8">
+                <h2 class="text-2xl font-bold text-orange-600 mb-4">Danh sách yêu thích</h2>
+                <p class="text-gray-600">Danh sách yêu thích của bạn đang trống. Hãy thêm sản phẩm yêu thích!</p>
+            </div>
+        `,
+    };
+
+    /**
+     * Execute embedded scripts from AJAX-loaded content
+     * Required because jQuery .html() doesn't auto-execute <script> tags
+     */
     function runEmbeddedScripts(container) {
         const scripts = container.querySelectorAll("script");
         scripts.forEach((oldScript) => {
-            const s = document.createElement("script");
+            const newScript = document.createElement("script");
 
+            // Copy all attributes
             for (const attr of oldScript.attributes) {
-                s.setAttribute(attr.name, attr.value);
+                newScript.setAttribute(attr.name, attr.value);
             }
+
+            // Copy content or src
             if (oldScript.src) {
-                s.async = false;
+                newScript.async = false;
             } else {
-                s.textContent = oldScript.textContent;
+                newScript.textContent = oldScript.textContent;
             }
-            document.body.appendChild(s);
+
+            document.body.appendChild(newScript);
             oldScript.remove();
         });
     }
 
-    async function load(url) {
+    /**
+     * Load content via AJAX with error handling and script execution
+     */
+    async function loadContent(url, onSuccess) {
         content.style.opacity = "0.5";
-        try {
-            const res = await fetch(url, { credentials: "same-origin" });
 
-            if (res.status === 401) {
-                window.location.href = '/Account/Login?returnUrl=' + encodeURIComponent(location.pathname + location.search);
+        try {
+            const response = await fetch(url, {
+                credentials: "same-origin",
+                headers: {
+                    "X-Requested-With": "XMLHttpRequest",
+                },
+            });
+
+            // Handle authentication redirect
+            if (response.status === 401) {
+                window.location.href =
+                    "/Auth/Login?returnUrl=" + encodeURIComponent(location.pathname + location.search);
                 return;
             }
 
-            if (!res.ok) throw new Error("Network error");
-            const html = await res.text();
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
+            const html = await response.text();
             content.innerHTML = html;
 
+            // Execute scripts in loaded content
             runEmbeddedScripts(content);
-        } catch (err) {
-            content.innerHTML = `<div class="p-6 text-red-600 text-center">Lỗi tải dữ liệu. Vui lòng thử lại.</div>`;
+
+            // Call success callback if provided
+            if (typeof onSuccess === "function") {
+                onSuccess();
+            }
+        } catch (error) {
+            console.error(`Error loading ${url}:`, error);
+            content.innerHTML = `
+                <div class="bg-white rounded-xl border-2 border-orange-100 shadow-sm p-8 text-center">
+                    <h2 class="text-2xl font-bold text-red-600 mb-4">Lỗi</h2>
+                    <p class="text-gray-600">Không thể tải nội dung. Vui lòng thử lại.</p>
+                    <button onclick="window.location.reload()" class="mt-4 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600">
+                        Tải lại trang
+                    </button>
+                </div>
+            `;
         } finally {
             content.style.opacity = "1";
         }
     }
 
-    async function handleTab(tab) {
-        tabs.forEach(t => t.classList.remove("active"));
-        tab.classList.add("active");
-        const name = tab.dataset.tab;
+    /**
+     * Check URL hash to determine active tab
+     */
+    function getActiveTabFromHash() {
+        const hash = window.location.hash.substring(1);
+        return hash || "overview";
+    }
 
-        if (name === "addresses") {
-            await load("/Address/ListPartial");
-        } else if (name === "overview") {
-            content.innerHTML = `<div class="p-6"><h3 class="text-xl font-bold mb-2">Tổng quan</h3><p class="text-gray-600">Chào mừng bạn trở lại!</p></div>`;
-        } else if (name === "orders") {
-            await load("/Home/Order");
-            // Initialize order filters after content is loaded
-            if (typeof window.initializeOrderFilters === 'function') {
-                window.initializeOrderFilters();
-            }
-        } else if (name === "wishlist") {
-            content.innerHTML = `<div class="p-6 text-gray-500">Yêu thích: Sắp ra mắt.</div>`;
-        } else if (name === "settings") {
-            content.innerHTML = `<div class="p-6 text-gray-500">Cài đặt: Sắp ra mắt.</div>`;
-        } else if (name === "wallets") {
-            await load("/Wallet/Partial");
-        } else if (name === "reviews") {
-            await load("/Review/Partial");
+    /**
+     * Set URL hash when tab changes
+     */
+    function setTabHash(tabName) {
+        window.history.replaceState(null, null, "#" + tabName);
+    }
+
+    /**
+     * Main tab handler - routes to appropriate content loader
+     */
+    async function handleTab(tabElement) {
+        // Update active state
+        tabs.forEach((t) => t.classList.remove("active"));
+        tabElement.classList.add("active");
+
+        const tabName = tabElement.dataset.tab;
+        console.log("Loading tab:", tabName);
+
+        // Update URL hash
+        setTabHash(tabName);
+
+        // Route to appropriate content
+        switch (tabName) {
+            case "overview":
+                await loadContent("/Home/ProfileOverview", () => {
+                    // Initialize profile overview handlers
+                    if (typeof window.initializeProfileOverview === "function") {
+                        window.initializeProfileOverview();
+                    }
+                    if (typeof window.handleChangePassword === "function") {
+                        window.handleChangePassword();
+                    }
+                });
+                break;
+
+            case "addresses":
+                await loadContent("/Address/ListPartial", () => {
+                    // Trigger DOMContentLoaded for address scripts
+                    const evt = new Event("DOMContentLoaded");
+                    document.dispatchEvent(evt);
+                });
+                break;
+
+            case "orders":
+                await loadContent("/Order/OrderHistory", () => {
+                    // Initialize order filters
+                    if (typeof window.initializeOrderFilters === "function") {
+                        window.initializeOrderFilters();
+                    }
+                });
+                break;
+
+            case "wallets":
+                await loadContent("/Wallet/Partial");
+                break;
+
+            case "reviews":
+                await loadContent("/Review/Partial", () => {
+                    // Handle stored navigation state
+                    setTimeout(() => {
+                        const tabType = sessionStorage.getItem("reviewsTabType");
+                        const productId = sessionStorage.getItem("highlightProductId");
+
+                        if (tabType === "reviewed") {
+                            const reviewedTab = document.querySelector('.review-tab[data-tab="reviewed"]');
+                            if (reviewedTab) reviewedTab.click();
+                        } else if (tabType === "pending") {
+                            const pendingTab = document.querySelector('.review-tab[data-tab="pending"]');
+                            if (pendingTab) pendingTab.click();
+                        }
+
+                        if (productId && typeof highlightReviewByProductId === "function") {
+                            highlightReviewByProductId(parseInt(productId));
+                            sessionStorage.removeItem("highlightProductId");
+                        }
+
+                        sessionStorage.removeItem("reviewsTabType");
+                    }, 200);
+                });
+                break;
+
+            //default:
+            //    // Use fallback content if available
+            //    if (tabContents[tabName]) {
+            //        content.innerHTML = tabContents[tabName];
+            //    } else {
+            //        content.innerHTML = `
+            //            <div class="bg-white rounded-xl border-2 border-orange-100 shadow-sm p-8">
+            //                <h2 class="text-2xl font-bold text-orange-600 mb-4">Sắp ra mắt</h2>
+            //                <p class="text-gray-600">Tính năng này đang được phát triển.</p>
+            //            </div>
+            //        `;
+            //    }
         }
     }
 
-    tabs.forEach(tab => tab.addEventListener("click", () => handleTab(tab)));
+    /**
+     * Initialize tab click handlers
+     */
+    tabs.forEach((tab) => {
+        tab.addEventListener("click", (e) => {
+            e.preventDefault();
+            handleTab(tab);
+        });
+    });
 
-    // Make handleTab globally accessible
-    window.loadTab = handleTab;
+    /**
+     * Expose handleTab globally for external calls
+     */
+    window.loadTab = function (tabNameOrElement) {
+        if (typeof tabNameOrElement === "string") {
+            const tabElement = document.querySelector(`[data-tab="${tabNameOrElement}"]`);
+            if (tabElement) {
+                handleTab(tabElement);
+            }
+        } else if (tabNameOrElement instanceof HTMLElement) {
+            handleTab(tabNameOrElement);
+        }
+    };
 
+    /**
+     * Load initial tab on page load
+     */
     window.addEventListener("DOMContentLoaded", () => {
         // Check for hash in URL
         const hash = window.location.hash.substring(1);
@@ -92,7 +240,25 @@
 
         // Load default tab
         const defaultTab = document.querySelector(".profile-tab.active") || tabs[0];
-        if (defaultTab) handleTab(defaultTab);
+        if (defaultTab) {
+            handleTab(defaultTab);
+        }
     });
+
+    window.navigateToReviewsTab = function (subTab) {
+        // Load the main 'reviews' tab first
+        loadTab('reviews');
+
+        // Wait for content to load (AJAX may take time), then click the sub-tab
+        setTimeout(() => {
+            const subTabButton = document.querySelector(`.review-tab[data-tab="${subTab}"]`);
+            if (subTabButton) {
+                subTabButton.click();
+                console.log(`Navigated to reviews tab and selected ${subTab}`);
+            } else {
+                console.error(`Sub-tab ${subTab} not found after loading reviews`);
+            }
+        }, 300); // Adjust timeout if needed (300ms should be enough for AJAX load)
+    };
+
 })();
-*/

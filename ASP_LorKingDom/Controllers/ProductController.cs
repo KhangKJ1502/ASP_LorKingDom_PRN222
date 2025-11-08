@@ -8,8 +8,8 @@ using WebUI.Filters;
 
 namespace WebUI.Controllers
 {
-    //[Authorize(AuthenticationSchemes = "AdminScheme")]
-    //[AdminAndWarehouseOnly] // Warehouse: Product Management
+    [Authorize(AuthenticationSchemes = "AdminScheme")]
+    [AdminAndWarehouseOnly] // Warehouse: Product Management
     public class ProductController : Controller
     {
         private readonly IProductService _productSvc;
@@ -40,7 +40,7 @@ namespace WebUI.Controllers
 
         {
             _productSvc = productSvc;
-            _imageSvc = imageSvc;                          
+            _imageSvc = imageSvc;
             _categorySvc = categorySvc;
             _sexSvc = sexSvc;
             _priceRangeSvc = priceRangeSvc;
@@ -138,8 +138,8 @@ namespace WebUI.Controllers
        ProductDto dto,
        IFormFile? MainImageUpload,
        IFormFile[]? DetailImages,
-       string[]? ExistingImageUrls,    
-       bool? KeepMainImage,          
+       string[]? ExistingImageUrls,
+       bool? KeepMainImage,
        [FromServices] IWebHostEnvironment env)
         {
             const string SUB = "assets/Component/img_product";
@@ -189,7 +189,7 @@ namespace WebUI.Controllers
                     mainImageUrl: dto.MainImageUrl,
                     keepSecondaryUrls: ExistingImageUrls ?? Array.Empty<string>(),
                     addSecondaryUrls: dto.SecondaryImageUrls ?? new List<string>(),
-                    keepMainIfNull: true  
+                    keepMainIfNull: true
                 );
 
                 return RedirectToAction(nameof(Manage));
@@ -209,8 +209,8 @@ namespace WebUI.Controllers
             ProductDto dto,
             IFormFile? MainImageUpload,
             IFormFile[]? DetailImages,
-            string[]? ExistingImageUrls,   
-            bool? KeepMainImage,         
+            string[]? ExistingImageUrls,
+            bool? KeepMainImage,
             [FromServices] IWebHostEnvironment env)
         {
             const string SUB = "assets/Component/img_product";
@@ -261,10 +261,10 @@ namespace WebUI.Controllers
 
                 await _imageSvc.UpsertImagesAsync(
                     productId: dto.Id,
-                    mainImageUrl: dto.MainImageUrl,                        
+                    mainImageUrl: dto.MainImageUrl,
                     keepSecondaryUrls: ExistingImageUrls ?? Array.Empty<string>(),
                     addSecondaryUrls: dto.SecondaryImageUrls ?? new List<string>(),
-                    keepMainIfNull: KeepMainImage != false            
+                    keepMainIfNull: KeepMainImage != false
                 );
 
                 return RedirectToAction(nameof(Manage));
