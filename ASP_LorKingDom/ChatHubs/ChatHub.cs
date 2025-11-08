@@ -33,7 +33,7 @@ public class ChatHub : Hub
         try
         {
             await Clients.All.SendAsync("presenceChanged", userId, isOnline);
-            _logger.LogInformation("📢 Presence: {UserId} = {Status}", userId, isOnline ? "ONLINE" : "OFFLINE");
+            _logger.LogInformation("Presence: {UserId} = {Status}", userId, isOnline ? "ONLINE" : "OFFLINE");
         }
         catch (Exception ex)
         {
@@ -55,7 +55,7 @@ public class ChatHub : Hub
             var name = Q(http, "name");
             if (string.IsNullOrWhiteSpace(userId))
             {
-                _logger.LogWarning("❌ Connection rejected: missing userId");
+                _logger.LogWarning("Connection rejected: missing userId");
                 Context.Abort();
                 return;
             }
@@ -76,18 +76,18 @@ public class ChatHub : Hub
 
                 var conversations = await _chatService.GetStaffConversationsAsync(userId);
                 await Clients.Caller.SendAsync("conversationList", conversations);
-                _logger.LogInformation("✅ Staff {UserId} connected - Conversation list sent", userId);
+                _logger.LogInformation("Staff {UserId} connected - Conversation list sent", userId);
             }
             else
             {
-                _logger.LogInformation("✅ Customer {UserId} connected", userId);
+                _logger.LogInformation("Customer {UserId} connected", userId);
             }
 
             await BroadcastPresence(userId, true);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "❌ Error in OnConnectedAsync");
+            _logger.LogError(ex, "Error in OnConnectedAsync");
             throw;
         }
 
@@ -126,13 +126,13 @@ public class ChatHub : Hub
                 if (!_chatService.IsOnline(userId))
                 {
                     await BroadcastPresence(userId, false);
-                    _logger.LogInformation("✅ User {UserId} fully disconnected", userId);
+                    _logger.LogInformation("User {UserId} fully disconnected", userId);
                 }
             }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "❌ Error in OnDisconnectedAsync");
+            _logger.LogError(ex, "Error in OnDisconnectedAsync");
         }
 
         await base.OnDisconnectedAsync(exception);
@@ -158,7 +158,7 @@ public class ChatHub : Hub
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "❌ Error StartChatAsCustomer {CustomerId}", customerId);
+            _logger.LogError(ex, "Error StartChatAsCustomer {CustomerId}", customerId);
             throw;
         }
     }
@@ -186,7 +186,7 @@ public class ChatHub : Hub
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "❌ Error StartChatWithStaff customer {CustomerId} staff {StaffId}", customerId, staffId);
+            _logger.LogError(ex, "Error StartChatWithStaff customer {CustomerId} staff {StaffId}", customerId, staffId);
             throw;
         }
     }
@@ -220,7 +220,7 @@ public class ChatHub : Hub
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "❌ Error getting conversations");
+            _logger.LogError(ex, "Error getting conversations");
             return new List<ConversationDto>();
         }
     }
@@ -233,7 +233,7 @@ public class ChatHub : Hub
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "❌ Error getting messages for {ConversationId}", conversationId);
+            _logger.LogError(ex, "Error getting messages for {ConversationId}", conversationId);
             return new List<MessageDto>();
         }
     }
@@ -273,7 +273,7 @@ public class ChatHub : Hub
             {
                 var sid = conversation.StaffUserId!;
                 var onPage = IsStaffOnChatPage(sid);
-                _logger.LogInformation("📍 Staff {Staff} - OnPage: {OnPage}", sid, onPage ? "YES" : "NO");
+                _logger.LogInformation("Staff {Staff} - OnPage: {OnPage}", sid, onPage ? "YES" : "NO");
 
                 // cập nhật lastMessage, unreadForStaff,... bên trái
                 await Clients.Group($"user:{sid}").SendAsync("conversationUpdated", conversation);
@@ -282,11 +282,11 @@ public class ChatHub : Hub
                 // vì staff đã nhận "receive" ở group conv:{conversationId}
             }
 
-            _logger.LogInformation("✅ Message delivered");
+            _logger.LogInformation("Message delivered");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "❌ Error sending message");
+            _logger.LogError(ex, "Error sending message");
             throw;
         }
     }
@@ -314,13 +314,13 @@ public class ChatHub : Hub
             if (!string.IsNullOrWhiteSpace(userId) && isStaff)
             {
                 _staffPageState[userId] = isOnPage;
-                _logger.LogInformation("📍 UpdatePageState - Staff:{Staff} State:{State}",
+                _logger.LogInformation("UpdatePageState - Staff:{Staff} State:{State}",
                     userId, isOnPage ? "ON CHAT PAGE" : "OFF CHAT PAGE");
             }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "❌ Error updating page state");
+            _logger.LogError(ex, "Error updating page state");
         }
 
         return Task.CompletedTask;

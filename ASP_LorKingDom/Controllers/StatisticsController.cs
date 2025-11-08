@@ -17,34 +17,18 @@ namespace ASP_LorKingDom.Controllers
 
         // Admin và Staff được xem Dashboard (doanh thu), Warehouse không được xem
         [HttpGet]
-        //[AdminAndStaffOnly]
+        [AdminAndStaffOnly]
         public async Task<IActionResult> Dashboard()
         {
-            // Kiểm tra quyền: chỉ Admin và Staff được xem
-            if (!User.IsInRole("Admin") && !User.IsInRole("Staff"))
-            {
-                TempData["ErrorMessage"] = "Bạn không có quyền truy cập trang này.";
-                // Warehouse chỉ có quyền ProductStatistics
-                return RedirectToAction("ProductStatistics");
-            }
-
             var stats = await _statisticsService.GetDashboardStatisticsAsync();
             return View("~/Views/Admin/Dashboard.cshtml", stats);
         }
 
         // Admin và Warehouse được xem Product Statistics (sản phẩm), Staff không được xem
         [HttpGet]
-        //[AdminAndWarehouseOnly]
+        [AdminAndWarehouseOnly]
         public async Task<IActionResult> ProductStatistics()
         {
-            // Kiểm tra quyền: chỉ Admin và WareHouse được xem (lưu ý: H viết hoa như trong DB)
-            if (!User.IsInRole("Admin") && !User.IsInRole("WareHouse"))
-            {
-                TempData["ErrorMessage"] = "Bạn không có quyền truy cập trang này.";
-                // Staff chỉ có quyền Dashboard
-                return RedirectToAction("Dashboard");
-            }
-
             var stats = await _statisticsService.GetProductStatisticsAsync();
             return View("~/Views/Admin/ProductStatistics.cshtml", stats);
         }

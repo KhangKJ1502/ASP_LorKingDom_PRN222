@@ -8,8 +8,10 @@ namespace WebUI.Controllers;
 public class ChatDashboardApiController : ControllerBase
 {
     private readonly IChatService _chatService;
-    public ChatDashboardApiController(IChatService chatService) => _chatService = chatService;
-
+    public ChatDashboardApiController(IChatService chatService)
+    {
+        _chatService = chatService;
+    }
     [HttpGet("conversations")]
     public async Task<IActionResult> GetConversations([FromQuery] string? staffId)
     {

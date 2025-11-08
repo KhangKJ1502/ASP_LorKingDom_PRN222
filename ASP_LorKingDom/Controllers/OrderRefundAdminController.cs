@@ -202,12 +202,12 @@ namespace WebUI.Controllers
         {
             return status switch
             {
-                "Approved" => "✅ Đã duyệt yêu cầu hoàn tiền.",
-                "Rejected" => "❌ Đã từ chối yêu cầu hoàn tiền.",
-                "Refunded" => "💰 Đã đánh dấu hoàn tiền thành công.",
-                "Processing" => "⏳ Đang xử lý hoàn tiền.",
-                "Cancelled" => "🚫 Đã hủy yêu cầu hoàn tiền.",
-                _ => "✅ Cập nhật trạng thái thành công."
+                "Approved" => "Đã duyệt yêu cầu hoàn tiền.",
+                "Rejected" => "Đã từ chối yêu cầu hoàn tiền.",
+                "Refunded" => "Đã đánh dấu hoàn tiền thành công.",
+                "Processing" => "Đang xử lý hoàn tiền.",
+                "Cancelled" => "Đã hủy yêu cầu hoàn tiền.",
+                _ => "Cập nhật trạng thái thành công."
             };
         }
 

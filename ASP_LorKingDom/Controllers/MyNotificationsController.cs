@@ -17,7 +17,7 @@ namespace WebUI.Controllers
 
         public MyNotificationsController(IUserNotificationService svc)
         {
-            _svc = svc ?? throw new ArgumentNullException(nameof(svc));
+            _svc = svc;
         }
 
         [HttpGet]

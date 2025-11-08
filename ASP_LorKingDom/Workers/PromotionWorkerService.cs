@@ -1,4 +1,3 @@
-// WebUI/Workers/PromotionWorkerService.cs
 using BLL.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;

@@ -1,5 +1,4 @@
-﻿// WebUI/BackgroundServices/NotificationWorkerService.cs
-using BLL.Interfaces;
+﻿using BLL.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -80,7 +79,6 @@ namespace WebUI.BackgroundServices
             var notificationService = scope.ServiceProvider.GetRequiredService<INotificationService>();
 
             var count = await notificationService.DispatchDueAsync();
-
             if (count > 0)
             {
                 _logger.LogInformation(

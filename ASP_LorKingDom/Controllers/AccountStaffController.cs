@@ -206,7 +206,7 @@ namespace WebUI.Controllers
             {
                 // Service sẽ validate tất cả: format, role exists, phone unique
                 var success = await _accountService.UpdateAsync(existing.Id, existing);
-                TempData["Success"] = success ? "✅ Cập nhật nhân viên thành công!" : "❌ Cập nhật thất bại!";
+                TempData["Success"] = success ? "Cập nhật nhân viên thành công!" : "Cập nhật thất bại!";
                 return RedirectToListOrSearch(q, 1, pageSize);
             }
             catch (InvalidOperationException ex)
