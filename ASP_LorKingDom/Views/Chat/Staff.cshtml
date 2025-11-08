@@ -231,6 +231,7 @@
 
         // ===== Mở 1 cuộc hội thoại
         async function openConv(convId) {
+            console.log("🔓 Opening conversation:", convId);
             currentConv = convId;
             setDetailHeader(convMap.get(convId));
             document.getElementById('chatBody').innerHTML = '';
@@ -240,20 +241,25 @@
                 const cached = JSON.parse(sessionStorage.getItem(key) || '[]');
 
                 if (cached.length > 0) {
+                    console.log("📦 Loading", cached.length, "messages from cache");
                     cached.forEach(m => addChatLine(m.senderId, m.text, m.sentAt, false));
                 } else {
+                    console.log("🔍 Fetching messages from server...");
                     const msgs = await conn.invoke("GetMessages", convId);
+                    console.log("📥 Received", msgs.length, "messages");
                     msgs.forEach(m => addChatLine(m.senderId, m.text, m.sentAt, false));
                     sessionStorage.setItem(key, JSON.stringify(msgs));
                 }
             } catch (err) {
-                console.error("Error loading messages:", err);
+                console.error("❌ Error loading messages:", err);
             }
 
             try {
+                console.log("🔗 Joining conversation group...");
                 await conn.invoke("OpenConversation", convId);
+                console.log("✅ Successfully joined conversation");
             } catch (err) {
-                console.error("Error opening conversation:", err);
+                console.error("❌ Error opening conversation:", err);
             }
 
             renderList();
@@ -293,11 +299,17 @@
 
         // ===== SignalR events
         conn.on("receive", (m) => {
+            console.log("📨 Received message:", m);
+            console.log("Current conversation:", currentConv);
+            console.log("Match:", m.conversationId === currentConv);
+
             if (!isOnChatPage) showNotificationBadge(1);
 
             if (m.conversationId === currentConv) {
+                console.log("✅ Adding message to current conversation");
                 addChatLine(m.senderId, m.text, m.sentAt);
             } else {
+                console.log("⚠️ Message for different conversation");
                 const card = convMap.get(m.conversationId);
                 if (card) {
                     card.lastMessage = m.text;
@@ -305,6 +317,8 @@
                     card.unreadForStaff = (card.unreadForStaff ?? 0) + 1;
                     convMap.set(m.conversationId, card);
                     renderList();
+                } else {
+                    console.log("❌ No card found for conversation:", m.conversationId);
                 }
             }
         });
@@ -358,9 +372,11 @@
             if (!v) return;
             el.value = "";
             try {
+                console.log("📤 Sending message:", { convId: currentConv, from: STAFF_ID, text: v });
                 await conn.invoke("SendMessage", currentConv, STAFF_ID, v);
+                console.log("✅ Message sent successfully");
             } catch (err) {
-                console.error('SendMessage error:', err);
+                console.error('❌ SendMessage error:', err);
                 Swal.fire({
                     icon: 'error',
                     title: 'Lỗi gửi tin nhắn',
@@ -404,12 +420,16 @@
         // ===== Khởi động kết nối
         async function start() {
             try {
+                console.log("🔌 Connecting to SignalR hub...");
                 await conn.start();
+                console.log("✅ Connected! Staff ID:", STAFF_ID);
                 updatePageState(true);
 
-                // load danh sách hội thoại cho staff hiện tại (ID thật "22")
+                // load danh sách hội thoại cho staff hiện tại
+                console.log("📋 Loading conversations for staff:", STAFF_ID);
                 const res = await fetch(`/api/chat-dashboard/conversations?staffId=${encodeURIComponent(STAFF_ID)}`);
                 const data = await res.json();
+                console.log("📥 Loaded", data.length, "conversations");
 
                 data.forEach(x => convMap.set(x.conversationId, {
                     conversationId: x.conversationId,
@@ -421,9 +441,10 @@
                     customerOnline: x.customerOnline
                 }));
 
+                console.log("📊 ConvMap size:", convMap.size);
                 renderList();
             } catch (err) {
-                console.error('Connection error:', err);
+                console.error('❌ Connection error:', err);
                 // optional retry
                 setTimeout(start, 5000);
             }
