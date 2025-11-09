@@ -128,8 +128,20 @@
                         </h4>
                         <div class="d-flex flex-column gap-2 mb-4">
                             <div class="payment-method-option">
+                                <input class="form-check-input" type="radio" name="paymentMethod" id="paymentWallet"
+                                       value="wallet" />
+                                <label class="form-check-label" for="paymentWallet">
+                                    <i class="fas fa-wallet me-2"></i>
+                                    <strong>Thanh toán bằng số dư ví</strong>
+                                    <div class="address-section-small" id="walletBalanceDisplay">
+                                        Đang tải số dư ví...
+                                    </div>
+                                </label>
+                            </div>
+
+                            <div class="payment-method-option">
                                 <input class="form-check-input" type="radio" name="paymentMethod" id="payment4"
-                                    value="cod" checked />
+                                       value="cod" checked />
                                 <label class="form-check-label" for="payment4">
                                     <i class="fas fa-money-bill me-2"></i>
                                     <strong>Thanh toán khi nhận hàng (COD)</strong>
@@ -706,6 +718,61 @@
                     }
                 });
             });
+
+                // Load wallet balance
+        function loadWalletBalance() {
+            $.ajax({
+                url: '/Wallet/GetBalance',
+                type: 'GET',
+                success: function(result) {
+                    if (result.success && result.hasWallet) {
+                        const balanceText = `Số dư: ${result.balance.toLocaleString('vi-VN')} ₫`;
+                        $('#walletBalanceDisplay').text(balanceText);
+
+                        if (result.balance <= 0) {
+                            $('#paymentWallet').prop('disabled', true);
+                            $('#walletBalanceDisplay').html(`${balanceText} <span class="text-danger">(Không đủ số dư)</span>`);
+                        }
+                    } else {
+                        $('#paymentWallet').prop('disabled', true);
+                        $('#walletBalanceDisplay').html('<span class="text-muted">Bạn chưa có ví</span>');
+                    }
+                },
+                error: function() {
+                    $('#paymentWallet').prop('disabled', true);
+                    $('#walletBalanceDisplay').html('<span class="text-danger">Không thể tải thông tin ví</span>');
+                }
+            });
+        }
+
+        // Check wallet balance when selecting wallet payment
+        $('input[name="paymentMethod"]').on('change', function() {
+            const selectedMethod = $(this).val();
+
+            if (selectedMethod === 'wallet') {
+                const finalAmount = parseFloat($('#totalDisplay').text().replace(/[^0-9]/g, '')) || 0;
+
+                $.ajax({
+                    url: '/Wallet/GetBalance',
+                    type: 'GET',
+                    success: function(result) {
+                        if (result.success && result.balance < finalAmount) {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Số dư không đủ',
+                                html: `Số dư ví: <strong>${result.balance.toLocaleString('vi-VN')} ₫</strong><br>Cần thanh toán: <strong>${finalAmount.toLocaleString('vi-VN')} ₫</strong>`,
+                                confirmButtonColor: '#f97316'
+                            });
+                            $('#payment4').prop('checked', true);
+                        }
+                    }
+                });
+            }
+        });
+
+        // Initialize on page load
+        loadWalletBalance();
+
         });
     </script>
 }

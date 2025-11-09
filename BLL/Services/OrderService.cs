@@ -12,19 +12,25 @@ namespace BLL.Services
         private readonly IProductRepository _productRepo;
         private readonly IVoucherRepository _voucherRepo;
         private readonly IAddressRepository _addressRepo;
+        private readonly IWalletRepository _walletRepo;
+        private readonly IWalletTransactionRepository _walletTransactionRepo;
 
         public OrderService(
             IOrderRepository orderRepo,
             ICartRepository cartRepo,
             IProductRepository productRepo,
             IVoucherRepository voucherRepo,
-            IAddressRepository addressRepo)
+            IAddressRepository addressRepo,
+            IWalletRepository walletRepo,
+            IWalletTransactionRepository walletTransactionRepo)
         {
             _orderRepo = orderRepo;
             _cartRepo = cartRepo;
             _productRepo = productRepo;
             _voucherRepo = voucherRepo;
             _addressRepo = addressRepo;
+            _walletRepo = walletRepo;
+            _walletTransactionRepo = walletTransactionRepo;
         }
 
         public async Task<(bool success, string message, int? orderId)> CreateOrderAsync(int accountId, CheckoutDto checkoutDto)
@@ -151,7 +157,41 @@ namespace BLL.Services
                 decimal finalAmount = subtotalAfterSale + shippingFee - discount;
                 finalAmount = Math.Max(finalAmount, 0);
 
-                // 8. Create order
+                // 8. Handle wallet payment
+                decimal paidByWallet = 0;
+                decimal paidByExternal = finalAmount;
+                Wallet? wallet = null;
+
+                if (checkoutDto.PaymentMethod?.ToLower() == "wallet")
+                {
+                    // Get wallet
+                    wallet = await _walletRepo.GetByAccountIdAsync(accountId);
+                    if (wallet == null)
+                    {
+                        return (false, "Bạn chưa có ví để thanh toán", null);
+                    }
+
+                    if (wallet.Status != "Active")
+                    {
+                        return (false, "Ví của bạn đang bị khóa", null);
+                    }
+
+                    if (wallet.Balance < finalAmount)
+                    {
+                        return (false, $"Số dư ví không đủ. Số dư hiện tại: {wallet.Balance:N0} ₫", null);
+                    }
+
+                    // Deduct from wallet
+                    paidByWallet = finalAmount;
+                    paidByExternal = 0;
+
+                    wallet.Balance -= finalAmount;
+                    wallet.LastTransactionAt = DateTime.UtcNow;
+                    wallet.UpdatedAt = DateTime.UtcNow;
+                    await _walletRepo.UpdateAsync(wallet);
+                }
+
+                // 9. Create order
                 var order = new Order
                 {
                     AccountId = accountId,
@@ -165,14 +205,14 @@ namespace BLL.Services
                     ShippingMethod = checkoutDto.ShippingMethod,
                     OrderDate = DateTime.UtcNow,
                     TotalAmount = totalAmountOriginal,  // Lưu giá gốc (không sale)
-                    PaidByWalletAmount = 0, // Adjust if you have wallet feature
-                    PaidByExternalAmount = finalAmount,
+                    PaidByWalletAmount = paidByWallet,
+                    PaidByExternalAmount = paidByExternal,
                     RefundStatus = "None",
                     IsDeleted = false,
                     CreatedAt = DateTime.UtcNow
                 };
 
-                // 9. Create order details
+                // 10. Create order details
                 foreach (var cartItem in cart?.CartItems ?? new List<CartItem>())
                 {
                     // Use PriceAtThatTime from cart (which already includes promotion discount)
@@ -191,10 +231,34 @@ namespace BLL.Services
                     order.OrderDetails.Add(orderDetail);
                 }
 
-                // 10. Save order to database
+                // 11. Save order to database
                 int orderId = await _orderRepo.CreateOrderAsync(order);
 
-                // 11. Update product stock
+                // 12. Create wallet transaction if paid by wallet
+                if (paidByWallet > 0 && wallet != null)
+                {
+                    var transaction = new WalletTransaction
+                    {
+                        WalletId = wallet.WalletId,
+                        AccountId = accountId,
+                        RelatedOrderId = orderId, 
+                        TxnType = "Payment",
+                        Direction = "DR", // Debit 
+                        Amount = paidByWallet,
+                        BalanceBefore = wallet.Balance + paidByWallet, 
+                        BalanceAfter = wallet.Balance, 
+                        Method = "Wallet",
+                        Status = "Completed",
+                        Reason = $"Thanh toán đơn hàng #{orderId}",
+                        IdempotencyKey = Guid.NewGuid().ToString(),
+                        CreatedAt = DateTime.UtcNow,
+                        CompletedAt = DateTime.UtcNow
+                    };
+                    await _walletTransactionRepo.AddAsync(transaction);
+                    await _walletRepo.SaveChangesAsync();
+                }
+
+                // 13. Update product stock
                 foreach (var cartItem in cart?.CartItems ?? new List<CartItem>())
                 {
                     var product = cartItem.Product;
@@ -202,7 +266,7 @@ namespace BLL.Services
                     await _productRepo.UpdateAsync(product);
                 }
 
-                // 12. Clear cart
+                // 14. Clear cart
                 await _cartRepo.ClearCartByAccountIdAsync(accountId);
 
                 return (true, "Đơn hàng được tạo thành công!", orderId);
@@ -394,6 +458,5 @@ namespace BLL.Services
                 }
             }
         }
-
     }
 }

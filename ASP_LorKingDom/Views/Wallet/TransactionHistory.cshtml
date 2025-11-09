@@ -93,35 +93,114 @@
         <!-- Pagination -->
         @if (Model.TotalPages > 1)
         {
-            <div class="transaction-pagination">
-                <button type="button"
-                        data-action="load-page"
-                        data-page="@(Model.CurrentPage - 1)"
-                        class="pagination-btn"
-                        disabled="@(Model.CurrentPage <= 1)">
-                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-                    </svg>
-                    Trước
-                </button>
+            <div class="transaction-pagination-wrapper">
+                <nav aria-label="Transaction pagination">
+                    <ul class="pagination-modern">
+                        <!-- Previous Button -->
+                        <li class="pagination-item @(Model.CurrentPage <= 1 ? "disabled" : "")">
+                            <button type="button"
+                                    data-action="load-page"
+                                    data-page="@(Model.CurrentPage - 1)"
+                                    class="pagination-link"
+                            @(Model.CurrentPage <= 1 ? "disabled" : "")>
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                                </svg>
+                            </button>
+                        </li>
 
-                <span class="pagination-info">
-                    Trang @Model.CurrentPage / @Model.TotalPages
-                    <span class="pagination-total">(@Model.TotalCount giao dịch)</span>
-                </span>
+                        @{
+                            int startPage = Math.Max(1, Model.CurrentPage - 2);
+                            int endPage = Math.Min(Model.TotalPages, Model.CurrentPage + 2);
 
-                <button type="button"
-                        data-action="load-page"
-                        data-page="@(Model.CurrentPage + 1)"
-                        class="pagination-btn"
-                        disabled="@(Model.CurrentPage >= Model.TotalPages)">
-                    Sau
-                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                    </svg>
-                </button>
+                            // Ensure we show 5 pages when possible
+                            if (endPage - startPage < 4)
+                            {
+                                if (Model.CurrentPage < 3)
+                                {
+                                    endPage = Math.Min(5, Model.TotalPages);
+                                }
+                                else if (Model.CurrentPage > Model.TotalPages - 2)
+                                {
+                                    startPage = Math.Max(1, Model.TotalPages - 4);
+                                }
+                            }
+                        }
+
+                        <!-- First Page -->
+                        @if (startPage > 1)
+                        {
+                            <li class="pagination-item">
+                                <button type="button" data-action="load-page" data-page="1" class="pagination-link">
+                                    1
+                                </button>
+                            </li>
+                            @if (startPage > 2)
+                            {
+                                <li class="pagination-item disabled">
+                                    <span class="pagination-ellipsis">...</span>
+                                </li>
+                            }
+                        }
+
+                        <!-- Page Numbers -->
+                        @for (int i = startPage; i <= endPage; i++)
+                        {
+                            <li class="pagination-item @(i == Model.CurrentPage ? "active" : "")">
+                                <button type="button"
+                                        data-action="load-page"
+                                        data-page="@i"
+                                        class="pagination-link">
+                                    @i
+                                </button>
+                            </li>
+                        }
+
+                        <!-- Last Page -->
+                        @if (endPage < Model.TotalPages)
+                        {
+                            @if (endPage < Model.TotalPages - 1)
+                            {
+                                <li class="pagination-item disabled">
+                                    <span class="pagination-ellipsis">...</span>
+                                </li>
+                            }
+                            <li class="pagination-item">
+                                <button type="button" data-action="load-page" data-page="@Model.TotalPages" class="pagination-link">
+                                    @Model.TotalPages
+                                </button>
+                            </li>
+                        }
+
+                        <!-- Next Button -->
+                        <li class="pagination-item @(Model.CurrentPage >= Model.TotalPages ? "disabled" : "")">
+                            <button type="button"
+                                    data-action="load-page"
+                                    data-page="@(Model.CurrentPage + 1)"
+                                    class="pagination-link"
+                            @(Model.CurrentPage >= Model.TotalPages ? "disabled" : "")>
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                </svg>
+                            </button>
+                        </li>
+                    </ul>
+                </nav>
+
+                <!-- Pagination Info -->
+                <div class="pagination-info-modern">
+                    <span class="pagination-text">
+                        Trang <strong>@Model.CurrentPage</strong> / <strong>@Model.TotalPages</strong>
+                    </span>
+                    <span class="pagination-divider">•</span>
+                    <span class="pagination-text text-muted">
+                        Tổng <strong>@Model.TotalCount</strong> giao dịch
+                    </span>
+                </div>
             </div>
         }
+
+
     }
     else
     {
@@ -434,61 +513,202 @@
     }
 
     }
+
+    /* Modern Pagination */
+.transaction-pagination-wrapper {
+    margin-top: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    align-items: center;
+}
+
+.pagination-modern {
+    display: flex;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.pagination-item {
+    display: inline-block;
+}
+
+.pagination-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.5rem;
+    height: 2.5rem;
+    padding: 0.5rem;
+    background: white;
+    border: 2px solid #fed7aa;
+    border-radius: 0.5rem;
+    color: #6b7280;
+    font-weight: 600;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.pagination-link:hover:not(:disabled) {
+    background: #fff5ec;
+    border-color: #f97316;
+    color: #f97316;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(249, 115, 22, 0.2);
+}
+
+.pagination-link:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.pagination-item.active .pagination-link {
+    background: linear-gradient(135deg, #f97316, #ea580c);
+    border-color: #f97316;
+    color: white;
+    box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+}
+
+.pagination-ellipsis {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.5rem;
+    height: 2.5rem;
+    color: #9ca3af;
+    font-weight: 600;
+}
+
+.pagination-info-modern {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.875rem;
+}
+
+.pagination-text {
+    color: #374151;
+}
+
+.pagination-divider {
+    color: #d1d5db;
+}
+
+/* Responsive */
+@@media (max-width: 640px) {
+    .pagination-link {
+        min-width: 2rem;
+        height: 2rem;
+        font-size: 0.8125rem;
+    }
+    
+    .pagination-info-modern {
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+    
+    .pagination-divider {
+        display: none;
+    }
+}
 </style>
 
 <script>
-    console.log('🔵 Transaction History loaded');
+    // Gọi lại sau mỗi lần load HTML mới
+    function initTransactionHandlers() {
+        // Cleanup cũ
+        if (window.__txnCleanup) window.__txnCleanup();
 
-    // Handle back button
-    document.addEventListener('click', (e) => {
-        const btn = e.target.closest('[data-action="back-to-wallet"]');
-        if (!btn) return;
+        const container = document.querySelector('.transaction-history-container');
+        if (!container) return;
 
-        e.preventDefault();
-        console.log('🔵 Back to wallet clicked');
+        // === BACK BUTTON ===
+        const backBtns = container.querySelectorAll('[data-action="back-to-wallet"]');
+        const handleBack = (e) => {
+            e.preventDefault();
+            if (typeof window.loadTab === 'function') {
+                window.loadTab('wallets');
+            }
+        };
+        backBtns.forEach(b => b.addEventListener('click', handleBack));
 
-        // Reload wallet tab
-        if (typeof window.loadTab === 'function') {
-            window.loadTab('wallets');
+        // === PAGINATION ===
+        const pageBtns = container.querySelectorAll('[data-action="load-page"]');
+        const handlePage = async (e) => {
+            const btn = e.currentTarget;
+            if (btn.disabled) return;
+            e.preventDefault();
+
+            const page = btn.dataset.page;
+            const content = document.getElementById('profile-content');
+            if (!content) return;
+
+            // Disable all
+            pageBtns.forEach(b => b.disabled = true);
+
+            content.innerHTML = `
+                <div style="text-align:center;padding:3rem">
+                    <div style="display:inline-block;width:3rem;height:3rem;border:4px solid #fed7aa;border-top-color:#f97316;border-radius:50%;animation:spin 1s linear infinite"></div>
+                    <p style="margin-top:1rem;color:#6b7280">Đang tải trang ${page}...</p>
+                </div>
+            `;
+
+            try {
+                const res = await fetch(`/Wallet/TransactionHistory?page=${page}&pageSize=5&_=${Date.now()}`);
+                if (!res.ok) throw new Error('Lỗi mạng');
+                const html = await res.text();
+                content.innerHTML = html;
+
+                // GỌI LẠI initTransactionHandlers() SAU KHI CẬP NHẬT HTML
+                initTransactionHandlers();
+
+                // Cuộn lên đầu
+                content.scrollIntoView({ behavior: 'smooth' });
+            } catch (err) {
+                content.innerHTML = `
+                    <div style="text-align:center;padding:3rem;color:#dc2626">
+                        <p>Không thể tải trang</p>
+                        <button onclick="window.loadTab('wallets')" 
+                                style="margin-top:1rem;padding:0.5rem 1rem;background:#f97316;color:white;border:none;border-radius:0.5rem">
+                            Quay lại ví
+                        </button>
+                    </div>
+                `;
+            }
+        };
+
+        pageBtns.forEach(b => b.addEventListener('click', handlePage));
+
+        // Cleanup
+        window.__txnCleanup = () => {
+            backBtns.forEach(b => b.removeEventListener('click', handleBack));
+            pageBtns.forEach(b => b.removeEventListener('click', handlePage));
+        };
+    }
+
+    // === CHẠY NGAY KHI LOAD LẦN ĐẦU ===
+    document.addEventListener('DOMContentLoaded', () => {
+        if (document.querySelector('.transaction-history-container')) {
+            initTransactionHandlers();
         }
     });
 
-    // Handle pagination
-    document.addEventListener('click', async (e) => {
-        const btn = e.target.closest('[data-action="load-page"]');
-        if (!btn || btn.disabled) return;
-
-        e.preventDefault();
-        const page = parseInt(btn.dataset.page);
-        console.log('🔵 Loading page:', page);
-
-        const content = document.getElementById('profile-content');
-        if (!content) return;
-
-        try {
-            const res = await fetch(`/Wallet/TransactionHistory?page=${page}`);
-            if (!res.ok) throw new Error('Failed to load');
-
-            const html = await res.text();
-            content.innerHTML = html;
-
-            // Re-run embedded scripts
-            const tmp = document.createElement('div');
-            tmp.innerHTML = html;
-            const scripts = tmp.querySelectorAll('script');
-            scripts.forEach(oldScript => {
-                const s = document.createElement('script');
-                for (const attr of oldScript.attributes) {
-                    s.setAttribute(attr.name, attr.value);
-                }
-                s.textContent = oldScript.textContent;
-                document.body.appendChild(s);
-            });
-
-            // Scroll to top
-            content.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        } catch (err) {
-            console.error('Error loading page:', err);
-        }
-    });
+    // === GỌI LẠI KHI Wallet Module load Transaction History ===
+    const originalFetch = window.fetch;
+    window.fetch = function(...args) {
+        return originalFetch.apply(this, args).then(res => {
+            if (args[0].includes('/Wallet/TransactionHistory')) {
+                res.clone().text().then(html => {
+                    if (html.includes('transaction-history-container')) {
+                        setTimeout(initTransactionHandlers, 50);
+                    }
+                });
+            }
+            return res;
+        });
+    };
 </script>
