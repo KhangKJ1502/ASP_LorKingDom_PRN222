@@ -7,8 +7,8 @@
 <div class="container-fluid">
     <div class="row mb-4">
         <div class="col-12">
-            <h2 class="mb-0">📊 Dashboard - Venue Statistics</h2>
-            <p class="text-muted">Overview of your store performance</p>
+            <h2 class="mb-0">📊 Bảng điều khiển - Thống kê địa điểm</h2>
+            <p class="text-muted">Tổng quan về hiệu suất cửa hàng của bạn</p>
         </div>
     </div>
 
@@ -19,9 +19,9 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h6 class="text-muted mb-2">Total Revenue</h6>
+                            <h6 class="text-muted mb-2">Tổng doanh thu</h6>
                             <h3 class="mb-0">@Model.TotalRevenue.ToString("N0") đ</h3>
-                            <small class="text-success">This Month: @Model.RevenueThisMonth.ToString("N0") đ</small>
+                            <small class="text-success">Trong tháng: @Model.RevenueThisMonth.ToString("N0") đ</small>
                         </div>
                         <div class="text-success">
                             <i class="fas fa-dollar-sign fa-2x"></i>
@@ -36,9 +36,9 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h6 class="text-muted mb-2">Total Orders</h6>
+                            <h6 class="text-muted mb-2">Tổng số đơn đặt hàng</h6>
                             <h3 class="mb-0">@Model.TotalOrders</h3>
-                            <small class="text-info">Today: @Model.OrdersToday</small>
+                            <small class="text-info">Hôm nay: @Model.OrdersToday</small>
                         </div>
                         <div class="text-info">
                             <i class="fas fa-shopping-cart fa-2x"></i>
@@ -53,9 +53,11 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h6 class="text-muted mb-2">Total Customers</h6>
+                            <h6 class="text-muted mb-2">Tổng số khách hàng</h6>
                             <h3 class="mb-0">@Model.TotalCustomers</h3>
-                            <small class="text-primary">New this month: @Model.NewCustomersThisMonth</small>
+                            <small class="text-primary">
+                                Mới trong tháng này: @Model.NewCustomersThisMonth
+                            </small>
                         </div>
                         <div class="text-primary">
                             <i class="fas fa-users fa-2x"></i>
@@ -70,9 +72,9 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h6 class="text-muted mb-2">Total Products</h6>
+                            <h6 class="text-muted mb-2">Tổng số sản phẩm</h6>
                             <h3 class="mb-0">@Model.TotalProducts</h3>
-                            <small class="text-warning">Low Stock: @Model.LowStockProducts</small>
+                            <small class="text-warning">Sắp hết hàng: @Model.LowStockProducts</small>
                         </div>
                         <div class="text-warning">
                             <i class="fas fa-box fa-2x"></i>
@@ -88,7 +90,7 @@
         <div class="col-xl-8">
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-white">
-                    <h5 class="mb-0">📈 Daily Revenue (Last 7 Days)</h5>
+                    <h5 class="mb-0">📈 Doanh thu hàng ngày (7 ngày qua)</h5>
                 </div>
                 <div class="card-body">
                     <canvas id="dailyRevenueChart" height="80"></canvas>
@@ -100,7 +102,7 @@
         <div class="col-xl-4">
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-white">
-                    <h5 class="mb-0">📦 Orders by Status</h5>
+                    <h5 class="mb-0">📦 Đơn hàng theo trạng thái</h5>
                 </div>
                 <div class="card-body">
                     <canvas id="orderStatusChart"></canvas>
@@ -114,7 +116,7 @@
         <div class="col-12">
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-white">
-                    <h5 class="mb-0">💰 Monthly Revenue (Last 12 Months)</h5>
+                    <h5 class="mb-0">Doanh thu hàng tháng (12 tháng qua)</h5>
                 </div>
                 <div class="card-body">
                     <canvas id="monthlyRevenueChart" height="60"></canvas>
@@ -128,7 +130,7 @@
         <div class="col-12">
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-white">
-                    <h5 class="mb-0">🏆 Top 5 Selling Products</h5>
+                    <h5 class="mb-0">🏆 Top 5 sản phấm bán nhiều nhất</h5>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
@@ -136,9 +138,9 @@
                             <thead>
                                 <tr>
                                     <th>Image</th>
-                                    <th>Product Name</th>
-                                    <th>Total Sold</th>
-                                    <th>Revenue</th>
+                                    <th>Tên sản phẩm</th>
+                                    <th>Tổng sản phẩm bán được</th>
+                                    <th>Doanh thu</th>
                                 </tr>
                             </thead>
                             <tbody>
