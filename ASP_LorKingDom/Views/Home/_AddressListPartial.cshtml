@@ -4,7 +4,7 @@
 	@if (!(Model?.Any() ?? false))
 	{
 		<div class="p-6 text-gray-500 border-2 border-dashed rounded-xl text-center">
-			No address yet. Click “Add New Address”.
+			Chưa có địa chỉ.
 		</div>
 	}
 	else
@@ -25,7 +25,7 @@
 						@if (!a.IsDefault)
 						{
 							<button type="button" class="addr-btn-setdefault border px-2 py-1 rounded-lg hover:bg-orange-100 text-sm" data-id="@a.Id">
-								Set default
+								Đặt mặc định
 							</button>
 						}
 
@@ -53,6 +53,6 @@
 
 	<button type="button"
 			class="addr-btn-add w-full border-2 border-orange-200 hover:bg-orange-50 bg-transparent py-3 rounded-xl transition-all font-medium text-orange-700">
-		<i class="fa-solid fa-plus mr-2"></i> Add New Address
+		<i class="fa-solid fa-plus mr-2"></i> Thêm địa chỉ mới
 	</button>
 </div>

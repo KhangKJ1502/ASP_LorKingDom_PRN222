@@ -94,7 +94,7 @@ namespace WebUI.Controllers
 
                 // Service sẽ validate phone format và unique
                 var success = await _accountService.UpdateAsync(model.Id, existing);
-                TempData["Success"] = success ? "✅ Cập nhật thành công!" : "❌ Cập nhật thất bại!";
+                TempData["Success"] = success ? "Cập nhật thành công!" : "Cập nhật thất bại!";
                 return RedirectToListOrSearch(q, 1, pageSize);
             }
             catch (InvalidOperationException ex)
@@ -135,8 +135,8 @@ namespace WebUI.Controllers
 
             var success = await _accountService.UpdateAsync(id, c);
             TempData["Success"] = success
-                ? "🚫 Đã chặn khách hàng thành công!"
-                : "⚠️ Chặn khách hàng thất bại!";
+                ? "Đã chặn khách hàng thành công!"
+                : "Chặn khách hàng thất bại!";
 
             return RedirectToListOrSearch(q, 1, pageSize);
         }
@@ -163,8 +163,8 @@ namespace WebUI.Controllers
 
             var success = await _accountService.UpdateAsync(id, c);
             TempData["Success"] = success
-                ? "✅ Đã bỏ chặn khách hàng thành công!"
-                : "⚠️ Bỏ chặn khách hàng thất bại!";
+                ? "Đã bỏ chặn khách hàng thành công!"
+                : "Bỏ chặn khách hàng thất bại!";
 
             return RedirectToListOrSearch(q, 1, pageSize);
         }

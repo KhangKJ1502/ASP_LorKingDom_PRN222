@@ -21,11 +21,12 @@ namespace DAL.Repositories
         public async Task<List<WalletTransaction>> GetByWalletIdAsync(int walletId, int pageSize = 20, int pageNumber = 1)
         {
             return await _db.WalletTransactions
-                .Where(t => t.WalletId == walletId)
-                .OrderByDescending(t => t.CreatedAt)
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
+               .Where(t => t.WalletId == walletId)
+               .OrderByDescending(t => t.CreatedAt) 
+               .ThenByDescending(t => t.WalletTransactionId)
+               .Skip((pageNumber - 1) * pageSize)
+               .Take(pageSize)
+               .ToListAsync();
         }
 
         public async Task<int> GetTotalCountByWalletIdAsync(int walletId)

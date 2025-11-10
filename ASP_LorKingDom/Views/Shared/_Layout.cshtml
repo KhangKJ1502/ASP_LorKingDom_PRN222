@@ -33,8 +33,6 @@
 	}
 </head>
 
-@await Html.PartialAsync("_ChatWidget")
-
 <body>
 	<form id="__AntiForgeryForm" asp-antiforgery="true" style="display:none;"></form>
 	<!-- Header -->
@@ -67,15 +65,16 @@
 			<div class="container">
 				<div class="header-content">
 					<!-- Logo -->
-					<a href="/" class="header-logo">
+					<a href="@Url.Content("~/uploads/avatars/logo.jpg")" class="header-logo">
 						<div class="logo-icon">
-							<span class="logo-emoji">Gấu bông</span>
+							<img src="@Url.Content("~/uploads/avatars/logo.jpg")" alt="LorKingDom Logo" class="logo-img" />
 						</div>
 						<div class="logo-text">
 							<h1 class="logo-title">LorKingDom</h1>
 							<p class="logo-subtitle">LorKingDom</p>
 						</div>
 					</a>
+
 
 					<!-- Search Bar -->
 					<!-- Search Bar -->
@@ -88,7 +87,7 @@
 							</svg>
 
 							<!-- name="q" là điều QUAN TRỌNG -->
-							<input type="text" name="q" class="search-input" placeholder="Search toys, brands..."
+							<input type="text" name="q" class="search-input" placeholder="Tìm kiếm sản phẩm...."
 								   value="@((Context.Request.Path.ToString().Contains("Blog") ? "" : Context.Request.Query["q"].ToString()))" />
 
 							<!-- Giữ nguyên pageSize hiện tại nếu đang có -->
@@ -97,7 +96,7 @@
 							<!-- Reset về trang 1 khi search -->
 							<input type="hidden" name="page" value="1" />
 
-							<button type="submit" class="search-btn">Search</button>
+							<button type="submit" class="search-btn">Tìm kiếm</button>
 						</form>
 					</div>
 
@@ -250,7 +249,7 @@
 					<div class="footer-column">
 						<div class="footer-logo">
 							<div class="logo-icon">
-								<span class="logo-emoji">Gấu bông</span>
+								<img src="@Url.Content("~/uploads/avatars/logo.jpg")" alt="LorKingDom Logo" class="logo-img" />
 							</div>
 							<div class="logo-text">
 								<h3 class="logo-title">LorKingDom</h3>
@@ -451,6 +450,8 @@
 	</script>
 
 	@await RenderSectionAsync("Scripts", required: false)
+
+	@await Html.PartialAsync("_ChatWidget")
 
 </body>
 </html>

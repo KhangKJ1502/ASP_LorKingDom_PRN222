@@ -244,4 +244,21 @@
             handleTab(defaultTab);
         }
     });
+
+    window.navigateToReviewsTab = function (subTab) {
+        // Load the main 'reviews' tab first
+        loadTab('reviews');
+
+        // Wait for content to load (AJAX may take time), then click the sub-tab
+        setTimeout(() => {
+            const subTabButton = document.querySelector(`.review-tab[data-tab="${subTab}"]`);
+            if (subTabButton) {
+                subTabButton.click();
+                console.log(`Navigated to reviews tab and selected ${subTab}`);
+            } else {
+                console.error(`Sub-tab ${subTab} not found after loading reviews`);
+            }
+        }, 300); // Adjust timeout if needed (300ms should be enough for AJAX load)
+    };
+
 })();

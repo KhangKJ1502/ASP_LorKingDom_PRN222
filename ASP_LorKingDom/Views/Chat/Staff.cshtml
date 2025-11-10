@@ -6,465 +6,7 @@
     var name = (string)ViewBag.Name!;
 }
 
-@section Styles {
-    <style>
-        :root {
-            --primary: #6366f1;
-            --primary-dark: #4f46e5;
-            --success: #10b981;
-            --danger: #ef4444;
-            --warning: #f59e0b;
-            --muted: #6b7280;
-            --border: #e5e7eb;
-            --bg-main: #f8fafc;
-            --bg-card: #ffffff;
-            --text-dark: #1f2937;
-            --text-light: #6b7280;
-            --shadow: 0 1px 3px 0 rgba(0,0,0,.1);
-            --shadow-md: 0 4px 6px -1px rgba(0,0,0,.1);
-        }
-
-        .chat-page-header {
-            margin-bottom: 24px;
-        }
-
-        .chat-page-title {
-            font-size: 28px;
-            font-weight: 700;
-            color: var(--text-dark);
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 8px;
-        }
-
-        .chat-page-subtitle {
-            font-size: 14px;
-            color: var(--text-light);
-        }
-
-        .chat-container {
-            display: grid;
-            grid-template-columns: 420px 1fr;
-            gap: 24px;
-            height: calc(100vh - 280px);
-            min-height: 600px;
-        }
-
-        .chat-card {
-            background: var(--bg-card);
-            border-radius: 12px;
-            box-shadow: var(--shadow-md);
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            border: 1px solid var(--border);
-        }
-
-        .chat-card-header {
-            padding: 20px 24px;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: #fafbfc;
-        }
-
-        .chat-card-title {
-            font-size: 16px;
-            font-weight: 700;
-            color: var(--text-dark);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .count-badge {
-            background: var(--primary);
-            color: #fff;
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-size: 13px;
-            font-weight: 600;
-        }
-
-        .search-box {
-            padding: 16px 20px;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            gap: 12px;
-        }
-
-        .input-wrapper {
-            flex: 1;
-            position: relative;
-        }
-
-            .input-wrapper input,
-            .input-wrapper select {
-                width: 100%;
-                padding: 10px 14px 10px 38px;
-                border: 1px solid var(--border);
-                border-radius: 8px;
-                font-size: 14px;
-                transition: all .2s;
-                background: #fff;
-            }
-
-                .input-wrapper input:focus,
-                .input-wrapper select:focus {
-                    outline: none;
-                    border-color: var(--primary);
-                    box-shadow: 0 0 0 3px rgba(99,102,241,.1);
-                }
-
-        .input-icon {
-            position: absolute;
-            left: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--text-light);
-            font-size: 16px;
-        }
-
-        .conversation-list {
-            flex: 1;
-            overflow-y: auto;
-        }
-
-        .conversation-item {
-            padding: 16px 20px;
-            border-bottom: 1px solid var(--border);
-            cursor: pointer;
-            transition: all .2s;
-            display: grid;
-            grid-template-columns: auto 1fr auto;
-            gap: 12px;
-            align-items: center;
-        }
-
-            .conversation-item:hover {
-                background: #f9fafb;
-            }
-
-            .conversation-item.active {
-                background: #eff6ff;
-                border-left: 4px solid var(--primary);
-            }
-
-        .customer-avatar {
-            width: 48px;
-            height: 48px;
-            border-radius: 12px;
-            background: linear-gradient(135deg,#667eea,#764ba2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #fff;
-            font-weight: 600;
-            font-size: 18px;
-            flex-shrink: 0;
-        }
-
-        .customer-info {
-            min-width: 0;
-        }
-
-        .customer-name {
-            font-size: 15px;
-            font-weight: 600;
-            color: var(--text-dark);
-            margin-bottom: 4px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .status-indicator {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            font-size: 11px;
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-weight: 600;
-        }
-
-            .status-indicator.online {
-                background: #d1fae5;
-                color: #065f46;
-            }
-
-            .status-indicator.offline {
-                background: #f3f4f6;
-                color: #6b7280;
-            }
-
-        .status-dot {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: currentColor;
-        }
-
-        .message-preview {
-            font-size: 13px;
-            color: var(--text-light);
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .conversation-meta {
-            text-align: right;
-        }
-
-        .message-time {
-            font-size: 11px;
-            color: var(--text-light);
-            margin-bottom: 4px;
-        }
-
-        .unread-count {
-            background: var(--danger);
-            color: #fff;
-            padding: 2px 8px;
-            border-radius: 10px;
-            font-size: 11px;
-            font-weight: 700;
-            display: inline-block;
-        }
-
-        .chat-area-header {
-            padding: 20px 24px;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: #fafbfc;
-        }
-
-        .current-customer h3 {
-            font-size: 17px;
-            font-weight: 600;
-            color: var(--text-dark);
-            margin: 0 0 4px;
-        }
-
-        .current-customer p {
-            font-size: 13px;
-            color: var(--text-light);
-            margin: 0;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .action-btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all .2s;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: var(--primary);
-            color: #fff;
-        }
-
-            .action-btn:hover {
-                background: var(--primary-dark);
-                transform: translateY(-1px);
-                box-shadow: var(--shadow-md);
-            }
-
-        .messages-area {
-            flex: 1;
-            padding: 24px;
-            overflow-y: auto;
-            background: linear-gradient(to bottom,#f9fafb,#ffffff);
-        }
-
-        .empty-state {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100%;
-            color: var(--text-light);
-            text-align: center;
-        }
-
-        .empty-icon {
-            width: 80px;
-            height: 80px;
-            background: var(--bg-main);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 16px;
-            font-size: 36px;
-            color: var(--text-light);
-        }
-
-        .empty-state h3 {
-            font-size: 18px;
-            margin: 0 0 8px;
-            color: var(--text-dark);
-        }
-
-        .empty-state p {
-            margin: 0;
-            font-size: 14px;
-        }
-
-        .chat-message {
-            margin-bottom: 16px;
-            display: flex;
-            gap: 12px;
-        }
-
-            .chat-message.sent {
-                justify-content: flex-end;
-            }
-
-        .message-content {
-            max-width: 70%;
-            padding: 12px 16px;
-            border-radius: 16px;
-            font-size: 14px;
-            line-height: 1.5;
-            position: relative;
-            box-shadow: var(--shadow);
-        }
-
-        .chat-message.sent .message-content {
-            background: var(--primary);
-            color: #fff;
-            border-bottom-right-radius: 4px;
-        }
-
-        .chat-message.received .message-content {
-            background: #fff;
-            color: var(--text-dark);
-            border-bottom-left-radius: 4px;
-        }
-
-        .message-timestamp {
-            font-size: 11px;
-            opacity: .7;
-            margin-top: 6px;
-            display: block;
-        }
-
-        .typing-status {
-            padding: 12px 24px;
-            min-height: 40px;
-            font-size: 13px;
-            color: var(--text-light);
-            font-style: italic;
-        }
-
-        .message-input-box {
-            padding: 20px 24px;
-            border-top: 1px solid var(--border);
-            display: flex;
-            gap: 12px;
-            background: #fff;
-        }
-
-            .message-input-box input {
-                flex: 1;
-                padding: 12px 16px;
-                border: 1px solid var(--border);
-                border-radius: 10px;
-                font-size: 14px;
-                transition: all .2s;
-            }
-
-                .message-input-box input:focus {
-                    outline: none;
-                    border-color: var(--primary);
-                    box-shadow: 0 0 0 3px rgba(99,102,241,.1);
-                }
-
-        .send-btn {
-            padding: 12px 24px;
-            background: var(--primary);
-            color: #fff;
-            border: none;
-            border-radius: 10px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all .2s;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-            .send-btn:hover {
-                background: var(--primary-dark);
-                transform: translateY(-1px);
-                box-shadow: var(--shadow-md);
-            }
-
-            .send-btn:active {
-                transform: translateY(0);
-            }
-
-        .conversation-list::-webkit-scrollbar,
-        .messages-area::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        .conversation-list::-webkit-scrollbar-track,
-        .messages-area::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        .conversation-list::-webkit-scrollbar-thumb,
-        .messages-area::-webkit-scrollbar-thumb {
-            background: #d1d5db;
-            border-radius: 4px;
-        }
-
-            .conversation-list::-webkit-scrollbar-thumb:hover,
-            .messages-area::-webkit-scrollbar-thumb:hover {
-                background: #9ca3af;
-            }
-
-        .notification-badge {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: #ef4444;
-            color: #fff;
-            padding: 10px 15px;
-            border-radius: 20px;
-            font-weight: 600;
-            z-index: 10000;
-            box-shadow: 0 4px 12px rgba(239,68,68,.4);
-            cursor: pointer;
-            display: none;
-        }
-
-        @@media (max-width: 1200px) {
-            .chat-container
-
-        {
-            grid-template-columns: 1fr;
-            height: auto;
-        }
-
-        }
-    </style>
-}
-
+<link rel="stylesheet" href="~/css/chat-staff.css" asp-append-version="true" />
 <!-- Badge thông báo -->
 <div class="notification-badge" id="notificationBadge">
     <span id="unreadCount">0</span> tin nhắn mới
@@ -689,6 +231,7 @@
 
         // ===== Mở 1 cuộc hội thoại
         async function openConv(convId) {
+            console.log("🔓 Opening conversation:", convId);
             currentConv = convId;
             setDetailHeader(convMap.get(convId));
             document.getElementById('chatBody').innerHTML = '';
@@ -698,20 +241,25 @@
                 const cached = JSON.parse(sessionStorage.getItem(key) || '[]');
 
                 if (cached.length > 0) {
+                    console.log("📦 Loading", cached.length, "messages from cache");
                     cached.forEach(m => addChatLine(m.senderId, m.text, m.sentAt, false));
                 } else {
+                    console.log("🔍 Fetching messages from server...");
                     const msgs = await conn.invoke("GetMessages", convId);
+                    console.log("📥 Received", msgs.length, "messages");
                     msgs.forEach(m => addChatLine(m.senderId, m.text, m.sentAt, false));
                     sessionStorage.setItem(key, JSON.stringify(msgs));
                 }
             } catch (err) {
-                console.error("Error loading messages:", err);
+                console.error("❌ Error loading messages:", err);
             }
 
             try {
+                console.log("🔗 Joining conversation group...");
                 await conn.invoke("OpenConversation", convId);
+                console.log("✅ Successfully joined conversation");
             } catch (err) {
-                console.error("Error opening conversation:", err);
+                console.error("❌ Error opening conversation:", err);
             }
 
             renderList();
@@ -751,11 +299,17 @@
 
         // ===== SignalR events
         conn.on("receive", (m) => {
+            console.log("📨 Received message:", m);
+            console.log("Current conversation:", currentConv);
+            console.log("Match:", m.conversationId === currentConv);
+
             if (!isOnChatPage) showNotificationBadge(1);
 
             if (m.conversationId === currentConv) {
+                console.log("✅ Adding message to current conversation");
                 addChatLine(m.senderId, m.text, m.sentAt);
             } else {
+                console.log("⚠️ Message for different conversation");
                 const card = convMap.get(m.conversationId);
                 if (card) {
                     card.lastMessage = m.text;
@@ -763,6 +317,8 @@
                     card.unreadForStaff = (card.unreadForStaff ?? 0) + 1;
                     convMap.set(m.conversationId, card);
                     renderList();
+                } else {
+                    console.log("❌ No card found for conversation:", m.conversationId);
                 }
             }
         });
@@ -816,9 +372,11 @@
             if (!v) return;
             el.value = "";
             try {
+                console.log("📤 Sending message:", { convId: currentConv, from: STAFF_ID, text: v });
                 await conn.invoke("SendMessage", currentConv, STAFF_ID, v);
+                console.log("✅ Message sent successfully");
             } catch (err) {
-                console.error('SendMessage error:', err);
+                console.error('❌ SendMessage error:', err);
                 Swal.fire({
                     icon: 'error',
                     title: 'Lỗi gửi tin nhắn',
@@ -862,12 +420,16 @@
         // ===== Khởi động kết nối
         async function start() {
             try {
+                console.log("🔌 Connecting to SignalR hub...");
                 await conn.start();
+                console.log("✅ Connected! Staff ID:", STAFF_ID);
                 updatePageState(true);
 
-                // load danh sách hội thoại cho staff hiện tại (ID thật "22")
+                // load danh sách hội thoại cho staff hiện tại
+                console.log("📋 Loading conversations for staff:", STAFF_ID);
                 const res = await fetch(`/api/chat-dashboard/conversations?staffId=${encodeURIComponent(STAFF_ID)}`);
                 const data = await res.json();
+                console.log("📥 Loaded", data.length, "conversations");
 
                 data.forEach(x => convMap.set(x.conversationId, {
                     conversationId: x.conversationId,
@@ -879,9 +441,10 @@
                     customerOnline: x.customerOnline
                 }));
 
+                console.log("📊 ConvMap size:", convMap.size);
                 renderList();
             } catch (err) {
-                console.error('Connection error:', err);
+                console.error('❌ Connection error:', err);
                 // optional retry
                 setTimeout(start, 5000);
             }

@@ -1,6 +1,11 @@
 ﻿@model BLL.DTOs.ProductDto
 @using System.Linq
 @using BLL.DTOs
+
+<form id="antiForgeryForm" style="display:none;">
+    @Html.AntiForgeryToken()
+</form>
+
 @{
     ViewData["Title"] = (Model?.ProductName ?? "Chi tiết sản phẩm") + " - ToyLand";
 
@@ -245,6 +250,20 @@
                                     </div>
                                 }
 
+                                <!-- Reaction Buttons -->
+                                <div class="review-reactions d-flex gap-3 align-items-center mb-3">
+                                    <button class="btn-react @(review.UserReaction == "Like" ? "active like" : "")"
+                                            onclick="reactToReview(@review.ReviewProductId, 'Like', this)">
+                                        <i class="fas fa-thumbs-up"></i>
+                                        <span class="count">@review.LikeCount</span>
+                                    </button>
+                                    <button class="btn-react @(review.UserReaction == "Dislike" ? "active dislike" : "")"
+                                            onclick="reactToReview(@review.ReviewProductId, 'Dislike', this)">
+                                        <i class="fas fa-thumbs-down"></i>
+                                        <span class="count">@review.DislikeCount</span>
+                                    </button>
+                                </div>
+
                                 <!-- Shop Reply -->
                                 @if (review.Replies?.Any() == true)
                                 {
@@ -277,6 +296,42 @@
         </div>
     </div>
 </main>
+
+@section Styles {
+    <style>
+        .btn-react {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.9rem;
+            color: #666;
+            background: none;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 4px 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+            .btn-react:hover {
+                background: #f8f9fa;
+            }
+
+            .btn-react.active.like {
+                color: #2563eb;
+                border-color: #2563eb;
+            }
+
+            .btn-react.active.dislike {
+                color: #dc2626;
+                border-color: #dc2626;
+            }
+
+            .btn-react i {
+                font-size: 1rem;
+            }
+    </style>
+}
 
 @section Scripts {
     <script>
@@ -319,6 +374,61 @@
             } else {
                 btn.innerHTML = 'Yêu thích';
                 btn.style.color = 'var(--foreground)';
+            }
+        }
+
+        async function reactToReview(reviewId, type, btn) {
+            try {
+                const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+
+                if (!token) {
+                    alert('Lỗi bảo mật. Vui lòng tải lại trang.');
+                    return;
+                }
+
+                const response = await fetch('/Review/ReactToReview', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': token
+                    },
+                    body: JSON.stringify({ reviewId, reactionType: type })
+                });
+
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        alert('Vui lòng đăng nhập để thực hiện thao tác này.');
+                        window.location.href = '/Account/Login';
+                        return;
+                    }
+                    throw new Error('Lỗi khi gửi phản hồi');
+                }
+
+                const result = await response.json();
+
+                if (result.success) {
+                    const reviewItem = btn.closest('.review-item');
+                    const likeBtn = reviewItem.querySelector('.btn-react:has(.fa-thumbs-up)');
+                    const dislikeBtn = reviewItem.querySelector('.btn-react:has(.fa-thumbs-down)');
+
+                    const wasActive = btn.classList.contains('active');
+
+                    likeBtn.classList.remove('active', 'like');
+                    dislikeBtn.classList.remove('active', 'dislike');
+
+                    if (!wasActive) {
+                        if (type === 'Like') {
+                            likeBtn.classList.add('active', 'like');
+                        } else {
+                            dislikeBtn.classList.add('active', 'dislike');
+                        }
+                    }
+
+                    location.reload();
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Có lỗi xảy ra. Vui lòng thử lại.');
             }
         }
 

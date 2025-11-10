@@ -69,13 +69,47 @@ namespace WebUI.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> TransactionHistory(int page = 1, int pageSize = 10)
+        public async Task<IActionResult> TransactionHistory(int page = 1, int pageSize = 5)
         {
             var accountId = GetCurrentAccountId();
             if (accountId == 0) return Unauthorized();
 
             var history = await _walletService.GetTransactionHistoryAsync(accountId, page, pageSize);
             return PartialView(history);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetBalance()
+        {
+            var accountId = GetCurrentAccountId();
+            if (accountId == 0)
+                return Json(new { success = false, message = "Unauthorized" });
+
+            try
+            {
+                var wallet = await _walletService.GetByAccountIdAsync(accountId);
+
+                if (wallet == null)
+                {
+                    return Json(new
+                    {
+                        success = true,
+                        hasWallet = false,
+                        balance = 0
+                    });
+                }
+
+                return Json(new
+                {
+                    success = true,
+                    hasWallet = true,
+                    balance = wallet.Balance
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
         }
 
         [HttpPost]

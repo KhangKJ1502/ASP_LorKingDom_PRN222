@@ -175,7 +175,9 @@
                                         }
                                         else
                                         {
-                                            <span class="badge bg-@(customer.Status == "Hoạt Động" ? "success" : "warning")">@customer.Status</span>
+                                            <span class="badge bg-@(customer.Status == "Active" ? "success" : "warning")">
+                                                @(customer.Status == "Active" ? "Hoạt động" : "Không hoạt động")
+                                            </span>
                                         }
                                     </td>
                                     <td>@customer.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>

@@ -11,6 +11,13 @@
     background: #f8fafc;
     min-height: 100vh;
 }
+.promo-field-box {
+    border: 1px solid #dee2e6;
+    border-radius: .5rem;
+    padding: 1rem;
+    background: #fff;
+    margin-bottom: .75rem;
+}
 
 /* Page Header - Enhanced */
 .promotion-page-header {

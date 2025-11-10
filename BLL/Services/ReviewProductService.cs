@@ -94,10 +94,19 @@ namespace BLL.Services
             return !await _repo.HasUserReviewedAsync(productId, accountId);
         }
 
-        private ReviewProductDto MapToDto(ReviewProduct review)
+        private ReviewProductDto MapToDto(ReviewProduct review, int? currentAccountId = null)
         {
-            var likeCount = review.ReviewProductReactions.Count(r => r.ReactionType == "Like");
-            var dislikeCount = review.ReviewProductReactions.Count(r => r.ReactionType == "Dislike");
+            var likeCount = review.ReviewProductReactions
+                .Count(r => !r.IsDeleted && r.ReactionType == "Like");
+            var dislikeCount = review.ReviewProductReactions
+                .Count(r => !r.IsDeleted && r.ReactionType == "Dislike");
+
+            var userReaction = currentAccountId.HasValue
+                ? review.ReviewProductReactions
+                    .Where(r => !r.IsDeleted && r.AccountId == currentAccountId.Value)
+                    .Select(r => r.ReactionType)
+                    .FirstOrDefault()
+                : null;
 
             return new ReviewProductDto
             {
@@ -110,12 +119,14 @@ namespace BLL.Services
                 IsDeleted = review.IsDeleted,
                 CreatedAt = review.CreatedAt,
                 UpdatedAt = review.UpdatedAt,
-                AuthorName = review.Account?.AccountName ?? "Anonymous",
+                AuthorName = review.Account?.AccountName ?? "Ẩn danh",
                 AuthorEmail = review.Account?.Email,
                 ProductName = review.Product?.ProductName,
                 LikeCount = likeCount,
                 DislikeCount = dislikeCount,
+                UserReaction = userReaction,
                 Replies = review.ReviewProductReplies
+                    .Where(r => !r.IsDeleted)
                     .OrderBy(r => r.CreatedAt)
                     .Select(r => new ReviewProductReplyDto
                     {
@@ -124,7 +135,7 @@ namespace BLL.Services
                         AccountId = r.AccountId,
                         Content = r.Content,
                         CreatedAt = r.CreatedAt,
-                        AuthorName = r.Account?.AccountName ?? "Anonymous",
+                        AuthorName = r.Account?.AccountName ?? "Ẩn danh",
                         IsAdmin = r.Account?.Role?.RoleName == "Admin" || r.Account?.Role?.RoleName == "Moderator"
                     }).ToList(),
                 ImageUrls = review.ReviewProductImages
@@ -143,14 +154,20 @@ namespace BLL.Services
             return review != null ? MapToDto(review) : null;
         }
 
-        public async Task<List<ReviewProductDto>> GetReviewsByProductIdAsync(int productId)
+        public async Task<List<ReviewProductDto>> GetReviewsByProductIdAsync(int productId, int? currentAccountId = null)
         {
-            var reviews = await _repo.GetAllAsync();
+            var reviews = await _repo.GetByProductIdAsync(productId);
             return reviews
                 .Where(r => r.ProductId == productId && !r.IsDeleted && r.Account?.Role?.RoleName == "Customer")
                 .OrderByDescending(r => r.CreatedAt)
-                .Select(r => MapToDto(r))
+                .Select(r => MapToDto(r, currentAccountId))
                 .ToList();
+        }
+
+        public async Task<List<ReviewProductDto>> GetReviewsByProductIdAsync(int productId)
+        {
+            // accountId = null
+            return await GetReviewsByProductIdAsync(productId, null);
         }
 
         public async Task<List<ReviewProductDto>> GetReviewsByAccountAsync(int accountId)

@@ -250,7 +250,7 @@ namespace WebUI.Controllers
             try
             {
                 await _svc.SendNowAsync(id);
-                TempData["Success"] = "📨 Đã gửi thông báo thành công.";
+                TempData["Success"] = "Đã gửi thông báo thành công.";
             }
             catch (KeyNotFoundException ex)
             {

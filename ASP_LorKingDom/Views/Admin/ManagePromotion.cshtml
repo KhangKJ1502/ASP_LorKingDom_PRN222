@@ -1,4 +1,5 @@
 ﻿@using Microsoft.AspNetCore.Html
+@using System
 @model BLL.DTOs.PagedResult<BLL.DTOs.PromotionDto>
 
 @{
@@ -7,6 +8,15 @@
 
     var keyword = (string?)ViewBag.Keyword ?? "";
     var edit = ViewBag.EditPromotion as BLL.DTOs.PromotionDto;
+
+    // ép Kind để tránh tự trừ múi giờ khi render ra input datetime-local
+    DateTime? editStart = null;
+    DateTime? editEnd = null;
+    if (edit != null)
+    {
+        editStart = DateTime.SpecifyKind(edit.StartDate, DateTimeKind.Unspecified);
+        editEnd = DateTime.SpecifyKind(edit.EndDate, DateTimeKind.Unspecified);
+    }
 
     var currentPage = Model?.Page ?? 1;
     var pageSize = Model?.PageSize ?? 10;
@@ -71,7 +81,7 @@
                 </div>
             </div>
 
-            <!-- Success Toast -->
+            @* Success Toast *@
             @if (TempData["SuccessMessage"] != null)
             {
                 <div class="toast-container position-fixed p-3" style="top: 20px; right: 20px; z-index: 2080;">
@@ -87,7 +97,7 @@
                 </div>
             }
 
-            <!-- Error Toast -->
+            @* Error Toast *@
             @if (TempData["ErrorMessage"] != null)
             {
                 <div class="toast-container position-fixed p-3" style="top: 20px; right: 20px; z-index: 2080;">
@@ -169,11 +179,10 @@
                                         @x.EndDate.ToString("dd/MM/yyyy HH:mm")
                                     </td>
                                     <td>
-                                            <span class="badge bg-@(x.Status == "Active" ? "success" : "warning")">
-                                                @(x.Status == "Active" ? "Đang hoạt động" : "Ngừng hoạt động")
-                                            </span>
+                                        <span class="badge bg-@(x.Status == "Active" ? "success" : "warning")">
+                                            @(x.Status == "Active" ? "Đang hoạt động" : "Ngừng hoạt động")
+                                        </span>
                                     </td>
-
                                     <td>@x.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
                                 </tr>
                             }
@@ -188,7 +197,7 @@
                 </table>
             </div>
 
-            @* PAGINATION: « 1 … 5 6 7 … 20 » *@
+            @* PAGINATION *@
             @if (totalPages > 1)
             {
                 Func<int, IHtmlContent> PageItem = (int p) =>
@@ -235,25 +244,21 @@
                         </li>
 
                         @{
-                            // windowSize = số trang hai bên currentPage
                             var windowSize = 1;
                             var startPage = currentPage - windowSize;
                             var endPage = currentPage + windowSize;
                             if (startPage < 1) startPage = 1;
                             if (endPage > totalPages) endPage = totalPages;
 
-                            // Trang đầu
                             @PageItem(1)
                             ;
 
-                            // "..." nếu block đầu bị gap
                             if (startPage > 2)
                             {
                                 @DisabledDots("...")
                                 ;
                             }
 
-                            // các trang giữa
                             for (int p = startPage; p <= endPage; p++)
                             {
                                 if (p != 1 && p != totalPages)
@@ -263,14 +268,12 @@
                                 }
                             }
 
-                            // "..." nếu block cuối bị gap
                             if (endPage < totalPages - 1)
                             {
                                 @DisabledDots("...")
                                 ;
                             }
 
-                            // Trang cuối
                             if (totalPages > 1)
                             {
                                 @PageItem(totalPages)
@@ -335,7 +338,7 @@
                                    placeholder="VD: SUMMER2024, SALE50, NEWYEAR2025..."
                                    required
                                    maxlength="50" />
-                            <small class="text-muted">💡 Mã phải duy nhất và dễ nhớ cho khách hàng</small>
+                            <small class="text-muted">Mã phải duy nhất và dễ nhớ cho khách hàng</small>
                         </div>
 
                         <!-- Discount và Status -->
@@ -401,7 +404,7 @@
                                     <i class="fa-solid fa-circle-xmark me-1"></i>Ngừng hoạt động
                                 </label>
                             </div>
-                            <small class="text-muted d-block mt-2">📍 Khuyến mãi chỉ áp dụng khi đang hoạt động</small>
+                            <small class="text-muted d-block mt-2">Khuyến mãi chỉ áp dụng khi đang hoạt động</small>
                         </div>
 
                         <!-- Divider -->
@@ -434,7 +437,7 @@
                             </div>
                         </div>
 
-                        <!-- Start Date -->
+                        <!-- Start Date (ADD) -->
                         <div class="col-lg-6">
                             <label class="form-label">
                                 <i class="fa-solid fa-calendar-check me-1"></i>
@@ -444,11 +447,12 @@
                                    class="form-control"
                                    name="StartDate"
                                    id="addStartDate"
+                                   value=""
                                    required />
-                            <small class="text-muted">📅 Khuyến mãi có hiệu lực từ thời điểm này</small>
+                            <small class="text-muted">Khuyến mãi có hiệu lực từ thời điểm này</small>
                         </div>
 
-                        <!-- End Date -->
+                        <!-- End Date (ADD) -->
                         <div class="col-lg-6">
                             <label class="form-label">
                                 <i class="fa-solid fa-calendar-xmark me-1"></i>
@@ -458,8 +462,9 @@
                                    class="form-control"
                                    name="EndDate"
                                    id="addEndDate"
+                                   value=""
                                    required />
-                            <small class="text-muted">⏰ Khuyến mãi hết hạn sau thời điểm này</small>
+                            <small class="text-muted">Khuyến mãi hết hạn sau thời điểm này</small>
                         </div>
 
                         <!-- Mô tả -->
@@ -472,7 +477,7 @@
                                       name="Description"
                                       id="addDescription"
                                       rows="3"
-                                      placeholder="VD: Giảm giá đặc biệt nhân dịp khai trương. Áp dụng cho tất cả sản phẩm đồ chơi trẻ em. Không áp dụng đồng thời với khuyến mãi khác."
+                                      placeholder="VD: Giảm giá đặc biệt nhân dịp khai trương. Áp dụng cho tất cả sản phẩm..."
                                       maxlength="500"></textarea>
                             <div class="d-flex justify-content-between mt-1">
                                 <small class="text-muted">📝 Tối đa 500 ký tự</small>
@@ -546,15 +551,17 @@
                                 <i class="fa-solid fa-barcode me-1 text-primary"></i>
                                 Mã khuyến mãi <span class="text-danger">*</span>
                             </label>
-                            <input type="text"
-                                   class="form-control form-control-lg"
-                                   name="PromotionCode"
-                                   id="editPromotionCode"
-                                   value="@(edit?.PromotionCode ?? "")"
-                                   placeholder="VD: SUMMER2024, SALE50, NEWYEAR2025..."
-                                   required
-                                   maxlength="50" />
-                            <small class="text-muted">💡 Mã phải duy nhất và dễ nhớ cho khách hàng</small>
+                            <div class="promo-field-box">
+                                <input type="text"
+                                       class="form-control form-control-lg"
+                                       name="PromotionCode"
+                                       id="editPromotionCode"
+                                       value="@(edit?.PromotionCode ?? "")"
+                                       placeholder="VD: SUMMER2024, SALE50, NEWYEAR2025..."
+                                       required
+                                       maxlength="50" />
+                            </div>
+                            <small class="text-muted">Mã phải duy nhất và dễ nhớ cho khách hàng</small>
                         </div>
 
                         <!-- Discount và Status -->
@@ -563,7 +570,7 @@
                                 <i class="fa-solid fa-percent me-1 text-primary"></i>
                                 Phần trăm giảm giá <span class="text-danger">*</span>
                             </label>
-                            <div class="input-group">
+                            <div class="input-group promo-field-box">
                                 <input type="number"
                                        step="0.01"
                                        min="0"
@@ -622,7 +629,7 @@
                                     <i class="fa-solid fa-circle-xmark me-1"></i>Ngừng hoạt động
                                 </label>
                             </div>
-                            <small class="text-muted d-block mt-2">📍 Khuyến mãi chỉ áp dụng khi đang hoạt động</small>
+                            <small class="text-muted d-block mt-2">Khuyến mãi chỉ áp dụng khi đang hoạt động</small>
                         </div>
 
                         <!-- Divider -->
@@ -655,7 +662,7 @@
                             </div>
                         </div>
 
-                        <!-- Start Date -->
+                        <!-- Start Date (EDIT) -->
                         <div class="col-lg-6">
                             <label class="form-label">
                                 <i class="fa-solid fa-calendar-check me-1"></i>
@@ -665,12 +672,12 @@
                                    class="form-control"
                                    name="StartDate"
                                    id="editStartDate"
-                                   value="@(edit != null ? edit.StartDate.ToString("yyyy-MM-ddTHH:mm") : "")"
+                                   value="@(editStart.HasValue? editStart.Value.ToString("yyyy-MM-ddTHH:mm") : "")"
                                    required />
-                            <small class="text-muted">📅 Khuyến mãi có hiệu lực từ thời điểm này</small>
+                            <small class="text-muted">Khuyến mãi có hiệu lực từ thời điểm này</small>
                         </div>
 
-                        <!-- End Date -->
+                        <!-- End Date (EDIT) -->
                         <div class="col-lg-6">
                             <label class="form-label">
                                 <i class="fa-solid fa-calendar-xmark me-1"></i>
@@ -680,9 +687,9 @@
                                    class="form-control"
                                    name="EndDate"
                                    id="editEndDate"
-                                   value="@(edit != null ? edit.EndDate.ToString("yyyy-MM-ddTHH:mm") : "")"
+                                   value="@(editEnd.HasValue? editEnd.Value.ToString("yyyy-MM-ddTHH:mm") : "")"
                                    required />
-                            <small class="text-muted">⏰ Khuyến mãi hết hạn sau thời điểm này</small>
+                            <small class="text-muted">Khuyến mãi hết hạn sau thời điểm này</small>
                         </div>
 
                         <!-- Mô tả -->
@@ -695,7 +702,7 @@
                                       name="Description"
                                       id="editDescription"
                                       rows="3"
-                                      placeholder="VD: Giảm giá đặc biệt nhân dịp khai trương. Áp dụng cho tất cả sản phẩm đồ chơi trẻ em. Không áp dụng đồng thời với khuyến mãi khác."
+                                      placeholder="VD: Giảm giá đặc biệt nhân dịp khai trương..."
                                       maxlength="500">@(edit?.Description ?? "")</textarea>
                             <div class="d-flex justify-content-between mt-1">
                                 <small class="text-muted">📝 Tối đa 500 ký tự</small>
@@ -790,7 +797,7 @@
                 const modalEl = document.getElementById('editPromotionModal');
                 if (modalEl) new bootstrap.Modal(modalEl).show();
             }
-            
+
             // Initialize character counters
             initCharCounter('addDescription', 'addDescCharCount');
             initCharCounter('editDescription', 'editDescCharCount');
@@ -800,11 +807,11 @@
             const statusField = formType === 'add' ? 'addStatus' : 'editStatus';
             document.getElementById(statusField).value = value;
         }
-        
+
         function initCharCounter(textareaId, counterId) {
             const descField = document.getElementById(textareaId);
             const charCount = document.getElementById(counterId);
-            
+
             if (descField && charCount) {
                 function updateCharCount() {
                     const length = descField.value.length;
@@ -817,27 +824,25 @@
                         charCount.classList.remove('text-danger');
                     }
                 }
-                
+
                 descField.addEventListener('input', updateCharCount);
                 updateCharCount(); // Initial count
             }
         }
 
-
-
         function changePageSize(newPageSize) {
-          const keyword = '@Html.Raw(keyword ?? "")';
-          
-          if (keyword) {
-            window.location.href = '@Url.Action("Search", "Promotion")' + '?keyword=' + encodeURIComponent(keyword) + '&page=1&pageSize=' + newPageSize;
-          } else {
-            window.location.href = '@Url.Action("Index", "Promotion")' + '?page=1&pageSize=' + newPageSize;
-          }
+            const keyword = '@Html.Raw(keyword ?? "")';
+
+            if (keyword) {
+                window.location.href = '@Url.Action("Search", "Promotion")' + '?keyword=' + encodeURIComponent(keyword) + '&page=1&pageSize=' + newPageSize;
+            } else {
+                window.location.href = '@Url.Action("Index", "Promotion")' + '?page=1&pageSize=' + newPageSize;
+            }
         }
 
         async function confirmDeletePromotion(event) {
             event.preventDefault();
-            
+
             const result = await Swal.fire({
                 icon: 'warning',
                 title: 'Xóa  khuyến mãi?',
@@ -860,7 +865,6 @@
         function setDiscount(percent, formType) {
             const fieldId = formType === 'add' ? 'addDiscountPercent' : 'editDiscountPercent';
             document.getElementById(fieldId).value = percent;
-            // Highlight effect
             const input = document.getElementById(fieldId);
             input.classList.add('border-success', 'border-2');
             setTimeout(() => {
@@ -871,68 +875,73 @@
         // Quick promotion duration buttons
         function setPromotionDuration(preset, formType) {
             const startId = formType === 'add' ? 'addStartDate' : 'editStartDate';
-            const endId = formType === 'add' ? 'addEndDate' : 'editEndDate';
+            const endId   = formType === 'add' ? 'addEndDate'   : 'editEndDate';
             const startInput = document.getElementById(startId);
-            const endInput = document.getElementById(endId);
-            let startDate = new Date();
-            let endDate = new Date();
+            const endInput   = document.getElementById(endId);
 
-            switch(preset) {
-                case 'today':
-                    // Hôm nay: từ bây giờ đến 23:59
-                    endDate.setHours(23, 59, 0, 0);
-                    break;
-                
-                case 'weekend':
-                    // Cuối tuần: Thứ 7 - Chủ nhật
-                    const today = startDate.getDay();
-                    const daysUntilSaturday = (6 - today + 7) % 7;
-                    if (daysUntilSaturday === 0 && today !== 6) {
-                        // If today is Sunday, start next Saturday
-                        startDate.setDate(startDate.getDate() + 6);
-                    } else if (today === 6) {
-                        // If today is Saturday, start today
-                    } else {
-                        // Go to next Saturday
-                        startDate.setDate(startDate.getDate() + daysUntilSaturday);
-                    }
-                    startDate.setHours(0, 0, 0, 0);
+            let startDate = new Date();
+            let endDate   = new Date();
+
+            const toStartOfDay = (d) => {
+                d.setHours(0, 0, 0, 0);
+            };
+            const toEndOfDay = (d) => {
+                d.setHours(23, 59, 0, 0);
+            };
+
+            switch (preset) {
+                case 'today': {
+                    toStartOfDay(startDate);
                     endDate = new Date(startDate);
-                    endDate.setDate(endDate.getDate() + 1); // Sunday
-                    endDate.setHours(23, 59, 0, 0);
+                    toEndOfDay(endDate);
                     break;
-                
-                case 'week':
-                    // 1 tuần: 7 ngày từ bây giờ
+                }
+                case 'weekend': {
+                    const today = startDate.getDay(); // 0 CN, 6 T7
+                    let diffToSaturday = (6 - today + 7) % 7;
+                    const saturday = new Date(startDate);
+                    saturday.setDate(saturday.getDate() + diffToSaturday);
+                    toStartOfDay(saturday);
+
+                    const sunday = new Date(saturday);
+                    sunday.setDate(sunday.getDate() + 1);
+                    toEndOfDay(sunday);
+
+                    startDate = saturday;
+                    endDate = sunday;
+                    break;
+                }
+                case 'week': {
                     endDate.setDate(endDate.getDate() + 7);
+                    toEndOfDay(endDate);
                     break;
-                
-                case 'month':
-                    // 1 tháng: 30 ngày từ bây giờ
+                }
+                case 'month': {
                     endDate.setDate(endDate.getDate() + 30);
+                    toEndOfDay(endDate);
                     break;
+                }
             }
 
-            // Format to datetime-local format (YYYY-MM-DDTHH:mm)
             const formatDateTime = (date) => {
-                const year = date.getFullYear();
-                const month = String(date.getMonth() + 1).padStart(2, '0');
-                const day = String(date.getDate()).padStart(2, '0');
-                const hours = String(date.getHours()).padStart(2, '0');
+                const year    = date.getFullYear();
+                const month   = String(date.getMonth() + 1).padStart(2, '0');
+                const day     = String(date.getDate()).padStart(2, '0');
+                const hours   = String(date.getHours()).padStart(2, '0');
                 const minutes = String(date.getMinutes()).padStart(2, '0');
                 return `${year}-${month}-${day}T${hours}:${minutes}`;
             };
 
-            startInput.value = formatDateTime(startDate);
-            endInput.value = formatDateTime(endDate);
+            if (startInput) startInput.value = formatDateTime(startDate);
+            if (endInput)   endInput.value   = formatDateTime(endDate);
 
-            // Highlight effect
-            startInput.classList.add('border-success', 'border-2');
-            endInput.classList.add('border-success', 'border-2');
-            setTimeout(() => {
-                startInput.classList.remove('border-success', 'border-2');
-                endInput.classList.remove('border-success', 'border-2');
-            }, 1000);
+            [startInput, endInput].forEach(el => {
+                if (!el) return;
+                el.classList.add('border-success', 'border-2');
+                setTimeout(() => {
+                    el.classList.remove('border-success', 'border-2');
+                }, 1000);
+            });
         }
     </script>
 }

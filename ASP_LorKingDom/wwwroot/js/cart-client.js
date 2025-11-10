@@ -1,4 +1,12 @@
 ﻿// wwwroot/js/cart-client.js
+// Wrap trong IIFE để tránh duplicate variable khi file load 2 lần
+(function() {
+    'use strict';
+    
+    // Kiểm tra nếu đã load rồi thì return
+    if (window.cartClientLoaded) return;
+    window.cartClientLoaded = true;
+
 let cartToastShown = false;
 
 // Helper: lấy cookie
@@ -160,3 +168,5 @@ style.textContent = `
     @keyframes slideOut { to { transform: translateX(100%); opacity: 0; } }
 `;
 document.head.appendChild(style);
+
+})(); // Đóng IIFE
