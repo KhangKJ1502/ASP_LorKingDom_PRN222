@@ -283,7 +283,10 @@
                                     </td>
                                     <td><span class="date-text">@order.ShippingPhone</span></td>
                                     <td style="text-align: right;" class="price-text">
-                                        @order.TotalAmount.ToString("N0")đ
+                                        @{
+                                            var finalAmount = order.PaidByWalletAmount + order.PaidByExternalAmount;
+                                        }
+                                        @finalAmount.ToString("N0")đ
                                     </td>
                                     <td>
                                         @{
@@ -570,6 +573,12 @@
                                 <span>Phí vận chuyển:</span>
                                 <span>${order.shippingFee.toLocaleString('vi-VN')}đ</span>
                             </div>
+                            ${order.paidByWalletAmount > 0 ? `
+                            <div class="total-row">
+                                <span>Thanh toán bằng ví:</span>
+                                <span class="text-info">-${order.paidByWalletAmount.toLocaleString('vi-VN')}đ</span>
+                            </div>
+                            ` : ''}
                             ${order.discountAmount > 0 ? `
                             <div class="total-row">
                                 <span>Giảm giá ${order.voucherCode ? '(' + order.voucherCode + ')' : ''}:</span>
@@ -578,7 +587,7 @@
                             ` : ''}
                             <div class="total-row grand">
                                 <span>Tổng cộng:</span>
-                                <span>${order.totalAmount.toLocaleString('vi-VN')}đ</span>
+                                <span>${(subtotal + order.shippingFee - order.discountAmount - (order.paidByWalletAmount || 0)).toLocaleString('vi-VN')}đ</span>
                             </div>
                         </div>
                     </div>

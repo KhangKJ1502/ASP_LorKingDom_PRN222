@@ -241,12 +241,12 @@ namespace BLL.Services
                     {
                         WalletId = wallet.WalletId,
                         AccountId = accountId,
-                        RelatedOrderId = orderId, 
+                        RelatedOrderId = orderId,
                         TxnType = "Payment",
                         Direction = "DR", // Debit 
                         Amount = paidByWallet,
-                        BalanceBefore = wallet.Balance + paidByWallet, 
-                        BalanceAfter = wallet.Balance, 
+                        BalanceBefore = wallet.Balance + paidByWallet,
+                        BalanceAfter = wallet.Balance,
                         Method = "Wallet",
                         Status = "Completed",
                         Reason = $"Thanh toán đơn hàng #{orderId}",

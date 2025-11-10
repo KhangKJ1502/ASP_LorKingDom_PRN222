@@ -6,18 +6,26 @@
 	@* ĐÃ có ví *@
 	@if (Model != null)
 	{
-		<div class="relative overflow-hidden rounded-2xl border border-orange-200/70 bg-gradient-to-br from-amber-50 via-orange-50 to-white shadow-xl">
-			<div class="pointer-events-none absolute -top-10 -right-10 h-40 w-40 rotate-12 rounded-full bg-orange-200/30 blur-2xl"></div>
-			<div class="pointer-events-none absolute -bottom-16 -left-10 h-44 w-44 -rotate-6 rounded-full bg-pink-200/30 blur-2xl"></div>
+		<div
+			class="relative overflow-hidden rounded-2xl border border-orange-200/70 bg-gradient-to-br from-amber-50 via-orange-50 to-white shadow-xl">
+			<div
+				class="pointer-events-none absolute -top-10 -right-10 h-40 w-40 rotate-12 rounded-full bg-orange-200/30 blur-2xl">
+			</div>
+			<div
+				class="pointer-events-none absolute -bottom-16 -left-10 h-44 w-44 -rotate-6 rounded-full bg-pink-200/30 blur-2xl">
+			</div>
 
 			<div class="p-6 sm:p-8">
 				<!-- Header -->
 				<div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 					<div class="flex items-center gap-3">
-						<div class="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-orange-500 to-pink-500 text-white shadow-md">
+						<div
+							class="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-orange-500 to-pink-500 text-white shadow-md">
 							<svg class="h-6 w-6" fill="currentColor" viewBox="0 0 20 20">
-								<path d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2v5a2 2 0 002 2h8a2 2 0 002-2v-5a2 2 0 002-2V6a2 2 0 00-2-2H4z" />
-								<path fill-rule="evenodd" d="M8 9a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" clip-rule="evenodd" />
+								<path
+									d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2v5a2 2 0 002 2h8a2 2 0 002-2v-5a2 2 0 002-2V6a2 2 0 00-2-2H4z" />
+								<path fill-rule="evenodd" d="M8 9a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z"
+									clip-rule="evenodd" />
 							</svg>
 						</div>
 						<div>
@@ -27,9 +35,11 @@
 					</div>
 
 					<div class="flex items-center gap-2">
-						<span class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-medium
-                            @(Model.Status == "Active" ? "bg-green-100 text-green-700" : "bg-rose-100 text-rose-700")">
-							<span class="inline-block h-2 w-2 rounded-full @(Model.Status == "Active" ? "bg-green-500" : "bg-rose-500")"></span>
+						<span
+							class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-medium
+				                            @(Model.Status == "Active" ? "bg-green-100 text-green-700" : "bg-rose-100 text-rose-700")">
+							<span
+								class="inline-block h-2 w-2 rounded-full @(Model.Status == "Active" ? "bg-green-500" : "bg-rose-500")"></span>
 							@Model.Status
 						</span>
 					</div>
@@ -57,18 +67,17 @@
 
 				<!-- Actions -->
 				<div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-					<button type="button" data-action="show-topup-modal"
-							class="wallet-action-btn wallet-btn-primary">
+					<button type="button" data-action="show-topup-modal" class="wallet-action-btn wallet-btn-primary">
 						<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
 						</svg>
 						<span>Nạp tiền</span>
 					</button>
 
-					<button type="button" data-action="view-transactions"
-							class="wallet-action-btn wallet-btn-secondary">
+					<button type="button" data-action="view-transactions" class="wallet-action-btn wallet-btn-secondary">
 						<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+								d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
 						</svg>
 						<span>Lịch sử giao dịch</span>
 					</button>
@@ -91,7 +100,7 @@
 					<div class="no-wallet-icon-ring"></div>
 					<svg class="no-wallet-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-							  d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+							d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
 					</svg>
 				</div>
 
@@ -126,11 +135,13 @@
 
 				<button type="button" data-action="show-create-wallet" class="no-wallet-create-btn">
 					<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+							d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
 					</svg>
 					<span>Tạo ví miễn phí ngay</span>
 					<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+							d="M13 7l5 5m0 0l-5 5m5-5H6" />
 					</svg>
 				</button>
 			</div>
@@ -159,19 +170,19 @@
 			<div class="form-group">
 				<label class="form-label">
 					<svg class="label-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+							d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
 					</svg>
 					Tên ví (tùy chọn)
 				</label>
-				<input type="text" name="WalletName"
-					   class="form-input"
-					   placeholder="Ví cá nhân, ví mua sắm...">
+				<input type="text" name="WalletName" class="form-input" placeholder="Ví cá nhân, ví mua sắm...">
 			</div>
 
 			<div class="form-group">
 				<label class="form-label">
 					<svg class="label-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+							d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
 					</svg>
 					Loại tiền tệ
 				</label>
@@ -186,7 +197,8 @@
 			<div class="form-actions">
 				<button type="submit" id="btnCreateWallet" class="form-btn-submit">
 					<svg class="h-5 w-5" id="iconCreateWallet" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+							d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
 					</svg>
 					<span>Tạo ví ngay</span>
 				</button>
@@ -230,13 +242,13 @@
 				<div class="topup-form-group">
 					<label class="topup-label">
 						<svg class="label-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+								d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
 						</svg>
 						Số tiền nạp (VND)
 					</label>
 					<input type="number" name="Amount" id="topupAmount" required min="10000" max="100000000" step="10000"
-						   class="topup-input"
-						   placeholder="Nhập số tiền...">
+						class="topup-input" placeholder="Nhập số tiền...">
 					<p class="topup-helper-text">
 						<span class="helper-icon">ℹ️</span>
 						Tối thiểu: 10,000đ - Tối đa: 100,000,000đ
@@ -246,7 +258,8 @@
 				<div class="topup-form-group">
 					<label class="topup-label">
 						<svg class="label-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+								d="M13 10V3L4 14h7v7l9-11h-7z" />
 						</svg>
 						Chọn nhanh
 					</label>
@@ -263,13 +276,12 @@
 				<div class="topup-form-group">
 					<label class="topup-label">
 						<svg class="label-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+								d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
 						</svg>
 						Ghi chú (tùy chọn)
 					</label>
-					<input type="text" name="Reason"
-						   class="topup-input"
-						   placeholder="VD: Nạp tiền mua hàng...">
+					<input type="text" name="Reason" class="topup-input" placeholder="VD: Nạp tiền mua hàng...">
 				</div>
 
 				<div class="topup-modal-actions">
@@ -315,14 +327,14 @@
 		box-shadow: 0 4px 12px rgba(249, 115, 22, 0.25);
 	}
 
-		.wallet-btn-primary:hover {
-			transform: translateY(-2px);
-			box-shadow: 0 8px 20px rgba(249, 115, 22, 0.35);
-		}
+	.wallet-btn-primary:hover {
+		transform: translateY(-2px);
+		box-shadow: 0 8px 20px rgba(249, 115, 22, 0.35);
+	}
 
-		.wallet-btn-primary:active {
-			transform: translateY(0);
-		}
+	.wallet-btn-primary:active {
+		transform: translateY(0);
+	}
 
 	.wallet-btn-secondary {
 		background: white;
@@ -331,16 +343,16 @@
 		box-shadow: 0 2px 8px rgba(249, 115, 22, 0.1);
 	}
 
-		.wallet-btn-secondary:hover {
-			background: #fff5ec;
-			border-color: #f97316;
-			transform: translateY(-2px);
-			box-shadow: 0 6px 16px rgba(249, 115, 22, 0.2);
-		}
+	.wallet-btn-secondary:hover {
+		background: #fff5ec;
+		border-color: #f97316;
+		transform: translateY(-2px);
+		box-shadow: 0 6px 16px rgba(249, 115, 22, 0.2);
+	}
 
-		.wallet-btn-secondary:active {
-			transform: translateY(0);
-		}
+	.wallet-btn-secondary:active {
+		transform: translateY(0);
+	}
 
 	/* No Wallet State */
 	.no-wallet-container {
@@ -462,11 +474,11 @@
 		transition: all 0.3s ease;
 	}
 
-		.wallet-feature-item:hover {
-			border-color: #f97316;
-			transform: translateX(8px);
-			box-shadow: 0 4px 12px rgba(249, 115, 22, 0.15);
-		}
+	.wallet-feature-item:hover {
+		border-color: #f97316;
+		transform: translateX(8px);
+		box-shadow: 0 4px 12px rgba(249, 115, 22, 0.15);
+	}
 
 	.feature-icon {
 		font-size: 2rem;
@@ -479,16 +491,16 @@
 		gap: 0.25rem;
 	}
 
-		.feature-text strong {
-			color: #1f2937;
-			font-weight: 600;
-			font-size: 0.9375rem;
-		}
+	.feature-text strong {
+		color: #1f2937;
+		font-weight: 600;
+		font-size: 0.9375rem;
+	}
 
-		.feature-text span {
-			color: #6b7280;
-			font-size: 0.875rem;
-		}
+	.feature-text span {
+		color: #6b7280;
+		font-size: 0.875rem;
+	}
 
 	.no-wallet-create-btn {
 		display: inline-flex;
@@ -506,14 +518,14 @@
 		box-shadow: 0 4px 16px rgba(249, 115, 22, 0.3);
 	}
 
-		.no-wallet-create-btn:hover {
-			transform: translateY(-3px);
-			box-shadow: 0 8px 24px rgba(249, 115, 22, 0.4);
-		}
+	.no-wallet-create-btn:hover {
+		transform: translateY(-3px);
+		box-shadow: 0 8px 24px rgba(249, 115, 22, 0.4);
+	}
 
-		.no-wallet-create-btn:active {
-			transform: translateY(-1px);
-		}
+	.no-wallet-create-btn:active {
+		transform: translateY(-1px);
+	}
 
 	/* Create Wallet Form */
 	.create-wallet-form-container {
@@ -526,9 +538,9 @@
 		animation: slideDown 0.3s ease;
 	}
 
-		.create-wallet-form-container.show {
-			display: block;
-		}
+	.create-wallet-form-container.show {
+		display: block;
+	}
 
 	.create-wallet-header {
 		display: flex;
@@ -602,11 +614,11 @@
 		background: white;
 	}
 
-		.form-input:focus {
-			outline: none;
-			border-color: #f97316;
-			box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
-		}
+	.form-input:focus {
+		outline: none;
+		border-color: #f97316;
+		box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+	}
 
 	.currency-select-wrapper {
 		position: relative;
@@ -666,16 +678,16 @@
 		box-shadow: 0 4px 12px rgba(249, 115, 22, 0.25);
 	}
 
-		.form-btn-submit:hover {
-			transform: translateY(-2px);
-			box-shadow: 0 8px 20px rgba(249, 115, 22, 0.35);
-		}
+	.form-btn-submit:hover {
+		transform: translateY(-2px);
+		box-shadow: 0 8px 20px rgba(249, 115, 22, 0.35);
+	}
 
-		.form-btn-submit:disabled {
-			opacity: 0.6;
-			cursor: not-allowed;
-			transform: none;
-		}
+	.form-btn-submit:disabled {
+		opacity: 0.6;
+		cursor: not-allowed;
+		transform: none;
+	}
 
 	.form-btn-cancel {
 		background: white;
@@ -683,10 +695,10 @@
 		border-color: #e5e7eb;
 	}
 
-		.form-btn-cancel:hover {
-			background: #f9fafb;
-			border-color: #d1d5db;
-		}
+	.form-btn-cancel:hover {
+		background: #f9fafb;
+		border-color: #d1d5db;
+	}
 
 	/* Top-up Modal */
 	.topup-modal-overlay {
@@ -702,9 +714,9 @@
 		animation: fadeIn 0.2s ease;
 	}
 
-		.topup-modal-overlay.show {
-			display: flex;
-		}
+	.topup-modal-overlay.show {
+		display: flex;
+	}
 
 	.topup-modal-content {
 		position: relative;
@@ -734,10 +746,10 @@
 		z-index: 10;
 	}
 
-		.topup-modal-close:hover {
-			background: #fee2e2;
-			color: #dc2626;
-		}
+	.topup-modal-close:hover {
+		background: #fee2e2;
+		color: #dc2626;
+	}
 
 	.topup-modal-header {
 		margin-bottom: 1.5rem;
@@ -805,11 +817,11 @@
 		transition: all 0.2s;
 	}
 
-		.topup-input:focus {
-			outline: none;
-			border-color: #f97316;
-			box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
-		}
+	.topup-input:focus {
+		outline: none;
+		border-color: #f97316;
+		box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+	}
 
 	.topup-helper-text {
 		display: flex;
@@ -842,17 +854,17 @@
 		transition: all 0.2s;
 	}
 
-		.quick-amount-btn:hover {
-			background: #fff5ec;
-			border-color: #f97316;
-			color: #f97316;
-			transform: translateY(-2px);
-			box-shadow: 0 4px 12px rgba(249, 115, 22, 0.15);
-		}
+	.quick-amount-btn:hover {
+		background: #fff5ec;
+		border-color: #f97316;
+		color: #f97316;
+		transform: translateY(-2px);
+		box-shadow: 0 4px 12px rgba(249, 115, 22, 0.15);
+	}
 
-		.quick-amount-btn:active {
-			transform: translateY(0);
-		}
+	.quick-amount-btn:active {
+		transform: translateY(0);
+	}
 
 	.topup-modal-actions {
 		display: flex;
@@ -878,20 +890,20 @@
 		box-shadow: 0 4px 12px rgba(249, 115, 22, 0.25);
 	}
 
-		.topup-btn-submit:hover {
-			transform: translateY(-2px);
-			box-shadow: 0 8px 20px rgba(249, 115, 22, 0.35);
-		}
+	.topup-btn-submit:hover {
+		transform: translateY(-2px);
+		box-shadow: 0 8px 20px rgba(249, 115, 22, 0.35);
+	}
 
-		.topup-btn-submit:active {
-			transform: translateY(0);
-		}
+	.topup-btn-submit:active {
+		transform: translateY(0);
+	}
 
-		.topup-btn-submit:disabled {
-			opacity: 0.6;
-			cursor: not-allowed;
-			transform: none;
-		}
+	.topup-btn-submit:disabled {
+		opacity: 0.6;
+		cursor: not-allowed;
+		transform: none;
+	}
 
 	.topup-btn-cancel {
 		padding: 1rem;
@@ -905,10 +917,10 @@
 		transition: all 0.2s;
 	}
 
-		.topup-btn-cancel:hover {
-			background: #f9fafb;
-			border-color: #d1d5db;
-		}
+	.topup-btn-cancel:hover {
+		background: #f9fafb;
+		border-color: #d1d5db;
+	}
 
 	/* Toast styles */
 	.toast {
@@ -920,61 +932,61 @@
 		max-width: 420px;
 		padding: .875rem 1rem;
 		border-radius: 14px;
-		box-shadow: 0 12px 28px rgba(0,0,0,.15);
+		box-shadow: 0 12px 28px rgba(0, 0, 0, .15);
 		transform: translateY(-6px);
 		opacity: 0;
 		transition: opacity .18s ease, transform .18s ease;
 		color: #0f172a;
 		background: #fff;
-		border: 1px solid rgba(0,0,0,.06);
+		border: 1px solid rgba(0, 0, 0, .06);
 	}
 
-		.toast.show {
-			opacity: 1;
-			transform: translateY(0);
-		}
+	.toast.show {
+		opacity: 1;
+		transform: translateY(0);
+	}
 
-		.toast .badge {
-			display: inline-flex;
-			width: 10px;
-			height: 10px;
-			border-radius: 9999px;
-			margin-top: .3rem
-		}
+	.toast .badge {
+		display: inline-flex;
+		width: 10px;
+		height: 10px;
+		border-radius: 9999px;
+		margin-top: .3rem
+	}
 
-		.toast.success .badge {
-			background: #16a34a
-		}
+	.toast.success .badge {
+		background: #16a34a
+	}
 
-		.toast.error .badge {
-			background: #ef4444
-		}
+	.toast.error .badge {
+		background: #ef4444
+	}
 
-		.toast.info .badge {
-			background: #3b82f6
-		}
+	.toast.info .badge {
+		background: #3b82f6
+	}
 
-		.toast .title {
-			font-weight: 700;
-			font-size: .95rem
-		}
+	.toast .title {
+		font-weight: 700;
+		font-size: .95rem
+	}
 
-		.toast .msg {
-			font-size: .9rem;
-			color: #334155
-		}
+	.toast .msg {
+		font-size: .9rem;
+		color: #334155
+	}
 
-		.toast .close {
-			margin-left: auto;
-			background: transparent;
-			border: 0;
-			opacity: .7;
-			cursor: pointer
-		}
+	.toast .close {
+		margin-left: auto;
+		background: transparent;
+		border: 0;
+		opacity: .7;
+		cursor: pointer
+	}
 
-			.toast .close:hover {
-				opacity: 1
-			}
+	.toast .close:hover {
+		opacity: 1
+	}
 
 	/* Animations */
 	@@keyframes fadeIn {
@@ -1012,7 +1024,9 @@
 	}
 
 	@@keyframes float {
-		0%, 100% {
+
+		0%,
+		100% {
 			transform: translateY(0);
 		}
 
@@ -1022,7 +1036,9 @@
 	}
 
 	@@keyframes pulse {
-		0%, 100% {
+
+		0%,
+		100% {
 			transform: scale(1);
 			opacity: 0.15;
 		}
@@ -1068,21 +1084,24 @@
 </style>
 
 <script>
-		(function initializeWalletModule() {
-			console.log('🔵 Initializing Wallet Module...');
+	(function initializeWalletModule() {
+		console.log('🔵 Initializing Wallet Module...');
 
-			if (window.__walletModuleInitialized) {
-				console.log('⚠️ Wallet module already initialized, skipping...');
-				return;
-			}
-			window.__walletModuleInitialized = true;
+		// === CLEANUP CŨ ===
+		if (window.__walletCleanup) {
+			console.log('🧹 Cleaning up old wallet handlers...');
+			window.__walletCleanup();
+		}
 
-			function showToast(type, title, message, timeout = 2800) {
-				const wrap = document.getElementById('toast-wrap');
-				if (!wrap) return;
-				const el = document.createElement('div');
-				el.className = `toast ${type}`;
-				el.innerHTML = `
+		// Sau cleanup, flag đã được reset về false, nên không cần check nữa
+		window.__walletModuleInitialized = true;
+
+		function showToast(type, title, message, timeout = 2800) {
+			const wrap = document.getElementById('toast-wrap');
+			if (!wrap) return;
+			const el = document.createElement('div');
+			el.className = `toast ${type}`;
+			el.innerHTML = `
 					<span class="badge"></span>
 					<div class="content">
 						<div class="title">${title || (type === 'success' ? 'Thành công' : type === 'error' ? 'Lỗi' : 'Thông báo')}</div>
@@ -1092,190 +1111,299 @@
 						<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
 					</button>
 				`;
-				wrap.appendChild(el);
-				requestAnimationFrame(() => el.classList.add('show'));
-				const remove = () => { el.classList.remove('show'); setTimeout(() => el.remove(), 180); };
-				const t = setTimeout(remove, timeout);
-				el.querySelector('.close').addEventListener('click', () => { clearTimeout(t); remove(); });
-			}
+			wrap.appendChild(el);
+			requestAnimationFrame(() => el.classList.add('show'));
+			const remove = () => { el.classList.remove('show'); setTimeout(() => el.remove(), 180); };
+			const t = setTimeout(remove, timeout);
+			el.querySelector('.close').addEventListener('click', () => { clearTimeout(t); remove(); });
+		}
 
-			function setBtnLoading(btn, isLoading, iconId = 'iconCreateWallet') {
-				if (!btn) return;
-				btn.disabled = !!isLoading;
-				const icon = btn.querySelector(`#${iconId}`);
-				if (isLoading) {
-					btn.classList.add('cursor-wait', 'opacity-90');
-					if (icon) {
-						icon.setAttribute('viewBox', '0 0 24 24');
-						icon.innerHTML = '<circle cx="12" cy="12" r="10" stroke-width="2" stroke="currentColor" fill="none"></circle>';
-						icon.style.animation = 'spin 0.8s linear infinite';
-					}
-				} else {
-					btn.classList.remove('cursor-wait', 'opacity-90');
-					if (icon) {
-						icon.style.animation = '';
-						if (iconId === 'iconTopUp') {
-							icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />';
-						} else {
-							icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />';
-						}
+		function setBtnLoading(btn, isLoading, iconId = 'iconCreateWallet') {
+			if (!btn) return;
+			btn.disabled = !!isLoading;
+			const icon = btn.querySelector(`#${iconId}`);
+			if (isLoading) {
+				btn.classList.add('cursor-wait', 'opacity-90');
+				if (icon) {
+					icon.setAttribute('viewBox', '0 0 24 24');
+					icon.innerHTML = '<circle cx="12" cy="12" r="10" stroke-width="2" stroke="currentColor" fill="none"></circle>';
+					icon.style.animation = 'spin 0.8s linear infinite';
+				}
+			} else {
+				btn.classList.remove('cursor-wait', 'opacity-90');
+				if (icon) {
+					icon.style.animation = '';
+					if (iconId === 'iconTopUp') {
+						icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />';
+					} else {
+						icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />';
 					}
 				}
 			}
+		}
 
-			console.log('🔵 Setting up wallet event delegation...');
+		console.log('🔵 Setting up wallet event delegation...');
 
-			document.body.addEventListener("click", handleWalletClick, true);
-			document.body.addEventListener("submit", handleWalletSubmit, true);
+		document.body.addEventListener("click", handleWalletClick, true);
+		document.body.addEventListener("submit", handleWalletSubmit, true);
 
-			function handleWalletClick(e) {
-		// === QUICK AMOUNT ===
-		if (e.target.closest('.quick-amount-btn')) {
-			const btn = e.target.closest('.quick-amount-btn');
+		function handleWalletClick(e) {
+			// === QUICK AMOUNT ===
+			if (e.target.closest('.quick-amount-btn')) {
+				const btn = e.target.closest('.quick-amount-btn');
+				e.preventDefault();
+				e.stopPropagation();
+				const amount = btn.dataset.amount;
+				const input = document.getElementById("topupAmount");
+				if (input) input.value = amount;
+				return;
+			}
+
+			const btn = e.target.closest("[data-action]");
+			if (!btn) return;
+
+			const action = btn.dataset.action;
+
+			// === DANH SÁCH ACTION CỦA WALLET (CHỈ XỬ LÝ NHỮNG CÁI NÀY) ===
+			const walletActions = [
+				'show-create-wallet',
+				'hide-create-wallet',
+				'show-topup-modal',
+				'close-topup-modal',
+				'view-transactions'
+			];
+
+			// === CHỈ XỬ LÝ NẾU LÀ WALLET ACTION ===
+			// Các action khác (load-page, back-to-wallet) sẽ được xử lý bởi TransactionHistory.cshtml
+			if (!walletActions.includes(action)) {
+				// Không phải wallet action → bỏ qua, để handler khác xử lý
+				return;
+			}
+
+			// === XỬ LÝ WALLET ACTIONS ===
 			e.preventDefault();
 			e.stopPropagation();
-			const amount = btn.dataset.amount;
-			const input = document.getElementById("topupAmount");
-			if (input) input.value = amount;
-			return;
-		}
+			console.log('Wallet action:', action);
 
-		const btn = e.target.closest("[data-action]");
-		if (!btn) return;
-
-		const action = btn.dataset.action;
-
-		// === DANH SÁCH ACTION CỦA WALLET ===
-		const walletActions = [
-			'show-create-wallet',
-			'hide-create-wallet',
-			'show-topup-modal',
-			'close-topup-modal',
-			'view-transactions'
-		];
-
-		// === DANH SÁCH ACTION CỦA TRANSACTION HISTORY (BỎ QUA HOÀN TOÀN) ===
-		const transactionActions = ['load-page', 'back-to-wallet'];
-
-		// === XỬ LÝ: Nếu là action của Transaction History → BỎ QUA, KHÔNG CHẠM VÀO ===
-		if (transactionActions.includes(action)) {
-			console.log('Transaction action bypassed:', action);
-			// KHÔNG preventDefault, KHÔNG stopPropagation → để script kia xử lý
-			return;
-		}
-
-		// === Nếu là action của Wallet → xử lý bình thường ===
-		if (!walletActions.includes(action)) return;
-
-		e.preventDefault();
-		e.stopPropagation();
-		console.log('Wallet action:', action);
-
-		// === XỬ LÝ CÁC ACTION ===
-		 if (action === "show-create-wallet") {
-			const formWrap = document.getElementById("create-wallet-form");
-			const firstBlock = document.querySelector("#wallet-content > div");
-			if (formWrap) formWrap.classList.add("show");     // hiển thị form (display:block theo CSS)
-			if (firstBlock) firstBlock.classList.add("hidden"); // ẩn khối đầu (no-wallet/wallet card)
-		}
-
-		if (action === "hide-create-wallet") {
-			const formWrap = document.getElementById("create-wallet-form");
-			const firstBlock = document.querySelector("#wallet-content > div");
-			if (formWrap) formWrap.classList.remove("show");  // ẩn form (display:none mặc định)
-			if (firstBlock) firstBlock.classList.remove("hidden");
-		}
-
-
-		if (action === "show-topup-modal") {
-			const modal = document.getElementById("topup-modal");
-			if (modal) {
-				modal.classList.add("show");
-				document.body.style.overflow = 'hidden';
-				setTimeout(() => document.getElementById("topupAmount")?.focus(), 100);
+			// === XỬ LÝ CÁC ACTION ===
+			if (action === "show-create-wallet") {
+				const formWrap = document.getElementById("create-wallet-form");
+				const firstBlock = document.querySelector("#wallet-content > div");
+				if (formWrap) formWrap.classList.add("show");     // hiển thị form (display:block theo CSS)
+				if (firstBlock) firstBlock.classList.add("hidden"); // ẩn khối đầu (no-wallet/wallet card)
 			}
-		}
 
-		if (action === "close-topup-modal") {
-			const modal = document.getElementById("topup-modal");
-			if (modal) {
-				modal.classList.remove("show");
-				document.body.style.overflow = '';
-				document.getElementById("topupForm")?.reset();
+			if (action === "hide-create-wallet") {
+				const formWrap = document.getElementById("create-wallet-form");
+				const firstBlock = document.querySelector("#wallet-content > div");
+				if (formWrap) formWrap.classList.remove("show");  // ẩn form (display:none mặc định)
+				if (firstBlock) firstBlock.classList.remove("hidden");
 			}
-		}
 
-		if (action === "view-transactions") {
-			const content = document.getElementById("profile-content");
-			if (!content) return;
 
-			window.__transactionHistoryInitialized = false;
-			content.innerHTML = `
+			if (action === "show-topup-modal") {
+				const modal = document.getElementById("topup-modal");
+				if (modal) {
+					modal.classList.add("show");
+					document.body.style.overflow = 'hidden';
+					setTimeout(() => document.getElementById("topupAmount")?.focus(), 100);
+				}
+			}
+
+			if (action === "close-topup-modal") {
+				const modal = document.getElementById("topup-modal");
+				if (modal) {
+					modal.classList.remove("show");
+					document.body.style.overflow = '';
+					document.getElementById("topupForm")?.reset();
+				}
+			}
+
+			if (action === "view-transactions") {
+				const content = document.getElementById("profile-content");
+				if (!content) return;
+
+				window.__transactionHistoryInitialized = false;
+				content.innerHTML = `
 				<div style="text-align:center;padding:3rem">
 					<div style="display:inline-block;width:3rem;height:3rem;border:4px solid #fed7aa;border-top-color:#f97316;border-radius:50%;animation:spin 1s linear infinite"></div>
 					<p style="margin-top:1rem;color:#6b7280">Đang tải lịch sử giao dịch...</p>
 				</div>
-			`;
+		`;
 
-			fetch('/Wallet/TransactionHistory')
-				.then(r => r.ok ? r.text() : Promise.reject(r.status))
-				.then(html => content.innerHTML = html)
-				.catch(() => {
-					content.innerHTML = `<div style="text-align:center;padding:3rem"><p style="color:#dc2626">Không thể tải</p></div>`;
-				});
+				fetch('/Wallet/TransactionHistory')
+					.then(r => r.ok ? r.text() : Promise.reject(r.status))
+					.then(html => {
+						// EXTRACT VÀ EXECUTE SCRIPT TAGS
+						const tempDiv = document.createElement('div');
+						tempDiv.innerHTML = html;
+
+						// Set HTML (không bao gồm script)
+						const scripts = tempDiv.querySelectorAll('script');
+						scripts.forEach(s => s.remove());
+						content.innerHTML = tempDiv.innerHTML;
+
+						// Execute scripts
+						scripts.forEach(oldScript => {
+							const newScript = document.createElement('script');
+							if (oldScript.src) {
+								newScript.src = oldScript.src;
+							} else {
+								newScript.textContent = oldScript.textContent;
+							}
+							document.body.appendChild(newScript);
+							document.body.removeChild(newScript);
+						});
+
+						console.log('Transaction History loaded and scripts executed');
+					})
+					.catch(() => {
+						content.innerHTML = `<div style="text-align:center;padding:3rem"><p style="color:#dc2626">Không thể tải</p></div>`;
+					});
+			}
 		}
-	}
 
 
 
 
+		async function handleWalletSubmit(e) {
+			const form = e.target;
 
+			if (!form || (form.id !== "walletForm" && form.id !== "topupForm")) {
+				return;
+			}
 
-			async function handleWalletSubmit(e) {
-				const form = e.target;
+			console.log('🔵 Wallet form submitted:', form.id);
+			e.preventDefault();
+			e.stopPropagation();
 
-				if (!form || (form.id !== "walletForm" && form.id !== "topupForm")) {
+			if (form.id === "walletForm") {
+				const btn = document.getElementById('btnCreateWallet');
+				setBtnLoading(btn, true, 'iconCreateWallet');
+
+				const formData = new FormData(form);
+				const data = { WalletName: formData.get("WalletName") || null };
+
+				const token = form.querySelector('input[name="__RequestVerificationToken"]')?.value ||
+					document.querySelector('input[name="__RequestVerificationToken"]')?.value || "";
+
+				try {
+					const res = await fetch("/Wallet/Create", {
+						method: "POST",
+						headers: {
+							"Content-Type": "application/json",
+							"RequestVerificationToken": token
+						},
+						credentials: "same-origin",
+						body: JSON.stringify(data)
+					});
+
+					if (res.status === 401) {
+						window.location.href = '/Account/Login?returnUrl=' + encodeURIComponent(location.pathname + location.search);
+						return;
+					}
+
+					const result = await res.json().catch(() => null);
+					if (!result) {
+						showToast('error', 'Lỗi dữ liệu', 'Máy chủ không trả về JSON hợp lệ.');
+						return;
+					}
+
+					if (result.success) {
+						const host = document.getElementById("profile-content");
+						host.innerHTML = result.html;
+
+						window.__walletModuleInitialized = false;
+						const tmp = document.createElement("div");
+						tmp.innerHTML = result.html;
+						const scripts = tmp.querySelectorAll("script");
+						scripts.forEach(oldScript => {
+							const s = document.createElement("script");
+							for (const attr of oldScript.attributes) s.setAttribute(attr.name, attr.value);
+							s.textContent = oldScript.textContent;
+							document.body.appendChild(s);
+						});
+
+						showToast('success', 'Tạo ví thành công', 'Ví của bạn đã sẵn sàng!');
+					} else {
+						showToast('error', 'Không thể tạo ví', result.message || 'Vui lòng thử lại.');
+					}
+				} catch (err) {
+					console.error(err);
+					showToast('error', 'Lỗi hệ thống', 'Có lỗi xảy ra, vui lòng thử lại.');
+				} finally {
+					setBtnLoading(btn, false, 'iconCreateWallet');
+				}
+			}
+
+			if (form.id === "topupForm") {
+				console.log('🔵 Processing top-up form...');
+
+				const btn = document.getElementById('btnTopUp');
+				setBtnLoading(btn, true, 'iconTopUp');
+
+				const formData = new FormData(form);
+				const amount = parseFloat(formData.get("Amount"));
+
+				console.log('💰 Amount to top up:', amount);
+
+				if (!amount || amount < 10000) {
+					showToast('error', 'Số tiền không hợp lệ', 'Số tiền nạp tối thiểu là 10,000đ');
+					setBtnLoading(btn, false, 'iconTopUp');
 					return;
 				}
 
-				console.log('🔵 Wallet form submitted:', form.id);
-				e.preventDefault();
-				e.stopPropagation();
+				if (amount > 100000000) {
+					showToast('error', 'Số tiền không hợp lệ', 'Số tiền nạp tối đa là 100,000,000đ');
+					setBtnLoading(btn, false, 'iconTopUp');
+					return;
+				}
 
-				if (form.id === "walletForm") {
-					const btn = document.getElementById('btnCreateWallet');
-					setBtnLoading(btn, true, 'iconCreateWallet');
+				const data = {
+					Amount: amount,
+					Reason: formData.get("Reason") || null,
+					Method: null
+				};
 
-					const formData = new FormData(form);
-					const data = { WalletName: formData.get("WalletName") || null };
+				const token = form.querySelector('input[name="__RequestVerificationToken"]')?.value ||
+					document.querySelector('input[name="__RequestVerificationToken"]')?.value || "";
 
-					const token = form.querySelector('input[name="__RequestVerificationToken"]')?.value ||
-						document.querySelector('input[name="__RequestVerificationToken"]')?.value || "";
+				console.log('🔑 Token found:', !!token);
+				console.log('📦 Data to send:', data);
 
-					try {
-						const res = await fetch("/Wallet/Create", {
-							method: "POST",
-							headers: {
-								"Content-Type": "application/json",
-								"RequestVerificationToken": token
-							},
-							credentials: "same-origin",
-							body: JSON.stringify(data)
-						});
+				try {
+					console.log('📡 Sending request to /Wallet/TopUp...');
 
-						if (res.status === 401) {
-							window.location.href = '/Account/Login?returnUrl=' + encodeURIComponent(location.pathname + location.search);
-							return;
-						}
+					const res = await fetch("/Wallet/TopUp", {
+						method: "POST",
+						headers: {
+							"Content-Type": "application/json",
+							"RequestVerificationToken": token
+						},
+						credentials: "same-origin",
+						body: JSON.stringify(data)
+					});
 
-						const result = await res.json().catch(() => null);
-						if (!result) {
-							showToast('error', 'Lỗi dữ liệu', 'Máy chủ không trả về JSON hợp lệ.');
-							return;
-						}
+					console.log('📥 Response status:', res.status);
 
-						if (result.success) {
-							const host = document.getElementById("profile-content");
+					if (res.status === 401) {
+						window.location.href = '/Account/Login?returnUrl=' + encodeURIComponent(location.pathname + location.search);
+						return;
+					}
+
+					const result = await res.json().catch(() => null);
+					console.log('📋 Result:', result);
+
+					if (!result) {
+						showToast('error', 'Lỗi dữ liệu', 'Máy chủ không trả về JSON hợp lệ.');
+						return;
+					}
+
+					if (result.success) {
+						console.log('✅ Top-up successful!');
+
+						const host = document.getElementById("profile-content");
+						if (host && result.html) {
 							host.innerHTML = result.html;
 
 							window.__walletModuleInitialized = false;
@@ -1288,147 +1416,62 @@
 								s.textContent = oldScript.textContent;
 								document.body.appendChild(s);
 							});
-
-							showToast('success', 'Tạo ví thành công', 'Ví của bạn đã sẵn sàng!');
-						} else {
-							showToast('error', 'Không thể tạo ví', result.message || 'Vui lòng thử lại.');
-						}
-					} catch (err) {
-						console.error(err);
-						showToast('error', 'Lỗi hệ thống', 'Có lỗi xảy ra, vui lòng thử lại.');
-					} finally {
-						setBtnLoading(btn, false, 'iconCreateWallet');
-					}
-				}
-
-				if (form.id === "topupForm") {
-					console.log('🔵 Processing top-up form...');
-
-					const btn = document.getElementById('btnTopUp');
-					setBtnLoading(btn, true, 'iconTopUp');
-
-					const formData = new FormData(form);
-					const amount = parseFloat(formData.get("Amount"));
-
-					console.log('💰 Amount to top up:', amount);
-
-					if (!amount || amount < 10000) {
-						showToast('error', 'Số tiền không hợp lệ', 'Số tiền nạp tối thiểu là 10,000đ');
-						setBtnLoading(btn, false, 'iconTopUp');
-						return;
-					}
-
-					if (amount > 100000000) {
-						showToast('error', 'Số tiền không hợp lệ', 'Số tiền nạp tối đa là 100,000,000đ');
-						setBtnLoading(btn, false, 'iconTopUp');
-						return;
-					}
-
-					const data = {
-						Amount: amount,
-						Reason: formData.get("Reason") || null,
-						Method: null
-					};
-
-					const token = form.querySelector('input[name="__RequestVerificationToken"]')?.value ||
-						document.querySelector('input[name="__RequestVerificationToken"]')?.value || "";
-
-					console.log('🔑 Token found:', !!token);
-					console.log('📦 Data to send:', data);
-
-					try {
-						console.log('📡 Sending request to /Wallet/TopUp...');
-
-						const res = await fetch("/Wallet/TopUp", {
-							method: "POST",
-							headers: {
-								"Content-Type": "application/json",
-								"RequestVerificationToken": token
-							},
-							credentials: "same-origin",
-							body: JSON.stringify(data)
-						});
-
-						console.log('📥 Response status:', res.status);
-
-						if (res.status === 401) {
-							window.location.href = '/Account/Login?returnUrl=' + encodeURIComponent(location.pathname + location.search);
-							return;
 						}
 
-						const result = await res.json().catch(() => null);
-						console.log('📋 Result:', result);
-
-						if (!result) {
-							showToast('error', 'Lỗi dữ liệu', 'Máy chủ không trả về JSON hợp lệ.');
-							return;
+						const modal = document.getElementById("topup-modal");
+						if (modal) {
+							modal.classList.remove("show");
+							document.body.style.overflow = '';
 						}
+						form.reset();
 
-						if (result.success) {
-							console.log('✅ Top-up successful!');
-
-							const host = document.getElementById("profile-content");
-							if (host && result.html) {
-								host.innerHTML = result.html;
-
-								window.__walletModuleInitialized = false;
-								const tmp = document.createElement("div");
-								tmp.innerHTML = result.html;
-								const scripts = tmp.querySelectorAll("script");
-								scripts.forEach(oldScript => {
-									const s = document.createElement("script");
-									for (const attr of oldScript.attributes) s.setAttribute(attr.name, attr.value);
-									s.textContent = oldScript.textContent;
-									document.body.appendChild(s);
-								});
-							}
-
-							const modal = document.getElementById("topup-modal");
-							if (modal) {
-								modal.classList.remove("show");
-								document.body.style.overflow = '';
-							}
-							form.reset();
-
-							showToast('success', 'Nạp tiền thành công',
-								`Đã nạp ${amount.toLocaleString('vi-VN')}đ vào ví. Số dư mới: ${result.newBalance?.toLocaleString('vi-VN')}đ`);
-						} else {
-							console.error('❌ Top-up failed:', result.message);
-							showToast('error', 'Nạp tiền thất bại', result.message || 'Vui lòng thử lại.');
-						}
-					} catch (err) {
-						console.error('❌ Top-up error:', err);
-						showToast('error', 'Lỗi hệ thống', 'Có lỗi xảy ra, vui lòng thử lại.');
-					} finally {
-						setBtnLoading(btn, false, 'iconTopUp');
+						showToast('success', 'Nạp tiền thành công',
+							`Đã nạp ${amount.toLocaleString('vi-VN')}đ vào ví. Số dư mới: ${result.newBalance?.toLocaleString('vi-VN')}đ`);
+					} else {
+						console.error('❌ Top-up failed:', result.message);
+						showToast('error', 'Nạp tiền thất bại', result.message || 'Vui lòng thử lại.');
 					}
+				} catch (err) {
+					console.error('❌ Top-up error:', err);
+					showToast('error', 'Lỗi hệ thống', 'Có lỗi xảy ra, vui lòng thử lại.');
+				} finally {
+					setBtnLoading(btn, false, 'iconTopUp');
 				}
 			}
+		}
 
-			const topupModal = document.getElementById("topup-modal");
-			if (topupModal) {
-				topupModal.addEventListener("click", function (e) {
-					if (e.target.id === "topup-modal") {
-						this.classList.remove("show");
-						document.body.style.overflow = '';
-						const form = document.getElementById("topupForm");
-						if (form) form.reset();
-					}
-				});
-			}
-
-			document.addEventListener("keydown", function (e) {
-				if (e.key === "Escape") {
-					const modal = document.getElementById("topup-modal");
-					if (modal && modal.classList.contains("show")) {
-						modal.classList.remove("show");
-						document.body.style.overflow = '';
-						const form = document.getElementById("topupForm");
-						if (form) form.reset();
-					}
+		const topupModal = document.getElementById("topup-modal");
+		if (topupModal) {
+			topupModal.addEventListener("click", function (e) {
+				if (e.target.id === "topup-modal") {
+					this.classList.remove("show");
+					document.body.style.overflow = '';
+					const form = document.getElementById("topupForm");
+					if (form) form.reset();
 				}
 			});
+		}
 
-			console.log('✅ Wallet module initialized successfully');
-		})();
+		document.addEventListener("keydown", function (e) {
+			if (e.key === "Escape") {
+				const modal = document.getElementById("topup-modal");
+				if (modal && modal.classList.contains("show")) {
+					modal.classList.remove("show");
+					document.body.style.overflow = '';
+					const form = document.getElementById("topupForm");
+					if (form) form.reset();
+				}
+			}
+		});
+
+		// === LƯU CLEANUP FUNCTION ===
+		window.__walletCleanup = function () {
+			console.log('🧹 Removing wallet event listeners...');
+			document.body.removeEventListener("click", handleWalletClick, true);
+			document.body.removeEventListener("submit", handleWalletSubmit, true);
+			window.__walletModuleInitialized = false;
+		};
+
+		console.log('✅ Wallet module initialized successfully');
+	})();
 </script>
