@@ -50,28 +50,7 @@
                                 disabled>
                             Tiến hành thanh toán
                         </button>
-                        @* <button class="w-full border-2 border-orange-300 hover:bg-orange-50 rounded-xl py-3 transition flex items-center justify-center gap-2 text-orange-600 font-medium"> *@
-                        @*     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"> *@
-                        @*         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" *@
-                        @*               d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" /> *@
-                        @*     </svg> *@
-                        @*     Add Gift Message *@
-                        @* </button> *@
                     </div>
-
-                    @* <!-- Promo code --> *@
-                    @* <div class="pt-2"> *@
-                    @*     <h4 class="font-semibold mb-3 text-gray-700">Have a promo code?</h4> *@
-                    @*     <div class="flex gap-2"> *@
-                    @*         <input type="text" id="promo-code-input" *@
-                    @*                class="flex-1 px-4 py-2 border-2 border-orange-200 rounded-xl focus:outline-none focus:border-orange-400 transition" *@
-                    @*                placeholder="Enter code" /> *@
-                    @*         <button id="apply-promo-btn" *@
-                    @*                 class="border-2 border-orange-300 text-orange-600 font-medium px-5 rounded-xl hover:bg-orange-50 transition"> *@
-                    @*             Apply *@
-                    @*         </button> *@
-                    @*     </div> *@
-                    @* </div> *@
 
                     <!-- Trust badges -->
                     <div class="pt-4 border-t border-orange-100 flex items-center justify-center gap-4 text-sm text-gray-500">
@@ -268,6 +247,9 @@
                         ? '<div class="absolute inset-0 bg-black/50 rounded-xl flex items-center justify-center"><span class="bg-red-500 text-white text-xs px-2 py-1 rounded">Out of Stock</span></div>'
                         : '';
 
+                    // KIỂM TRA: Disable nút + nếu đã đạt max quantity
+                    const isMaxQuantity = item.quantity >= item.productQuantity;
+
                     const itemHtml = `
                 <div class="group border-2 border-transparent hover:border-orange-200 bg-white rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 p-6 flex gap-6">
                   <!-- Product Image -->
@@ -302,11 +284,16 @@
                       <span class="text-sm font-medium text-gray-600">Quantity:</span>
                       <div class="flex items-center border-2 border-orange-200 rounded-xl overflow-hidden bg-white">
                         <button class="quantity-decrease h-10 w-10 flex items-center justify-center hover:bg-orange-100 transition ${item.quantity <= 1 ? 'opacity-50 cursor-not-allowed' : ''}"
-                                data-cart-item-id="${item.cartItemId}" ${item.quantity <= 1 ? 'disabled' : ''}>−</button>
+                                data-cart-item-id="${item.cartItemId}"
+                                data-product-quantity="${item.productQuantity}"
+                                ${item.quantity <= 1 ? 'disabled' : ''}>−</button>
                         <span class="px-4 py-2 font-semibold min-w-[3rem] text-center select-none">${item.quantity}</span>
-                        <button class="quantity-increase h-10 w-10 flex items-center justify-center hover:bg-orange-100 transition"
-                                data-cart-item-id="${item.cartItemId}">+</button>
+                        <button class="quantity-increase h-10 w-10 flex items-center justify-center hover:bg-orange-100 transition ${isMaxQuantity ? 'opacity-50 cursor-not-allowed' : ''}"
+                                data-cart-item-id="${item.cartItemId}"
+                                data-product-quantity="${item.productQuantity}"
+                                ${isMaxQuantity ? 'disabled' : ''}>+</button>
                       </div>
+                      ${isMaxQuantity ? '<span class="text-xs text-red-500">Đã đạt số lượng tối đa</span>' : ''}
                     </div>
                   </div>
                 </div>`;
@@ -333,7 +320,7 @@
 
                 // Summary (VND) - Tax = 0
                 const tax = 0;
-                const shipping = subtotal > 50000 ? 0 : 5000; // chỉnh rule theo business
+                const shipping = subtotal > 50000 ? 0 : 5000;
                 const total = subtotal + tax + shipping;
 
                 updateSummary(cart.cartItems.length, subtotal, tax, total);
@@ -349,7 +336,7 @@
                     checkoutBtn.addEventListener('click', function () {
                         window.location.href = '/Home/Checkout';
                     });
-                }           
+                }
             } catch (error) {
                 console.error('Load cart error:', error);
                 const container = document.getElementById('cart-items-container');
@@ -382,9 +369,17 @@
 
         async function handleQuantityIncrease(e) {
             const cartItemId = parseInt(e.currentTarget.dataset.cartItemId);
+            const productQuantity = parseInt(e.currentTarget.dataset.productQuantity);
             const quantitySpan = e.currentTarget.previousElementSibling;
             const currentQuantity = parseInt(quantitySpan.textContent);
             const newQuantity = currentQuantity + 1;
+
+            // KIỂM TRA: không cho vượt quá số lượng trong kho
+            if (newQuantity > productQuantity) {
+                showToast('error', `Không thể thêm! Chỉ còn ${productQuantity} sản phẩm trong kho.`);
+                return;
+            }
+
             updateQuantity(cartItemId, newQuantity);
         }
 

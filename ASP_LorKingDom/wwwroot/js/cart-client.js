@@ -86,6 +86,7 @@
                 await updateCartBadge();
                 showCartToast('success', 'Đã thêm vào giỏ hàng!');
             } else {
+                // Hiển thị message cụ thể từ server
                 showCartToast('error', result.message || 'Thêm thất bại');
             }
         } catch (error) {
@@ -144,7 +145,7 @@
         animation: slideIn 0.3s ease-out;
     `;
         toast.innerHTML = `
-        <span style="font-size: 20px;">${type === 'success' ? 'Success' : 'Warning'}</span>
+        <span style="font-size: 20px;">${type === 'success' ? '✓' : '⚠'}</span>
         <span>${message}</span>
         <button onclick="document.getElementById('${id}').remove()" style="margin-left: auto; background:none; border:none; color:white; font-size:18px; cursor:pointer;">×</button>
     `;
