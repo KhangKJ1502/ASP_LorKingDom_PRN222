@@ -1129,127 +1129,106 @@
         document.body.addEventListener("submit", handleWalletSubmit, true);
 
         function handleWalletClick(e) {
-            if (e.target.closest('.quick-amount-btn')) {
-                const btn = e.target.closest('.quick-amount-btn');
-                e.preventDefault();
-                e.stopPropagation();
-                const amount = btn.dataset.amount;
-                const input = document.getElementById("topupAmount");
-                if (input) {
-                    input.value = amount;
-                    console.log('✅ Quick amount selected:', amount);
-                }
-                return;
-            }
+    // === QUICK AMOUNT ===
+    if (e.target.closest('.quick-amount-btn')) {
+        const btn = e.target.closest('.quick-amount-btn');
+        e.preventDefault();
+        e.stopPropagation();
+        const amount = btn.dataset.amount;
+        const input = document.getElementById("topupAmount");
+        if (input) input.value = amount;
+        return;
+    }
 
-            const btn = e.target.closest("[data-action]");
-            if (!btn) return;
+    const btn = e.target.closest("[data-action]");
+    if (!btn) return;
 
-            const action = btn.dataset.action;
-            console.log('🔵 Wallet action clicked:', action);
+    const action = btn.dataset.action;
 
-            const walletActions = [
-                'show-create-wallet',
-                'hide-create-wallet',
-                'show-topup-modal',
-                'close-topup-modal',
-                'view-transactions'
-            ];
+    // === DANH SÁCH ACTION CỦA WALLET ===
+    const walletActions = [
+        'show-create-wallet',
+        'hide-create-wallet',
+        'show-topup-modal',
+        'close-topup-modal',
+        'view-transactions'
+    ];
 
-            if (!walletActions.includes(action)) return;
+    // === DANH SÁCH ACTION CỦA TRANSACTION HISTORY (BỎ QUA HOÀN TOÀN) ===
+    const transactionActions = ['load-page', 'back-to-wallet'];
 
-            e.preventDefault();
-            e.stopPropagation();
+    // === XỬ LÝ: Nếu là action của Transaction History → BỎ QUA, KHÔNG CHẠM VÀO ===
+    if (transactionActions.includes(action)) {
+        console.log('Transaction action bypassed:', action);
+        // KHÔNG preventDefault, KHÔNG stopPropagation → để script kia xử lý
+        return;
+    }
 
-            if (action === "show-create-wallet") {
-                const formWrap = document.getElementById("create-wallet-form");
-                const firstBlock = document.querySelector("#wallet-content > div");
-                if (formWrap) {
-                    formWrap.classList.remove("hidden");
-                    formWrap.classList.add("show");
-                }
-                if (firstBlock) firstBlock.classList.add("hidden");
-            }
+    // === Nếu là action của Wallet → xử lý bình thường ===
+    if (!walletActions.includes(action)) return;
 
-            if (action === "hide-create-wallet") {
-                const formWrap = document.getElementById("create-wallet-form");
-                const firstBlock = document.querySelector("#wallet-content > div");
-                if (formWrap) {
-                    formWrap.classList.add("hidden");
-                    formWrap.classList.remove("show");
-                }
-                if (firstBlock) firstBlock.classList.remove("hidden");
-            }
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('Wallet action:', action);
 
-            if (action === "show-topup-modal") {
-                console.log('🔵 Opening top-up modal...');
-                const modal = document.getElementById("topup-modal");
-                if (modal) {
-                    modal.classList.add("show");
-                    document.body.style.overflow = 'hidden';
-                    setTimeout(() => {
-                        const amountInput = document.getElementById("topupAmount");
-                        if (amountInput) {
-                            amountInput.focus();
-                            console.log('✅ Amount input focused');
-                        }
-                    }, 100);
-                } else {
-                    console.error('❌ Top-up modal not found!');
-                }
-            }
+    // === XỬ LÝ CÁC ACTION ===
+    if (action === "show-create-wallet") {
+        const formWrap = document.getElementById("create-wallet-form");
+        const firstBlock = document.querySelector("#wallet-content > div");
+        if (formWrap) formWrap.classList.replace("hidden", "show");
+        if (firstBlock) firstBlock.classList.add("hidden");
+    }
 
-            if (action === "close-topup-modal") {
-                const modal = document.getElementById("topup-modal");
-                if (modal) {
-                    modal.classList.remove("show");
-                    document.body.style.overflow = '';
-                    const form = document.getElementById("topupForm");
-                    if (form) form.reset();
-                }
-            }
+    if (action === "hide-create-wallet") {
+        const formWrap = document.getElementById("create-wallet-form");
+        const firstBlock = document.querySelector("#wallet-content > div");
+        if (formWrap) formWrap.classList.replace("show", "hidden");
+        if (firstBlock) firstBlock.classList.remove("hidden");
+    }
 
-            if (action === "view-transactions") {
-                console.log('🔵 Loading transaction history...');
-
-                const content = document.getElementById("profile-content");
-                if (!content) return;
-
-                // Reset flag before loading
-                window.__transactionHistoryInitialized = false;
-
-                content.innerHTML = `
-                    <div style="text-align: center; padding: 3rem;">
-                        <div style="display: inline-block; width: 3rem; height: 3rem; border: 4px solid #fed7aa; border-top-color: #f97316; border-radius: 50%; animation: spin 1s linear infinite;"></div>
-                        <p style="margin-top: 1rem; color: #6b7280;">Đang tải lịch sử giao dịch...</p>
-                    </div>
-                `;
-
-                fetch('/Wallet/TransactionHistory')
-                    .then(res => {
-                        if (res.status === 401) {
-                            window.location.href = '/Account/Login?returnUrl=' + encodeURIComponent(location.pathname);
-                            return null;
-                        }
-                        if (!res.ok) throw new Error('Failed to load');
-                        return res.text();
-                    })
-                    .then(html => {
-                        if (!html) return;
-                        content.innerHTML = html;
-                        console.log('✅ Transaction history content loaded');
-                    })
-                    .catch(err => {
-                        console.error('❌ Error loading transaction history:', err);
-                        content.innerHTML = `
-                            <div style="text-align: center; padding: 3rem;">
-                                <p style="color: #dc2626; font-weight: 600;">Không thể tải lịch sử giao dịch</p>
-                                <p style="color: #6b7280; font-size: 0.875rem; margin-top: 0.5rem;">Vui lòng thử lại sau</p>
-                            </div>
-                        `;
-                    });
-            }
+    if (action === "show-topup-modal") {
+        const modal = document.getElementById("topup-modal");
+        if (modal) {
+            modal.classList.add("show");
+            document.body.style.overflow = 'hidden';
+            setTimeout(() => document.getElementById("topupAmount")?.focus(), 100);
         }
+    }
+
+    if (action === "close-topup-modal") {
+        const modal = document.getElementById("topup-modal");
+        if (modal) {
+            modal.classList.remove("show");
+            document.body.style.overflow = '';
+            document.getElementById("topupForm")?.reset();
+        }
+    }
+
+    if (action === "view-transactions") {
+        const content = document.getElementById("profile-content");
+        if (!content) return;
+
+        window.__transactionHistoryInitialized = false;
+        content.innerHTML = `
+            <div style="text-align:center;padding:3rem">
+                <div style="display:inline-block;width:3rem;height:3rem;border:4px solid #fed7aa;border-top-color:#f97316;border-radius:50%;animation:spin 1s linear infinite"></div>
+                <p style="margin-top:1rem;color:#6b7280">Đang tải lịch sử giao dịch...</p>
+            </div>
+        `;
+
+        fetch('/Wallet/TransactionHistory')
+            .then(r => r.ok ? r.text() : Promise.reject(r.status))
+            .then(html => content.innerHTML = html)
+            .catch(() => {
+                content.innerHTML = `<div style="text-align:center;padding:3rem"><p style="color:#dc2626">Không thể tải</p></div>`;
+            });
+    }
+}
+
+
+
+
+
 
         async function handleWalletSubmit(e) {
             const form = e.target;
