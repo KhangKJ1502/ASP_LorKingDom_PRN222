@@ -27,7 +27,7 @@ namespace WebUI.Controllers
         {
             var accountId = GetAccountId();
             if (accountId == 0)
-                return Json(new { cartItems = new List<object>() }); 
+                return Json(new { cartItems = new List<object>() });
 
             var cart = await _cartService.GetByAccountIdAsync(accountId);
 
@@ -45,7 +45,8 @@ namespace WebUI.Controllers
                 i.Quantity,
                 i.PriceAtThatTime,
                 i.CurrentPrice,
-                i.AddedAt
+                i.AddedAt,
+                i.ProductQuantity
             }).ToList();
 
             return Json(new { cartItems = items });
@@ -56,7 +57,7 @@ namespace WebUI.Controllers
         {
             var accountId = GetAccountId();
             if (accountId == 0)
-                return Json(new { success = false, redirectToLogin = true }); // Không dùng Unauthorized()
+                return Json(new { success = false, redirectToLogin = true });
 
             if (request.Id <= 0 || request.Qty < 1)
                 return Json(new { success = false, message = "Invalid product or quantity" });
@@ -70,9 +71,9 @@ namespace WebUI.Controllers
             {
                 return Json(new { success = false, message = "Sản phẩm không tồn tại." });
             }
-            catch (InvalidOperationException ex) when (ex.Message.Contains("stock"))
+            catch (InvalidOperationException ex) when (ex.Message.Contains("stock") || ex.Message.Contains("Không đủ hàng"))
             {
-                return Json(new { success = false, message = "Không đủ hàng trong kho." });
+                return Json(new { success = false, message = ex.Message });
             }
             catch (Exception ex)
             {

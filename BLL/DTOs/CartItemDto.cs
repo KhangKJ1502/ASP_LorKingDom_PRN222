@@ -16,9 +16,9 @@ namespace BLL.DTOs
         public string Status { get; set; } = null!;
         public DateTime AddedAt { get; set; }
 
-        // Thông tin sản phẩm cơ bản để hiển thị (từ Product)
         public string ProductName { get; set; } = null!;
         public string MainImageUrl { get; set; } = null!;
-        public decimal CurrentPrice { get; set; } // Để hiển thị nếu cần cập nhật giá
+        public decimal CurrentPrice { get; set; }
+        public int ProductQuantity { get; set; }
     }
 }
