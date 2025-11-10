@@ -127,10 +127,18 @@
                 <span class="quantity-label">Số lượng:</span>
                 <div class="quantity-control">
                     <button class="quantity-btn" type="button" onclick="decreaseQuantity()">−</button>
-                    <input type="number" id="quantity" class="quantity-input" value="1" min="1" max="@Math.Max(stock,1)" @(stock <= 0 ? "disabled" : "") />
+                    <input type="number"
+                           id="quantity"
+                           class="quantity-input"
+                           value="1"
+                           min="1"
+                           max="@Math.Max(stock,1)"
+                           readonly
+                    @(stock <= 0 ? "disabled" : "") />
                     <button class="quantity-btn" type="button" onclick="increaseQuantity()">+</button>
                 </div>
             </div>
+
 
             <!-- Actions -->
             <div class="action-buttons">

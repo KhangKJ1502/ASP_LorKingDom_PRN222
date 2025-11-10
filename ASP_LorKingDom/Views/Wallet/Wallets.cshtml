@@ -3,289 +3,301 @@
 <!-- ============ WALLET CARD ============ -->
 <div id="wallet-content" class="p-6 space-y-6">
 
-    @* ĐÃ có ví *@
-    @if (Model != null)
-    {
-        <div class="relative overflow-hidden rounded-2xl border border-orange-200/70 bg-gradient-to-br from-amber-50 via-orange-50 to-white shadow-xl">
-            <div class="pointer-events-none absolute -top-10 -right-10 h-40 w-40 rotate-12 rounded-full bg-orange-200/30 blur-2xl"></div>
-            <div class="pointer-events-none absolute -bottom-16 -left-10 h-44 w-44 -rotate-6 rounded-full bg-pink-200/30 blur-2xl"></div>
+	@* ĐÃ có ví *@
+	@if (Model != null)
+	{
+		<div
+			class="relative overflow-hidden rounded-2xl border border-orange-200/70 bg-gradient-to-br from-amber-50 via-orange-50 to-white shadow-xl">
+			<div
+				class="pointer-events-none absolute -top-10 -right-10 h-40 w-40 rotate-12 rounded-full bg-orange-200/30 blur-2xl">
+			</div>
+			<div
+				class="pointer-events-none absolute -bottom-16 -left-10 h-44 w-44 -rotate-6 rounded-full bg-pink-200/30 blur-2xl">
+			</div>
 
-            <div class="p-6 sm:p-8">
-                <!-- Header -->
-                <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <div class="flex items-center gap-3">
-                        <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-orange-500 to-pink-500 text-white shadow-md">
-                            <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2v5a2 2 0 002 2h8a2 2 0 002-2v-5a2 2 0 002-2V6a2 2 0 00-2-2H4z" />
-                                <path fill-rule="evenodd" d="M8 9a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" clip-rule="evenodd" />
-                            </svg>
-                        </div>
-                        <div>
-                            <h3 class="text-2xl font-extrabold tracking-tight text-gray-900">Ví LorKingDom</h3>
-                            <p class="text-sm text-gray-500">Quản lý số dư & giao dịch của bạn</p>
-                        </div>
-                    </div>
+			<div class="p-6 sm:p-8">
+				<!-- Header -->
+				<div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+					<div class="flex items-center gap-3">
+						<div
+							class="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-orange-500 to-pink-500 text-white shadow-md">
+							<svg class="h-6 w-6" fill="currentColor" viewBox="0 0 20 20">
+								<path
+									d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2v5a2 2 0 002 2h8a2 2 0 002-2v-5a2 2 0 002-2V6a2 2 0 00-2-2H4z" />
+								<path fill-rule="evenodd" d="M8 9a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z"
+									clip-rule="evenodd" />
+							</svg>
+						</div>
+						<div>
+							<h3 class="text-2xl font-extrabold tracking-tight text-gray-900">Ví LorKingDom</h3>
+							<p class="text-sm text-gray-500">Quản lý số dư & giao dịch của bạn</p>
+						</div>
+					</div>
 
-                    <div class="flex items-center gap-2">
-                        <span class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-medium
-                            @(Model.Status == "Active" ? "bg-green-100 text-green-700" : "bg-rose-100 text-rose-700")">
-                            <span class="inline-block h-2 w-2 rounded-full @(Model.Status == "Active" ? "bg-green-500" : "bg-rose-500")"></span>
-                            @Model.Status
-                        </span>
-                    </div>
-                </div>
+					<div class="flex items-center gap-2">
+						<span
+							class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-medium
+				                            @(Model.Status == "Active" ? "bg-green-100 text-green-700" : "bg-rose-100 text-rose-700")">
+							<span
+								class="inline-block h-2 w-2 rounded-full @(Model.Status == "Active" ? "bg-green-500" : "bg-rose-500")"></span>
+							@Model.Status
+						</span>
+					</div>
+				</div>
 
-                <!-- Balance -->
-                <div class="mb-6 rounded-xl border border-orange-200/60 bg-white/60 p-5 shadow-sm backdrop-blur">
-                    <div class="flex items-end justify-between gap-4">
-                        <div>
-                            <p class="text-sm uppercase tracking-wider text-gray-500">Số dư hiện tại</p>
-                            <div class="mt-1 text-4xl font-extrabold text-orange-600">
-                                @Model.Balance.ToString("N0") <sup class="text-lg align-super">đ</sup>
-                            </div>
-                        </div>
-                        <div class="text-right text-sm text-gray-500">
-                            <p>
-                                Cập nhật:
-                                <span class="font-medium text-gray-700">
-                                    @(Model.LastTransactionAt?.ToString("dd/MM/yyyy HH:mm") ?? "Chưa có giao dịch")
-                                </span>
-                            </p>
-                        </div>
-                    </div>
-                </div>
+				<!-- Balance -->
+				<div class="mb-6 rounded-xl border border-orange-200/60 bg-white/60 p-5 shadow-sm backdrop-blur">
+					<div class="flex items-end justify-between gap-4">
+						<div>
+							<p class="text-sm uppercase tracking-wider text-gray-500">Số dư hiện tại</p>
+							<div class="mt-1 text-4xl font-extrabold text-orange-600">
+								@Model.Balance.ToString("N0") <sup class="text-lg align-super">đ</sup>
+							</div>
+						</div>
+						<div class="text-right text-sm text-gray-500">
+							<p>
+								Cập nhật:
+								<span class="font-medium text-gray-700">
+									@(Model.LastTransactionAt?.ToString("dd/MM/yyyy HH:mm") ?? "Chưa có giao dịch")
+								</span>
+							</p>
+						</div>
+					</div>
+				</div>
 
-                <!-- Actions -->
-                <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                    <button type="button" data-action="show-topup-modal"
-                            class="wallet-action-btn wallet-btn-primary">
-                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                        </svg>
-                        <span>Nạp tiền</span>
-                    </button>
+				<!-- Actions -->
+				<div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+					<button type="button" data-action="show-topup-modal" class="wallet-action-btn wallet-btn-primary">
+						<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+						</svg>
+						<span>Nạp tiền</span>
+					</button>
 
-                    <button type="button" data-action="view-transactions"
-                            class="wallet-action-btn wallet-btn-secondary">
-                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                        </svg>
-                        <span>Lịch sử giao dịch</span>
-                    </button>
-                </div>
-            </div>
-        </div>
-    }
-    @* CHƯA có ví *@
-    else
-    {
-        <div class="no-wallet-container">
-            <div class="no-wallet-background">
-                <div class="no-wallet-circle no-wallet-circle-1"></div>
-                <div class="no-wallet-circle no-wallet-circle-2"></div>
-                <div class="no-wallet-circle no-wallet-circle-3"></div>
-            </div>
+					<button type="button" data-action="view-transactions" class="wallet-action-btn wallet-btn-secondary">
+						<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+								d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+						</svg>
+						<span>Lịch sử giao dịch</span>
+					</button>
+				</div>
+			</div>
+		</div>
+	}
+	@* CHƯA có ví *@
+	else
+	{
+		<div class="no-wallet-container">
+			<div class="no-wallet-background">
+				<div class="no-wallet-circle no-wallet-circle-1"></div>
+				<div class="no-wallet-circle no-wallet-circle-2"></div>
+				<div class="no-wallet-circle no-wallet-circle-3"></div>
+			</div>
 
-            <div class="no-wallet-content">
-                <div class="no-wallet-icon-wrapper">
-                    <div class="no-wallet-icon-ring"></div>
-                    <svg class="no-wallet-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                    </svg>
-                </div>
+			<div class="no-wallet-content">
+				<div class="no-wallet-icon-wrapper">
+					<div class="no-wallet-icon-ring"></div>
+					<svg class="no-wallet-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+							d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+					</svg>
+				</div>
 
-                <h3 class="no-wallet-title">Chào mừng đến với Ví LorKingDom! 👋</h3>
-                <p class="no-wallet-description">
-                    Tạo ví để tận hưởng những lợi ích tuyệt vời:
-                </p>
+				<h3 class="no-wallet-title">Chào mừng đến với Ví LorKingDom! 👋</h3>
+				<p class="no-wallet-description">
+					Tạo ví để tận hưởng những lợi ích tuyệt vời:
+				</p>
 
-                <div class="no-wallet-features">
-                    <div class="wallet-feature-item">
-                        <div class="feature-icon">⚡</div>
-                        <div class="feature-text">
-                            <strong>Thanh toán siêu tốc</strong>
-                            <span>Checkout nhanh chóng</span>
-                        </div>
-                    </div>
-                    <div class="wallet-feature-item">
-                        <div class="feature-icon">🎁</div>
-                        <div class="feature-text">
-                            <strong>Nhận hoàn tiền</strong>
-                            <span>Ưu đãi và khuyến mãi</span>
-                        </div>
-                    </div>
-                    <div class="wallet-feature-item">
-                        <div class="feature-icon">💰</div>
-                        <div class="feature-text">
-                            <strong>Quản lý dễ dàng</strong>
-                            <span>Theo dõi chi tiêu thông minh</span>
-                        </div>
-                    </div>
-                </div>
+				<div class="no-wallet-features">
+					<div class="wallet-feature-item">
+						<div class="feature-icon">⚡</div>
+						<div class="feature-text">
+							<strong>Thanh toán siêu tốc</strong>
+							<span>Checkout nhanh chóng</span>
+						</div>
+					</div>
+					<div class="wallet-feature-item">
+						<div class="feature-icon">🎁</div>
+						<div class="feature-text">
+							<strong>Nhận hoàn tiền</strong>
+							<span>Ưu đãi và khuyến mãi</span>
+						</div>
+					</div>
+					<div class="wallet-feature-item">
+						<div class="feature-icon">💰</div>
+						<div class="feature-text">
+							<strong>Quản lý dễ dàng</strong>
+							<span>Theo dõi chi tiêu thông minh</span>
+						</div>
+					</div>
+				</div>
 
-                <button type="button" data-action="show-create-wallet" class="no-wallet-create-btn">
-                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                    </svg>
-                    <span>Tạo ví miễn phí ngay</span>
-                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                    </svg>
-                </button>
-            </div>
-        </div>
-    }
+				<button type="button" data-action="show-create-wallet" class="no-wallet-create-btn">
+					<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+							d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+					</svg>
+					<span>Tạo ví miễn phí ngay</span>
+					<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+							d="M13 7l5 5m0 0l-5 5m5-5H6" />
+					</svg>
+				</button>
+			</div>
+		</div>
+	}
 </div>
 
 <!-- ============ CREATE WALLET FORM ============ -->
 @if (Model == null)
 {
-    <div id="create-wallet-form" class="create-wallet-form-container">
-        <div class="create-wallet-header">
-            <div class="create-wallet-icon">
-                <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                </svg>
-            </div>
-            <div>
-                <h3 class="create-wallet-title">Tạo ví mới</h3>
-                <p class="create-wallet-subtitle">Chỉ mất vài giây để hoàn tất</p>
-            </div>
-        </div>
+	<div id="create-wallet-form" class="create-wallet-form-container">
+		<div class="create-wallet-header">
+			<div class="create-wallet-icon">
+				<svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+				</svg>
+			</div>
+			<div>
+				<h3 class="create-wallet-title">Tạo ví mới</h3>
+				<p class="create-wallet-subtitle">Chỉ mất vài giây để hoàn tất</p>
+			</div>
+		</div>
 
-        <form id="walletForm" class="create-wallet-form">
-            @Html.AntiForgeryToken()
-            <div class="form-group">
-                <label class="form-label">
-                    <svg class="label-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                    </svg>
-                    Tên ví (tùy chọn)
-                </label>
-                <input type="text" name="WalletName"
-                       class="form-input"
-                       placeholder="Ví cá nhân, ví mua sắm...">
-            </div>
+		<form id="walletForm" class="create-wallet-form">
+			@Html.AntiForgeryToken()
+			<div class="form-group">
+				<label class="form-label">
+					<svg class="label-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+							d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+					</svg>
+					Tên ví (tùy chọn)
+				</label>
+				<input type="text" name="WalletName" class="form-input" placeholder="Ví cá nhân, ví mua sắm...">
+			</div>
 
-            <div class="form-group">
-                <label class="form-label">
-                    <svg class="label-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    Loại tiền tệ
-                </label>
-                <div class="currency-select-wrapper">
-                    <select name="Currency" class="form-select" disabled>
-                        <option value="VND">🇻🇳 VND - Việt Nam Đồng</option>
-                    </select>
-                    <span class="currency-badge">Mặc định</span>
-                </div>
-            </div>
+			<div class="form-group">
+				<label class="form-label">
+					<svg class="label-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+							d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+					</svg>
+					Loại tiền tệ
+				</label>
+				<div class="currency-select-wrapper">
+					<select name="Currency" class="form-select" disabled>
+						<option value="VND">🇻🇳 VND - Việt Nam Đồng</option>
+					</select>
+					<span class="currency-badge">Mặc định</span>
+				</div>
+			</div>
 
-            <div class="form-actions">
-                <button type="submit" id="btnCreateWallet" class="form-btn-submit">
-                    <svg class="h-5 w-5" id="iconCreateWallet" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                    </svg>
-                    <span>Tạo ví ngay</span>
-                </button>
-                <button type="button" data-action="hide-create-wallet" class="form-btn-cancel">
-                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                    <span>Hủy</span>
-                </button>
-            </div>
-        </form>
-    </div>
+			<div class="form-actions">
+				<button type="submit" id="btnCreateWallet" class="form-btn-submit">
+					<svg class="h-5 w-5" id="iconCreateWallet" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+							d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+					</svg>
+					<span>Tạo ví ngay</span>
+				</button>
+				<button type="button" data-action="hide-create-wallet" class="form-btn-cancel">
+					<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+					</svg>
+					<span>Hủy</span>
+				</button>
+			</div>
+		</form>
+	</div>
 }
 
 <!-- ============ TOP-UP MODAL ============ -->
 @if (Model != null)
 {
-    <div id="topup-modal" class="topup-modal-overlay">
-        <div class="topup-modal-content">
-            <button type="button" data-action="close-topup-modal" class="topup-modal-close">
-                <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-            </button>
+	<div id="topup-modal" class="topup-modal-overlay">
+		<div class="topup-modal-content">
+			<button type="button" data-action="close-topup-modal" class="topup-modal-close">
+				<svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+				</svg>
+			</button>
 
-            <div class="topup-modal-header">
-                <div class="topup-modal-icon">
-                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                    </svg>
-                </div>
-                <h3 class="topup-modal-title">Nạp tiền vào ví</h3>
-                <p class="topup-modal-subtitle">
-                    Số dư hiện tại: <span class="topup-current-balance">@Model.Balance.ToString("N0") đ</span>
-                </p>
-            </div>
+			<div class="topup-modal-header">
+				<div class="topup-modal-icon">
+					<svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+					</svg>
+				</div>
+				<h3 class="topup-modal-title">Nạp tiền vào ví</h3>
+				<p class="topup-modal-subtitle">
+					Số dư hiện tại: <span class="topup-current-balance">@Model.Balance.ToString("N0") đ</span>
+				</p>
+			</div>
 
-            <form id="topupForm" class="topup-form">
-                @Html.AntiForgeryToken()
+			<form id="topupForm" class="topup-form">
+				@Html.AntiForgeryToken()
 
-                <div class="topup-form-group">
-                    <label class="topup-label">
-                        <svg class="label-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-                        </svg>
-                        Số tiền nạp (VND)
-                    </label>
-                    <input type="number" name="Amount" id="topupAmount" required min="10000" max="100000000" step="10000"
-                           class="topup-input"
-                           placeholder="Nhập số tiền...">
-                    <p class="topup-helper-text">
-                        <span class="helper-icon">ℹ️</span>
-                        Tối thiểu: 10,000đ - Tối đa: 100,000,000đ
-                    </p>
-                </div>
+				<div class="topup-form-group">
+					<label class="topup-label">
+						<svg class="label-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+								d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+						</svg>
+						Số tiền nạp (VND)
+					</label>
+					<input type="number" name="Amount" id="topupAmount" required min="10000" max="100000000" step="10000"
+						class="topup-input" placeholder="Nhập số tiền...">
+					<p class="topup-helper-text">
+						<span class="helper-icon">ℹ️</span>
+						Tối thiểu: 10,000đ - Tối đa: 100,000,000đ
+					</p>
+				</div>
 
-                <div class="topup-form-group">
-                    <label class="topup-label">
-                        <svg class="label-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                        </svg>
-                        Chọn nhanh
-                    </label>
-                    <div class="topup-quick-amounts">
-                        <button type="button" data-amount="50000" class="quick-amount-btn">50,000đ</button>
-                        <button type="button" data-amount="100000" class="quick-amount-btn">100,000đ</button>
-                        <button type="button" data-amount="200000" class="quick-amount-btn">200,000đ</button>
-                        <button type="button" data-amount="500000" class="quick-amount-btn">500,000đ</button>
-                        <button type="button" data-amount="1000000" class="quick-amount-btn">1,000,000đ</button>
-                        <button type="button" data-amount="2000000" class="quick-amount-btn">2,000,000đ</button>
-                    </div>
-                </div>
+				<div class="topup-form-group">
+					<label class="topup-label">
+						<svg class="label-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+								d="M13 10V3L4 14h7v7l9-11h-7z" />
+						</svg>
+						Chọn nhanh
+					</label>
+					<div class="topup-quick-amounts">
+						<button type="button" data-amount="50000" class="quick-amount-btn">50,000đ</button>
+						<button type="button" data-amount="100000" class="quick-amount-btn">100,000đ</button>
+						<button type="button" data-amount="200000" class="quick-amount-btn">200,000đ</button>
+						<button type="button" data-amount="500000" class="quick-amount-btn">500,000đ</button>
+						<button type="button" data-amount="1000000" class="quick-amount-btn">1,000,000đ</button>
+						<button type="button" data-amount="2000000" class="quick-amount-btn">2,000,000đ</button>
+					</div>
+				</div>
 
-                <div class="topup-form-group">
-                    <label class="topup-label">
-                        <svg class="label-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
-                        </svg>
-                        Ghi chú (tùy chọn)
-                    </label>
-                    <input type="text" name="Reason"
-                           class="topup-input"
-                           placeholder="VD: Nạp tiền mua hàng...">
-                </div>
+				<div class="topup-form-group">
+					<label class="topup-label">
+						<svg class="label-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+								d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+						</svg>
+						Ghi chú (tùy chọn)
+					</label>
+					<input type="text" name="Reason" class="topup-input" placeholder="VD: Nạp tiền mua hàng...">
+				</div>
 
-                <div class="topup-modal-actions">
-                    <button type="submit" id="btnTopUp" class="topup-btn-submit">
-                        <svg class="h-5 w-5" id="iconTopUp" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                        </svg>
-                        <span>Xác nhận nạp</span>
-                    </button>
-                    <button type="button" data-action="close-topup-modal" class="topup-btn-cancel">
-                        Hủy
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
+				<div class="topup-modal-actions">
+					<button type="submit" id="btnTopUp" class="topup-btn-submit">
+						<svg class="h-5 w-5" id="iconTopUp" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+						</svg>
+						<span>Xác nhận nạp</span>
+					</button>
+					<button type="button" data-action="close-topup-modal" class="topup-btn-cancel">
+						Hủy
+					</button>
+				</div>
+			</form>
+		</div>
+	</div>
 }
 
 <!-- ============ TOASTS ============ -->
@@ -293,1141 +305,1173 @@
 
 <!-- ============ STYLES ============ -->
 <style>
-    /* Wallet Action Buttons */
-    .wallet-action-btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.625rem;
-        padding: 0.875rem 1.5rem;
-        border-radius: 0.75rem;
-        font-weight: 600;
-        font-size: 0.9375rem;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        border: 2px solid transparent;
-        white-space: nowrap;
-    }
-
-    .wallet-btn-primary {
-        background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
-        color: white;
-        box-shadow: 0 4px 12px rgba(249, 115, 22, 0.25);
-    }
-
-        .wallet-btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(249, 115, 22, 0.35);
-        }
-
-        .wallet-btn-primary:active {
-            transform: translateY(0);
-        }
-
-    .wallet-btn-secondary {
-        background: white;
-        color: #f97316;
-        border-color: #fed7aa;
-        box-shadow: 0 2px 8px rgba(249, 115, 22, 0.1);
-    }
-
-        .wallet-btn-secondary:hover {
-            background: #fff5ec;
-            border-color: #f97316;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(249, 115, 22, 0.2);
-        }
-
-        .wallet-btn-secondary:active {
-            transform: translateY(0);
-        }
-
-    /* No Wallet State */
-    .no-wallet-container {
-        position: relative;
-        overflow: hidden;
-        background: white;
-        border: 2px solid #fed7aa;
-        border-radius: 1.5rem;
-        padding: 3rem 2rem;
-        box-shadow: 0 10px 30px rgba(249, 115, 22, 0.1);
-    }
-
-    .no-wallet-background {
-        position: absolute;
-        inset: 0;
-        overflow: hidden;
-        pointer-events: none;
-    }
-
-    .no-wallet-circle {
-        position: absolute;
-        border-radius: 50%;
-        opacity: 0.15;
-    }
-
-    .no-wallet-circle-1 {
-        width: 300px;
-        height: 300px;
-        background: linear-gradient(135deg, #f97316, #ea580c);
-        top: -150px;
-        right: -100px;
-        animation: float 6s ease-in-out infinite;
-    }
-
-    .no-wallet-circle-2 {
-        width: 200px;
-        height: 200px;
-        background: linear-gradient(135deg, #fbbf24, #f97316);
-        bottom: -100px;
-        left: -50px;
-        animation: float 8s ease-in-out infinite reverse;
-    }
-
-    .no-wallet-circle-3 {
-        width: 150px;
-        height: 150px;
-        background: linear-gradient(135deg, #fb923c, #f97316);
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        animation: pulse 4s ease-in-out infinite;
-    }
-
-    .no-wallet-content {
-        position: relative;
-        text-align: center;
-        max-width: 600px;
-        margin: 0 auto;
-    }
-
-    .no-wallet-icon-wrapper {
-        position: relative;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 120px;
-        height: 120px;
-        margin: 0 auto 2rem;
-    }
-
-    .no-wallet-icon-ring {
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(135deg, #fed7aa, #fff5ec);
-        border-radius: 50%;
-        animation: pulse 2s ease-in-out infinite;
-    }
-
-    .no-wallet-icon {
-        position: relative;
-        width: 60px;
-        height: 60px;
-        color: #f97316;
-        filter: drop-shadow(0 4px 8px rgba(249, 115, 22, 0.3));
-    }
-
-    .no-wallet-title {
-        font-size: 1.875rem;
-        font-weight: 700;
-        color: #1f2937;
-        margin-bottom: 0.75rem;
-        background: linear-gradient(135deg, #f97316, #ea580c);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-    }
-
-    .no-wallet-description {
-        font-size: 1rem;
-        color: #6b7280;
-        margin-bottom: 2rem;
-    }
-
-    .no-wallet-features {
-        display: grid;
-        gap: 1rem;
-        margin-bottom: 2rem;
-        text-align: left;
-    }
-
-    .wallet-feature-item {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        padding: 1rem;
-        background: linear-gradient(135deg, #fff5ec, #ffffff);
-        border: 2px solid #fed7aa;
-        border-radius: 1rem;
-        transition: all 0.3s ease;
-    }
-
-        .wallet-feature-item:hover {
-            border-color: #f97316;
-            transform: translateX(8px);
-            box-shadow: 0 4px 12px rgba(249, 115, 22, 0.15);
-        }
-
-    .feature-icon {
-        font-size: 2rem;
-        flex-shrink: 0;
-    }
-
-    .feature-text {
-        display: flex;
-        flex-direction: column;
-        gap: 0.25rem;
-    }
-
-        .feature-text strong {
-            color: #1f2937;
-            font-weight: 600;
-            font-size: 0.9375rem;
-        }
-
-        .feature-text span {
-            color: #6b7280;
-            font-size: 0.875rem;
-        }
-
-    .no-wallet-create-btn {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.75rem;
-        padding: 1rem 2rem;
-        background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
-        color: white;
-        border: none;
-        border-radius: 1rem;
-        font-weight: 600;
-        font-size: 1rem;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 16px rgba(249, 115, 22, 0.3);
-    }
-
-        .no-wallet-create-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 24px rgba(249, 115, 22, 0.4);
-        }
-
-        .no-wallet-create-btn:active {
-            transform: translateY(-1px);
-        }
-
-    /* Create Wallet Form */
-    .create-wallet-form-container {
-        display: none;
-        background: white;
-        border: 2px solid #fed7aa;
-        border-radius: 1.5rem;
-        padding: 2rem;
-        box-shadow: 0 10px 30px rgba(249, 115, 22, 0.15);
-        animation: slideDown 0.3s ease;
-    }
-
-        .create-wallet-form-container.show {
-            display: block;
-        }
-
-    .create-wallet-header {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        margin-bottom: 2rem;
-        padding-bottom: 1.5rem;
-        border-bottom: 2px solid #fff5ec;
-    }
-
-    .create-wallet-icon {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 3rem;
-        height: 3rem;
-        background: linear-gradient(135deg, #f97316, #ea580c);
-        color: white;
-        border-radius: 0.75rem;
-        box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
-    }
-
-    .create-wallet-title {
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: #1f2937;
-        margin: 0;
-    }
-
-    .create-wallet-subtitle {
-        font-size: 0.875rem;
-        color: #6b7280;
-        margin: 0.25rem 0 0;
-    }
-
-    .create-wallet-form {
-        display: flex;
-        flex-direction: column;
-        gap: 1.5rem;
-    }
-
-    .form-group {
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-    }
-
-    .form-label {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        font-size: 0.875rem;
-        font-weight: 600;
-        color: #374151;
-    }
-
-    .label-icon {
-        width: 1.125rem;
-        height: 1.125rem;
-        color: #f97316;
-    }
-
-    .form-input {
-        width: 100%;
-        padding: 0.875rem 1rem;
-        border: 2px solid #e5e7eb;
-        border-radius: 0.75rem;
-        font-size: 0.9375rem;
-        color: #1f2937;
-        transition: all 0.2s;
-        background: white;
-    }
-
-        .form-input:focus {
-            outline: none;
-            border-color: #f97316;
-            box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
-        }
-
-    .currency-select-wrapper {
-        position: relative;
-    }
-
-    .form-select {
-        width: 100%;
-        padding: 0.875rem 1rem;
-        border: 2px solid #e5e7eb;
-        border-radius: 0.75rem;
-        font-size: 0.9375rem;
-        color: #6b7280;
-        background: #f9fafb;
-        cursor: not-allowed;
-        appearance: none;
-    }
-
-    .currency-badge {
-        position: absolute;
-        right: 1rem;
-        top: 50%;
-        transform: translateY(-50%);
-        padding: 0.25rem 0.75rem;
-        background: linear-gradient(135deg, #f97316, #ea580c);
-        color: white;
-        font-size: 0.75rem;
-        font-weight: 600;
-        border-radius: 0.5rem;
-        pointer-events: none;
-    }
-
-    .form-actions {
-        display: flex;
-        gap: 0.75rem;
-        padding-top: 0.5rem;
-    }
-
-    .form-btn-submit,
-    .form-btn-cancel {
-        flex: 1;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
-        padding: 0.875rem 1rem;
-        border-radius: 0.75rem;
-        font-weight: 600;
-        font-size: 0.9375rem;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        border: 2px solid transparent;
-    }
-
-    .form-btn-submit {
-        background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
-        color: white;
-        box-shadow: 0 4px 12px rgba(249, 115, 22, 0.25);
-    }
-
-        .form-btn-submit:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(249, 115, 22, 0.35);
-        }
-
-        .form-btn-submit:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-    .form-btn-cancel {
-        background: white;
-        color: #6b7280;
-        border-color: #e5e7eb;
-    }
-
-        .form-btn-cancel:hover {
-            background: #f9fafb;
-            border-color: #d1d5db;
-        }
-
-    /* Top-up Modal */
-    .topup-modal-overlay {
-        position: fixed;
-        inset: 0;
-        z-index: 9999;
-        display: none;
-        align-items: center;
-        justify-content: center;
-        background: rgba(0, 0, 0, 0.6);
-        backdrop-filter: blur(4px);
-        padding: 1rem;
-        animation: fadeIn 0.2s ease;
-    }
-
-        .topup-modal-overlay.show {
-            display: flex;
-        }
-
-    .topup-modal-content {
-        position: relative;
-        width: 100%;
-        max-width: 32rem;
-        max-height: 90vh;
-        overflow-y: auto;
-        background: white;
-        border: 2px solid #fed7aa;
-        border-radius: 1.25rem;
-        padding: 2rem;
-        box-shadow: 0 20px 50px rgba(249, 115, 22, 0.25);
-        animation: slideUp 0.3s ease;
-    }
-
-    .topup-modal-close {
-        position: absolute;
-        right: 1rem;
-        top: 1rem;
-        padding: 0.5rem;
-        background: transparent;
-        border: none;
-        color: #9ca3af;
-        cursor: pointer;
-        border-radius: 0.5rem;
-        transition: all 0.2s;
-        z-index: 10;
-    }
-
-        .topup-modal-close:hover {
-            background: #fee2e2;
-            color: #dc2626;
-        }
-
-    .topup-modal-header {
-        margin-bottom: 1.5rem;
-    }
-
-    .topup-modal-icon {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 3.5rem;
-        height: 3.5rem;
-        background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
-        color: white;
-        border-radius: 1rem;
-        margin-bottom: 1rem;
-        box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
-    }
-
-    .topup-modal-title {
-        font-size: 1.75rem;
-        font-weight: 700;
-        color: #1f2937;
-        margin-bottom: 0.5rem;
-    }
-
-    .topup-modal-subtitle {
-        font-size: 0.9375rem;
-        color: #6b7280;
-    }
-
-    .topup-current-balance {
-        font-weight: 700;
-        color: #f97316;
-        font-size: 1.125rem;
-    }
-
-    .topup-form {
-        display: flex;
-        flex-direction: column;
-        gap: 1.5rem;
-    }
-
-    .topup-form-group {
-        display: flex;
-        flex-direction: column;
-    }
-
-    .topup-label {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        margin-bottom: 0.625rem;
-        font-size: 0.875rem;
-        font-weight: 600;
-        color: #374151;
-    }
-
-    .topup-input {
-        width: 100%;
-        padding: 0.875rem 1rem;
-        border: 2px solid #e5e7eb;
-        border-radius: 0.75rem;
-        font-size: 0.9375rem;
-        color: #1f2937;
-        transition: all 0.2s;
-    }
-
-        .topup-input:focus {
-            outline: none;
-            border-color: #f97316;
-            box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
-        }
-
-    .topup-helper-text {
-        display: flex;
-        align-items: center;
-        gap: 0.375rem;
-        margin-top: 0.5rem;
-        font-size: 0.8125rem;
-        color: #6b7280;
-    }
-
-    .helper-icon {
-        font-size: 1rem;
-    }
-
-    .topup-quick-amounts {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 0.625rem;
-    }
-
-    .quick-amount-btn {
-        padding: 0.75rem;
-        background: white;
-        border: 2px solid #fed7aa;
-        border-radius: 0.625rem;
-        font-size: 0.875rem;
-        font-weight: 600;
-        color: #6b7280;
-        cursor: pointer;
-        transition: all 0.2s;
-    }
-
-        .quick-amount-btn:hover {
-            background: #fff5ec;
-            border-color: #f97316;
-            color: #f97316;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(249, 115, 22, 0.15);
-        }
-
-        .quick-amount-btn:active {
-            transform: translateY(0);
-        }
-
-    .topup-modal-actions {
-        display: flex;
-        gap: 0.75rem;
-        padding-top: 0.5rem;
-    }
-
-    .topup-btn-submit {
-        flex: 1;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
-        padding: 1rem;
-        background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
-        color: white;
-        border: none;
-        border-radius: 0.75rem;
-        font-weight: 600;
-        font-size: 0.9375rem;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 12px rgba(249, 115, 22, 0.25);
-    }
-
-        .topup-btn-submit:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(249, 115, 22, 0.35);
-        }
-
-        .topup-btn-submit:active {
-            transform: translateY(0);
-        }
-
-        .topup-btn-submit:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-    .topup-btn-cancel {
-        padding: 1rem;
-        background: white;
-        color: #6b7280;
-        border: 2px solid #e5e7eb;
-        border-radius: 0.75rem;
-        font-weight: 600;
-        font-size: 0.9375rem;
-        cursor: pointer;
-        transition: all 0.2s;
-    }
-
-        .topup-btn-cancel:hover {
-            background: #f9fafb;
-            border-color: #d1d5db;
-        }
-
-    /* Toast styles */
-    .toast {
-        pointer-events: auto;
-        display: flex;
-        gap: .75rem;
-        align-items: flex-start;
-        min-width: 280px;
-        max-width: 420px;
-        padding: .875rem 1rem;
-        border-radius: 14px;
-        box-shadow: 0 12px 28px rgba(0,0,0,.15);
-        transform: translateY(-6px);
-        opacity: 0;
-        transition: opacity .18s ease, transform .18s ease;
-        color: #0f172a;
-        background: #fff;
-        border: 1px solid rgba(0,0,0,.06);
-    }
-
-        .toast.show {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        .toast .badge {
-            display: inline-flex;
-            width: 10px;
-            height: 10px;
-            border-radius: 9999px;
-            margin-top: .3rem
-        }
-
-        .toast.success .badge {
-            background: #16a34a
-        }
-
-        .toast.error .badge {
-            background: #ef4444
-        }
-
-        .toast.info .badge {
-            background: #3b82f6
-        }
-
-        .toast .title {
-            font-weight: 700;
-            font-size: .95rem
-        }
-
-        .toast .msg {
-            font-size: .9rem;
-            color: #334155
-        }
-
-        .toast .close {
-            margin-left: auto;
-            background: transparent;
-            border: 0;
-            opacity: .7;
-            cursor: pointer
-        }
-
-            .toast .close:hover {
-                opacity: 1
-            }
-
-    /* Animations */
-    @@keyframes fadeIn {
-        from {
-            opacity: 0;
-        }
-
-        to {
-            opacity: 1;
-        }
-    }
-
-    @@keyframes slideUp {
-        from {
-            opacity: 0;
-            transform: translateY(30px) scale(0.95);
-        }
-
-        to {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-        }
-    }
-
-    @@keyframes slideDown {
-        from {
-            opacity: 0;
-            transform: translateY(-20px);
-        }
-
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    @@keyframes float {
-        0%, 100% {
-            transform: translateY(0);
-        }
-
-        50% {
-            transform: translateY(-20px);
-        }
-    }
-
-    @@keyframes pulse {
-        0%, 100% {
-            transform: scale(1);
-            opacity: 0.15;
-        }
-
-        50% {
-            transform: scale(1.05);
-            opacity: 0.25;
-        }
-    }
-
-    @@keyframes spin {
-        to {
-            transform: rotate(360deg);
-        }
-    }
-
-    /* Responsive */
-    @@media (max-width: 640px) {
-        .topup-quick-amounts {
-            grid-template-columns: repeat(2, 1fr);
-        }
-
-        .no-wallet-features {
-            gap: 0.75rem;
-        }
-
-        .wallet-feature-item {
-            padding: 0.875rem;
-        }
-
-        .feature-icon {
-            font-size: 1.5rem;
-        }
-
-        .no-wallet-title {
-            font-size: 1.5rem;
-        }
-
-        .topup-modal-content {
-            padding: 1.5rem;
-        }
-    }
+	/* Wallet Action Buttons */
+	.wallet-action-btn {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.625rem;
+		padding: 0.875rem 1.5rem;
+		border-radius: 0.75rem;
+		font-weight: 600;
+		font-size: 0.9375rem;
+		cursor: pointer;
+		transition: all 0.3s ease;
+		border: 2px solid transparent;
+		white-space: nowrap;
+	}
+
+	.wallet-btn-primary {
+		background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+		color: white;
+		box-shadow: 0 4px 12px rgba(249, 115, 22, 0.25);
+	}
+
+	.wallet-btn-primary:hover {
+		transform: translateY(-2px);
+		box-shadow: 0 8px 20px rgba(249, 115, 22, 0.35);
+	}
+
+	.wallet-btn-primary:active {
+		transform: translateY(0);
+	}
+
+	.wallet-btn-secondary {
+		background: white;
+		color: #f97316;
+		border-color: #fed7aa;
+		box-shadow: 0 2px 8px rgba(249, 115, 22, 0.1);
+	}
+
+	.wallet-btn-secondary:hover {
+		background: #fff5ec;
+		border-color: #f97316;
+		transform: translateY(-2px);
+		box-shadow: 0 6px 16px rgba(249, 115, 22, 0.2);
+	}
+
+	.wallet-btn-secondary:active {
+		transform: translateY(0);
+	}
+
+	/* No Wallet State */
+	.no-wallet-container {
+		position: relative;
+		overflow: hidden;
+		background: white;
+		border: 2px solid #fed7aa;
+		border-radius: 1.5rem;
+		padding: 3rem 2rem;
+		box-shadow: 0 10px 30px rgba(249, 115, 22, 0.1);
+	}
+
+	.no-wallet-background {
+		position: absolute;
+		inset: 0;
+		overflow: hidden;
+		pointer-events: none;
+	}
+
+	.no-wallet-circle {
+		position: absolute;
+		border-radius: 50%;
+		opacity: 0.15;
+	}
+
+	.no-wallet-circle-1 {
+		width: 300px;
+		height: 300px;
+		background: linear-gradient(135deg, #f97316, #ea580c);
+		top: -150px;
+		right: -100px;
+		animation: float 6s ease-in-out infinite;
+	}
+
+	.no-wallet-circle-2 {
+		width: 200px;
+		height: 200px;
+		background: linear-gradient(135deg, #fbbf24, #f97316);
+		bottom: -100px;
+		left: -50px;
+		animation: float 8s ease-in-out infinite reverse;
+	}
+
+	.no-wallet-circle-3 {
+		width: 150px;
+		height: 150px;
+		background: linear-gradient(135deg, #fb923c, #f97316);
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+		animation: pulse 4s ease-in-out infinite;
+	}
+
+	.no-wallet-content {
+		position: relative;
+		text-align: center;
+		max-width: 600px;
+		margin: 0 auto;
+	}
+
+	.no-wallet-icon-wrapper {
+		position: relative;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 120px;
+		height: 120px;
+		margin: 0 auto 2rem;
+	}
+
+	.no-wallet-icon-ring {
+		position: absolute;
+		inset: 0;
+		background: linear-gradient(135deg, #fed7aa, #fff5ec);
+		border-radius: 50%;
+		animation: pulse 2s ease-in-out infinite;
+	}
+
+	.no-wallet-icon {
+		position: relative;
+		width: 60px;
+		height: 60px;
+		color: #f97316;
+		filter: drop-shadow(0 4px 8px rgba(249, 115, 22, 0.3));
+	}
+
+	.no-wallet-title {
+		font-size: 1.875rem;
+		font-weight: 700;
+		color: #1f2937;
+		margin-bottom: 0.75rem;
+		background: linear-gradient(135deg, #f97316, #ea580c);
+		-webkit-background-clip: text;
+		-webkit-text-fill-color: transparent;
+		background-clip: text;
+	}
+
+	.no-wallet-description {
+		font-size: 1rem;
+		color: #6b7280;
+		margin-bottom: 2rem;
+	}
+
+	.no-wallet-features {
+		display: grid;
+		gap: 1rem;
+		margin-bottom: 2rem;
+		text-align: left;
+	}
+
+	.wallet-feature-item {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+		padding: 1rem;
+		background: linear-gradient(135deg, #fff5ec, #ffffff);
+		border: 2px solid #fed7aa;
+		border-radius: 1rem;
+		transition: all 0.3s ease;
+	}
+
+	.wallet-feature-item:hover {
+		border-color: #f97316;
+		transform: translateX(8px);
+		box-shadow: 0 4px 12px rgba(249, 115, 22, 0.15);
+	}
+
+	.feature-icon {
+		font-size: 2rem;
+		flex-shrink: 0;
+	}
+
+	.feature-text {
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+	}
+
+	.feature-text strong {
+		color: #1f2937;
+		font-weight: 600;
+		font-size: 0.9375rem;
+	}
+
+	.feature-text span {
+		color: #6b7280;
+		font-size: 0.875rem;
+	}
+
+	.no-wallet-create-btn {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.75rem;
+		padding: 1rem 2rem;
+		background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+		color: white;
+		border: none;
+		border-radius: 1rem;
+		font-weight: 600;
+		font-size: 1rem;
+		cursor: pointer;
+		transition: all 0.3s ease;
+		box-shadow: 0 4px 16px rgba(249, 115, 22, 0.3);
+	}
+
+	.no-wallet-create-btn:hover {
+		transform: translateY(-3px);
+		box-shadow: 0 8px 24px rgba(249, 115, 22, 0.4);
+	}
+
+	.no-wallet-create-btn:active {
+		transform: translateY(-1px);
+	}
+
+	/* Create Wallet Form */
+	.create-wallet-form-container {
+		display: none;
+		background: white;
+		border: 2px solid #fed7aa;
+		border-radius: 1.5rem;
+		padding: 2rem;
+		box-shadow: 0 10px 30px rgba(249, 115, 22, 0.15);
+		animation: slideDown 0.3s ease;
+	}
+
+	.create-wallet-form-container.show {
+		display: block;
+	}
+
+	.create-wallet-header {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+		margin-bottom: 2rem;
+		padding-bottom: 1.5rem;
+		border-bottom: 2px solid #fff5ec;
+	}
+
+	.create-wallet-icon {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 3rem;
+		height: 3rem;
+		background: linear-gradient(135deg, #f97316, #ea580c);
+		color: white;
+		border-radius: 0.75rem;
+		box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+	}
+
+	.create-wallet-title {
+		font-size: 1.5rem;
+		font-weight: 700;
+		color: #1f2937;
+		margin: 0;
+	}
+
+	.create-wallet-subtitle {
+		font-size: 0.875rem;
+		color: #6b7280;
+		margin: 0.25rem 0 0;
+	}
+
+	.create-wallet-form {
+		display: flex;
+		flex-direction: column;
+		gap: 1.5rem;
+	}
+
+	.form-group {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+
+	.form-label {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		font-size: 0.875rem;
+		font-weight: 600;
+		color: #374151;
+	}
+
+	.label-icon {
+		width: 1.125rem;
+		height: 1.125rem;
+		color: #f97316;
+	}
+
+	.form-input {
+		width: 100%;
+		padding: 0.875rem 1rem;
+		border: 2px solid #e5e7eb;
+		border-radius: 0.75rem;
+		font-size: 0.9375rem;
+		color: #1f2937;
+		transition: all 0.2s;
+		background: white;
+	}
+
+	.form-input:focus {
+		outline: none;
+		border-color: #f97316;
+		box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+	}
+
+	.currency-select-wrapper {
+		position: relative;
+	}
+
+	.form-select {
+		width: 100%;
+		padding: 0.875rem 1rem;
+		border: 2px solid #e5e7eb;
+		border-radius: 0.75rem;
+		font-size: 0.9375rem;
+		color: #6b7280;
+		background: #f9fafb;
+		cursor: not-allowed;
+		appearance: none;
+	}
+
+	.currency-badge {
+		position: absolute;
+		right: 1rem;
+		top: 50%;
+		transform: translateY(-50%);
+		padding: 0.25rem 0.75rem;
+		background: linear-gradient(135deg, #f97316, #ea580c);
+		color: white;
+		font-size: 0.75rem;
+		font-weight: 600;
+		border-radius: 0.5rem;
+		pointer-events: none;
+	}
+
+	.form-actions {
+		display: flex;
+		gap: 0.75rem;
+		padding-top: 0.5rem;
+	}
+
+	.form-btn-submit,
+	.form-btn-cancel {
+		flex: 1;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.5rem;
+		padding: 0.875rem 1rem;
+		border-radius: 0.75rem;
+		font-weight: 600;
+		font-size: 0.9375rem;
+		cursor: pointer;
+		transition: all 0.3s ease;
+		border: 2px solid transparent;
+	}
+
+	.form-btn-submit {
+		background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+		color: white;
+		box-shadow: 0 4px 12px rgba(249, 115, 22, 0.25);
+	}
+
+	.form-btn-submit:hover {
+		transform: translateY(-2px);
+		box-shadow: 0 8px 20px rgba(249, 115, 22, 0.35);
+	}
+
+	.form-btn-submit:disabled {
+		opacity: 0.6;
+		cursor: not-allowed;
+		transform: none;
+	}
+
+	.form-btn-cancel {
+		background: white;
+		color: #6b7280;
+		border-color: #e5e7eb;
+	}
+
+	.form-btn-cancel:hover {
+		background: #f9fafb;
+		border-color: #d1d5db;
+	}
+
+	/* Top-up Modal */
+	.topup-modal-overlay {
+		position: fixed;
+		inset: 0;
+		z-index: 9999;
+		display: none;
+		align-items: center;
+		justify-content: center;
+		background: rgba(0, 0, 0, 0.6);
+		backdrop-filter: blur(4px);
+		padding: 1rem;
+		animation: fadeIn 0.2s ease;
+	}
+
+	.topup-modal-overlay.show {
+		display: flex;
+	}
+
+	.topup-modal-content {
+		position: relative;
+		width: 100%;
+		max-width: 32rem;
+		max-height: 90vh;
+		overflow-y: auto;
+		background: white;
+		border: 2px solid #fed7aa;
+		border-radius: 1.25rem;
+		padding: 2rem;
+		box-shadow: 0 20px 50px rgba(249, 115, 22, 0.25);
+		animation: slideUp 0.3s ease;
+	}
+
+	.topup-modal-close {
+		position: absolute;
+		right: 1rem;
+		top: 1rem;
+		padding: 0.5rem;
+		background: transparent;
+		border: none;
+		color: #9ca3af;
+		cursor: pointer;
+		border-radius: 0.5rem;
+		transition: all 0.2s;
+		z-index: 10;
+	}
+
+	.topup-modal-close:hover {
+		background: #fee2e2;
+		color: #dc2626;
+	}
+
+	.topup-modal-header {
+		margin-bottom: 1.5rem;
+	}
+
+	.topup-modal-icon {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 3.5rem;
+		height: 3.5rem;
+		background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+		color: white;
+		border-radius: 1rem;
+		margin-bottom: 1rem;
+		box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+	}
+
+	.topup-modal-title {
+		font-size: 1.75rem;
+		font-weight: 700;
+		color: #1f2937;
+		margin-bottom: 0.5rem;
+	}
+
+	.topup-modal-subtitle {
+		font-size: 0.9375rem;
+		color: #6b7280;
+	}
+
+	.topup-current-balance {
+		font-weight: 700;
+		color: #f97316;
+		font-size: 1.125rem;
+	}
+
+	.topup-form {
+		display: flex;
+		flex-direction: column;
+		gap: 1.5rem;
+	}
+
+	.topup-form-group {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.topup-label {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		margin-bottom: 0.625rem;
+		font-size: 0.875rem;
+		font-weight: 600;
+		color: #374151;
+	}
+
+	.topup-input {
+		width: 100%;
+		padding: 0.875rem 1rem;
+		border: 2px solid #e5e7eb;
+		border-radius: 0.75rem;
+		font-size: 0.9375rem;
+		color: #1f2937;
+		transition: all 0.2s;
+	}
+
+	.topup-input:focus {
+		outline: none;
+		border-color: #f97316;
+		box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+	}
+
+	.topup-helper-text {
+		display: flex;
+		align-items: center;
+		gap: 0.375rem;
+		margin-top: 0.5rem;
+		font-size: 0.8125rem;
+		color: #6b7280;
+	}
+
+	.helper-icon {
+		font-size: 1rem;
+	}
+
+	.topup-quick-amounts {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 0.625rem;
+	}
+
+	.quick-amount-btn {
+		padding: 0.75rem;
+		background: white;
+		border: 2px solid #fed7aa;
+		border-radius: 0.625rem;
+		font-size: 0.875rem;
+		font-weight: 600;
+		color: #6b7280;
+		cursor: pointer;
+		transition: all 0.2s;
+	}
+
+	.quick-amount-btn:hover {
+		background: #fff5ec;
+		border-color: #f97316;
+		color: #f97316;
+		transform: translateY(-2px);
+		box-shadow: 0 4px 12px rgba(249, 115, 22, 0.15);
+	}
+
+	.quick-amount-btn:active {
+		transform: translateY(0);
+	}
+
+	.topup-modal-actions {
+		display: flex;
+		gap: 0.75rem;
+		padding-top: 0.5rem;
+	}
+
+	.topup-btn-submit {
+		flex: 1;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.5rem;
+		padding: 1rem;
+		background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+		color: white;
+		border: none;
+		border-radius: 0.75rem;
+		font-weight: 600;
+		font-size: 0.9375rem;
+		cursor: pointer;
+		transition: all 0.3s ease;
+		box-shadow: 0 4px 12px rgba(249, 115, 22, 0.25);
+	}
+
+	.topup-btn-submit:hover {
+		transform: translateY(-2px);
+		box-shadow: 0 8px 20px rgba(249, 115, 22, 0.35);
+	}
+
+	.topup-btn-submit:active {
+		transform: translateY(0);
+	}
+
+	.topup-btn-submit:disabled {
+		opacity: 0.6;
+		cursor: not-allowed;
+		transform: none;
+	}
+
+	.topup-btn-cancel {
+		padding: 1rem;
+		background: white;
+		color: #6b7280;
+		border: 2px solid #e5e7eb;
+		border-radius: 0.75rem;
+		font-weight: 600;
+		font-size: 0.9375rem;
+		cursor: pointer;
+		transition: all 0.2s;
+	}
+
+	.topup-btn-cancel:hover {
+		background: #f9fafb;
+		border-color: #d1d5db;
+	}
+
+	/* Toast styles */
+	.toast {
+		pointer-events: auto;
+		display: flex;
+		gap: .75rem;
+		align-items: flex-start;
+		min-width: 280px;
+		max-width: 420px;
+		padding: .875rem 1rem;
+		border-radius: 14px;
+		box-shadow: 0 12px 28px rgba(0, 0, 0, .15);
+		transform: translateY(-6px);
+		opacity: 0;
+		transition: opacity .18s ease, transform .18s ease;
+		color: #0f172a;
+		background: #fff;
+		border: 1px solid rgba(0, 0, 0, .06);
+	}
+
+	.toast.show {
+		opacity: 1;
+		transform: translateY(0);
+	}
+
+	.toast .badge {
+		display: inline-flex;
+		width: 10px;
+		height: 10px;
+		border-radius: 9999px;
+		margin-top: .3rem
+	}
+
+	.toast.success .badge {
+		background: #16a34a
+	}
+
+	.toast.error .badge {
+		background: #ef4444
+	}
+
+	.toast.info .badge {
+		background: #3b82f6
+	}
+
+	.toast .title {
+		font-weight: 700;
+		font-size: .95rem
+	}
+
+	.toast .msg {
+		font-size: .9rem;
+		color: #334155
+	}
+
+	.toast .close {
+		margin-left: auto;
+		background: transparent;
+		border: 0;
+		opacity: .7;
+		cursor: pointer
+	}
+
+	.toast .close:hover {
+		opacity: 1
+	}
+
+	/* Animations */
+	@@keyframes fadeIn {
+		from {
+			opacity: 0;
+		}
+
+		to {
+			opacity: 1;
+		}
+	}
+
+	@@keyframes slideUp {
+		from {
+			opacity: 0;
+			transform: translateY(30px) scale(0.95);
+		}
+
+		to {
+			opacity: 1;
+			transform: translateY(0) scale(1);
+		}
+	}
+
+	@@keyframes slideDown {
+		from {
+			opacity: 0;
+			transform: translateY(-20px);
+		}
+
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+
+	@@keyframes float {
+
+		0%,
+		100% {
+			transform: translateY(0);
+		}
+
+		50% {
+			transform: translateY(-20px);
+		}
+	}
+
+	@@keyframes pulse {
+
+		0%,
+		100% {
+			transform: scale(1);
+			opacity: 0.15;
+		}
+
+		50% {
+			transform: scale(1.05);
+			opacity: 0.25;
+		}
+	}
+
+	@@keyframes spin {
+		to {
+			transform: rotate(360deg);
+		}
+	}
+
+	/* Responsive */
+	@@media (max-width: 640px) {
+		.topup-quick-amounts {
+			grid-template-columns: repeat(2, 1fr);
+		}
+
+		.no-wallet-features {
+			gap: 0.75rem;
+		}
+
+		.wallet-feature-item {
+			padding: 0.875rem;
+		}
+
+		.feature-icon {
+			font-size: 1.5rem;
+		}
+
+		.no-wallet-title {
+			font-size: 1.5rem;
+		}
+
+		.topup-modal-content {
+			padding: 1.5rem;
+		}
+	}
 </style>
 
 <script>
-    (function initializeWalletModule() {
-        console.log('🔵 Initializing Wallet Module...');
+	(function initializeWalletModule() {
+		console.log('🔵 Initializing Wallet Module...');
 
-        if (window.__walletModuleInitialized) {
-            console.log('⚠️ Wallet module already initialized, skipping...');
-            return;
-        }
-        window.__walletModuleInitialized = true;
+		// === CLEANUP CŨ ===
+		if (window.__walletCleanup) {
+			console.log('🧹 Cleaning up old wallet handlers...');
+			window.__walletCleanup();
+		}
 
-        function showToast(type, title, message, timeout = 2800) {
-            const wrap = document.getElementById('toast-wrap');
-            if (!wrap) return;
-            const el = document.createElement('div');
-            el.className = `toast ${type}`;
-            el.innerHTML = `
-                <span class="badge"></span>
-                <div class="content">
-                    <div class="title">${title || (type === 'success' ? 'Thành công' : type === 'error' ? 'Lỗi' : 'Thông báo')}</div>
-                    ${message ? `<div class="msg">${message}</div>` : ''}
-                </div>
-                <button class="close" aria-label="Close">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                </button>
-            `;
-            wrap.appendChild(el);
-            requestAnimationFrame(() => el.classList.add('show'));
-            const remove = () => { el.classList.remove('show'); setTimeout(() => el.remove(), 180); };
-            const t = setTimeout(remove, timeout);
-            el.querySelector('.close').addEventListener('click', () => { clearTimeout(t); remove(); });
-        }
+		// Sau cleanup, flag đã được reset về false, nên không cần check nữa
+		window.__walletModuleInitialized = true;
 
-        function setBtnLoading(btn, isLoading, iconId = 'iconCreateWallet') {
-            if (!btn) return;
-            btn.disabled = !!isLoading;
-            const icon = btn.querySelector(`#${iconId}`);
-            if (isLoading) {
-                btn.classList.add('cursor-wait', 'opacity-90');
-                if (icon) {
-                    icon.setAttribute('viewBox', '0 0 24 24');
-                    icon.innerHTML = '<circle cx="12" cy="12" r="10" stroke-width="2" stroke="currentColor" fill="none"></circle>';
-                    icon.style.animation = 'spin 0.8s linear infinite';
-                }
-            } else {
-                btn.classList.remove('cursor-wait', 'opacity-90');
-                if (icon) {
-                    icon.style.animation = '';
-                    if (iconId === 'iconTopUp') {
-                        icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />';
-                    } else {
-                        icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />';
-                    }
-                }
-            }
-        }
+		function showToast(type, title, message, timeout = 2800) {
+			const wrap = document.getElementById('toast-wrap');
+			if (!wrap) return;
+			const el = document.createElement('div');
+			el.className = `toast ${type}`;
+			el.innerHTML = `
+					<span class="badge"></span>
+					<div class="content">
+						<div class="title">${title || (type === 'success' ? 'Thành công' : type === 'error' ? 'Lỗi' : 'Thông báo')}</div>
+						${message ? `<div class="msg">${message}</div>` : ''}
+					</div>
+					<button class="close" aria-label="Close">
+						<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+					</button>
+				`;
+			wrap.appendChild(el);
+			requestAnimationFrame(() => el.classList.add('show'));
+			const remove = () => { el.classList.remove('show'); setTimeout(() => el.remove(), 180); };
+			const t = setTimeout(remove, timeout);
+			el.querySelector('.close').addEventListener('click', () => { clearTimeout(t); remove(); });
+		}
 
-        console.log('🔵 Setting up wallet event delegation...');
+		function setBtnLoading(btn, isLoading, iconId = 'iconCreateWallet') {
+			if (!btn) return;
+			btn.disabled = !!isLoading;
+			const icon = btn.querySelector(`#${iconId}`);
+			if (isLoading) {
+				btn.classList.add('cursor-wait', 'opacity-90');
+				if (icon) {
+					icon.setAttribute('viewBox', '0 0 24 24');
+					icon.innerHTML = '<circle cx="12" cy="12" r="10" stroke-width="2" stroke="currentColor" fill="none"></circle>';
+					icon.style.animation = 'spin 0.8s linear infinite';
+				}
+			} else {
+				btn.classList.remove('cursor-wait', 'opacity-90');
+				if (icon) {
+					icon.style.animation = '';
+					if (iconId === 'iconTopUp') {
+						icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />';
+					} else {
+						icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />';
+					}
+				}
+			}
+		}
 
-        document.body.addEventListener("click", handleWalletClick, true);
-        document.body.addEventListener("submit", handleWalletSubmit, true);
+		console.log('🔵 Setting up wallet event delegation...');
 
-        function handleWalletClick(e) {
-    // === QUICK AMOUNT ===
-    if (e.target.closest('.quick-amount-btn')) {
-        const btn = e.target.closest('.quick-amount-btn');
-        e.preventDefault();
-        e.stopPropagation();
-        const amount = btn.dataset.amount;
-        const input = document.getElementById("topupAmount");
-        if (input) input.value = amount;
-        return;
-    }
+		document.body.addEventListener("click", handleWalletClick, true);
+		document.body.addEventListener("submit", handleWalletSubmit, true);
 
-    const btn = e.target.closest("[data-action]");
-    if (!btn) return;
+		function handleWalletClick(e) {
+			// === QUICK AMOUNT ===
+			if (e.target.closest('.quick-amount-btn')) {
+				const btn = e.target.closest('.quick-amount-btn');
+				e.preventDefault();
+				e.stopPropagation();
+				const amount = btn.dataset.amount;
+				const input = document.getElementById("topupAmount");
+				if (input) input.value = amount;
+				return;
+			}
 
-    const action = btn.dataset.action;
+			const btn = e.target.closest("[data-action]");
+			if (!btn) return;
 
-    // === DANH SÁCH ACTION CỦA WALLET ===
-    const walletActions = [
-        'show-create-wallet',
-        'hide-create-wallet',
-        'show-topup-modal',
-        'close-topup-modal',
-        'view-transactions'
-    ];
+			const action = btn.dataset.action;
 
-    // === DANH SÁCH ACTION CỦA TRANSACTION HISTORY (BỎ QUA HOÀN TOÀN) ===
-    const transactionActions = ['load-page', 'back-to-wallet'];
+			// === DANH SÁCH ACTION CỦA WALLET (CHỈ XỬ LÝ NHỮNG CÁI NÀY) ===
+			const walletActions = [
+				'show-create-wallet',
+				'hide-create-wallet',
+				'show-topup-modal',
+				'close-topup-modal',
+				'view-transactions'
+			];
 
-    // === XỬ LÝ: Nếu là action của Transaction History → BỎ QUA, KHÔNG CHẠM VÀO ===
-    if (transactionActions.includes(action)) {
-        console.log('Transaction action bypassed:', action);
-        // KHÔNG preventDefault, KHÔNG stopPropagation → để script kia xử lý
-        return;
-    }
+			// === CHỈ XỬ LÝ NẾU LÀ WALLET ACTION ===
+			// Các action khác (load-page, back-to-wallet) sẽ được xử lý bởi TransactionHistory.cshtml
+			if (!walletActions.includes(action)) {
+				// Không phải wallet action → bỏ qua, để handler khác xử lý
+				return;
+			}
 
-    // === Nếu là action của Wallet → xử lý bình thường ===
-    if (!walletActions.includes(action)) return;
+			// === XỬ LÝ WALLET ACTIONS ===
+			e.preventDefault();
+			e.stopPropagation();
+			console.log('Wallet action:', action);
 
-    e.preventDefault();
-    e.stopPropagation();
-    console.log('Wallet action:', action);
+			// === XỬ LÝ CÁC ACTION ===
+			if (action === "show-create-wallet") {
+				const formWrap = document.getElementById("create-wallet-form");
+				const firstBlock = document.querySelector("#wallet-content > div");
+				if (formWrap) formWrap.classList.add("show");     // hiển thị form (display:block theo CSS)
+				if (firstBlock) firstBlock.classList.add("hidden"); // ẩn khối đầu (no-wallet/wallet card)
+			}
 
-    // === XỬ LÝ CÁC ACTION ===
-    if (action === "show-create-wallet") {
-        const formWrap = document.getElementById("create-wallet-form");
-        const firstBlock = document.querySelector("#wallet-content > div");
-        if (formWrap) formWrap.classList.replace("hidden", "show");
-        if (firstBlock) firstBlock.classList.add("hidden");
-    }
-
-    if (action === "hide-create-wallet") {
-        const formWrap = document.getElementById("create-wallet-form");
-        const firstBlock = document.querySelector("#wallet-content > div");
-        if (formWrap) formWrap.classList.replace("show", "hidden");
-        if (firstBlock) firstBlock.classList.remove("hidden");
-    }
-
-    if (action === "show-topup-modal") {
-        const modal = document.getElementById("topup-modal");
-        if (modal) {
-            modal.classList.add("show");
-            document.body.style.overflow = 'hidden';
-            setTimeout(() => document.getElementById("topupAmount")?.focus(), 100);
-        }
-    }
-
-    if (action === "close-topup-modal") {
-        const modal = document.getElementById("topup-modal");
-        if (modal) {
-            modal.classList.remove("show");
-            document.body.style.overflow = '';
-            document.getElementById("topupForm")?.reset();
-        }
-    }
-
-    if (action === "view-transactions") {
-        const content = document.getElementById("profile-content");
-        if (!content) return;
-
-        window.__transactionHistoryInitialized = false;
-        content.innerHTML = `
-            <div style="text-align:center;padding:3rem">
-                <div style="display:inline-block;width:3rem;height:3rem;border:4px solid #fed7aa;border-top-color:#f97316;border-radius:50%;animation:spin 1s linear infinite"></div>
-                <p style="margin-top:1rem;color:#6b7280">Đang tải lịch sử giao dịch...</p>
-            </div>
-        `;
-
-        fetch('/Wallet/TransactionHistory')
-            .then(r => r.ok ? r.text() : Promise.reject(r.status))
-            .then(html => content.innerHTML = html)
-            .catch(() => {
-                content.innerHTML = `<div style="text-align:center;padding:3rem"><p style="color:#dc2626">Không thể tải</p></div>`;
-            });
-    }
-}
+			if (action === "hide-create-wallet") {
+				const formWrap = document.getElementById("create-wallet-form");
+				const firstBlock = document.querySelector("#wallet-content > div");
+				if (formWrap) formWrap.classList.remove("show");  // ẩn form (display:none mặc định)
+				if (firstBlock) firstBlock.classList.remove("hidden");
+			}
 
 
+			if (action === "show-topup-modal") {
+				const modal = document.getElementById("topup-modal");
+				if (modal) {
+					modal.classList.add("show");
+					document.body.style.overflow = 'hidden';
+					setTimeout(() => document.getElementById("topupAmount")?.focus(), 100);
+				}
+			}
+
+			if (action === "close-topup-modal") {
+				const modal = document.getElementById("topup-modal");
+				if (modal) {
+					modal.classList.remove("show");
+					document.body.style.overflow = '';
+					document.getElementById("topupForm")?.reset();
+				}
+			}
+
+			if (action === "view-transactions") {
+				const content = document.getElementById("profile-content");
+				if (!content) return;
+
+				window.__transactionHistoryInitialized = false;
+				content.innerHTML = `
+				<div style="text-align:center;padding:3rem">
+					<div style="display:inline-block;width:3rem;height:3rem;border:4px solid #fed7aa;border-top-color:#f97316;border-radius:50%;animation:spin 1s linear infinite"></div>
+					<p style="margin-top:1rem;color:#6b7280">Đang tải lịch sử giao dịch...</p>
+				</div>
+		`;
+
+				fetch('/Wallet/TransactionHistory')
+					.then(r => r.ok ? r.text() : Promise.reject(r.status))
+					.then(html => {
+						// EXTRACT VÀ EXECUTE SCRIPT TAGS
+						const tempDiv = document.createElement('div');
+						tempDiv.innerHTML = html;
+
+						// Set HTML (không bao gồm script)
+						const scripts = tempDiv.querySelectorAll('script');
+						scripts.forEach(s => s.remove());
+						content.innerHTML = tempDiv.innerHTML;
+
+						// Execute scripts
+						scripts.forEach(oldScript => {
+							const newScript = document.createElement('script');
+							if (oldScript.src) {
+								newScript.src = oldScript.src;
+							} else {
+								newScript.textContent = oldScript.textContent;
+							}
+							document.body.appendChild(newScript);
+							document.body.removeChild(newScript);
+						});
+
+						console.log('Transaction History loaded and scripts executed');
+					})
+					.catch(() => {
+						content.innerHTML = `<div style="text-align:center;padding:3rem"><p style="color:#dc2626">Không thể tải</p></div>`;
+					});
+			}
+		}
 
 
 
 
-        async function handleWalletSubmit(e) {
-            const form = e.target;
+		async function handleWalletSubmit(e) {
+			const form = e.target;
 
-            if (!form || (form.id !== "walletForm" && form.id !== "topupForm")) {
-                return;
-            }
+			if (!form || (form.id !== "walletForm" && form.id !== "topupForm")) {
+				return;
+			}
 
-            console.log('🔵 Wallet form submitted:', form.id);
-            e.preventDefault();
-            e.stopPropagation();
+			console.log('🔵 Wallet form submitted:', form.id);
+			e.preventDefault();
+			e.stopPropagation();
 
-            if (form.id === "walletForm") {
-                const btn = document.getElementById('btnCreateWallet');
-                setBtnLoading(btn, true, 'iconCreateWallet');
+			if (form.id === "walletForm") {
+				const btn = document.getElementById('btnCreateWallet');
+				setBtnLoading(btn, true, 'iconCreateWallet');
 
-                const formData = new FormData(form);
-                const data = { WalletName: formData.get("WalletName") || null };
+				const formData = new FormData(form);
+				const data = { WalletName: formData.get("WalletName") || null };
 
-                const token = form.querySelector('input[name="__RequestVerificationToken"]')?.value ||
-                    document.querySelector('input[name="__RequestVerificationToken"]')?.value || "";
+				const token = form.querySelector('input[name="__RequestVerificationToken"]')?.value ||
+					document.querySelector('input[name="__RequestVerificationToken"]')?.value || "";
 
-                try {
-                    const res = await fetch("/Wallet/Create", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                            "RequestVerificationToken": token
-                        },
-                        credentials: "same-origin",
-                        body: JSON.stringify(data)
-                    });
+				try {
+					const res = await fetch("/Wallet/Create", {
+						method: "POST",
+						headers: {
+							"Content-Type": "application/json",
+							"RequestVerificationToken": token
+						},
+						credentials: "same-origin",
+						body: JSON.stringify(data)
+					});
 
-                    if (res.status === 401) {
-                        window.location.href = '/Account/Login?returnUrl=' + encodeURIComponent(location.pathname + location.search);
-                        return;
-                    }
+					if (res.status === 401) {
+						window.location.href = '/Account/Login?returnUrl=' + encodeURIComponent(location.pathname + location.search);
+						return;
+					}
 
-                    const result = await res.json().catch(() => null);
-                    if (!result) {
-                        showToast('error', 'Lỗi dữ liệu', 'Máy chủ không trả về JSON hợp lệ.');
-                        return;
-                    }
+					const result = await res.json().catch(() => null);
+					if (!result) {
+						showToast('error', 'Lỗi dữ liệu', 'Máy chủ không trả về JSON hợp lệ.');
+						return;
+					}
 
-                    if (result.success) {
-                        const host = document.getElementById("profile-content");
-                        host.innerHTML = result.html;
+					if (result.success) {
+						const host = document.getElementById("profile-content");
+						host.innerHTML = result.html;
 
-                        window.__walletModuleInitialized = false;
-                        const tmp = document.createElement("div");
-                        tmp.innerHTML = result.html;
-                        const scripts = tmp.querySelectorAll("script");
-                        scripts.forEach(oldScript => {
-                            const s = document.createElement("script");
-                            for (const attr of oldScript.attributes) s.setAttribute(attr.name, attr.value);
-                            s.textContent = oldScript.textContent;
-                            document.body.appendChild(s);
-                        });
+						window.__walletModuleInitialized = false;
+						const tmp = document.createElement("div");
+						tmp.innerHTML = result.html;
+						const scripts = tmp.querySelectorAll("script");
+						scripts.forEach(oldScript => {
+							const s = document.createElement("script");
+							for (const attr of oldScript.attributes) s.setAttribute(attr.name, attr.value);
+							s.textContent = oldScript.textContent;
+							document.body.appendChild(s);
+						});
 
-                        showToast('success', 'Tạo ví thành công', 'Ví của bạn đã sẵn sàng!');
-                    } else {
-                        showToast('error', 'Không thể tạo ví', result.message || 'Vui lòng thử lại.');
-                    }
-                } catch (err) {
-                    console.error(err);
-                    showToast('error', 'Lỗi hệ thống', 'Có lỗi xảy ra, vui lòng thử lại.');
-                } finally {
-                    setBtnLoading(btn, false, 'iconCreateWallet');
-                }
-            }
+						showToast('success', 'Tạo ví thành công', 'Ví của bạn đã sẵn sàng!');
+					} else {
+						showToast('error', 'Không thể tạo ví', result.message || 'Vui lòng thử lại.');
+					}
+				} catch (err) {
+					console.error(err);
+					showToast('error', 'Lỗi hệ thống', 'Có lỗi xảy ra, vui lòng thử lại.');
+				} finally {
+					setBtnLoading(btn, false, 'iconCreateWallet');
+				}
+			}
 
-            if (form.id === "topupForm") {
-                console.log('🔵 Processing top-up form...');
+			if (form.id === "topupForm") {
+				console.log('🔵 Processing top-up form...');
 
-                const btn = document.getElementById('btnTopUp');
-                setBtnLoading(btn, true, 'iconTopUp');
+				const btn = document.getElementById('btnTopUp');
+				setBtnLoading(btn, true, 'iconTopUp');
 
-                const formData = new FormData(form);
-                const amount = parseFloat(formData.get("Amount"));
+				const formData = new FormData(form);
+				const amount = parseFloat(formData.get("Amount"));
 
-                console.log('💰 Amount to top up:', amount);
+				console.log('💰 Amount to top up:', amount);
 
-                if (!amount || amount < 10000) {
-                    showToast('error', 'Số tiền không hợp lệ', 'Số tiền nạp tối thiểu là 10,000đ');
-                    setBtnLoading(btn, false, 'iconTopUp');
-                    return;
-                }
+				if (!amount || amount < 10000) {
+					showToast('error', 'Số tiền không hợp lệ', 'Số tiền nạp tối thiểu là 10,000đ');
+					setBtnLoading(btn, false, 'iconTopUp');
+					return;
+				}
 
-                if (amount > 100000000) {
-                    showToast('error', 'Số tiền không hợp lệ', 'Số tiền nạp tối đa là 100,000,000đ');
-                    setBtnLoading(btn, false, 'iconTopUp');
-                    return;
-                }
+				if (amount > 100000000) {
+					showToast('error', 'Số tiền không hợp lệ', 'Số tiền nạp tối đa là 100,000,000đ');
+					setBtnLoading(btn, false, 'iconTopUp');
+					return;
+				}
 
-                const data = {
-                    Amount: amount,
-                    Reason: formData.get("Reason") || null,
-                    Method: null
-                };
+				const data = {
+					Amount: amount,
+					Reason: formData.get("Reason") || null,
+					Method: null
+				};
 
-                const token = form.querySelector('input[name="__RequestVerificationToken"]')?.value ||
-                    document.querySelector('input[name="__RequestVerificationToken"]')?.value || "";
+				const token = form.querySelector('input[name="__RequestVerificationToken"]')?.value ||
+					document.querySelector('input[name="__RequestVerificationToken"]')?.value || "";
 
-                console.log('🔑 Token found:', !!token);
-                console.log('📦 Data to send:', data);
+				console.log('🔑 Token found:', !!token);
+				console.log('📦 Data to send:', data);
 
-                try {
-                    console.log('📡 Sending request to /Wallet/TopUp...');
+				try {
+					console.log('📡 Sending request to /Wallet/TopUp...');
 
-                    const res = await fetch("/Wallet/TopUp", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                            "RequestVerificationToken": token
-                        },
-                        credentials: "same-origin",
-                        body: JSON.stringify(data)
-                    });
+					const res = await fetch("/Wallet/TopUp", {
+						method: "POST",
+						headers: {
+							"Content-Type": "application/json",
+							"RequestVerificationToken": token
+						},
+						credentials: "same-origin",
+						body: JSON.stringify(data)
+					});
 
-                    console.log('📥 Response status:', res.status);
+					console.log('📥 Response status:', res.status);
 
-                    if (res.status === 401) {
-                        window.location.href = '/Account/Login?returnUrl=' + encodeURIComponent(location.pathname + location.search);
-                        return;
-                    }
+					if (res.status === 401) {
+						window.location.href = '/Account/Login?returnUrl=' + encodeURIComponent(location.pathname + location.search);
+						return;
+					}
 
-                    const result = await res.json().catch(() => null);
-                    console.log('📋 Result:', result);
+					const result = await res.json().catch(() => null);
+					console.log('📋 Result:', result);
 
-                    if (!result) {
-                        showToast('error', 'Lỗi dữ liệu', 'Máy chủ không trả về JSON hợp lệ.');
-                        return;
-                    }
+					if (!result) {
+						showToast('error', 'Lỗi dữ liệu', 'Máy chủ không trả về JSON hợp lệ.');
+						return;
+					}
 
-                    if (result.success) {
-                        console.log('✅ Top-up successful!');
+					if (result.success) {
+						console.log('✅ Top-up successful!');
 
-                        const host = document.getElementById("profile-content");
-                        if (host && result.html) {
-                            host.innerHTML = result.html;
+						const host = document.getElementById("profile-content");
+						if (host && result.html) {
+							host.innerHTML = result.html;
 
-                            window.__walletModuleInitialized = false;
-                            const tmp = document.createElement("div");
-                            tmp.innerHTML = result.html;
-                            const scripts = tmp.querySelectorAll("script");
-                            scripts.forEach(oldScript => {
-                                const s = document.createElement("script");
-                                for (const attr of oldScript.attributes) s.setAttribute(attr.name, attr.value);
-                                s.textContent = oldScript.textContent;
-                                document.body.appendChild(s);
-                            });
-                        }
+							window.__walletModuleInitialized = false;
+							const tmp = document.createElement("div");
+							tmp.innerHTML = result.html;
+							const scripts = tmp.querySelectorAll("script");
+							scripts.forEach(oldScript => {
+								const s = document.createElement("script");
+								for (const attr of oldScript.attributes) s.setAttribute(attr.name, attr.value);
+								s.textContent = oldScript.textContent;
+								document.body.appendChild(s);
+							});
+						}
 
-                        const modal = document.getElementById("topup-modal");
-                        if (modal) {
-                            modal.classList.remove("show");
-                            document.body.style.overflow = '';
-                        }
-                        form.reset();
+						const modal = document.getElementById("topup-modal");
+						if (modal) {
+							modal.classList.remove("show");
+							document.body.style.overflow = '';
+						}
+						form.reset();
 
-                        showToast('success', 'Nạp tiền thành công',
-                            `Đã nạp ${amount.toLocaleString('vi-VN')}đ vào ví. Số dư mới: ${result.newBalance?.toLocaleString('vi-VN')}đ`);
-                    } else {
-                        console.error('❌ Top-up failed:', result.message);
-                        showToast('error', 'Nạp tiền thất bại', result.message || 'Vui lòng thử lại.');
-                    }
-                } catch (err) {
-                    console.error('❌ Top-up error:', err);
-                    showToast('error', 'Lỗi hệ thống', 'Có lỗi xảy ra, vui lòng thử lại.');
-                } finally {
-                    setBtnLoading(btn, false, 'iconTopUp');
-                }
-            }
-        }
+						showToast('success', 'Nạp tiền thành công',
+							`Đã nạp ${amount.toLocaleString('vi-VN')}đ vào ví. Số dư mới: ${result.newBalance?.toLocaleString('vi-VN')}đ`);
+					} else {
+						console.error('❌ Top-up failed:', result.message);
+						showToast('error', 'Nạp tiền thất bại', result.message || 'Vui lòng thử lại.');
+					}
+				} catch (err) {
+					console.error('❌ Top-up error:', err);
+					showToast('error', 'Lỗi hệ thống', 'Có lỗi xảy ra, vui lòng thử lại.');
+				} finally {
+					setBtnLoading(btn, false, 'iconTopUp');
+				}
+			}
+		}
 
-        const topupModal = document.getElementById("topup-modal");
-        if (topupModal) {
-            topupModal.addEventListener("click", function (e) {
-                if (e.target.id === "topup-modal") {
-                    this.classList.remove("show");
-                    document.body.style.overflow = '';
-                    const form = document.getElementById("topupForm");
-                    if (form) form.reset();
-                }
-            });
-        }
+		const topupModal = document.getElementById("topup-modal");
+		if (topupModal) {
+			topupModal.addEventListener("click", function (e) {
+				if (e.target.id === "topup-modal") {
+					this.classList.remove("show");
+					document.body.style.overflow = '';
+					const form = document.getElementById("topupForm");
+					if (form) form.reset();
+				}
+			});
+		}
 
-        document.addEventListener("keydown", function (e) {
-            if (e.key === "Escape") {
-                const modal = document.getElementById("topup-modal");
-                if (modal && modal.classList.contains("show")) {
-                    modal.classList.remove("show");
-                    document.body.style.overflow = '';
-                    const form = document.getElementById("topupForm");
-                    if (form) form.reset();
-                }
-            }
-        });
+		document.addEventListener("keydown", function (e) {
+			if (e.key === "Escape") {
+				const modal = document.getElementById("topup-modal");
+				if (modal && modal.classList.contains("show")) {
+					modal.classList.remove("show");
+					document.body.style.overflow = '';
+					const form = document.getElementById("topupForm");
+					if (form) form.reset();
+				}
+			}
+		});
 
-        console.log('✅ Wallet module initialized successfully');
-    })();
+		// === LƯU CLEANUP FUNCTION ===
+		window.__walletCleanup = function () {
+			console.log('🧹 Removing wallet event listeners...');
+			document.body.removeEventListener("click", handleWalletClick, true);
+			document.body.removeEventListener("submit", handleWalletSubmit, true);
+			window.__walletModuleInitialized = false;
+		};
+
+		console.log('✅ Wallet module initialized successfully');
+	})();
 </script>

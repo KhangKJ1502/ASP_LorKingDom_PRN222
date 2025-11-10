@@ -275,7 +275,6 @@
                 <table class="table table-bordered table-striped table-hover">
                     <thead class="table-dark">
                         <tr>
-                            <th style="width: 40px;"><input type="checkbox" id="selectAll" class="form-check-input"></th>
                             <th>Mã Voucher</th>
                             <th>Loại Voucher</th>
                             <th>Giảm Giá</th>
@@ -292,7 +291,6 @@
                             @foreach (var voucher in Model)
                             {
                                 <tr class="@(voucher.Status == "Inactive" ? "deleted-row" : "")" data-voucher-id="@voucher.VoucherId">
-                                    <td><input type="checkbox" class="form-check-input row-checkbox"></td>
                                     <td><span class="chip"><i class="fa-solid fa-ticket"></i>@voucher.VoucherCode</span></td>
                                     <td>@voucher.VoucherTypeName</td>
                                     <td>@voucher.DiscountValue.ToString("N0") VND</td>

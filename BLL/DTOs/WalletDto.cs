@@ -47,8 +47,13 @@
     {
         public List<WalletTransactionDto> Transactions { get; set; } = new();
         public int TotalCount { get; set; }
-        public int CurrentPage { get; set; }
-        public int PageSize { get; set; }
-        public int TotalPages => (int)Math.Ceiling((double)TotalCount / PageSize);
+        public int CurrentPage { get; set; }      
+        public int PageSize { get; set; }      
+
+        public int TotalPages =>
+            Math.Max(1, (int)Math.Ceiling(TotalCount / (double)Math.Max(1, PageSize)));
+
+        public bool HasPrev => CurrentPage > 1;
+        public bool HasNext => CurrentPage < TotalPages;
     }
 }
