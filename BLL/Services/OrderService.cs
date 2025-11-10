@@ -241,12 +241,12 @@ namespace BLL.Services
                     {
                         WalletId = wallet.WalletId,
                         AccountId = accountId,
-                        RelatedOrderId = orderId, 
+                        RelatedOrderId = orderId,
                         TxnType = "Payment",
                         Direction = "DR", // Debit 
                         Amount = paidByWallet,
-                        BalanceBefore = wallet.Balance + paidByWallet, 
-                        BalanceAfter = wallet.Balance, 
+                        BalanceBefore = wallet.Balance + paidByWallet,
+                        BalanceAfter = wallet.Balance,
                         Method = "Wallet",
                         Status = "Completed",
                         Reason = $"Thanh toán đơn hàng #{orderId}",
@@ -262,7 +262,15 @@ namespace BLL.Services
                 foreach (var cartItem in cart?.CartItems ?? new List<CartItem>())
                 {
                     var product = cartItem.Product;
-                    product.Quantity -= cartItem.Quantity;
+                    var newQty = product.Quantity - cartItem.Quantity;
+                    if (newQty < 0) newQty = 0;
+                    product.Quantity = newQty;
+                    if (!string.Equals(product.ProductStatus, "Discontinued", StringComparison.OrdinalIgnoreCase))
+                    {
+                        product.ProductStatus = (product.Quantity <= 0) ? "OutOfStock" : "Available";
+                    }
+
+                    product.UpdatedAt = DateTime.UtcNow;
                     await _productRepo.UpdateAsync(product);
                 }
 
