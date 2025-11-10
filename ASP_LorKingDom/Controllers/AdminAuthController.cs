@@ -19,9 +19,7 @@ namespace WebUI.Controllers
             _emailOtpService = emailOtpService;
         }
 
-        /// <summary>
         /// Redirect admin login sang RazorUI project
-        /// </summary>
         [HttpGet]
         public IActionResult RedirectToRazorUI(string? returnUrl = null)
         {
@@ -34,84 +32,84 @@ namespace WebUI.Controllers
             return Redirect(razorUILoginUrl);
         }
 
-        [HttpGet]
-        public IActionResult Login(string? returnUrl = null)
-        {
-            ViewBag.ReturnUrl = returnUrl;
-            return View();
-        }
+        //[HttpGet]
+        //public IActionResult Login(string? returnUrl = null)
+        //{
+        //    ViewBag.ReturnUrl = returnUrl;
+        //    return View();
+        //}
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<JsonResult> Login(string email, string password, bool rememberMe = false, string? returnUrl = null)
-        {
-            try
-            {
-                email = email?.Trim().ToLower() ?? "";
+        //[HttpPost]
+        //[ValidateAntiForgeryToken]
+        //public async Task<JsonResult> Login(string email, string password, bool rememberMe = false, string? returnUrl = null)
+        //{
+        //    try
+        //    {
+        //        email = email?.Trim().ToLower() ?? "";
 
-                if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
-                    return Json(new { success = false, message = "Vui lòng nhập đầy đủ thông tin." });
+        //        if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
+        //            return Json(new { success = false, message = "Vui lòng nhập đầy đủ thông tin." });
 
-                var user = await _accountService.AuthenticateAsync(email, password);
-                if (user == null)
-                    return Json(new { success = false, message = "Email hoặc mật khẩu không đúng." });
+        //        var user = await _accountService.AuthenticateAsync(email, password);
+        //        if (user == null)
+        //            return Json(new { success = false, message = "Email hoặc mật khẩu không đúng." });
 
-                var roleName = await _roleService.GetRoleNameByIdAsync(user.RoleId);
+        //        var roleName = await _roleService.GetRoleNameByIdAsync(user.RoleId);
 
-                // Kiểm tra role có phải Admin/Staff/Warehouse không
-                if (roleName != "Admin" && roleName != "Staff" && roleName != "WareHouse")
-                {
-                    return Json(new { success = false, message = "Bạn không có quyền truy cập vào hệ thống quản lý." });
-                }
+        //        // Kiểm tra role có phải Admin/Staff/Warehouse không
+        //        if (roleName != "Admin" && roleName != "Staff" && roleName != "WareHouse")
+        //        {
+        //            return Json(new { success = false, message = "Bạn không có quyền truy cập vào hệ thống quản lý." });
+        //        }
 
-                var claims = new List<Claim>
-                {
-                    new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                    new Claim(ClaimTypes.Name, user.Email),
-                    new Claim(ClaimTypes.Role, roleName ?? "Staff"),
-                    new Claim("AccountName", user.AccountName ?? email.Split('@')[0]),
-                    new Claim("Avatar", user.Image ?? "/Assets/image/avatar/avatar-illustrated-02.png")
-                };
+        //        var claims = new List<Claim>
+        //        {
+        //            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+        //            new Claim(ClaimTypes.Name, user.Email),
+        //            new Claim(ClaimTypes.Role, roleName ?? "Staff"),
+        //            new Claim("AccountName", user.AccountName ?? email.Split('@')[0]),
+        //            new Claim("Avatar", user.Image ?? "/Assets/image/avatar/avatar-illustrated-02.png")
+        //        };
 
-                var identity = new ClaimsIdentity(claims, "AdminScheme");
-                var principal = new ClaimsPrincipal(identity);
+        //        var identity = new ClaimsIdentity(claims, "AdminScheme");
+        //        var principal = new ClaimsPrincipal(identity);
 
-                await HttpContext.SignInAsync("AdminScheme", principal,
-                    new AuthenticationProperties
-                    {
-                        IsPersistent = rememberMe,
-                        ExpiresUtc = rememberMe ? DateTimeOffset.UtcNow.AddDays(7) : null
-                    });
+        //        await HttpContext.SignInAsync("AdminScheme", principal,
+        //            new AuthenticationProperties
+        //            {
+        //                IsPersistent = rememberMe,
+        //                ExpiresUtc = rememberMe ? DateTimeOffset.UtcNow.AddDays(7) : null
+        //            });
 
-                // Phân quyền redirect theo role
-                string defaultRedirect;
-                if (roleName == "Warehouse" || roleName == "Admin")
-                {
-                    // Warehouse chỉ xem được Product Statistics
-                    defaultRedirect = "/Statistics/ProductStatistics";
-                }
-                else if (roleName == "Staff" || roleName == "Admin")
-                {
-                    // Admin và Staff xem được Dashboard
-                    defaultRedirect = "/Statistics/Dashboard";
-                }
-                else
-                {
-                    defaultRedirect = "/Statistics/Dashboard";
-                }
+        //        // Phân quyền redirect theo role
+        //        string defaultRedirect;
+        //        if (roleName == "Warehouse" || roleName == "Admin")
+        //        {
+        //            // Warehouse chỉ xem được Product Statistics
+        //            defaultRedirect = "/Statistics/ProductStatistics";
+        //        }
+        //        else if (roleName == "Staff" || roleName == "Admin")
+        //        {
+        //            // Admin và Staff xem được Dashboard
+        //            defaultRedirect = "/Statistics/Dashboard";
+        //        }
+        //        else
+        //        {
+        //            defaultRedirect = "/Statistics/Dashboard";
+        //        }
 
-                return Json(new
-                {
-                    success = true,
-                    message = $"Đăng nhập thành công! Chào mừng {roleName}.",
-                    redirectUrl = returnUrl ?? defaultRedirect
-                });
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = "Đã xảy ra lỗi: " + ex.Message });
-            }
-        }
+        //        return Json(new
+        //        {
+        //            success = true,
+        //            message = $"Đăng nhập thành công! Chào mừng {roleName}.",
+        //            redirectUrl = returnUrl ?? defaultRedirect
+        //        });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return Json(new { success = false, message = "Đã xảy ra lỗi: " + ex.Message });
+        //    }
+        //}
 
         [HttpPost]
         [ValidateAntiForgeryToken]

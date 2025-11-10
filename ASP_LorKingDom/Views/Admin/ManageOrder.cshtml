@@ -48,6 +48,7 @@
         font-weight: 600;
     }
 
+    /* Refund Status Colors */
     .refund-pending {
         background-color: #fff3cd;
         color: #856404;
@@ -73,6 +74,7 @@
         font-weight: 600;
     }
 
+    /* Table Styles */
     .order-id {
         font-weight: 600;
         color: #667eea;
@@ -98,6 +100,7 @@
         cursor: pointer;
     }
 
+    /* Modal Styles */
     #orderModal .modal-content {
         border: none;
         border-radius: 16px;
@@ -127,19 +130,19 @@
         background-color: #f8f9fa;
     }
 
+    /* Order Detail Section */
     .order-detail-section {
         background-color: white;
         padding: 1rem;
         border-radius: 8px;
-        /* margin-bottom: 1rem; */
         border: 1px solid #e9ecef;
     }
 
-    .order-detail-section h6 {
-        font-weight: 600;
-        margin-bottom: 1rem;
-        color: #1f2937;
-    }
+        .order-detail-section h6 {
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #1f2937;
+        }
 
     .detail-row {
         display: flex;
@@ -148,9 +151,9 @@
         border-bottom: 1px solid #e9ecef;
     }
 
-    .detail-row:last-child {
-        border-bottom: none;
-    }
+        .detail-row:last-child {
+            border-bottom: none;
+        }
 
     .detail-label {
         font-weight: 500;
@@ -163,27 +166,28 @@
         font-weight: 500;
     }
 
+    /* Order Items List */
     .order-items-list {
         list-style: none;
         padding: 0;
         margin: 0;
     }
 
-    .order-items-list li {
-        padding: 0.75rem 0;
-        border-bottom: 1px solid #e9ecef;
-        font-size: 0.9rem;
-    }
+        .order-items-list li {
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #e9ecef;
+            font-size: 0.9rem;
+        }
 
-    .order-items-list li:last-child {
-        border-bottom: none;
-    }
+            .order-items-list li:last-child {
+                border-bottom: none;
+            }
 
+    /* Total Section */
     .total-section {
         background-color: #f8f9fa;
         padding: 1rem;
         border-radius: 8px;
-        /* margin-top: 0.5rem; */
     }
 
     .total-row {
@@ -194,12 +198,12 @@
         color: #1f2937;
     }
 
-    .total-row.grand {
-        font-size: 1.25rem;
-        color: #667eea;
-        border-top: 2px solid #e9ecef;
-        padding-top: 0.75rem;
-    }
+        .total-row.grand {
+            font-size: 1.25rem;
+            color: #667eea;
+            border-top: 2px solid #e9ecef;
+            padding-top: 0.75rem;
+        }
 </style>
 
 <div class="container-fluid px-5">
@@ -212,12 +216,12 @@
         </div>
 
         <div class="card-body">
-            <!-- Tìm kiếm và Lọc -->
+            <!-- Search and Filter Form -->
             <form class="mb-4" method="get" asp-action="Manage" asp-controller="Order">
                 <div class="row g-2 mb-3">
                     <div class="col-md-3">
                         <input type="text" name="q" value="@q" class="form-control border"
-                            placeholder="Tìm theo ID, tên khách hàng...">
+                               placeholder="Tìm theo ID, tên khách hàng...">
                     </div>
                     <div class="col-md-2">
                         <select name="status" class="form-control">
@@ -243,7 +247,7 @@
                 </div>
             </form>
 
-            <!-- Table -->
+            <!-- Orders Table -->
             <div class="table-responsive">
                 <table class="table table-bordered table-striped table-hover">
                     <thead class="table-dark">
@@ -292,19 +296,9 @@
                                                 5 => "status-cancelled",
                                                 _ => "status-pending"
                                             };
-
-                                            var statusIcon = order.StatusId switch
-                                            {
-                                                1 => "fas fa-clock",
-                                                2 => "fas fa-check-circle",
-                                                3 => "fas fa-truck",
-                                                4 => "fas fa-box",
-                                                5 => "fas fa-times-circle",
-                                                _ => "fas fa-circle"
-                                            };
                                         }
-                                        
-                                        <select class="form-select form-select-sm status-badge @statusClass" 
+
+                                        <select class="form-select form-select-sm status-badge @statusClass"
                                                 onchange="updateOrderStatus(@order.OrderId, this.value)"
                                                 style="width: auto; display: inline-block; font-weight: 600;">
                                             <option value="1" selected="@(order.StatusId == 1)">Chờ xác nhận</option>
@@ -347,7 +341,7 @@
                 <ul class="pagination justify-content-center">
                     <li class="page-item @(currentPage == 1 ? "disabled" : "")">
                         <a class="page-link"
-                            href="@Url.Action("Manage", "Order", new { q, status = statusFilter, dateFrom = dateFromFilter, dateTo = dateToFilter, page = currentPage - 1 })">
+                           href="@Url.Action("Manage", "Order", new { q, status = statusFilter, dateFrom = dateFromFilter, dateTo = dateToFilter, page = currentPage - 1 })">
                             <i class="fas fa-chevron-left me-1"></i>Trước
                         </a>
                     </li>
@@ -372,7 +366,7 @@
                     {
                         <li class="page-item @(i == currentPage ? "active" : "")">
                             <a class="page-link"
-                                href="@Url.Action("Manage", "Order", new { q, status = statusFilter, dateFrom = dateFromFilter, dateTo = dateToFilter, page = i })">
+                               href="@Url.Action("Manage", "Order", new { q, status = statusFilter, dateFrom = dateFromFilter, dateTo = dateToFilter, page = i })">
                                 @i
                             </a>
                         </li>
@@ -391,7 +385,7 @@
 
                     <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
                         <a class="page-link"
-                            href="@Url.Action("Manage", "Order", new { q, status = statusFilter, dateFrom = dateFromFilter, dateTo = dateToFilter, page = currentPage + 1 })">
+                           href="@Url.Action("Manage", "Order", new { q, status = statusFilter, dateFrom = dateFromFilter, dateTo = dateToFilter, page = currentPage + 1 })">
                             Sau <i class="fas fa-chevron-right ms-1"></i>
                         </a>
                     </li>
@@ -401,7 +395,7 @@
     </div>
 </div>
 
-<!-- Modal View Detail -->
+<!-- Order Detail Modal -->
 <div class="modal fade" id="orderDetailModal" tabindex="-1" aria-labelledby="orderDetailLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content" id="orderModal">
@@ -412,7 +406,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body" id="orderDetailContent">
-                <!-- Content sẽ được load bằng JS -->
+                <!-- Content will be loaded by JavaScript -->
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
@@ -421,10 +415,10 @@
     </div>
 </div>
 
-<!-- Toast lỗi -->
+<!-- Error Toast -->
 <div class="toast-container position-fixed p-3 toast-top-right" style="z-index: 2080;">
     <div id="liveToast" class="toast align-items-center text-bg-danger border-0" role="alert" aria-live="assertive"
-        aria-atomic="true">
+         aria-atomic="true">
         <div class="d-flex">
             <div class="toast-body fs-5 fw-semibold">
                 <i class="fa-solid fa-circle-exclamation me-2"></i>
@@ -437,11 +431,14 @@
 
 @section Scripts {
     <script>
+        "use strict";
+
         dayjs.locale('vi');
 
-        // View Order Detail - Load from server
+        /* ============================================
+           🔹 VIEW ORDER DETAIL
+           ============================================ */
         function viewOrderDetail(orderId) {
-            // Show loading
             Swal.fire({
                 title: 'Đang tải...',
                 didOpen: () => Swal.showLoading(),
@@ -455,131 +452,13 @@
                 data: { id: orderId },
                 success: function(result) {
                     Swal.close();
-                    
+
                     if (!result.success || !result.order) {
                         Swal.fire('Lỗi', result.message || 'Không tìm thấy đơn hàng', 'error');
                         return;
                     }
 
-                    const order = result.order;
-                    const orderDateFormatted = dayjs(order.orderDate).format('DD/MM/YYYY HH:mm');
-
-                    const statusClass = order.statusId === 1 ? 'status-pending' :
-                        order.statusId === 2 ? 'status-confirmed' :
-                        order.statusId === 3 ? 'status-shipping' :
-                        order.statusId === 4 ? 'status-delivered' :
-                        order.statusId === 5 ? 'status-cancelled' : 'status-pending';
-
-                    const refundClass = (order.refundStatus?.toLowerCase() || 'none') === 'pending' ? 'refund-pending' :
-                        order.refundStatus?.toLowerCase() === 'approved' ? 'refund-approved' : 'refund-none';
-
-                    const itemsHtml = (order.orderDetails || []).map(item => `
-                        <li>
-                            <div style="display: flex; justify-content: space-between;">
-                                <span>${item.productName}</span>
-                                <span>${item.quantity} x ${item.unitPrice.toLocaleString('vi-VN')}đ = ${item.total.toLocaleString('vi-VN')}đ</span>
-                            </div>
-                        </li>
-                    `).join('');
-
-                    const subtotal = (order.orderDetails || []).reduce((sum, item) => sum + item.total, 0);
-
-                    const content = `
-                        <div class="row g-3">
-                            <div class="col-md-12">
-                                <div class="order-detail-section">
-                                    <h6><i class="fas fa-info-circle me-2"></i>Thông tin chung</h6>
-                                    <div class="detail-row">
-                                        <span class="detail-label">Mã đơn hàng:</span>
-                                        <span class="detail-value">#${order.orderId.toString().padStart(6, '0')}</span>
-                                    </div>
-                                    <div class="detail-row">
-                                        <span class="detail-label">Trạng thái:</span>
-                                        <span class="status-badge ${statusClass}">
-                                            <i class="fas fa-check-circle"></i> ${order.statusName}
-                                        </span>
-                                    </div>
-                                    <div class="detail-row">
-                                        <span class="detail-label">Hoàn tiền:</span>
-                                        <span class="refund-badge ${refundClass}">${order.refundStatus || 'None'}</span>
-                                    </div>
-                                    <div class="detail-row">
-                                        <span class="detail-label">Ngày đặt:</span>
-                                        <span class="detail-value">${orderDateFormatted}</span>
-                                    </div>
-                                    <div class="detail-row">
-                                        <span class="detail-label">Khách hàng:</span>
-                                        <span class="detail-value">${order.accountName || 'N/A'}</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="col-md-12">
-                                <div class="order-detail-section">
-                                    <h6><i class="fas fa-map-marker-alt me-2"></i>Thông tin giao hàng</h6>
-                                    <div class="detail-row">
-                                        <span class="detail-label">Người nhận:</span>
-                                        <span class="detail-value">${order.shippingName}</span>
-                                    </div>
-                                    <div class="detail-row">
-                                        <span class="detail-label">Số điện thoại:</span>
-                                        <span class="detail-value">${order.shippingPhone}</span>
-                                    </div>
-                                    <div class="detail-row">
-                                        <span class="detail-label">Địa chỉ:</span>
-                                        <span class="detail-value">${order.shippingAddressLine}</span>
-                                    </div>
-                                    <div class="detail-row">
-                                        <span class="detail-label">Phường/Xã:</span>
-                                        <span class="detail-value">${order.shippingWard}</span>
-                                    </div>
-                                    <div class="detail-row">
-                                        <span class="detail-label">Tỉnh/Thành phố:</span>
-                                        <span class="detail-value">${order.shippingCity}</span>
-                                    </div>
-                                    <div class="detail-row">
-                                        <span class="detail-label">Phương thức vận chuyển:</span>
-                                        <span class="detail-value">${order.shippingMethod === 'express' ? 'Giao nhanh' : 'Giao tiêu chuẩn'}</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="col-md-12">
-                                <div class="order-detail-section">
-                                    <h6><i class="fas fa-box me-2"></i>Chi tiết sản phẩm</h6>
-                                    <ul class="order-items-list">
-                                        ${itemsHtml || '<li class="text-muted">Chưa có sản phẩm</li>'}
-                                    </ul>
-                                </div>
-                            </div>
-
-                            <div class="col-md-12">
-                                <div class="total-section">
-                                    <div class="total-row">
-                                        <span>Tạm tính:</span>
-                                        <span>${subtotal.toLocaleString('vi-VN')}đ</span>
-                                    </div>
-                                    <div class="total-row">
-                                        <span>Phí vận chuyển:</span>
-                                        <span>${order.shippingFee.toLocaleString('vi-VN')}đ</span>
-                                    </div>
-                                    ${order.discountAmount > 0 ? `
-                                    <div class="total-row">
-                                        <span>Giảm giá ${order.voucherCode ? '(' + order.voucherCode + ')' : ''}:</span>
-                                        <span class="text-danger">-${order.discountAmount.toLocaleString('vi-VN')}đ</span>
-                                    </div>
-                                    ` : ''}
-                                    <div class="total-row grand">
-                                        <span>Tổng cộng:</span>
-                                        <span>${order.totalAmount.toLocaleString('vi-VN')}đ</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                    document.getElementById('orderDetailContent').innerHTML = content;
-                    const modal = new bootstrap.Modal(document.getElementById('orderDetailModal'));
-                    modal.show();
+                    displayOrderDetail(result.order);
                 },
                 error: function() {
                     Swal.close();
@@ -588,7 +467,132 @@
             });
         }
 
-        // Update Order Status
+        /* ============================================
+           🔹 DISPLAY ORDER DETAIL
+           ============================================ */
+        function displayOrderDetail(order) {
+            const orderDateFormatted = dayjs(order.orderDate).format('DD/MM/YYYY HH:mm');
+
+            const statusClass = getStatusClass(order.statusId);
+            const refundClass = getRefundClass(order.refundStatus);
+
+            const itemsHtml = (order.orderDetails || []).map(item => `
+                <li>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>${item.productName}</span>
+                        <span>${item.quantity} x ${item.unitPrice.toLocaleString('vi-VN')}đ = ${item.total.toLocaleString('vi-VN')}đ</span>
+                    </div>
+                </li>
+            `).join('');
+
+            const subtotal = (order.orderDetails || []).reduce((sum, item) => sum + item.total, 0);
+
+            const content = `
+                <div class="row g-3">
+                    <!-- General Information -->
+                    <div class="col-md-12">
+                        <div class="order-detail-section">
+                            <h6><i class="fas fa-info-circle me-2"></i>Thông tin chung</h6>
+                            <div class="detail-row">
+                                <span class="detail-label">Mã đơn hàng:</span>
+                                <span class="detail-value">#${order.orderId.toString().padStart(6, '0')}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Trạng thái:</span>
+                                <span class="status-badge ${statusClass}">
+                                    <i class="fas fa-check-circle"></i> ${order.statusName}
+                                </span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Hoàn tiền:</span>
+                                <span class="refund-badge ${refundClass}">${order.refundStatus || 'None'}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Ngày đặt:</span>
+                                <span class="detail-value">${orderDateFormatted}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Khách hàng:</span>
+                                <span class="detail-value">${order.accountName || 'N/A'}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Shipping Information -->
+                    <div class="col-md-12">
+                        <div class="order-detail-section">
+                            <h6><i class="fas fa-map-marker-alt me-2"></i>Thông tin giao hàng</h6>
+                            <div class="detail-row">
+                                <span class="detail-label">Người nhận:</span>
+                                <span class="detail-value">${order.shippingName}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Số điện thoại:</span>
+                                <span class="detail-value">${order.shippingPhone}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Địa chỉ:</span>
+                                <span class="detail-value">${order.shippingAddressLine}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Phường/Xã:</span>
+                                <span class="detail-value">${order.shippingWard}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Tỉnh/Thành phố:</span>
+                                <span class="detail-value">${order.shippingCity}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Phương thức vận chuyển:</span>
+                                <span class="detail-value">${order.shippingMethod === 'express' ? 'Giao nhanh' : 'Giao tiêu chuẩn'}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Product Details -->
+                    <div class="col-md-12">
+                        <div class="order-detail-section">
+                            <h6><i class="fas fa-box me-2"></i>Chi tiết sản phẩm</h6>
+                            <ul class="order-items-list">
+                                ${itemsHtml || '<li class="text-muted">Chưa có sản phẩm</li>'}
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Total Section -->
+                    <div class="col-md-12">
+                        <div class="total-section">
+                            <div class="total-row">
+                                <span>Tạm tính:</span>
+                                <span>${subtotal.toLocaleString('vi-VN')}đ</span>
+                            </div>
+                            <div class="total-row">
+                                <span>Phí vận chuyển:</span>
+                                <span>${order.shippingFee.toLocaleString('vi-VN')}đ</span>
+                            </div>
+                            ${order.discountAmount > 0 ? `
+                            <div class="total-row">
+                                <span>Giảm giá ${order.voucherCode ? '(' + order.voucherCode + ')' : ''}:</span>
+                                <span class="text-danger">-${order.discountAmount.toLocaleString('vi-VN')}đ</span>
+                            </div>
+                            ` : ''}
+                            <div class="total-row grand">
+                                <span>Tổng cộng:</span>
+                                <span>${order.totalAmount.toLocaleString('vi-VN')}đ</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('orderDetailContent').innerHTML = content;
+            const modal = new bootstrap.Modal(document.getElementById('orderDetailModal'));
+            modal.show();
+        }
+
+        /* ============================================
+           🔹 UPDATE ORDER STATUS
+           ============================================ */
         function updateOrderStatus(orderId, newStatusId) {
             Swal.fire({
                 title: 'Xác nhận cập nhật?',
@@ -601,7 +605,6 @@
                 cancelButtonText: 'Hủy'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    // Show loading
                     Swal.fire({
                         title: 'Đang xử lý...',
                         didOpen: () => Swal.showLoading(),
@@ -615,7 +618,7 @@
                         data: { orderId: orderId, statusId: newStatusId },
                         success: function(result) {
                             Swal.close();
-                            
+
                             if (result.success) {
                                 Swal.fire({
                                     icon: 'success',
@@ -627,20 +630,42 @@
                                 });
                             } else {
                                 Swal.fire('Lỗi', result.message, 'error');
-                                location.reload(); // Reload to reset select
+                                location.reload();
                             }
                         },
                         error: function() {
                             Swal.close();
                             Swal.fire('Lỗi', 'Không thể cập nhật trạng thái', 'error');
-                            location.reload(); // Reload to reset select
+                            location.reload();
                         }
                     });
                 } else {
-                    // Reset select to original value
                     location.reload();
                 }
             });
+        }
+
+        /* ============================================
+           🔹 HELPER FUNCTIONS
+           ============================================ */
+        function getStatusClass(statusId) {
+            const statusMap = {
+                1: 'status-pending',
+                2: 'status-confirmed',
+                3: 'status-shipping',
+                4: 'status-delivered',
+                5: 'status-cancelled'
+            };
+            return statusMap[statusId] || 'status-pending';
+        }
+
+        function getRefundClass(refundStatus) {
+            const refundMap = {
+                'pending': 'refund-pending',
+                'approved': 'refund-approved',
+                'none': 'refund-none'
+            };
+            return refundMap[refundStatus?.toLowerCase()] || 'refund-none';
         }
     </script>
 }
