@@ -3,237 +3,245 @@
 	Layout = "_AdminLayout";
 	ViewData["Title"] = "Product Statistics";
 }
+<link rel="stylesheet" href="~/css/Prroduct-Statics.css" asp-append-version="true" />
 
-<div class="container-fluid">
-	<div class="row mb-4">
-		<div class="col-12">
-			<h2 class="mb-0">📦 Thống kê sản phẩm</h2>
-			<p class="text-muted">Dữ liệu chi tiết.</p>
-		</div>
-	</div>
 
-	<!-- Summary Cards -->
-	<div class="row g-3 mb-4">
-		<div class="col-xl-2 col-md-4 col-sm-6">
-			<div class="card border-0 shadow-sm">
-				<div class="card-body text-center">
-					<h6 class="text-muted">Tổng sản phẩm</h6>
-					<h3 class="text-primary">@Model.TotalProducts</h3>
-				</div>
-			</div>
+<div class="stats-container">
+	<div class="container-fluid">
+		<!-- Header -->
+		<div class="stats-header">
+			<h1 class="stats-title">Thống Kê Sản Phẩm</h1>
+			<p class="text-muted mb-0" style="font-size: 1.1rem;">Dữ liệu chi tiết về hàng hóa và tồn kho</p>
 		</div>
-		<div class="col-xl-2 col-md-4 col-sm-6">
-			<div class="card border-0 shadow-sm">
-				<div class="card-body text-center">
-					<h6 class="text-muted">Trạng thái</h6>
-					<h3 class="text-success">@Model.ActiveProducts</h3>
-				</div>
-			</div>
-		</div>
-		<div class="col-xl-2 col-md-4 col-sm-6">
-			<div class="card border-0 shadow-sm">
-				<div class="card-body text-center">
-					<h6 class="text-muted">Hết hàng</h6>
-					<h3 class="text-danger">@Model.OutOfStockProducts</h3>
-				</div>
-			</div>
-		</div>
-		<div class="col-xl-2 col-md-4 col-sm-6">
-			<div class="card border-0 shadow-sm">
-				<div class="card-body text-center">
-					<h6 class="text-muted">Không hoạt động</h6>
-					<h3 class="text-secondary">@Model.DiscontinuedProducts</h3>
-				</div>
-			</div>
-		</div>
-		<div class="col-xl-2 col-md-4 col-sm-6">
-			<div class="card border-0 shadow-sm">
-				<div class="card-body text-center">
-					<h6 class="text-muted">Sắp hết hàng</h6>
-					<h3 class="text-warning">@Model.LowStockProducts</h3>
-				</div>
-			</div>
-		</div>
-		<div class="col-xl-2 col-md-4 col-sm-6">
-			<div class="card border-0 shadow-sm">
-				<div class="card-body text-center">
-					<h6 class="text-muted">Giá trị tồn kho</h6>
-					<h3 class="text-info">@((Model.TotalInventoryValue / 1000000).ToString("N1"))M đ</h3>
-				</div>
-			</div>
-		</div>
-	</div>
 
-	<div class="row g-3 mb-4">
-		<!-- Sales by Category -->
-		<div class="col-xl-6">
-			<div class="card border-0 shadow-sm">
-				<div class="card-header bg-white">
-					<h5 class="mb-0">📊 Bán theo danh mục</h5>
+		<!-- Summary Cards -->
+		<div class="row g-3 mb-4">
+			<div class="col-xl-2 col-md-4 col-sm-6">
+				<div class="mini-stat-card total">
+					<h6 class="mini-stat-label">Tổng sản phẩm</h6>
+					<h3 class="mini-stat-value text-primary">@Model.TotalProducts</h3>
 				</div>
-				<div class="card-body">
-					<canvas id="categoryChart" height="150"></canvas>
+			</div>
+			<div class="col-xl-2 col-md-4 col-sm-6">
+				<div class="mini-stat-card active">
+					<h6 class="mini-stat-label">Đang hoạt động</h6>
+					<h3 class="mini-stat-value text-success">@Model.ActiveProducts</h3>
+				</div>
+			</div>
+			<div class="col-xl-2 col-md-4 col-sm-6">
+				<div class="mini-stat-card out-stock">
+					<h6 class="mini-stat-label">Hết hàng</h6>
+					<h3 class="mini-stat-value text-danger">@Model.OutOfStockProducts</h3>
+				</div>
+			</div>
+			<div class="col-xl-2 col-md-4 col-sm-6">
+				<div class="mini-stat-card discontinued">
+					<h6 class="mini-stat-label">Ngừng bán</h6>
+					<h3 class="mini-stat-value text-secondary">@Model.DiscontinuedProducts</h3>
+				</div>
+			</div>
+			<div class="col-xl-2 col-md-4 col-sm-6">
+				<div class="mini-stat-card low-stock">
+					<h6 class="mini-stat-label">Sắp hết hàng</h6>
+					<h3 class="mini-stat-value text-warning">@Model.LowStockProducts</h3>
+				</div>
+			</div>
+			<div class="col-xl-2 col-md-4 col-sm-6">
+				<div class="mini-stat-card inventory">
+					<h6 class="mini-stat-label">Giá trị kho</h6>
+					<h3 class="mini-stat-value text-info">@((Model.TotalInventoryValue / 1000000).ToString("N1"))M đ</h3>
 				</div>
 			</div>
 		</div>
 
-		<!-- Sales by Brand -->
-		<div class="col-xl-6">
-			<div class="card border-0 shadow-sm">
-				<div class="card-header bg-white">
-					<h5 class="mb-0">🏷️ Bán theo thương hiệu</h5>
-				</div>
-				<div class="card-body">
-					<canvas id="brandChart" height="150"></canvas>
+		<!-- Charts Row -->
+		<div class="row g-4 mb-4">
+			<div class="col-xl-6">
+				<div class="chart-card">
+					<div class="chart-header">
+						<h5 class="chart-title">Doanh Thu Theo Danh Mục</h5>
+					</div>
+					<div class="chart-body">
+						<canvas id="categoryChart" height="150"></canvas>
+					</div>
 				</div>
 			</div>
-		</div>
-	</div>
 
-	<div class="row g-3 mb-4">
-		<!-- Top Products -->
-		<div class="col-xl-6">
-			<div class="card border-0 shadow-sm">
-				<div class="card-header bg-white">
-					<h5 class="mb-0">🏆 Top 10 sản phẩm bán nhiều nhất </h5>
-				</div>
-				<div class="card-body">
-					<div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
-						<table class="table table-sm table-hover">
-							<thead class="sticky-top bg-white">
-								<tr>
-									<th>#</th>
-									<th>Ảnh</th>
-									<th>Sản phẩm </th>
-									<th>Bán</th>
-									<th>Doanh thu</th>
-								</tr>
-							</thead>
-							<tbody>
-								@for (int i = 0; i < Model.TopProducts.Count; i++)
-								{
-									var product = Model.TopProducts[i];
-									<tr>
-										<td>@(i + 1)</td>
-										<td>
-											<img src="@(product.MainImageUrl ?? "/Assets/placeholder.jpg")"
-												 style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px;">
-										</td>
-										<td>@product.ProductName</td>
-										<td><span class="badge bg-success">@product.TotalSold</span></td>
-										<td>@product.TotalRevenue.ToString("N0") đ</td>
-									</tr>
-								}
-							</tbody>
-						</table>
+			<div class="col-xl-6">
+				<div class="chart-card">
+					<div class="chart-header">
+						<h5 class="chart-title">Doanh Thu Theo Thương Hiệu</h5>
+					</div>
+					<div class="chart-body">
+						<canvas id="brandChart" height="150"></canvas>
 					</div>
 				</div>
 			</div>
 		</div>
 
-		<!-- Worst Products -->
-		<div class="col-xl-6">
-			<div class="card border-0 shadow-sm">
-				<div class="card-header bg-white">
-					<h5 class="mb-0">📉 10 sản phẩm bán ít nhất</h5>
-				</div>
-				<div class="card-body">
-					<div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
-						<table class="table table-sm table-hover">
-							<thead class="sticky-top bg-white">
-								<tr>
-									<th>#</th>
-									<th>Ảnh</th>
-									<th>Sản phẩm </th>
-									<th>Bán</th>
-									<th>Doanh thu</th>
-								</tr>
-							</thead>
-							<tbody>
-								@for (int i = 0; i < Model.WorstProducts.Count; i++)
-								{
-									var product = Model.WorstProducts[i];
-									<tr>
-										<td>@(i + 1)</td>
-										<td>
-											<img src="@(product.MainImageUrl ?? "/Assets/placeholder.jpg")"
-												 style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px;">
-										</td>
-										<td>@product.ProductName</td>
-										<td><span class="badge bg-secondary">@product.TotalSold</span></td>
-										<td>@product.TotalRevenue.ToString("N0") đ</td>
-									</tr>
-								}
-							</tbody>
-						</table>
+		<!-- Top & Worst Products -->
+		<div class="row g-4 mb-4">
+			<div class="col-xl-6">
+				<div class="chart-card">
+					<div class="chart-header">
+						<h5 class="chart-title">Top 10 Sản Phẩm Bán Chạy</h5>
 					</div>
-				</div>
-			</div>
-		</div>
-	</div>
-
-	<!-- Low Stock Alerts -->
-	<div class="row g-3">
-		<div class="col-12">
-			<div class="card border-0 shadow-sm">
-				<div class="card-header bg-white">
-					<h5 class="mb-0">⚠️ Cảnh báo sản phẩm sắp hết hàng(≤10 items)</h5>
-				</div>
-				<div class="card-body">
-					@if (Model.LowStockAlerts.Any())
-					{
-						<div class="table-responsive">
-							<table class="table table-hover">
-								<thead>
+					<div class="chart-body">
+						<div class="table-scroll">
+							<table class="product-table table table-sm mb-0">
+								<thead class="sticky-top">
 									<tr>
-										<th>Image</th>
-										<th>SKU</th>
+										<th style="width: 50px;">#</th>
+										<th style="width: 60px;">Ảnh</th>
 										<th>Sản phẩm</th>
-										<th>Danh mục</th>
-										<th>Thương hiệu</th>
-										<th>Hàng tồn kho</th>
-										<th>Trạng thái	</th>
+										<th style="width: 80px;">Bán</th>
+										<th style="width: 130px;">Doanh thu</th>
 									</tr>
 								</thead>
 								<tbody>
-									@foreach (var alert in Model.LowStockAlerts)
+									@for (int i = 0; i < Model.TopProducts.Count; i++)
 									{
+										var product = Model.TopProducts[i];
 										<tr>
 											<td>
-												<img src="@(alert.MainImageUrl ?? "/Assets/placeholder.jpg")"
-													 style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;">
-											</td>
-											<td><code>@alert.Sku</code></td>
-											<td>@alert.ProductName</td>
-											<td>@(alert.CategoryName ?? "N/A")</td>
-											<td>@(alert.BrandName ?? "N/A")</td>
-											<td>
-												<span class="badge @(alert.CurrentStock <= 5 ? "bg-danger" : "bg-warning")">
-													@alert.CurrentStock
-												</span>
+												<span class="rank-badge">@(i + 1)</span>
 											</td>
 											<td>
-												@if (alert.CurrentStock <= 5)
-												{
-													<span class="badge bg-danger">Critical</span>
-												}
-												else
-												{
-													<span class="badge bg-warning">Low</span>
-												}
+												<img src="@(product.MainImageUrl ?? "/Assets/placeholder.jpg")"
+													 class="product-img-sm" alt="@product.ProductName">
+											</td>
+											<td><strong style="color: #1f2937;">@product.ProductName</strong></td>
+											<td>
+												<span class="badge bg-success badge-modern">@product.TotalSold</span>
+											</td>
+											<td>
+												<strong style="color: #10b981;">@product.TotalRevenue.ToString("N0") đ</strong>
 											</td>
 										</tr>
 									}
 								</tbody>
 							</table>
 						</div>
-					}
-					else
-					{
-						<div class="alert alert-success">
-							<i class="fas fa-check-circle"></i> Tất cả các sản phẩm đều có đủ lượng hàng tồn kho!
+					</div>
+				</div>
+			</div>
+
+			<div class="col-xl-6">
+				<div class="chart-card">
+					<div class="chart-header">
+						<h5 class="chart-title">10 Sản Phẩm Bán Chậm</h5>
+					</div>
+					<div class="chart-body">
+						<div class="table-scroll">
+							<table class="product-table table table-sm mb-0">
+								<thead class="sticky-top">
+									<tr>
+										<th style="width: 50px;">#</th>
+										<th style="width: 60px;">Ảnh</th>
+										<th>Sản phẩm</th>
+										<th style="width: 80px;">Bán</th>
+										<th style="width: 130px;">Doanh thu</th>
+									</tr>
+								</thead>
+								<tbody>
+									@for (int i = 0; i < Model.WorstProducts.Count; i++)
+									{
+										var product = Model.WorstProducts[i];
+										<tr>
+											<td>
+												<span class="rank-badge" style="background: linear-gradient(135deg, #6b7280, #9ca3af);">@(i + 1)</span>
+											</td>
+											<td>
+												<img src="@(product.MainImageUrl ?? "/Assets/placeholder.jpg")"
+													 class="product-img-sm" alt="@product.ProductName">
+											</td>
+											<td><strong style="color: #1f2937;">@product.ProductName</strong></td>
+											<td>
+												<span class="badge bg-secondary badge-modern">@product.TotalSold</span>
+											</td>
+											<td>
+												<strong style="color: #6b7280;">@product.TotalRevenue.ToString("N0") đ</strong>
+											</td>
+										</tr>
+									}
+								</tbody>
+							</table>
 						</div>
-					}
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- Low Stock Alerts -->
+		<div class="row g-4">
+			<div class="col-12">
+				<div class="chart-card">
+					<div class="chart-header">
+						<h5 class="chart-title">Cảnh Báo Sản Phẩm Sắp Hết Hàng (≤10 items)</h5>
+					</div>
+					<div class="chart-body">
+						@if (Model.LowStockAlerts.Any())
+						{
+							<div class="table-responsive">
+								<table class="product-table table mb-0">
+									<thead>
+										<tr>
+											<th>Hình ảnh</th>
+											<th>SKU</th>
+											<th>Tên sản phẩm</th>
+											<th>Danh mục</th>
+											<th>Thương hiệu</th>
+											<th>Tồn kho</th>
+											<th>Trạng thái</th>
+										</tr>
+									</thead>
+									<tbody>
+										@foreach (var alert in Model.LowStockAlerts)
+										{
+											<tr>
+												<td>
+													<img src="@(alert.MainImageUrl ?? "/Assets/placeholder.jpg")"
+														 class="product-img-md" alt="@alert.ProductName">
+												</td>
+												<td>
+													<code style="background: #f1f5f9; padding: 0.4rem 0.6rem; border-radius: 6px; font-weight: 600;">@alert.Sku</code>
+												</td>
+												<td><strong style="color: #1f2937;">@alert.ProductName</strong></td>
+												<td>@(alert.CategoryName ?? "N/A")</td>
+												<td>@(alert.BrandName ?? "N/A")</td>
+												<td>
+													<span class="badge badge-modern @(alert.CurrentStock <= 5 ? "stock-badge-critical" : "stock-badge-low")">
+														@alert.CurrentStock
+													</span>
+												</td>
+												<td>
+													@if (alert.CurrentStock <= 5)
+													{
+														<span class="badge bg-danger badge-modern">
+															<i class="fas fa-exclamation-triangle"></i> Critical
+														</span>
+													}
+													else
+													{
+														<span class="badge bg-warning badge-modern">
+															<i class="fas fa-exclamation-circle"></i> Sắp Hết
+														</span>
+													}
+												</td>
+											</tr>
+										}
+									</tbody>
+								</table>
+							</div>
+						}
+						else
+						{
+							<div class="alert-success-modern d-flex align-items-center">
+								<i class="fas fa-check-circle"></i>
+								<span>Tất cả các sản phẩm đều có đủ lượng hàng tồn kho!</span>
+							</div>
+						}
+					</div>
 				</div>
 			</div>
 		</div>
@@ -243,6 +251,8 @@
 @section Scripts {
 	<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 	<script>
+		Chart.defaults.font.family = "'Inter', 'Segoe UI', sans-serif";
+
 		// Category Chart
 		const categoryCtx = document.getElementById('categoryChart').getContext('2d');
 		new Chart(categoryCtx, {
@@ -250,11 +260,13 @@
 			data: {
 				labels: @Html.Raw(Json.Serialize(Model.SalesByCategory.Select(c => c.CategoryName))),
 				datasets: [{
-					label: 'Revenue (đ)',
+					label: 'Doanh thu (đ)',
 					data: @Html.Raw(Json.Serialize(Model.SalesByCategory.Select(c => c.TotalRevenue))),
-					backgroundColor: 'rgba(54, 162, 235, 0.8)',
-					borderColor: 'rgb(54, 162, 235)',
-					borderWidth: 1
+					backgroundColor: 'rgba(59, 130, 246, 0.8)',
+					borderColor: '#3b82f6',
+					borderWidth: 2,
+					borderRadius: 8,
+					borderSkipped: false
 				}]
 			},
 			options: {
@@ -263,15 +275,27 @@
 				plugins: {
 					legend: { display: false },
 					tooltip: {
+						backgroundColor: 'rgba(0, 0, 0, 0.8)',
+						padding: 12,
+						titleFont: { size: 13, weight: '600' },
+						bodyFont: { size: 12 },
 						callbacks: {
 							label: function(context) {
-								return 'Revenue: ' + context.parsed.x.toLocaleString() + ' đ';
+								return 'Doanh thu: ' + context.parsed.x.toLocaleString() + ' đ';
 							}
 						}
 					}
 				},
 				scales: {
-					x: { beginAtZero: true }
+					x: {
+						beginAtZero: true,
+						grid: { color: 'rgba(0, 0, 0, 0.05)' },
+						ticks: { font: { size: 11 } }
+					},
+					y: {
+						grid: { display: false },
+						ticks: { font: { size: 11 } }
+					}
 				}
 			}
 		});
@@ -283,11 +307,13 @@
 			data: {
 				labels: @Html.Raw(Json.Serialize(Model.SalesByBrand.Select(b => b.BrandName))),
 				datasets: [{
-					label: 'Revenue (đ)',
+					label: 'Doanh thu (đ)',
 					data: @Html.Raw(Json.Serialize(Model.SalesByBrand.Select(b => b.TotalRevenue))),
-					backgroundColor: 'rgba(255, 159, 64, 0.8)',
-					borderColor: 'rgb(255, 159, 64)',
-					borderWidth: 1
+					backgroundColor: 'rgba(245, 158, 11, 0.8)',
+					borderColor: '#f59e0b',
+					borderWidth: 2,
+					borderRadius: 8,
+					borderSkipped: false
 				}]
 			},
 			options: {
@@ -296,15 +322,27 @@
 				plugins: {
 					legend: { display: false },
 					tooltip: {
+						backgroundColor: 'rgba(0, 0, 0, 0.8)',
+						padding: 12,
+						titleFont: { size: 13, weight: '600' },
+						bodyFont: { size: 12 },
 						callbacks: {
 							label: function(context) {
-								return 'Revenue: ' + context.parsed.x.toLocaleString() + ' đ';
+								return 'Doanh thu: ' + context.parsed.x.toLocaleString() + ' đ';
 							}
 						}
 					}
 				},
 				scales: {
-					x: { beginAtZero: true }
+					x: {
+						beginAtZero: true,
+						grid: { color: 'rgba(0, 0, 0, 0.05)' },
+						ticks: { font: { size: 11 } }
+					},
+					y: {
+						grid: { display: false },
+						ticks: { font: { size: 11 } }
+					}
 				}
 			}
 		});

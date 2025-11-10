@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Chat Widget</title>
+    <link rel="stylesheet" href="/css/chat-widget.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+        }
+        h1 {
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <h1>Test Chat Widget</h1>
+    <p>Nút chat sẽ xuất hiện ở góc dưới bên phải.</p>
+    <p>Mở Console (F12) để xem debug logs.</p>
+
+    <!-- Chat Widget -->
+    <div id="chatWidget" style="position: fixed; bottom: 24px; right: 24px; z-index: 9999;">
+        <!-- Floating Button -->
+        <button class="chat-widget-button" id="chatToggleBtn" type="button" style="display: flex !important; width: 64px; height: 64px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; cursor: pointer; align-items: center; justify-content: center; box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);">
+            <svg class="chat-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            </svg>
+            <svg class="close-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" style="display: none;">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+            <span class="notification-dot" id="notificationDot"></span>
+        </button>
+
+        <!-- Chat Box -->
+        <div class="chat-widget-box" id="chatBox">
+            <!-- Header -->
+            <div class="chat-widget-header">
+                <div class="header-content">
+                    <div class="agent-avatar">
+                        <span>🎧</span>
+                    </div>
+                    <div class="agent-info">
+                        <h4>Hỗ trợ khách hàng</h4>
+                        <p class="agent-status" id="agentStatus">
+                            <span class="status-dot"></span>
+                            <span class="status-text">Test mode</span>
+                        </p>
+                    </div>
+                </div>
+                <button class="minimize-btn" id="minimizeBtn" type="button">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Messages -->
+            <div class="chat-widget-messages" id="chatMessages">
+                <div class="welcome-message">
+                    <div class="welcome-icon">👋</div>
+                    <h3>Xin chào!</h3>
+                    <p>Đây là chế độ test.</p>
+                </div>
+            </div>
+
+            <!-- Typing Indicator -->
+            <div class="typing-indicator" id="typingIndicator">
+                <div class="typing-dots">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+                <span class="typing-text">Nhân viên đang nhập...</span>
+            </div>
+
+            <!-- Input -->
+            <div class="chat-widget-input">
+                <input type="text" id="messageInput" placeholder="Nhập tin nhắn..." autocomplete="off" />
+                <button class="send-button" id="sendButton" type="button">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Footer -->
+            <div class="chat-widget-footer">
+                <span>Test Mode - ToyLand Support</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        console.log("🎬 Test page loaded");
+        console.log("🎬 Document readyState:", document.readyState);
+        
+        function initTest() {
+            console.log("🎬 initTest() called");
+            
+            const chatToggleBtn = document.getElementById('chatToggleBtn');
+            const chatBox = document.getElementById('chatBox');
+            const minimizeBtn = document.getElementById('minimizeBtn');
+            
+            console.log("🔍 chatToggleBtn:", chatToggleBtn);
+            console.log("🔍 chatBox:", chatBox);
+            console.log("🔍 minimizeBtn:", minimizeBtn);
+            
+            if (!chatToggleBtn || !chatBox) {
+                console.error("❌ Elements not found!");
+                return;
+            }
+            
+            let isBoxOpen = false;
+            
+            function toggleChatBox() {
+                console.log("🎯 toggleChatBox called, isBoxOpen:", isBoxOpen);
+                isBoxOpen = !isBoxOpen;
+                chatBox.classList.toggle('show', isBoxOpen);
+                chatToggleBtn.classList.toggle('active', isBoxOpen);
+                console.log("✅ Chat box toggled, new state:", isBoxOpen);
+                console.log("✅ chatBox classes:", chatBox.className);
+            }
+            
+            chatToggleBtn.addEventListener('click', function(e) {
+                console.log("🖱️ Button clicked!");
+                toggleChatBox();
+            });
+            
+            if (minimizeBtn) {
+                minimizeBtn.addEventListener('click', toggleChatBox);
+            }
+            
+            console.log("✅ Test initialization complete!");
+        }
+        
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initTest);
+        } else {
+            initTest();
+        }
+    </script>
+</body>
+</html>

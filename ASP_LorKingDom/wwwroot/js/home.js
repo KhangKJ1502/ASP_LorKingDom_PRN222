@@ -28,6 +28,18 @@ const slides = [
 ]
 
 function updateSlide() {
+    // Kiểm tra xem các element có tồn tại không
+    const heroTitle = document.getElementById("heroTitle");
+    const heroSubtitle = document.getElementById("heroSubtitle");
+    const heroCtaText = document.getElementById("heroCtaText");
+    const heroBadge1 = document.getElementById("heroBadge1");
+    const heroBadge2 = document.getElementById("heroBadge2");
+    
+    // Nếu không có element nào thì return (trang không có hero slider)
+    if (!heroTitle || !heroSubtitle || !heroCtaText) {
+        return;
+    }
+    
     // Update images
     document.querySelectorAll(".hero-image").forEach((img, index) => {
         img.classList.toggle("active", index === currentSlide)
@@ -40,11 +52,11 @@ function updateSlide() {
 
     // Update content
     const slide = slides[currentSlide]
-    document.getElementById("heroTitle").textContent = slide.title
-    document.getElementById("heroSubtitle").textContent = slide.subtitle
-    document.getElementById("heroCtaText").textContent = slide.cta
-    document.getElementById("heroBadge1").textContent = slide.discount
-    document.getElementById("heroBadge2").textContent = slide.badge
+    heroTitle.textContent = slide.title
+    heroSubtitle.textContent = slide.subtitle
+    heroCtaText.textContent = slide.cta
+    if (heroBadge1) heroBadge1.textContent = slide.discount
+    if (heroBadge2) heroBadge2.textContent = slide.badge
 }
 
 function nextSlide() {
@@ -62,11 +74,15 @@ function goToSlide(index) {
     updateSlide()
 }
 
-// Auto-advance slides
-setInterval(nextSlide, 5000)
-
 // Products Dropdown
 document.addEventListener("DOMContentLoaded", () => {
+    // Auto-advance slides - chỉ chạy nếu có hero slider
+    if (document.getElementById("heroTitle")) {
+        console.log("✅ Hero slider detected, starting auto-advance...");
+        setInterval(nextSlide, 5000);
+    } else {
+        console.log("⚠️ No hero slider on this page, skipping auto-advance");
+    }
     const productsDropdown = document.getElementById("productsDropdown")
     const productsDropdownMenu = document.getElementById("productsDropdownMenu")
 

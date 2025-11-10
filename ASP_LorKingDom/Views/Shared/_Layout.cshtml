@@ -33,8 +33,6 @@
 	}
 </head>
 
-@await Html.PartialAsync("_ChatWidget")
-
 <body>
 	<form id="__AntiForgeryForm" asp-antiforgery="true" style="display:none;"></form>
 	<!-- Header -->
@@ -251,7 +249,7 @@
 					<div class="footer-column">
 						<div class="footer-logo">
 							<div class="logo-icon">
-								<span class="logo-emoji">Gấu bông</span>
+								<img src="@Url.Content("~/uploads/avatars/logo.jpg")" alt="LorKingDom Logo" class="logo-img" />
 							</div>
 							<div class="logo-text">
 								<h3 class="logo-title">LorKingDom</h3>
@@ -452,6 +450,8 @@
 	</script>
 
 	@await RenderSectionAsync("Scripts", required: false)
+
+	@await Html.PartialAsync("_ChatWidget")
 
 </body>
 </html>
