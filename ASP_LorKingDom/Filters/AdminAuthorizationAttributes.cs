@@ -4,10 +4,8 @@ using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace WebUI.Filters
 {
-    /// <summary>
-    /// Custom Authorization Attribute cho Admin
-    /// Chỉ Admin mới có quyền truy cập
-    /// </summary>
+    // Custom Authorization Attribute cho Admin
+    // Chỉ Admin mới có quyền truy cập
     public class AdminOnlyAttribute : AuthorizeAttribute, IAuthorizationFilter
     {
         public void OnAuthorization(AuthorizationFilterContext context)
@@ -16,7 +14,7 @@ namespace WebUI.Filters
 
             if (!user.Identity?.IsAuthenticated ?? true)
             {
-                context.Result = new RedirectToActionResult("Login", "AdminAuth", null);
+                context.Result = new RedirectToActionResult("RedirectToRazorUI", "AdminAuth", null);
                 return;
             }
 
@@ -28,10 +26,8 @@ namespace WebUI.Filters
         }
     }
 
-    /// <summary>
-    /// Custom Authorization Attribute cho Admin và Staff
-    /// Warehouse không có quyền
-    /// </summary>
+    // Custom Authorization Attribute cho Admin và Staff
+    // Warehouse không có quyền
     public class AdminAndStaffOnlyAttribute : AuthorizeAttribute, IAuthorizationFilter
     {
         public void OnAuthorization(AuthorizationFilterContext context)
@@ -40,7 +36,7 @@ namespace WebUI.Filters
 
             if (!user.Identity?.IsAuthenticated ?? true)
             {
-                context.Result = new RedirectToActionResult("Login", "AdminAuth", null);
+                context.Result = new RedirectToActionResult("RedirectToRazorUI", "AdminAuth", null);
                 return;
             }
 
@@ -52,10 +48,8 @@ namespace WebUI.Filters
         }
     }
 
-    /// <summary>
-    /// Custom Authorization Attribute cho Admin và Warehouse
-    /// Staff không có quyền (dùng cho Product Statistics)
-    /// </summary>
+    // Custom Authorization Attribute cho Admin và Warehouse
+    // Staff không có quyền (dùng cho Product Statistics)
     public class AdminAndWarehouseOnlyAttribute : AuthorizeAttribute, IAuthorizationFilter
     {
         public void OnAuthorization(AuthorizationFilterContext context)
@@ -64,7 +58,7 @@ namespace WebUI.Filters
 
             if (!user.Identity?.IsAuthenticated ?? true)
             {
-                context.Result = new RedirectToActionResult("Login", "AdminAuth", null);
+                context.Result = new RedirectToActionResult("RedirectToRazorUI", "AdminAuth", null);
                 return;
             }
 
@@ -76,10 +70,8 @@ namespace WebUI.Filters
         }
     }
 
-    /// <summary>
-    /// Custom Authorization Attribute cho tất cả role quản lý
-    /// Admin, Staff, Warehouse đều có quyền
-    /// </summary>
+    // Custom Authorization Attribute cho tất cả role quản lý
+    // Admin, Staff, Warehouse đều có quyền
     public class ManagementOnlyAttribute : AuthorizeAttribute, IAuthorizationFilter
     {
         public void OnAuthorization(AuthorizationFilterContext context)
@@ -88,7 +80,7 @@ namespace WebUI.Filters
 
             if (!user.Identity?.IsAuthenticated ?? true)
             {
-                context.Result = new RedirectToActionResult("Login", "AdminAuth", null);
+                context.Result = new RedirectToActionResult("RedirectToRazorUI", "AdminAuth", null);
                 return;
             }
 

@@ -228,7 +228,7 @@ namespace WebUI.Controllers
                 dto.CreateBy = currentAccountId;
 
                 var voucherId = await _voucherService.CreateAsync(dto);
-                return Json(new { success = true, message = "Voucher created successfully", voucherId });
+                return Json(new { success = true, message = "Voucher đã được tạo thành công", voucherId });
             }
             catch (Exception ex)
             {
@@ -258,7 +258,7 @@ namespace WebUI.Controllers
                 var success = await _voucherService.UpdateAsync(id, dto);
                 if (!success)
                     return Json(new { success = false, error = "Failed to update voucher" });
-                return Json(new { success = true, message = "Voucher updated successfully" });
+                return Json(new { success = true, message = "Voucher đã update thành công" });
             }
             catch (Exception ex)
             {
