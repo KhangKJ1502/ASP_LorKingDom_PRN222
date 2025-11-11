@@ -12,7 +12,8 @@
 		</button>
 		<h2 class="transaction-title">
 			<svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+					d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
 			</svg>
 			Lịch sử giao dịch
 		</h2>
@@ -38,14 +39,14 @@
 								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
 							</svg>
 						}
-					</div>
+				</div>
 
-					<div class="transaction-details">
-						<div class="transaction-main">
-							<h3 class="transaction-type">
-								@(txn.TxnType == "TopUp" ? "Nạp tiền" :
-															txn.TxnType == "Payment" ? "Thanh toán" :
-															txn.TxnType == "Refund" ? "Hoàn tiền" : txn.TxnType)
+				<div class="transaction-details">
+					<div class="transaction-main">
+						<h3 class="transaction-type">
+							@(txn.TxnType == "TopUp" ? "Nạp tiền" :
+													txn.TxnType == "Payment" ? "Thanh toán" :
+													txn.TxnType == "Refund" ? "Hoàn tiền" : txn.TxnType)
 							</h3>
 							<p class="transaction-amount @(txn.Direction == "CR" ? "amount-credit" : "amount-debit")">
 								@(txn.Direction == "CR" ? "+" : "-")@txn.Amount.ToString("N0")đ
@@ -60,7 +61,8 @@
 						<div class="transaction-meta">
 							<span class="transaction-date">
 								<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+										d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
 								</svg>
 								@txn.CreatedAt.ToString("dd/MM/yyyy HH:mm")
 							</span>
@@ -69,17 +71,17 @@
 							{
 								<span class="transaction-method">
 									@(txn.Method == "Bank" ? "🏦 Ngân hàng" :
-																txn.Method == "EWallet" ? "💳 Ví điện tử" :
-																txn.Method == "Cash" ? "💵 Tiền mặt" :
-																txn.Method == "Wallet" ? "👛 Ví" : txn.Method)
+															txn.Method == "EWallet" ? "💳 Ví điện tử" :
+															txn.Method == "Cash" ? "💵 Tiền mặt" :
+															txn.Method == "Wallet" ? "👛 Ví" : txn.Method)
 								</span>
 							}
 
-							<span class="transaction-status status-@txn.Status.ToLower()">
-								@(txn.Status == "Completed" ? "✓ Thành công" :
-															txn.Status == "Pending" ? "⏳ Đang xử lý" :
-															txn.Status == "Failed" ? "✗ Thất bại" :
-															txn.Status == "Cancelled" ? "⊘ Đã hủy" : txn.Status)
+						<span class="transaction-status status-@txn.Status.ToLower()">
+							@(txn.Status == "Completed" ? "✓ Thành công" :
+													txn.Status == "Pending" ? "⏳ Đang xử lý" :
+													txn.Status == "Failed" ? "✗ Thất bại" :
+													txn.Status == "Cancelled" ? "⊘ Đã hủy" : txn.Status)
 							</span>
 						</div>
 
@@ -99,11 +101,8 @@
 					<ul class="pagination-modern">
 						<!-- Previous Button -->
 						<li class="pagination-item @(Model.CurrentPage <= 1 ? "disabled" : "")">
-							<button type="button"
-									data-action="load-page"
-									data-page="@(Model.CurrentPage - 1)"
-									class="pagination-link"
-							@(Model.CurrentPage <= 1 ? "disabled" : "")>
+							<button type="button" data-action="load-page" data-page="@(Model.CurrentPage - 1)"
+								class="pagination-link" @(Model.CurrentPage <= 1 ? "disabled" : "")>
 								<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
 								</svg>
@@ -148,10 +147,7 @@
 						@for (int i = startPage; i <= endPage; i++)
 						{
 							<li class="pagination-item @(i == Model.CurrentPage ? "active" : "")">
-								<button type="button"
-										data-action="load-page"
-										data-page="@i"
-										class="pagination-link">
+								<button type="button" data-action="load-page" data-page="@i" class="pagination-link">
 									@i
 								</button>
 							</li>
@@ -175,11 +171,8 @@
 
 						<!-- Next Button -->
 						<li class="pagination-item @(Model.CurrentPage >= Model.TotalPages ? "disabled" : "")">
-							<button type="button"
-									data-action="load-page"
-									data-page="@(Model.CurrentPage + 1)"
-									class="pagination-link"
-							@(Model.CurrentPage >= Model.TotalPages ? "disabled" : "")>
+							<button type="button" data-action="load-page" data-page="@(Model.CurrentPage + 1)"
+								class="pagination-link" @(Model.CurrentPage >= Model.TotalPages ? "disabled" : "")>
 								<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
 								</svg>
@@ -245,10 +238,10 @@
 		transition: all 0.2s;
 	}
 
-		.back-btn:hover {
-			background: #fff5ec;
-			border-color: #f97316;
-		}
+	.back-btn:hover {
+		background: #fff5ec;
+		border-color: #f97316;
+	}
 
 	.transaction-title {
 		display: flex;
@@ -276,11 +269,11 @@
 		transition: all 0.3s ease;
 	}
 
-		.transaction-item:hover {
-			border-color: #f97316;
-			box-shadow: 0 4px 12px rgba(249, 115, 22, 0.15);
-			transform: translateY(-2px);
-		}
+	.transaction-item:hover {
+		border-color: #f97316;
+		box-shadow: 0 4px 12px rgba(249, 115, 22, 0.15);
+		transform: translateY(-2px);
+	}
 
 	.transaction-credit {
 		border-left: 4px solid #10b981;
@@ -356,11 +349,11 @@
 		margin-bottom: 0.5rem;
 	}
 
-		.transaction-meta span {
-			display: inline-flex;
-			align-items: center;
-			gap: 0.25rem;
-		}
+	.transaction-meta span {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.25rem;
+	}
 
 	.transaction-status {
 		padding: 0.25rem 0.625rem;
@@ -420,15 +413,15 @@
 		transition: all 0.2s;
 	}
 
-		.pagination-btn:hover:not(:disabled) {
-			transform: translateY(-2px);
-			box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
-		}
+	.pagination-btn:hover:not(:disabled) {
+		transform: translateY(-2px);
+		box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+	}
 
-		.pagination-btn:disabled {
-			opacity: 0.5;
-			cursor: not-allowed;
-		}
+	.pagination-btn:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
 
 	.pagination-info {
 		font-weight: 600;
@@ -481,10 +474,10 @@
 		transition: all 0.2s;
 	}
 
-		.empty-back-btn:hover {
-			transform: translateY(-2px);
-			box-shadow: 0 6px 16px rgba(249, 115, 22, 0.3);
-		}
+	.empty-back-btn:hover {
+		transform: translateY(-2px);
+		box-shadow: 0 6px 16px rgba(249, 115, 22, 0.3);
+	}
 
 	/* Responsive */
 	@@media (max-width: 640px) {
@@ -551,18 +544,18 @@
 		transition: all 0.2s ease;
 	}
 
-		.pagination-link:hover:not(:disabled) {
-			background: #fff5ec;
-			border-color: #f97316;
-			color: #f97316;
-			transform: translateY(-2px);
-			box-shadow: 0 4px 12px rgba(249, 115, 22, 0.2);
-		}
+	.pagination-link:hover:not(:disabled) {
+		background: #fff5ec;
+		border-color: #f97316;
+		color: #f97316;
+		transform: translateY(-2px);
+		box-shadow: 0 4px 12px rgba(249, 115, 22, 0.2);
+	}
 
-		.pagination-link:disabled {
-			opacity: 0.4;
-			cursor: not-allowed;
-		}
+	.pagination-link:disabled {
+		opacity: 0.4;
+		cursor: not-allowed;
+	}
 
 	.pagination-item.active .pagination-link {
 		background: linear-gradient(135deg, #f97316, #ea580c);
@@ -616,37 +609,59 @@
 </style>
 
 <script>
-	// Gọi lại sau mỗi lần load HTML mới
-	function initTransactionHandlers() {
+	// === EXPOSE FUNCTION TO GLOBAL SCOPE ===
+	window.initTransactionHandlers = function initTransactionHandlers() {
+		console.log('Initializing transaction handlers...');
+
 		// Cleanup cũ
-		if (window.__txnCleanup) window.__txnCleanup();
+		if (window.__txnCleanup) {
+			window.__txnCleanup();
+		}
 
 		const container = document.querySelector('.transaction-history-container');
-		if (!container) return;
+		if (!container) {
+			console.error('Transaction container not found');
+			return;
+		}
+
+		console.log('Transaction container found');
 
 		// === BACK BUTTON ===
 		const backBtns = container.querySelectorAll('[data-action="back-to-wallet"]');
+		console.log('Back buttons found:', backBtns.length);
+
 		const handleBack = (e) => {
 			e.preventDefault();
+			console.log('Back button clicked');
 			if (typeof window.loadTab === 'function') {
 				window.loadTab('wallets');
+			} else {
+				console.error('window.loadTab not found');
 			}
 		};
 		backBtns.forEach(b => b.addEventListener('click', handleBack));
-		  const pageSize = parseInt(container.dataset.pagesize || '5', 10);
+
+		const pageSize = parseInt(container.dataset.pagesize || '5', 10);
+
 		// === PAGINATION ===
 		const pageBtns = container.querySelectorAll('[data-action="load-page"]');
+		console.log('Pagination buttons found:', pageBtns.length);
+
 		const handlePage = async (e) => {
 			const btn = e.currentTarget;
 			if (btn.disabled) return;
 			e.preventDefault();
 
+			console.log('Page button clicked');
 			const page = btn.dataset.page;
 			const content = document.getElementById('profile-content');
-			if (!content) return;
+			if (!content) {
+				console.error('profile-content not found');
+				return;
+			}
 
 			// Disable all
-		   pageBtns.forEach(b => b.disabled = true);
+			pageBtns.forEach(b => b.disabled = true);
 
 			content.innerHTML = `
 				<div style="text-align:center;padding:3rem">
@@ -656,17 +671,22 @@
 			`;
 
 			try {
-				 const res = await fetch(`/Wallet/TransactionHistory?page=${page}&pageSize=${pageSize}&_=${Date.now()}`);
-		  if (!res.ok) throw new Error('Lỗi mạng');
-		  const html = await res.text();
-		  content.innerHTML = html;
+				const res = await fetch(`/Wallet/TransactionHistory?page=${page}&pageSize=${pageSize}&_=${Date.now()}`);
+				if (!res.ok) throw new Error('Lỗi mạng');
+				const html = await res.text();
+				content.innerHTML = html;
 
 				// GỌI LẠI initTransactionHandlers() SAU KHI CẬP NHẬT HTML
-				initTransactionHandlers();
+				setTimeout(() => {
+					if (typeof window.initTransactionHandlers === 'function') {
+						window.initTransactionHandlers();
+					}
+				}, 100);
 
 				// Cuộn lên đầu
 				content.scrollIntoView({ behavior: 'smooth' });
 			} catch (err) {
+				console.error('Error loading page:', err);
 				content.innerHTML = `
 					<div style="text-align:center;padding:3rem;color:#dc2626">
 						<p>Không thể tải trang</p>
@@ -686,27 +706,16 @@
 			backBtns.forEach(b => b.removeEventListener('click', handleBack));
 			pageBtns.forEach(b => b.removeEventListener('click', handlePage));
 		};
-	}
 
-	// === CHẠY NGAY KHI LOAD LẦN ĐẦU ===
-	document.addEventListener('DOMContentLoaded', () => {
-		if (document.querySelector('.transaction-history-container')) {
-			initTransactionHandlers();
-		}
-	});
-
-	// === GỌI LẠI KHI Wallet Module load Transaction History ===
-	const originalFetch = window.fetch;
-	window.fetch = function(...args) {
-		return originalFetch.apply(this, args).then(res => {
-			if (args[0].includes('/Wallet/TransactionHistory')) {
-				res.clone().text().then(html => {
-					if (html.includes('transaction-history-container')) {
-						setTimeout(initTransactionHandlers, 50);
-					}
-				});
-			}
-			return res;
-		});
+		console.log('Transaction handlers initialized successfully');
 	};
+
+	// === AUTO-INITIALIZE ON LOAD ===
+	(function () {
+		// Nếu container đã có trong DOM → gọi ngay
+		if (document.querySelector('.transaction-history-container')) {
+			console.log('Auto-initializing transaction handlers...');
+			window.initTransactionHandlers();
+		}
+	})();
 </script>

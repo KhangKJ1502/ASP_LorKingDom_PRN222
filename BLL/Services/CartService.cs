@@ -50,7 +50,6 @@ namespace BLL.Services
                 var product = item.Product;
                 if (product != null)
                 {
-                    // Calculate current final price (with promotion if applicable)
                     var finalPrice = GetFinalPrice(product);
 
                     dto.CartItems.Add(new CartItemDto
@@ -64,7 +63,8 @@ namespace BLL.Services
                         AddedAt = item.AddedAt,
                         ProductName = product.ProductName,
                         MainImageUrl = product.ProductImages.FirstOrDefault(i => i.IsMain)?.ImageUrl ?? product.ProductImages.FirstOrDefault()?.ImageUrl ?? "/assets/placeholder.jpg",
-                        CurrentPrice = finalPrice
+                        CurrentPrice = finalPrice,
+                        ProductQuantity = product.Quantity
                     });
                 }
             }
@@ -82,16 +82,22 @@ namespace BLL.Services
             if (product == null)
                 throw new InvalidOperationException("Product not found");
 
-            if (product.Quantity < quantity)
-                throw new InvalidOperationException($"Not enough stock for {product.ProductName}. Available: {product.Quantity}");
+            // KIỂM TRA: tính tổng số lượng trong giỏ hiện tại + số lượng muốn thêm
+            var existingItem = cart.CartItems.FirstOrDefault(ci => ci.ProductId == productId && ci.Status == "Active");
+            var currentCartQuantity = existingItem?.Quantity ?? 0;
+            var totalQuantity = currentCartQuantity + quantity;
+
+            if (totalQuantity > product.Quantity)
+            {
+                throw new InvalidOperationException($"Không đủ hàng trong kho. Có sẵn: {product.Quantity}, trong giỏ: {currentCartQuantity}");
+            }
 
             // Calculate final price (with promotion if applicable)
             var finalPrice = GetFinalPrice(product);
 
-            var existingItem = cart.CartItems.FirstOrDefault(ci => ci.ProductId == productId && ci.Status == "Active");
             if (existingItem != null)
             {
-                existingItem.Quantity += quantity;
+                existingItem.Quantity = totalQuantity;
                 existingItem.PriceAtThatTime = finalPrice;
                 await _cartRepo.UpdateCartItemAsync(existingItem);
             }

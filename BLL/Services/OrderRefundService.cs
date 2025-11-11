@@ -55,6 +55,13 @@ namespace BLL.Services
 
             var (displayText, _) = GetStatusPresentation(r.RefundStatus);
 
+            // Tính final amount từ Order (nếu có)
+            decimal orderFinalAmount = r.TotalAmount; // mặc định dùng TotalAmount
+            if (r.Order != null)
+            {
+                orderFinalAmount = r.Order.PaidByWalletAmount + r.Order.PaidByExternalAmount;
+            }
+
             // build steps timeline đơn giản dựa trên timestamps
             var steps = new List<RefundStepDto>();
 
@@ -108,8 +115,8 @@ namespace BLL.Services
                 ApprovedAt = r.ApprovedAt,
                 ProcessedAt = r.ProcessedAt,
 
-                TotalAmount = r.TotalAmount,
-                RefundAmount = r.RefundAmount,
+                TotalAmount = orderFinalAmount, // Số tiền final của đơn hàng (đã tính sale, shipping, voucher)
+                RefundAmount = r.RefundAmount,   // Số tiền hoàn (bằng final amount cho refund mới)
                 Reason = r.Reason,
 
                 Steps = steps
@@ -278,6 +285,9 @@ namespace BLL.Services
 
             try
             {
+                // Tính số tiền hoàn = số tiền user đã trả thực tế (bao gồm sale, shipping, voucher)
+                var finalAmount = order.PaidByWalletAmount + order.PaidByExternalAmount;
+
                 var refund = new OrderRefund
                 {
                     OrderId = dto.OrderId,
@@ -286,7 +296,7 @@ namespace BLL.Services
                     RefundMode = dto.RefundMode,
                     RefundStatus = "Requested",
                     TotalAmount = order.TotalAmount,
-                    RefundAmount = order.TotalAmount, 
+                    RefundAmount = finalAmount,
                     Reason = dto.Reason,
                     CreatedAt = DateTime.Now,
                     UpdatedAt = DateTime.Now
