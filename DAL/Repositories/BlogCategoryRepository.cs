@@ -24,6 +24,7 @@ namespace DAL.Repositories
         public async Task<BlogCategory?> GetByIdAsync(int id)
         {
             return await _context.BlogCategories
+                .Include(bc => bc.BlogPosts) // Include để kiểm tra khi xóa
                 .FirstOrDefaultAsync(bc => bc.BlogCategoryId == id);
         }
 

@@ -374,7 +374,9 @@ namespace BLL.Services
                     OrderId = od.OrderId,
                     ProductId = od.ProductId,
                     ProductName = od.Product?.ProductName,
-                    MainImageUrl = od.Product?.ProductImages?.FirstOrDefault()?.ImageUrl,
+                    // Ưu tiên ảnh IsMain, nếu không có thì lấy ảnh đầu tiên
+                    MainImageUrl = od.Product?.ProductImages?.FirstOrDefault(img => img.IsMain)?.ImageUrl 
+                                   ?? od.Product?.ProductImages?.FirstOrDefault()?.ImageUrl,
                     Quantity = od.Quantity,
                     UnitPrice = od.UnitPrice,
                     Discount = od.Discount,

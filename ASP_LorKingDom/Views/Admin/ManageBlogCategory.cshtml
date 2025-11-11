@@ -299,34 +299,46 @@
         });
 
         // Edit BlogCategory
-        async function editBlogCategory(id) {
-            try {
-                const response = await fetch(`/BlogCategory/GetById/${id}`);
-                if (!response.ok) throw new Error('Không thể tải dữ liệu chuyên mục');
-
-                const category = await response.json();
-                document.getElementById('categoryId').value = category.blogCategoryId;
-                document.getElementById('categoryName').value = category.blogCategoryName;
-                document.getElementById('categoryDescription').value = category.description || '';
-                document.getElementById('createdAtDisplay').textContent =
-                    new Date(category.createdAt).toLocaleDateString('vi-VN', {
-                        year: 'numeric',
-                        month: '2-digit',
-                        day: '2-digit',
-                        hour: '2-digit',
-                        minute: '2-digit'
+        function editBlogCategory(id) {
+            $.ajax({
+            url: '@Url.Action("GetById", "BlogCategory")',
+            type: 'GET',
+            data: { id: id },
+            success: function (category) {
+                if (!category || category.success === false) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Lỗi',
+                        text: category.message || 'Không thể tải dữ liệu chuyên mục.',
+                        confirmButtonColor: '#dc2626'
                     });
+                    return;
+                }
 
+                // Gán dữ liệu vào form
+                $('#categoryId').val(category.blogCategoryId);
+                $('#categoryName').val(category.blogCategoryName);
+                $('#categoryDescription').val(category.description || '');
+                $('#createdAtDisplay').text(
+                    new Date(category.createdAt).toLocaleDateString('vi-VN', {
+                        year: 'numeric', month: '2-digit', day: '2-digit',
+                        hour: '2-digit', minute: '2-digit'
+                    })
+                );
+
+                // Hiển thị modal
                 const modal = new bootstrap.Modal(document.getElementById('editModal'));
                 modal.show();
-            } catch (error) {
+            },
+            error: function (xhr) {
                 Swal.fire({
                     icon: 'error',
                     title: 'Lỗi',
-                    text: error.message,
+                    text: xhr.responseJSON?.message || 'Không thể tải dữ liệu chuyên mục.',
                     confirmButtonColor: '#dc2626'
                 });
             }
+        });
         }
 
         // Confirm Delete
@@ -352,8 +364,9 @@
             const token = $('input[name="__RequestVerificationToken"]').val();
 
             $.ajax({
-                url: `/BlogCategory/Delete/${id}`,
+                url: '@Url.Action("Delete", "BlogCategory")',
                 type: 'POST',
+                data: { id: id },
                 headers: {
                     'RequestVerificationToken': token
                 },
@@ -380,21 +393,11 @@
                     Swal.fire({
                         icon: 'error',
                         title: 'Lỗi',
-                        text: 'Đã xảy ra lỗi khi xóa chuyên mục',
+                        text: xhr.responseJSON?.message || 'Đã xảy ra lỗi.',
                         confirmButtonColor: '#dc2626'
                     });
                 }
             });
         }
     </script>
-}
-
-@section Styles {
-
-    <style>
-        .deleted-row {
-            opacity: 0.6;
-            background: #f8f9fa;
-        }
-    </style>
 }

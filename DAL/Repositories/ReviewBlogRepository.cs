@@ -64,9 +64,27 @@ namespace DAL.Repositories
 
         public async Task<bool> DeleteAsync(int reviewBlogId)
         {
-            var review = await _context.ReviewBlogs.FindAsync(reviewBlogId);
+            // Load review with all related entities (replies and reactions)
+            var review = await _context.ReviewBlogs
+                .Include(r => r.ReviewBlogReplies)
+                .Include(r => r.ReviewBlogReactions)
+                .FirstOrDefaultAsync(r => r.ReviewBlogId == reviewBlogId);
+
             if (review == null) return false;
 
+            // Delete all related replies first
+            if (review.ReviewBlogReplies.Any())
+            {
+                _context.ReviewBlogReplies.RemoveRange(review.ReviewBlogReplies);
+            }
+
+            // Delete all related reactions
+            if (review.ReviewBlogReactions.Any())
+            {
+                _context.ReviewBlogReactions.RemoveRange(review.ReviewBlogReactions);
+            }
+
+            // Finally delete the review itself
             _context.ReviewBlogs.Remove(review);
             await _context.SaveChangesAsync();
             return true;

@@ -171,10 +171,10 @@
                                                 title="@(review.IsBlocked ? "Gỡ cấm" : "Cấm")">
                                             <i class="fa-solid @(review.IsBlocked ? "fa-lock-open" : "fa-lock")"></i>
                                         </button>
-                                        <button type="button" class="btn btn-sm btn-danger"
-                                                onclick="deleteReview(@review.ReviewBlogId)" title="Xóa">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
+                                        @* <button type="button" class="btn btn-sm btn-danger" *@
+                                        @*         onclick="deleteReview(@review.ReviewBlogId)" title="Xóa"> *@
+                                        @*     <i class="fas fa-trash"></i> *@
+                                        @* </button> *@
                                     </td>
                                     <td>
                                         <p class="review-content mb-0">@review.Comment</p>
@@ -339,133 +339,154 @@
             }
 
             // Delete Review
-            function deleteReview(reviewId) {
-                Swal.fire({
-                    title: 'Xác nhận xóa',
-                    text: 'Bạn có chắc chắn muốn xóa bình luận này?',
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#dc2626',
-                    cancelButtonColor: '#6b7280',
-                    confirmButtonText: 'Có, xóa',
-                    cancelButtonText: 'Hủy'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        const token = $('input[name="__RequestVerificationToken"]').val();
+            // function deleteReview(reviewId) {
+            //     Swal.fire({
+            //         title: 'Xác nhận xóa',
+            //         text: 'Bạn có chắc chắn muốn xóa bình luận này?',
+            //         icon: 'warning',
+            //         showCancelButton: true,
+            //         confirmButtonColor: '#dc2626',
+            //         cancelButtonColor: '#6b7280',
+            //         confirmButtonText: 'Có, xóa',
+            //         cancelButtonText: 'Hủy'
+            //     }).then((result) => {
+            //         if (result.isConfirmed) {
+            //             const token = $('input[name="__RequestVerificationToken"]').val();
 
-                        $.ajax({
-                            url: `/BlogReview/Delete/${reviewId}`,
-                            type: 'POST',
-                            headers: {
-                                'RequestVerificationToken': token
-                            },
-                            success: function (data) {
-                                if (data.success) {
-                                    Swal.fire({
-                                        icon: 'success',
-                                        title: 'Thành công',
-                                        text: data.message,
-                                        confirmButtonColor: '#10b981'
-                                    }).then(() => {
-                                        location.reload();
-                                    });
-                                } else {
-                                    Swal.fire({
-                                        icon: 'error',
-                                        title: 'Lỗi',
-                                        text: data.message,
-                                        confirmButtonColor: '#dc2626'
-                                    });
-                                }
-                            },
-                            error: function (xhr) {
-                                Swal.fire({
-                                    icon: 'error',
-                                    title: 'Lỗi',
-                                    text: 'Không thể xóa bình luận',
-                                    confirmButtonColor: '#dc2626'
-                                });
-                            }
+            //             $.ajax({
+            //                 url: `/BlogReview/Delete/${reviewId}`,
+            //                 type: 'POST',
+            //                 headers: {
+            //                     'RequestVerificationToken': token
+            //                 },
+            //                 success: function (data) {
+            //                     if (data.success) {
+            //                         Swal.fire({
+            //                             icon: 'success',
+            //                             title: 'Thành công',
+            //                             text: data.message,
+            //                             confirmButtonColor: '#10b981'
+            //                         }).then(() => {
+            //                             location.reload();
+            //                         });
+            //                     } else {
+            //                         Swal.fire({
+            //                             icon: 'error',
+            //                             title: 'Lỗi',
+            //                             text: data.message,
+            //                             confirmButtonColor: '#dc2626'
+            //                         });
+            //                     }
+            //                 },
+            //                 error: function (xhr) {
+            //                     Swal.fire({
+            //                         icon: 'error',
+            //                         title: 'Lỗi',
+            //                         text: 'Không thể xóa bình luận',
+            //                         confirmButtonColor: '#dc2626'
+            //                     });
+            //                 }
+            //             });
+            //         }
+            //     });
+            // }
+
+
+            // View Review Detail
+            function viewReviewDetail(reviewId) {
+                $.ajax({
+                    url: '@Url.Action("GetReviewDetail", "BlogReview")',
+                    type: 'GET',
+                    data: { id: reviewId },
+                    beforeSend: function() {
+                        Swal.fire({
+                            title: 'Đang tải chi tiết bình luận...',
+                            allowOutsideClick: false,
+                            didOpen: () => Swal.showLoading()
+                        });
+                    },
+                    success: function (review) {
+                        Swal.close();
+
+                        if (!review || review.success === false) {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Lỗi',
+                                text: review?.message || 'Không thể tải chi tiết bình luận',
+                                confirmButtonColor: '#dc2626'
+                            });
+                            return;
+                        }
+
+                        let repliesHtml = '';
+                        if (review.replies && review.replies.length > 0) {
+                            review.replies.forEach(reply => {
+                                repliesHtml += `
+                                    <div class="p-2 mb-2 bg-white border-start border-3 border-primary rounded">
+                                        <p class="mb-1"><strong>${reply.authorName}</strong></p>
+                                        <p class="mb-1">${reply.content}</p>
+                                        <small class="text-muted">${reply.createdAt}</small>
+                                    </div>`;
+                            });
+                        } else {
+                            repliesHtml = '<div class="alert alert-info">Chưa có phản hồi nào</div>';
+                        }
+
+                        const content = `
+                            <div class="row g-3">
+                                <div class="col-md-12">
+                                    <p><strong>Bài viết:</strong>
+                                        <a href="/Blog/Detail/${review.reviewId}" target="_blank" class="text-decoration-none">
+                                            ${review.blogTitle}
+                                        </a>
+                                    </p>
+                                </div>
+                                <div class="col-md-12">
+                                    <p><strong>Nội dung:</strong></p>
+                                    <div class="bg-white p-2 border rounded mb-3">${review.content}</div>
+                                </div>
+                                <div class="col-md-6"><p><strong>Người bình luận:</strong> ${review.authorName}</p></div>
+                                <div class="col-md-6"><p><strong>Email:</strong> ${review.authorEmail || 'N/A'}</p></div>
+                                <div class="col-md-6"><p><strong>Tương tác:</strong> 👍 ${review.likeCount} | 👎 ${review.dislikeCount}</p></div>
+                                <div class="col-md-6">
+                                    <p><strong>Trạng thái:</strong>
+                                        ${review.isBlocked
+                                            ? '<span class="badge bg-danger"><i class="fas fa-lock"></i> Đã cấm</span>'
+                                            : '<span class="badge bg-secondary"><i class="fas fa-lock-open"></i> Bình thường</span>'}
+                                    </p>
+                                </div>
+                                <div class="col-md-12"><p><strong>Ngày bình luận:</strong> ${review.createdAt}</p></div>
+                                <div class="col-md-12">
+                                    <h6 class="mb-2"><strong>Phản hồi:</strong></h6>
+                                    ${repliesHtml}
+                                    <form id="replyForm" class="mt-2">
+                                        <textarea name="replyContent" class="form-control" rows="2" placeholder="Nhập phản hồi..."></textarea>
+                                        <button type="button" class="btn btn-primary btn-sm mt-2" onclick="submitReply(${reviewId})">
+                                            <i class="fas fa-paper-plane me-1"></i>Gửi phản hồi
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>`;
+
+                        $('#commentDetailContent').html(content);
+                        const modal = new bootstrap.Modal(document.getElementById('commentDetailModal'));
+                        modal.show();
+                    },
+                    error: function (xhr) {
+                        Swal.close();
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Lỗi',
+                            text: xhr.responseJSON?.message || 'Không thể tải chi tiết bình luận',
+                            confirmButtonColor: '#dc2626'
                         });
                     }
                 });
             }
 
-            // View Review Detail
-            async function viewReviewDetail(reviewId) {
-                try {
-                    const response = await fetch(`/BlogReview/Details/${reviewId}`);
-                    if (!response.ok) throw new Error('Không thể tải chi tiết bình luận');
-
-                    const review = await response.json();
-                    let repliesHtml = '';
-
-                    if (review.replies && review.replies.length > 0) {
-                        review.replies.forEach(reply => {
-                            repliesHtml = `
-                                            <div style="background: white; padding: 0.75rem; margin-bottom: 0.5rem; border-left: 3px solid #667eea; border-radius: 4px;">
-                                                <p class="mb-1"><strong>${reply.authorName}</strong></p>
-                                                <p class="mb-1">${reply.content}</p>
-                                                <small class="text-muted">${reply.createdAt}</small>
-                                            </div>
-                                        `;
-                        });
-                    } else {
-                        repliesHtml = '<div class="alert alert-info">Chưa có phản hồi nào</div>';
-                    }
-
-                    const content = `
-                                    <div class="row g-3">
-                                        <div class="col-md-12">
-                                            <p><strong>Bài viết:</strong> <a href="/Blog/Detail/${review.reviewId}" target="_blank" class="text-decoration-none">${review.blogTitle}</a></p>
-                                        </div>
-                                        <div class="col-md-12">
-                                            <p><strong>Nội dung:</strong></p>
-                                            <div style="background: white; padding: 0.75rem; border: 1px solid #e0e0e0; border-radius: 4px; margin-bottom: 1rem;">
-                                                ${review.content}
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <p><strong>Người bình luận:</strong> ${review.authorName}</p>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <p><strong>Email:</strong> ${review.authorEmail || 'N/A'}</p>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <p><strong>Tương tác:</strong> 👍 ${review.likeCount} | 👎 ${review.dislikeCount}</p>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <p><strong>Trạng thái:</strong> ${review.isBlocked
-                            ? '<span class="badge bg-danger"><i class="fas fa-lock"></i> Đã cấm</span>'
-                            : '<span class="badge bg-secondary"><i class="fas fa-lock-open"></i> Bình thường</span>'}</p>
-                                        </div>
-                                        <div class="col-md-12">
-                                            <p><strong>Ngày bình luận:</strong> ${review.createdAt}</p>
-                                        </div>
-                                        <div class="col-md-12">
-                                            <h6 class="mb-2"><strong>Phản hồi:</strong></h6>
-                                            ${repliesHtml}
-                                            <form id="replyForm" style="margin-top: 1rem;">
-                                                <textarea name="replyContent" class="form-control" rows="2" placeholder="Nhập phản hồi..."></textarea>
-                                                <button type="button" class="btn btn-primary btn-sm mt-2" onclick="submitReply(${reviewId})">
-                                                    <i class="fas fa-paper-plane me-1"></i>Gửi phản hồi
-                                                </button>
-                                            </form>
-                                        </div>
-                                    </div>
-                                `;
-
-                    document.getElementById('commentDetailContent').innerHTML = content;
-                    const modal = new bootstrap.Modal(document.getElementById('commentDetailModal'));
-                    modal.show();
-                } catch (error) {
-                    Swal.fire('Lỗi', error.message, 'error');
-                }
-            }
-
             // Submit Reply
             function submitReply(reviewId) {
-                const replyContent = document.querySelector('textarea[name="replyContent"]')?.value.trim();
+                const replyContent = $('textarea[name="replyContent"]').val().trim();
                 if (!replyContent) {
                     Swal.fire({
                         icon: 'warning',
@@ -479,12 +500,12 @@
                 const token = $('input[name="__RequestVerificationToken"]').val();
 
                 $.ajax({
-                    url: `/BlogReview/Reply/${reviewId}`,
+                    url: '@Url.Action("ReplyToReview", "BlogReview")',
                     type: 'POST',
-                    data: { replyContent: replyContent },
+                    data: { reviewId: reviewId, replyContent: replyContent },
                     headers: {
                         'RequestVerificationToken': token
-                    },
+                    },  
                     success: function (data) {
                         if (data.success) {
                             Swal.fire({
@@ -504,7 +525,7 @@
                             });
                         }
                     },
-                    error: function (xhr) {
+                    error: function () {
                         Swal.fire({
                             icon: 'error',
                             title: 'Lỗi',
@@ -514,5 +535,6 @@
                     }
                 });
             }
+
         </script>
 }

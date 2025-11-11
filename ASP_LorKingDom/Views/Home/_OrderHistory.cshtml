@@ -437,7 +437,7 @@
                             if (firstItem != null)
                             {
                                 <div class="order-item">
-                                    <img src="@(firstItem.MainImageUrl ?? "https://via.placeholder.com/60")"
+                                    <img src="@(Url.Content(firstItem.MainImageUrl) ?? "https://via.placeholder.com/60")"
                                         alt="@firstItem.ProductName" class="item-image" />
                                     <div class="item-details">
                                         <div class="item-name">@firstItem.ProductName</div>

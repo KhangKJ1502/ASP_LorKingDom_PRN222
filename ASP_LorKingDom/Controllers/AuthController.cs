@@ -233,12 +233,12 @@ namespace WebUI.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ResendOtp(string email)
+        public async Task<JsonResult> ResendOtp(string email)
         {
             try
             {
                 await _emailOtpService.SendOtpAsync(email);
-                return Ok(new
+                return Json(new
                 {
                     success = true,
                     message = "OTP đã được gửi lại. Vui lòng kiểm tra email của bạn."
@@ -246,11 +246,11 @@ namespace WebUI.Controllers
             }
             catch (InvalidOperationException ex)
             {
-                return BadRequest(new { success = false, message = ex.Message });
+                return Json(new { success = false, message = ex.Message });
             }
             catch
             {
-                return BadRequest(new { success = false, message = "Đã xảy ra lỗi khi gửi lại OTP." });
+                return Json(new { success = false, message = "Đã xảy ra lỗi khi gửi lại OTP." });
             }
         }
 
