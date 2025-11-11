@@ -119,7 +119,7 @@ namespace WebUI.Controllers
             await LoadDropdownsAsync();
             return View("~/Views/Admin/AddProduct.cshtml", new ProductDto());
         }
-
+        // Get 
         public async Task<IActionResult> Edit(int id)
         {
             var dto = await _productSvc.GetByIdAsync(id);

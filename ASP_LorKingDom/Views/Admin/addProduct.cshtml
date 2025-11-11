@@ -141,7 +141,7 @@
 		@(isEdit ? "Cập nhật Sản Phẩm" : "Thêm Sản Phẩm Mới")
 	</h2>
 
-	
+
 	<form asp-action="@(isEdit ? "Update" : "Add")"
 		  asp-controller="Product"
 		  method="post"
@@ -374,7 +374,7 @@
 		@if (!string.IsNullOrWhiteSpace(Model?.DescriptionHtml))
 		{
 			<text>
-								quill.root.innerHTML = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.DescriptionHtml));
+										quill.root.innerHTML = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.DescriptionHtml));
 			</text>
 		}
 

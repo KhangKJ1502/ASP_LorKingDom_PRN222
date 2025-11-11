@@ -43,11 +43,11 @@ namespace DAL.Repositories
             return await _ctx.Products
                 .Include(p => p.Category)
                 .Include(p => p.Brand)
-                .Include(p => p.Material)    
-                .Include(p => p.Age)         
-                .Include(p => p.Sex)          
-                .Include(p => p.Origin)       
-                .Include(p => p.PriceRange)   
+                .Include(p => p.Material)
+                .Include(p => p.Age)
+                .Include(p => p.Sex)
+                .Include(p => p.Origin)
+                .Include(p => p.PriceRange)
                 .Include(p => p.ProductImages)
                 .Include(p => p.Promotion)
                 .FirstOrDefaultAsync(p => p.ProductId == id);
@@ -92,7 +92,7 @@ namespace DAL.Repositories
                 p.IsDeleted = isDeleted;
                 if (isDeleted)
                 {
-                    p.ProductStatus = "Discontinued";               
+                    p.ProductStatus = "Discontinued";
                 }
             }
 
@@ -141,7 +141,7 @@ namespace DAL.Repositories
             {
                 p.IsDeleted = isDeleted;
                 if (isDeleted)
-                    p.ProductStatus = "Discontinued"; 
+                    p.ProductStatus = "Discontinued";
             }
 
             await _ctx.SaveChangesAsync();
@@ -163,8 +163,9 @@ namespace DAL.Repositories
             await _ctx.SaveChangesAsync();
             return items.Count;
         }
-    
-        public async Task<(List<Product> Items, int Total)> QueryStorefrontPagedAsync(string? keyword, int page, int pageSize)
+
+        public async Task<(List<Product> Items, int Total)> QueryStorefrontPagedAsync(
+      string? keyword, int page, int pageSize, int? priceRangeId = null)
         {
             if (page <= 0) page = 1;
             if (pageSize <= 0) pageSize = 16;
@@ -173,7 +174,7 @@ namespace DAL.Repositories
                 .AsNoTracking()
                 .Include(p => p.Category)
                 .Include(p => p.Brand)
-                .Include(p => p.ProductImages) 
+                .Include(p => p.ProductImages)
                 .Include(p => p.Promotion)
                 .Where(p =>
                     p.IsDeleted == false &&
@@ -190,7 +191,13 @@ namespace DAL.Repositories
 
             if (!string.IsNullOrWhiteSpace(keyword))
             {
-                q = q.Where(p => p.ProductName.Contains(keyword) || p.Sku.Contains(keyword));
+                var k = keyword.Trim();
+                q = q.Where(p => p.ProductName.Contains(k) || (p.Sku != null && p.Sku.Contains(k)));
+            }
+
+            if (priceRangeId.HasValue)
+            {
+                q = q.Where(p => p.PriceRangeId == priceRangeId.Value);
             }
 
             var total = await q.CountAsync();
@@ -204,6 +211,7 @@ namespace DAL.Repositories
 
             return (items, total);
         }
+
         public async Task<int> SetIsDeletedBySuperCategoryAsync(int superCategoryId, bool isDeleted)
         {
             var items = await _ctx.Products
@@ -253,30 +261,30 @@ namespace DAL.Repositories
                 .Take(pageSize)
                 .ToListAsync();
 
-                return (items, total);
-            }
-
-            public Task<List<int>> GetProductIdsByPromotionAsync(int promotionId)
-            {
-                return _ctx.Products
-                    .Where(p => p.PromotionId == promotionId)
-                    .Select(p => p.ProductId)
-                    .ToListAsync();
-            }
-
-            public async Task<int> SetPromotionForProductsAsync(int? promotionId, int[] productIds)
-            {
-                if (productIds == null || productIds.Length == 0) return 0;
-
-                var q = _ctx.Products.Where(p => productIds.Contains(p.ProductId));
-
-                var affected = await q.ExecuteUpdateAsync(s => s
-                    .SetProperty(p => p.PromotionId, p => promotionId)
-                    .SetProperty(p => p.UpdatedAt, p => DateTime.Now));
-
-                return affected;
-            }
+            return (items, total);
         }
 
+        public Task<List<int>> GetProductIdsByPromotionAsync(int promotionId)
+        {
+            return _ctx.Products
+                .Where(p => p.PromotionId == promotionId)
+                .Select(p => p.ProductId)
+                .ToListAsync();
+        }
+
+        public async Task<int> SetPromotionForProductsAsync(int? promotionId, int[] productIds)
+        {
+            if (productIds == null || productIds.Length == 0) return 0;
+
+            var q = _ctx.Products.Where(p => productIds.Contains(p.ProductId));
+
+            var affected = await q.ExecuteUpdateAsync(s => s
+                .SetProperty(p => p.PromotionId, p => promotionId)
+                .SetProperty(p => p.UpdatedAt, p => DateTime.Now));
+
+            return affected;
+        }
     }
+
+}
 
