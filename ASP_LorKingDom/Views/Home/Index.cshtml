@@ -1,15 +1,23 @@
 ﻿@model BLL.DTOs.PagedResult<BLL.DTOs.ProductDto>
-@using System.Linq
+@using BLL.DTOs
+@using Microsoft.AspNetCore.Mvc.Rendering
 
 @{
 	ViewData["Title"] = "ToyLand - Toy Wonderland";
 
+	// Query hiện tại
 	var q = Context.Request.Query["q"].ToString();
 	int page = Model?.Page ?? 1;
 	int pageSize = Model?.PageSize ?? 16;
 	int total = Model?.Total ?? 0;
 
-	// 1 instance Random cho cả view (nếu cần dùng ở partial)
+	// Dropdown khoảng giá lấy từ Controller
+	var prList = ViewBag.PriceRangeList as SelectList;
+
+	// Đọc lựa chọn khoảng giá hiện tại từ URL (để JS/URL sync)
+	int? selectedPriceRangeId = int.TryParse(Context.Request.Query["priceRangeId"], out var pr) ? pr : (int?)null;
+
+	// Random rating giả
 	var rnd = new System.Random(12345);
 }
 
@@ -19,14 +27,12 @@
 		<img src="~/Assets/image/contact/colorful-toys-and-children-playing.jpg" alt="Khám phá thế giới đồ chơi tuyệt vời" class="hero-image active" id="heroImage1">
 		<img src="~/Assets/image/contact/famous-toy-brands-display.jpg" alt="Đồ chơi giáo dục thông minh" class="hero-image" id="heroImage2">
 		<img src="~/Assets/image/contact/educational-toys-and-learning-games.jpg" alt="Thương hiệu toàn cầu đáng tin cậy" class="hero-image" id="heroImage3">
-
 		<button class="hero-nav-btn hero-prev" onclick="prevSlide()">
 			<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
 		</button>
 		<button class="hero-nav-btn hero-next" onclick="nextSlide()">
 			<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
 		</button>
-
 		<div class="hero-dots">
 			<button class="hero-dot active" onclick="goToSlide(0)"></button>
 			<button class="hero-dot" onclick="goToSlide(1)"></button>
@@ -41,87 +47,38 @@
 					<span class="badge badge-primary badge-glow">50% OFF</span>
 					<span class="badge badge-outline">Best Seller</span>
 				</div>
-
 				<h1 class="hero-title">Khám phá thế giới đồ chơi tuyệt vời</h1>
 				<p class="hero-subtitle">Hàng ngàn sản phẩm chất lượng cao dành cho con yêu của bạn</p>
-			</div
+			</div>
 		</div>
 	</div>
 </section>
 
-
 <section class="promotion-section">
 	<div class="container">
 		<div class="promotion-banner">
-			<!-- Left Content -->
 			<div class="promotion-text">
-				<div class="flash-badge">
-					<span>⚡</span>
-					<span>FLASH SALE</span>
-				</div>
-
+				<div class="flash-badge"><span>⚡</span><span>FLASH SALE</span></div>
 				<h2 class="promotion-title">GIẢM ĐẾN 70%</h2>
-
-				<p class="promotion-description">
-					Cơ hội vàng sở hữu những món đồ chơi yêu thích với giá không thể tốt hơn!
-				</p>
-
-				<!-- Countdown -->
+				<p class="promotion-description">Cơ hội vàng sở hữu những món đồ chơi yêu thích với giá không thể tốt hơn!</p>
 				<div class="countdown">
-					<div class="countdown-label">
-						<span>⏱️</span>
-						<span>Kết thúc sau:</span>
-					</div>
+					<div class="countdown-label"><span>⏱️</span><span>Kết thúc sau:</span></div>
 					<div class="countdown-items">
-						<div class="countdown-item">
-							<div class="countdown-value" id="hours">23</div>
-							<div class="countdown-unit">Giờ</div>
-						</div>
-						<div class="countdown-item">
-							<div class="countdown-value" id="minutes">45</div>
-							<div class="countdown-unit">Phút</div>
-						</div>
-						<div class="countdown-item">
-							<div class="countdown-value" id="seconds">30</div>
-							<div class="countdown-unit">Giây</div>
-						</div>
+						<div class="countdown-item"><div class="countdown-value" id="hours">23</div><div class="countdown-unit">Giờ</div></div>
+						<div class="countdown-item"><div class="countdown-value" id="minutes">45</div><div class="countdown-unit">Phút</div></div>
+						<div class="countdown-item"><div class="countdown-value" id="seconds">30</div><div class="countdown-unit">Giây</div></div>
 					</div>
 				</div>
-
-				<!-- Buttons -->
 				<div class="promotion-buttons">
-					<button class="btn btn-primary">
-						<span>🎁</span>
-						<span>Mua ngay</span>
-					</button>
-					<button class="btn btn-outline">
-						Xem tất cả ưu đãi
-					</button>
+					<button class="btn btn-primary"><span>🎁</span><span>Mua ngay</span></button>
+					<button class="btn btn-outline">Xem tất cả ưu đãi</button>
 				</div>
 			</div>
-
-			<!-- Right Cards -->
 			<div class="promotion-cards">
-				<div class="promo-card">
-					<div class="promo-card-icon">🎁</div>
-					<div class="promo-card-title">Quà tặng</div>
-					<div class="promo-card-subtitle">Mua 2 tặng 1</div>
-				</div>
-				<div class="promo-card">
-					<div class="promo-card-icon">🚚</div>
-					<div class="promo-card-title">Miễn phí</div>
-					<div class="promo-card-subtitle">Vận chuyển</div>
-				</div>
-				<div class="promo-card">
-					<div class="promo-card-icon">💳</div>
-					<div class="promo-card-title">Trả góp</div>
-					<div class="promo-card-subtitle">0% lãi suất</div>
-				</div>
-				<div class="promo-card">
-					<div class="promo-card-icon">🔄</div>
-					<div class="promo-card-title">Đổi trả</div>
-					<div class="promo-card-subtitle">Trong 30 ngày</div>
-				</div>
+				<div class="promo-card"><div class="promo-card-icon">🎁</div><div class="promo-card-title">Quà tặng</div><div class="promo-card-subtitle">Mua 2 tặng 1</div></div>
+				<div class="promo-card"><div class="promo-card-icon">🚚</div><div class="promo-card-title">Miễn phí</div><div class="promo-card-subtitle">Vận chuyển</div></div>
+				<div class="promo-card"><div class="promo-card-icon">💳</div><div class="promo-card-title">Trả góp</div><div class="promo-card-subtitle">0% lãi suất</div></div>
+				<div class="promo-card"><div class="promo-card-icon">🔄</div><div class="promo-card-title">Đổi trả</div><div class="promo-card-subtitle">Trong 30 ngày</div></div>
 			</div>
 		</div>
 	</div>
@@ -129,12 +86,25 @@
 
 <section id="featured" class="products-section">
 	<div class="container">
-		<div class="section-header">
-			<h2 class="section-title">Danh sách sản phẩm </h2>
-			<p class="section-subtitle">Đồ chơi được trẻ em yêu thích</p>
+		<div class="section-header d-flex flex-wrap gap-3 justify-content-between align-items-end">
+			<div>
+				<h2 class="section-title">Danh sách sản phẩm</h2>
+				<p class="section-subtitle">Đồ chơi được trẻ em yêu thích</p>
+			</div>
+
+			<!-- Filter bar -->
+			<form id="filterForm" class="d-flex gap-3 align-items-end">
+				<div>
+					<label class="form-label mb-1">Khoảng giá</label>
+					<!-- Dùng asp-items từ SelectList trong ViewBag. KHÔNG dùng asp-for vì Model không có PriceRangeId -->
+					<select id="priceRangeId" name="priceRangeId" class="form-select" asp-items="prList">
+						<option value="">-- Chọn --</option>
+					</select>
+				</div>
+			</form>
 		</div>
 
-		<!-- Khối grid sản phẩm: lần đầu render server-side, các lần sau thay bằng AJAX -->
+		<!-- Grid sản phẩm: lần đầu server render, các lần sau load qua AJAX -->
 		<div id="product-container">
 			@await Html.PartialAsync("_ProductGridPartial", Model)
 		</div>
@@ -155,7 +125,7 @@
 				<p class="newsletter-subtitle">Nhận thông tin cập nhật mới nhất về sản phẩm mới và ưu đãi đặc biệt</p>
 			</div>
 		</div>
-	</div>   
+	</div>
 </section>
 
 @section Scripts {
@@ -167,7 +137,7 @@
 		document.addEventListener('click', function (e) {
 			const card = e.target.closest('.js-card');
 			if (!card) return;
-			if (e.target.closest('a, button, input, select, textarea, label, form')) return; // đừng chặn submit form Wishlist
+			if (e.target.closest('a, button, input, select, textarea, label, form')) return;
 			const url = card.dataset.url;
 			if (url) window.location.href = url;
 		});
@@ -179,87 +149,122 @@
 			if (url) window.location.href = url;
 		});
 
-		// ========= AJAX Search + Pagination cho grid =========
-		(function () {
-			const container = document.getElementById('product-container');
+		// ========= Helpers =========
+		function queryFromUrl(urlStr) {
+			const u = new URL(urlStr, window.location.origin);
+			return {
+				q: u.searchParams.get('q') ?? '',
+				page: parseInt(u.searchParams.get('page') || '1'),
+				pageSize: parseInt(u.searchParams.get('pageSize') || '16'),
+				priceRangeId: u.searchParams.get('priceRangeId') ?? ''
+			};
+		}
 
-			function queryFromUrl(urlStr) {
-				const u = new URL(urlStr, window.location.origin);
-				return {
-					q: u.searchParams.get('q') ?? '',
-					page: parseInt(u.searchParams.get('page') || '1'),
-					pageSize: parseInt(u.searchParams.get('pageSize') || '16')
-				};
+		async function loadGrid({ q = '', page = 1, pageSize = 16, priceRangeId = '' }) {
+			const sp = new URLSearchParams();
+			if (q) sp.set('q', q);
+			sp.set('page', page);
+			sp.set('pageSize', pageSize);
+			if (priceRangeId) sp.set('priceRangeId', priceRangeId);
+
+			const res = await fetch(`/Home/ProductGrid?${sp.toString()}`, {
+				headers: { 'X-Requested-With': 'XMLHttpRequest' }
+			});
+			const html = await res.text();
+			document.getElementById('product-container').innerHTML = html;
+
+			// cuộn nhẹ tới khu vực sản phẩm
+			const featured = document.getElementById('featured');
+			if (featured) {
+				const top = featured.getBoundingClientRect().top + window.scrollY - 20;
+				window.scrollTo({ top, behavior: 'smooth' });
 			}
+		}
 
-			async function loadGrid({ q = '', page = 1, pageSize = 16 }) {
-				const url = `/Home/ProductGrid?q=${encodeURIComponent(q)}&page=${page}&pageSize=${pageSize}`;
-				const res = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
-				const html = await res.text();
-				container.innerHTML = html;
+		// ========= Intercept pagination trong partial =========
+		document.getElementById('product-container').addEventListener('click', function (e) {
+			const a = e.target.closest('a.page-link, a.js-page');
+			if (!a) return;
 
-				// cuộn nhẹ tới khu vực sản phẩm
-				const featured = document.getElementById('featured');
-				if (featured) {
-					const top = featured.getBoundingClientRect().top + window.scrollY - 20;
-					window.scrollTo({ top, behavior: 'smooth' });
-				}
-			}
+			const dataPage = a.getAttribute('data-page');
+			const href = a.getAttribute('href') || '';
+			let nextPage = dataPage ? parseInt(dataPage) : queryFromUrl(href).page;
+			if (!nextPage || Number.isNaN(nextPage)) return;
 
-			// --- Intercept pagination trong partial ---
-			container.addEventListener('click', function (e) {
-				const a = e.target.closest('a.page-link, a.js-page'); // hỗ trợ cả 2 kiểu class
-				if (!a) return;
+			e.preventDefault();
+			const current = queryFromUrl(window.location.href);
+			loadGrid({
+				q: current.q,
+				page: nextPage,
+				pageSize: current.pageSize,
+				priceRangeId: current.priceRangeId
+			});
 
-				// Nếu link có data-page, ưu tiên dùng
-				const dataPage = a.getAttribute('data-page');
-				const href = a.getAttribute('href') || '';
-				let nextPage = dataPage ? parseInt(dataPage) : queryFromUrl(href).page;
+			const newUrl = new URL(window.location.href);
+			if (current.q) newUrl.searchParams.set('q', current.q); else newUrl.searchParams.delete('q');
+			newUrl.searchParams.set('page', String(nextPage));
+			newUrl.searchParams.set('pageSize', String(current.pageSize || 16));
+			if (current.priceRangeId) newUrl.searchParams.set('priceRangeId', current.priceRangeId); else newUrl.searchParams.delete('priceRangeId');
+			window.history.pushState({}, '', newUrl.toString());
+		});
 
-				if (!nextPage || Number.isNaN(nextPage)) return;
+		// ========= Intercept search form ở header (giữ nguyên UI của bạn) =========
+		document.addEventListener('submit', function (e) {
+			const form = e.target.closest('.header-search .search-wrapper');
+			if (!form) return;
 
-				e.preventDefault();
+			e.preventDefault();
+			const fd = new FormData(form);
+			const q = (fd.get('q') || '').toString();
+			const pageSize = parseInt((fd.get('pageSize') || '16').toString()) || 16;
 
-				// Lấy q & pageSize hiện tại từ URL
+			const current = queryFromUrl(window.location.href);
+			const priceRangeId = current.priceRangeId || document.getElementById('priceRangeId')?.value || '';
+
+			loadGrid({ q, page: 1, pageSize, priceRangeId });
+
+			const newUrl = new URL(window.location.href);
+			if (q) newUrl.searchParams.set('q', q); else newUrl.searchParams.delete('q');
+			newUrl.searchParams.set('page', '1');
+			newUrl.searchParams.set('pageSize', String(pageSize));
+			if (priceRangeId) newUrl.searchParams.set('priceRangeId', priceRangeId); else newUrl.searchParams.delete('priceRangeId');
+			window.history.pushState({}, '', newUrl.toString());
+		});
+
+		// ========= Dropdown Khoảng giá =========
+		const prSelect = document.getElementById('priceRangeId');
+		if (prSelect) {
+			// Set selected value theo URL lần đầu (phòng khi SelectList chưa set Selected)
+			const urlPR = (new URL(window.location.href)).searchParams.get('priceRangeId') || '';
+			if (urlPR) prSelect.value = urlPR;
+
+			prSelect.addEventListener('change', function () {
 				const current = queryFromUrl(window.location.href);
-				loadGrid({ q: current.q, page: nextPage, pageSize: current.pageSize });
+				const nextPR = this.value || '';
 
-				// Cập nhật URL (để back/forward thân thiện)
+				loadGrid({
+					q: current.q,
+					page: 1, // reset về trang 1 khi đổi filter
+					pageSize: current.pageSize,
+					priceRangeId: nextPR
+				});
+
 				const newUrl = new URL(window.location.href);
-				newUrl.searchParams.set('q', current.q || '');
-				newUrl.searchParams.set('page', String(nextPage));
-				newUrl.searchParams.set('pageSize', String(current.pageSize || 16));
-				window.history.pushState({}, '', newUrl.toString());
-			});
-
-			// --- Intercept search form ở header (giữ nguyên UI của bạn) ---
-			document.addEventListener('submit', function (e) {
-				const form = e.target.closest('.header-search .search-wrapper');
-				if (!form) return;
-
-				// Chặn submit full page -> gọi AJAX
-				e.preventDefault();
-
-				const fd = new FormData(form);
-				const q = (fd.get('q') || '').toString();
-				const pageSize = parseInt((fd.get('pageSize') || '16').toString()) || 16;
-
-				// Luôn về trang 1 khi search
-				loadGrid({ q, page: 1, pageSize });
-
-				// Cập nhật URL
-				const newUrl = new URL(window.location.href);
-				newUrl.searchParams.set('q', q);
+				if (current.q) newUrl.searchParams.set('q', current.q); else newUrl.searchParams.delete('q');
 				newUrl.searchParams.set('page', '1');
-				newUrl.searchParams.set('pageSize', String(pageSize));
+				newUrl.searchParams.set('pageSize', String(current.pageSize || 16));
+				if (nextPR) newUrl.searchParams.set('priceRangeId', nextPR); else newUrl.searchParams.delete('priceRangeId');
 				window.history.pushState({}, '', newUrl.toString());
 			});
+		}
 
-			// --- Handle back/forward (optional thân thiện) ---
-			window.addEventListener('popstate', function () {
-				const { q, page, pageSize } = queryFromUrl(window.location.href);
-				loadGrid({ q, page, pageSize });
-			});
-		})();
+		// ========= Handle back/forward =========
+		window.addEventListener('popstate', function () {
+			const { q, page, pageSize, priceRangeId } = queryFromUrl(window.location.href);
+			// Sync dropdown khi bấm Back/Forward
+			const sel = document.getElementById('priceRangeId');
+			if (sel) sel.value = priceRangeId || '';
+			loadGrid({ q, page, pageSize, priceRangeId });
+		});
 	</script>
 }

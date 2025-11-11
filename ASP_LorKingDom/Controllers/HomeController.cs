@@ -3,6 +3,7 @@ using BLL.Interfaces;
 using DAL.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Diagnostics;
 using System.Security.Claims;
 
@@ -16,14 +17,14 @@ namespace ASP_LorKingDom.Controllers
         private readonly IReviewProductService _reviewSvc;
         private readonly IAccountService _accountService;
         private readonly IAddressService _addressService;
-
+        private readonly IPriceRangeService _priceRangeSvc;
         public HomeController(
             ILogger<HomeController> logger,
             IProductService productSvc,
             IWishlistService wishlistSvc,
             IAccountService accountService,
             IAddressService addressService,
-            IReviewProductService reviewSvc)
+            IReviewProductService reviewSvc, IPriceRangeService priceRangeService)
         {
             _logger = logger;
             _productSvc = productSvc;
@@ -31,6 +32,7 @@ namespace ASP_LorKingDom.Controllers
             _accountService = accountService;
             _addressService = addressService;
             _reviewSvc = reviewSvc;
+            _priceRangeSvc = priceRangeService;
         }
 
         // ===== helpers =====
@@ -43,7 +45,7 @@ namespace ASP_LorKingDom.Controllers
                 : new HashSet<int>();
         }
 
-        private async Task<PagedResult<ProductDto>> BuildPagedModelAsync(string? q, int page, int pageSize)
+        private async Task<PagedResult<ProductDto>> BuildPagedModelAsync(string? q, int page, int pageSize, int? priceRangeId = null)
         {
             if (page <= 0) page = 1;
             if (pageSize <= 0) pageSize = 16;
@@ -62,6 +64,11 @@ namespace ASP_LorKingDom.Controllers
                 p.BrandId != null &&
                 p.OriginId != null
             );
+
+            if (priceRangeId.HasValue)
+            {
+                filtered = filtered.Where(p => p.PriceRangeId == priceRangeId.Value);
+            }
 
             var total = filtered.Count();
 
@@ -84,19 +91,27 @@ namespace ASP_LorKingDom.Controllers
             };
         }
 
-        public async Task<IActionResult> Index(string? q, int page = 1, int pageSize = 16)
+
+        public async Task<IActionResult> Index(string? q, int page = 1, int pageSize = 16, int? priceRangeId = null)
         {
-            var model = await BuildPagedModelAsync(q, page, pageSize);
+            var priceRanges = await _priceRangeSvc.GetActiveAsync();
+
+            // Chuẩn bị SelectList giống AddProduct
+            ViewBag.PriceRangeList = new SelectList(
+                priceRanges.Select(pr => new { pr.Id, Text = $"{pr.PriceRangeMin:#,0} - {pr.PriceRangeMax:#,0}" }),
+                "Id", "Text", priceRangeId);
+
+            var model = await BuildPagedModelAsync(q, page, pageSize, priceRangeId);
             return View(model);
         }
 
+
         [HttpGet]
-        public async Task<IActionResult> ProductGrid(string? q, int page = 1, int pageSize = 16)
+        public async Task<IActionResult> ProductGrid(string? q, int page = 1, int pageSize = 16, int? priceRangeId = null)
         {
-            var model = await BuildPagedModelAsync(q, page, pageSize);
+            var model = await BuildPagedModelAsync(q, page, pageSize, priceRangeId);
             return PartialView("_ProductGridPartial", model);
         }
-
         public async Task<IActionResult> ProductDetails(int id)
         {
             var dto = await _productSvc.GetByIdAsync(id);

@@ -73,7 +73,7 @@ function createDeleteButton(onClick) {
 
 //TJs Them Anh chi tiet
 // JavaScript
-const MAX_IMAGES = 8; // set số ảnh được update detail
+const MAX_IMAGES = 6; // set số ảnh được update detail
 let currentFiles = [];
 
 function handleFileSelect(event) {
