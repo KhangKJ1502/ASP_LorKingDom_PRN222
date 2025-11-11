@@ -7,7 +7,7 @@ using WebUI.Filters;
 namespace WebUI.Controllers
 {
     [Authorize(AuthenticationSchemes = "AdminScheme")]
-    [AdminAndStaffOnly] // Chỉ Admin và Staff mới quản lý được blog category
+    [AdminAndStaffOnly]
     public class BlogCategoryController : Controller
     {
         private readonly IBlogCategoryService _service;
@@ -17,12 +17,18 @@ namespace WebUI.Controllers
             _service = service;
         }
 
-        // GET: /BlogCategory/Manage
+
+        /// Display blog category management page with search and pagination
+        /// GET: /BlogCategory/Manage
+        /// <param name="q">Search query for category name or description</param>
+        /// <param name="page">Current page number (default: 1)</param>
+        /// <param name="pageSize">Number of items per page (default: 10)</param>
         public async Task<IActionResult> Manage(string? q, int page = 1, int pageSize = 10)
         {
+            // Get all active categories
             var allCategories = await _service.GetAllAsync();
 
-            // Tìm kiếm theo tên hoặc mô tả
+            // Apply search filter if query exists
             if (!string.IsNullOrWhiteSpace(q))
             {
                 allCategories = allCategories
@@ -32,17 +38,22 @@ namespace WebUI.Controllers
                     .ToList();
             }
 
-            // Sắp xếp theo ngày cập nhật gần nhất
-            allCategories = allCategories.OrderByDescending(c => c.UpdatedAt ?? c.CreatedAt).ToList();
+            // Sort by most recently updated
+            allCategories = allCategories
+                .OrderByDescending(c => c.UpdatedAt ?? c.CreatedAt)
+                .ToList();
 
-            // Pagination
+            // Calculate pagination
             var totalCount = allCategories.Count;
             var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+
+            // Get items for current page
             var pagedCategories = allCategories
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToList();
 
+            // Pass data to view
             ViewBag.Query = q;
             ViewBag.CurrentPage = page;
             ViewBag.TotalPages = totalPages;
@@ -52,90 +63,124 @@ namespace WebUI.Controllers
             return View("~/Views/Admin/ManageBlogCategory.cshtml", pagedCategories);
         }
 
-        // POST: /BlogCategory/SaveBlogCategory
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> SaveBlogCategory(int id, string name, string? description, bool isDeleted = false)
-        {
-            try
-            {
-                if (id == 0)
-                {
-                    // Tạo mới
-                    var dto = new BlogCategoryDto
-                    {
-                        BlogCategoryName = name,
-                        Description = description,
-                        CreatedAt = DateTime.Now
-                    };
-                    await _service.CreateAsync(dto);
-                    return Ok(new { success = true, message = "Chuyên mục blog đã được tạo thành công!" });
-                }
-                else
-                {
-                    // Cập nhật
-                    var existing = await _service.GetByIdAsync(id);
-                    if (existing == null)
-                        return BadRequest(new { success = false, message = "Không tìm thấy chuyên mục blog." });
-
-                    existing.BlogCategoryName = name;
-                    existing.Description = description;
-                    await _service.UpdateAsync(id, existing);
-                    return Ok(new { success = true, message = "Chuyên mục blog đã được cập nhật thành công!" });
-                }
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { success = false, message = "Đã xảy ra lỗi: " + ex.Message });
-            }
-        }
-
-        // GET: /BlogCategory/GetById/{id}
-        [HttpGet("BlogCategory/GetById/{id}")]
+        /// Get blog category details by ID 
+        /// GET: /BlogCategory/GetById/{id}
         public async Task<IActionResult> GetById(int id)
         {
             try
             {
                 var category = await _service.GetByIdAsync(id);
                 if (category == null)
-                    return NotFound();
+                {
+                    return NotFound(new { success = false, message = "Category not found." });
+                }
 
                 return Json(category);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = ex.Message });
+                return BadRequest(new { success = false, message = $"Error: {ex.Message}" });
             }
         }
 
-        // GET: /BlogCategory/Edit/{id}
+        /// Display edit form for a specific blog category
+        /// GET: /BlogCategory/Edit/{id}
         public async Task<IActionResult> Edit(int id)
         {
-            var dto = await _service.GetByIdAsync(id);
-            if (dto == null)
+            // Get category to edit
+            var category = await _service.GetByIdAsync(id);
+            if (category == null)
+            {
                 return RedirectToAction(nameof(Manage));
+            }
 
-            var list = await _service.GetAllAsync();
-            ViewBag.EditBlogCategory = dto;
-            return View("~/Views/Admin/ManageBlogCategory.cshtml", list);
+            // Get all categories for the list view
+            var allCategories = await _service.GetAllAsync();
+
+            // Pass edit category to view
+            ViewBag.EditBlogCategory = category;
+
+            return View("~/Views/Admin/ManageBlogCategory.cshtml", allCategories);
         }
 
-        // POST: /BlogCategory/Delete/{id}
+
+        /// Create or update a blog category
+        /// POST: /BlogCategory/SaveBlogCategory
+        /// <param name="id">Category ID (0 for create, >0 for update)</param>
+        /// <param name="name">Category name</param>
+        /// <param name="description">Category description (optional)</param>
+        /// <param name="isDeleted">Soft delete flag (not used in create/update)</param>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Delete(int id)
+        public async Task<JsonResult> SaveBlogCategory(int id, string name, string? description, bool isDeleted = false)
+        {
+            try
+            {
+                // Validate input
+                if (string.IsNullOrWhiteSpace(name))
+                {
+                    return Json(new { success = false, message = "Category name is required." });
+                }
+
+                if (id == 0)
+                {
+                    // Create new category
+                    var newCategory = new BlogCategoryDto
+                    {
+                        BlogCategoryName = name.Trim(),
+                        Description = description?.Trim(),
+                        CreatedAt = DateTime.Now
+                    };
+
+                    await _service.CreateAsync(newCategory);
+                    return Json(new { success = true, message = "Blog category created successfully!" });
+                }
+                else
+                {
+                    // Update existing category
+                    var existingCategory = await _service.GetByIdAsync(id);
+                    if (existingCategory == null)
+                    {
+                        return Json(new { success = false, message = "Category not found." });
+                    }
+
+                    existingCategory.BlogCategoryName = name.Trim();
+                    existingCategory.Description = description?.Trim();
+
+                    await _service.UpdateAsync(id, existingCategory);
+                    return Json(new { success = true, message = "Blog category updated successfully!" });
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = $"Error: {ex.Message}" });
+            }
+        }
+
+        /// Soft delete a blog category
+        /// POST: /BlogCategory/Delete/{id}
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<JsonResult> Delete(int id)
         {
             try
             {
                 var success = await _service.SoftDeleteAsync(id);
                 if (!success)
-                    return BadRequest(new { success = false, message = "Không thể xóa chuyên mục blog." });
+                {
+                    return Json(new { success = false, message = "Failed to delete blog category." });
+                }
 
-                return Ok(new { success = true, message = "Chuyên mục blog đã được xóa thành công!" });
+                return Json(new { success = true, message = "Blog category deleted successfully!" });
+            }
+            catch (InvalidOperationException ex)
+            {
+                // Handle case when category has related blog posts
+                return Json(new { success = false, message = ex.Message });
             }
             catch (Exception ex)
             {
-                return BadRequest(new { success = false, message = "Đã xảy ra lỗi: " + ex.Message });
+                return Json(new { success = false, message = $"Error: {ex.Message}" });
             }
         }
     }

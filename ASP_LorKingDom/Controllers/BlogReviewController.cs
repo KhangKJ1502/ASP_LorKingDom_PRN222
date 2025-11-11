@@ -104,30 +104,30 @@ namespace WebUI.Controllers
             }
         }
 
-        [HttpPost("BlogReview/Delete/{id}")]
-        [ValidateAntiForgeryToken]
-        [Authorize(AuthenticationSchemes = "AdminScheme")]
-        [AdminAndStaffOnly] // Staff: Blog Review Management
-        public async Task<JsonResult> DeleteReview(int id)
-        {
-            try
-            {
-                var review = await _reviewBlogService.GetByIdAsync(id);
-                if (review == null)
-                    return Json(new { success = false, message = "Bình luận không tồn tại." });
+        //[HttpPost("BlogReview/Delete/{id}")]
+        //[ValidateAntiForgeryToken]
+        //[Authorize(AuthenticationSchemes = "AdminScheme")]
+        //[AdminAndStaffOnly] // Staff: Blog Review Management
+        //public async Task<JsonResult> DeleteReview(int id)
+        //{
+        //    try
+        //    {
+        //        var review = await _reviewBlogService.GetByIdAsync(id);
+        //        if (review == null)
+        //            return Json(new { success = false, message = "Bình luận không tồn tại." });
 
-                await _reviewBlogService.DeleteAsync(id);
-                return Json(new { success = true, message = "Xóa bình luận thành công!" });
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = ex.Message });
-            }
-        }
+        //        await _reviewBlogService.DeleteAsync(id);
+        //        return Json(new { success = true, message = "Xóa bình luận thành công!" });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return Json(new { success = false, message = ex.Message });
+        //    }
+        //}
 
-        [HttpGet("BlogReview/Details/{id}")]
+        //[HttpGet("BlogReview/Details/{id}")]
         [Authorize(AuthenticationSchemes = "AdminScheme")]
-        [AdminAndStaffOnly] // Staff: Blog Review Management
+        [AdminAndStaffOnly]
         public async Task<IActionResult> GetReviewDetail(int id)
         {
             try
@@ -168,10 +168,10 @@ namespace WebUI.Controllers
             }
         }
 
-        [HttpPost("BlogReview/Reply/{reviewId}")]
+        [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(AuthenticationSchemes = "AdminScheme")]
-        [AdminAndStaffOnly] // Staff: Blog Review Management
+        [AdminAndStaffOnly]
         public async Task<JsonResult> ReplyToReview(int reviewId, string replyContent)
         {
             try

@@ -492,10 +492,15 @@
 
         if (changePasswordBtn) {
             changePasswordBtn.addEventListener('click', function () {
-                const modal = new bootstrap.Modal(document.getElementById('changePasswordModal'));
-                modal.show();
-            });
-        }
+            const modalElement = document.getElementById('changePasswordModal');
+            // Lấy instance đã có hoặc tạo mới nếu chưa có
+            let modal = bootstrap.Modal.getInstance(modalElement);
+            if (!modal) {
+                modal = new bootstrap.Modal(modalElement);
+            }
+            modal.show();
+        });
+    }
 
         if (submitChangePassword && changePasswordForm) {
             submitChangePassword.addEventListener('click', function () {

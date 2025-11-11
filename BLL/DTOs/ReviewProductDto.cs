@@ -16,6 +16,7 @@
         public string? AuthorName { get; set; }
         public string? AuthorEmail { get; set; }
         public string? ProductName { get; set; }
+        public string? ProductImageUrl { get; set; }  
         public int LikeCount { get; set; }
         public int DislikeCount { get; set; }
         public string? UserReaction { get; set; }       

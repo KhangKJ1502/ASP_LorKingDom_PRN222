@@ -32,15 +32,24 @@ namespace WebUI.Controllers
             _replyService = replyService;
         }
 
-        // Public actions - Customer có thể xem blog
+
+        /// Displays the blog listing page with filtering, search, and pagination.
+        /// <param name="q">Search query for blog title or content</param>
+        /// <param name="category">Category filter</param>
+        /// <param name="page">Current page number (default: 1)</param>
+        /// <param name="pageSize">Number of items per page (default: 6)</param>
+        /// <returns>View with filtered and paginated blog list</returns>
         [HttpGet]
         public async Task<IActionResult> Index(string? q, string? category, int page = 1, int pageSize = 6)
         {
-            // Lấy tất cả blogs để tính categoryStats
+            // Get all blogs to calculate category statistics
             var allBlogs = await _blogService.GetAllAsync(null);
-            var allPublishedBlogs = allBlogs.Where(b => b.IsPublished).OrderByDescending(b => b.BlogPostId).ToList();
+            var allPublishedBlogs = allBlogs
+                .Where(b => b.IsPublished)
+                .OrderByDescending(b => b.BlogPostId)
+                .ToList();
 
-            // Lọc theo search query (nếu có)
+            // Filter by search query if provided
             var filteredByQuery = allPublishedBlogs;
             if (!string.IsNullOrWhiteSpace(q))
             {
@@ -50,7 +59,7 @@ namespace WebUI.Controllers
                     .ToList();
             }
 
-            // Lọc theo chuyên mục (nếu có)
+            // Filter by category if provided
             var filteredBlogs = filteredByQuery;
             if (!string.IsNullOrWhiteSpace(category))
             {
@@ -59,11 +68,11 @@ namespace WebUI.Controllers
                     .ToList();
             }
 
-            // Tách biệt các blog nổi bật và gần đây
+            // Separate featured and recent blogs
             var featuredBlogs = filteredBlogs.Where(b => b.IsFeatured).Take(4).ToList();
             var recentBlogs = filteredBlogs.Where(b => !b.IsFeatured).ToList();
 
-            // Phân trang cho các bài đăng gần đây
+            // Paginate recent blogs
             var totalCount = recentBlogs.Count;
             var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
             var pagedRecentBlogs = recentBlogs
@@ -71,7 +80,7 @@ namespace WebUI.Controllers
                 .Take(pageSize)
                 .ToList();
 
-            // Tính số lượng từng chuyên mục từ TẤT CẢ published blogs (không lọc category)
+            // Calculate category statistics from ALL published blogs (not filtered by category)
             var categoryStats = allPublishedBlogs
                 .Where(b => b.CategoryNames != null)
                 .SelectMany(b => b.CategoryNames)
@@ -81,6 +90,7 @@ namespace WebUI.Controllers
                     cat => allPublishedBlogs.Count(b => b.CategoryNames?.Contains(cat, StringComparer.OrdinalIgnoreCase) ?? false)
                 );
 
+            // Pass data to view via ViewBag
             ViewBag.FeaturedBlogs = featuredBlogs;
             ViewBag.RecentBlogs = pagedRecentBlogs;
             ViewBag.Query = q;
@@ -88,11 +98,15 @@ namespace WebUI.Controllers
             ViewBag.CurrentPage = page;
             ViewBag.TotalPages = totalPages;
             ViewBag.PageSize = pageSize;
-            ViewBag.CategoryStats = categoryStats; // Dictionary chứa count từng category
+            ViewBag.CategoryStats = categoryStats; // Dictionary containing count for each category
 
             return View(pagedRecentBlogs);
         }
 
+        /// Displays detailed view of a single blog post.
+        /// Shows related blogs from the same category and blog comments.
+        /// <param name="id">Blog post ID</param>
+        /// <returns>View with blog details, related blogs, and comments</returns>
         [HttpGet]
         public async Task<IActionResult> Detail(int id)
         {
@@ -100,7 +114,7 @@ namespace WebUI.Controllers
             if (blog == null || !blog.IsPublished)
                 return NotFound();
 
-            // Lấy các bài viết liên quan cùng category
+            // Get related blogs from the same category
             var allBlogs = await _blogService.GetAllAsync();
             var relatedBlogs = allBlogs
                 .Where(b => b.IsPublished &&
@@ -111,7 +125,7 @@ namespace WebUI.Controllers
 
             ViewBag.RelatedBlogs = relatedBlogs;
 
-            // Load comments
+            // Load comments with user reaction information
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             var currentUserId = userId != null ? int.Parse(userId) : (int?)null;
             var comments = await _reviewBlogService.GetByBlogIdAsync(id, currentUserId);
@@ -120,14 +134,24 @@ namespace WebUI.Controllers
             return View(blog);
         }
 
+
+        /// Displays the admin blog management page with filtering and pagination.
+        /// <param name="q">Search query for blog title or author name</param>
+        /// <param name="category">Category filter</param>
+        /// <param name="status">Publish status filter ("published" or "draft")</param>
+        /// <param name="featured">Featured status filter</param>
+        /// <param name="page">Current page number (default: 1)</param>
+        /// <param name="pageSize">Number of items per page (default: 10)</param>
+        /// <returns>Admin view with filtered and paginated blog list</returns>
         [HttpGet("Blog/Manage")]
         [Authorize(AuthenticationSchemes = "AdminScheme")]
-        [AdminAndStaffOnly] // Staff: Blog Management
+        [AdminAndStaffOnly]
         public async Task<IActionResult> ManageBlog(string? q, string? category, string? status, bool? featured, int page = 1, int pageSize = 10)
         {
-            var blogs = await _blogService.GetAllAsync(null); // Lấy tất cả, không filter ở tầng service
+            // Get all blogs without filtering at service layer
+            var blogs = await _blogService.GetAllAsync(null);
 
-            // Tìm kiếm theo tiêu đề hoặc tác giả
+            // Filter by search query (title or author name)
             if (!string.IsNullOrWhiteSpace(q))
             {
                 blogs = blogs
@@ -136,7 +160,7 @@ namespace WebUI.Controllers
                     .ToList();
             }
 
-            // Lọc theo chuyên mục
+            // Filter by category
             if (!string.IsNullOrWhiteSpace(category))
             {
                 blogs = blogs
@@ -144,23 +168,23 @@ namespace WebUI.Controllers
                     .ToList();
             }
 
-            // Lọc theo trạng thái
+            // Filter by publish status
             if (!string.IsNullOrWhiteSpace(status))
             {
                 bool isPublished = status == "published";
                 blogs = blogs.Where(b => b.IsPublished == isPublished).ToList();
             }
 
-            // Lọc theo nổi bật
+            // Filter by featured status
             if (featured.HasValue)
             {
                 blogs = blogs.Where(b => b.IsFeatured == featured.Value).ToList();
             }
 
-            // Sắp xếp
+            // Sort by creation date (newest first)
             blogs = blogs.OrderByDescending(b => b.CreatedAt).ToList();
 
-            // Pagination
+            // Apply pagination
             var totalCount = blogs.Count;
             var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
             var pagedBlogs = blogs
@@ -168,10 +192,11 @@ namespace WebUI.Controllers
                 .Take(pageSize)
                 .ToList();
 
-            // Load danh sách chuyên mục cho dropdown
+            // Load category list for dropdown filter
             var categories = await _categoryService.GetAllAsync();
             var categoryNames = categories.Select(c => c.BlogCategoryName).Distinct().ToList();
 
+            // Pass filter parameters and pagination data to view
             ViewBag.Query = q;
             ViewBag.CategoryFilter = category;
             ViewBag.StatusFilter = status;
@@ -185,9 +210,12 @@ namespace WebUI.Controllers
             return View("~/Views/Admin/ManageBlog.cshtml", pagedBlogs);
         }
 
-        [HttpGet("Blog/GetDetail/{id}")]
+        /// Retrieves detailed information of a blog post for admin viewing.
+        /// Returns blog data in JSON format for modal display.
+        /// <param name="id">Blog post ID</param>
+        /// <returns>JSON object with blog details</returns>
         [Authorize(AuthenticationSchemes = "AdminScheme")]
-        [AdminAndStaffOnly] // Staff: Blog Management
+        [AdminAndStaffOnly]
         public async Task<IActionResult> GetDetail(int id)
         {
             var blog = await _blogService.GetByIdAsync(id);
@@ -209,9 +237,11 @@ namespace WebUI.Controllers
             });
         }
 
-        [HttpGet("Blog/Create")]
+        /// Displays the blog creation form.
+        /// Loads available categories for selection.
+        /// <returns>View with blog creation form</returns>
         [Authorize(AuthenticationSchemes = "AdminScheme")]
-        [AdminAndStaffOnly] // Staff: Blog Management
+        [AdminAndStaffOnly]
         public async Task<IActionResult> Create()
         {
             var categories = await _categoryService.GetAllAsync();
@@ -219,36 +249,40 @@ namespace WebUI.Controllers
             return View("~/Views/Admin/CreateBlog.cshtml");
         }
 
-        [HttpPost("Blog/Create")]
+        /// Creates a new blog post with the provided information.
+        /// <param name="dto">Blog post data transfer object</param>
+        /// <param name="categoryIds">Array of selected category IDs</param>
+        /// <param name="thumbnail">Optional thumbnail image file</param>
+        /// <returns>JSON result indicating success or failure</returns>
+        [HttpPost]
         [Authorize(AuthenticationSchemes = "AdminScheme")]
-        [AdminAndStaffOnly] // Staff: Blog Management
+        [AdminAndStaffOnly]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(BlogPostDto dto, int[] categoryIds, IFormFile? thumbnail)
         {
             try
             {
-                // Validate
+                // Validate required fields
                 if (string.IsNullOrWhiteSpace(dto.BlogTitle))
-                    throw new ArgumentException("Tiêu đề không được để trống.");
+                    throw new ArgumentException("Tiêu đề blog không được để trống.");
 
-                // Kiểm tra giới hạn featured blogs trước khi upload ảnh
+                // Check featured blog limit before uploading image (max 4 featured blogs)
                 if (dto.IsFeatured)
                 {
                     if (!await _blogService.CanAddFeaturedBlogAsync())
                     {
-                        return Json(new { success = false, message = "Không thể thêm bài viết nổi bật. Giới hạn tối đa là 4 bài." });
+                        return Json(new { success = false, message = "Không thể thêm blog nổi bật. Giới hạn tối đa là 4 blog nổi bật!" });
                     }
                 }
 
-                // Lấy user hiện tại
-                //var user = await _accountService.GetCurrentUserAsync(User);
-                var user = await _accountService.GetByIdAsync(1);
+                // Get current user account
+                var user = await _accountService.GetByIdAsync(1); // TODO: Replace with actual current user
                 if (user == null)
                     throw new InvalidOperationException("Không thể xác định người dùng hiện tại.");
 
                 dto.AccountId = user.Id;
 
-                // Upload thumbnail nếu có
+                // Upload thumbnail if provided
                 if (thumbnail != null)
                 {
                     var fileName = Guid.NewGuid() + Path.GetExtension(thumbnail.FileName);
@@ -260,39 +294,40 @@ namespace WebUI.Controllers
                     dto.BlogThumbnail = $"/uploads/blogs/{fileName}";
                 }
 
+                // Create blog post
                 var id = await _blogService.CreateAsync(dto, categoryIds);
-                TempData["Success"] = "Tạo bài viết thành công!";
                 return Json(new { success = true, message = "Tạo bài viết thành công!" });
             }
             catch (Exception ex)
             {
-                // Return JSON error
+                // Handle known exceptions with JSON response
                 if (ex is InvalidOperationException)
                 {
                     return Json(new { success = false, message = ex.Message });
                 }
 
-                // ✅ Thêm: Hiển thị lỗi trên trang tạo blog
+                // Show error on creation page
                 ViewBag.ErrorMessage = ex.Message;
                 ViewBag.ShowErrorModal = true;
 
-                // Load lại categories để hiển thị trong form
+                // Reload categories for form display
                 var categories = await _categoryService.GetAllAsync();
                 ViewBag.Categories = categories;
                 return View("~/Views/Admin/CreateBlog.cshtml", dto);
             }
         }
 
-        [HttpGet("Blog/Edit/{id}")]
+        /// Displays the blog edit form with existing blog data.
+        /// <param name="id">Blog post ID to edit</param>
+        /// <returns>View with blog edit form</returns>
         [Authorize(AuthenticationSchemes = "AdminScheme")]
-        [AdminAndStaffOnly] // Staff: Blog Management
+        [AdminAndStaffOnly]
         public async Task<IActionResult> Edit(int id)
         {
             var blog = await _blogService.GetByIdAsync(id);
             if (blog == null)
             {
-                TempData["Error"] = "Không tìm thấy bài viết.";
-                return RedirectToAction("Manage");
+                return RedirectToAction("ManageBlog");
             }
 
             var categories = await _categoryService.GetAllAsync();
@@ -301,9 +336,15 @@ namespace WebUI.Controllers
             return View("~/Views/Admin/EditBlog.cshtml", blog);
         }
 
-        [HttpPost("Blog/Edit/{id}")]
+        /// Updates an existing blog post with new information.
+        /// <param name="id">Blog post ID to update</param>
+        /// <param name="dto">Updated blog post data</param>
+        /// <param name="categoryIds">Array of selected category IDs</param>
+        /// <param name="thumbnail">Optional new thumbnail image file</param>
+        /// <returns>JSON result indicating success or failure</returns>
+        [HttpPost]
         [Authorize(AuthenticationSchemes = "AdminScheme")]
-        [AdminAndStaffOnly] // Staff: Blog Management
+        [AdminAndStaffOnly]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, BlogPostDto dto, int[] categoryIds, IFormFile? thumbnail)
         {
@@ -312,17 +353,18 @@ namespace WebUI.Controllers
                 Console.WriteLine($"Received IsFeatured: {dto.IsFeatured}");
                 var blog = await _blogService.GetByIdAsync(id);
                 if (blog == null)
-                    throw new InvalidOperationException("Không tìm thấy bài viết.");
+                    throw new InvalidOperationException("Không tìm thấy bài viết!");
 
-                // Kiểm tra giới hạn featured blogs nếu muốn chuyển từ không nổi bật sang nổi bật
+                // Check featured blog limit if changing from non-featured to featured
                 if (dto.IsFeatured && !blog.IsFeatured)
                 {
                     if (!await _blogService.CanAddFeaturedBlogAsync(id))
                     {
-                        return Json(new { success = false, message = "Không thể đánh dấu bài viết nổi bật. Giới hạn tối đa là 4 bài." });
+                        return Json(new { success = false, message = "Không thể đánh dấu nổi bật. Tối đa là 4 bài viết nổi bật." });
                     }
                 }
 
+                // Handle thumbnail upload or preserve existing
                 if (thumbnail != null)
                 {
                     var fileName = Guid.NewGuid() + Path.GetExtension(thumbnail.FileName);
@@ -335,39 +377,44 @@ namespace WebUI.Controllers
                 }
                 else
                 {
+                    // Preserve existing thumbnail if no new upload
                     dto.BlogThumbnail = blog.BlogThumbnail;
                 }
 
+                // Preserve system fields
                 dto.IsDeleted = blog.IsDeleted;
                 dto.AccountId = blog.AccountId;
 
+                // Update blog post
                 await _blogService.UpdateAsync(id, dto, categoryIds);
-                TempData["Success"] = "Cập nhật bài viết thành công!";
                 return Json(new { success = true, message = "Cập nhật bài viết thành công!" });
             }
             catch (Exception ex)
             {
-                // Return JSON error
+                // Handle known exceptions with JSON response
                 if (ex is InvalidOperationException)
                 {
                     return Json(new { success = false, message = ex.Message });
                 }
 
-                // ✅ Thêm: Hiển thị lỗi trên trang edit blog
+                // Show error on edit page
                 ViewBag.ErrorMessage = ex.Message;
                 ViewBag.ShowErrorModal = true;
 
-                // Load lại data để hiển thị
+                // Reload data for form display
                 var categories = await _categoryService.GetAllAsync();
                 ViewBag.Categories = categories;
-                ViewBag.EditBlog = dto; // Hoặc load từ DB nếu cần
+                ViewBag.EditBlog = dto;
                 return View("~/Views/Admin/EditBlog.cshtml", dto);
             }
         }
 
-        [HttpPost("Blog/Delete/{id}")]
+        /// Soft deletes a blog post.
+        /// <param name="id">Blog post ID to delete</param>
+        /// <returns>JSON result indicating success or failure</returns>
+        [HttpPost]
         [Authorize(AuthenticationSchemes = "AdminScheme")]
-        [AdminAndStaffOnly] // Staff: Blog Management
+        [AdminAndStaffOnly]
         [ValidateAntiForgeryToken]
         public async Task<JsonResult> Delete(int id)
         {
@@ -375,20 +422,14 @@ namespace WebUI.Controllers
             {
                 var success = await _blogService.SoftDeleteAsync(id);
                 if (!success)
-                    return Json(new { success = false, message = "Không thể xóa bài viết." });
+                    return Json(new { success = false, message = "Không thể xoá bài viết!" });
 
-                return Json(new { success = true, message = "Xóa bài viết thành công!" });
+                return Json(new { success = true, message = "Xoá bài viết thành công!" });
             }
             catch (Exception ex)
             {
                 return Json(new { success = false, message = ex.Message });
             }
         }
-
-        //[HttpGet("BlogReview/Manage")]
-        //public IActionResult ManageBlogReview()
-        //{
-        //    return View("~/Views/Admin/ManageBlogReview.cshtml");
-        //}
     }
 }

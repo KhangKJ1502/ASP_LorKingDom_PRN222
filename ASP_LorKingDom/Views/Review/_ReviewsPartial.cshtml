@@ -322,7 +322,7 @@
             {
                 <div class="my-review-card" data-product-id="@review.ProductId">
                     <div class="my-review-header">
-                        <img src="@(review.ImageUrls?.FirstOrDefault() ?? "https://via.placeholder.com/80")"
+                        <img src="@(review.ProductImageUrl ?? "https://via.placeholder.com/80")"
                              alt="@review.ProductName"
                              class="my-review-product-image" />
 

@@ -107,6 +107,8 @@ namespace BLL.Services
                     .Select(r => r.ReactionType)
                     .FirstOrDefault()
                 : null;
+            var productMainImage = review.Product?.ProductImages
+                    ?.FirstOrDefault(img => img.IsMain)?.ImageUrl;
 
             return new ReviewProductDto
             {
@@ -122,6 +124,7 @@ namespace BLL.Services
                 AuthorName = review.Account?.AccountName ?? "Ẩn danh",
                 AuthorEmail = review.Account?.Email,
                 ProductName = review.Product?.ProductName,
+                ProductImageUrl = productMainImage ?? "/images/placeholder.png",
                 LikeCount = likeCount,
                 DislikeCount = dislikeCount,
                 UserReaction = userReaction,

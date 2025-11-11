@@ -124,7 +124,7 @@
     <div class="card mb-4 mt-4">
         <div class="card-header d-flex justify-content-between align-items-center">
             <div><i class="fa-solid fa-blog me-2"></i>Danh Sách Bài Viết</div>
-            <a href="/Blog/Create" class="btn btn-primary py-2">
+            <a asp-controller="Blog" asp-action="Create" class="btn btn-primary py-2">
                 <i class="fas fa-plus me-2"></i>Thêm Bài Viết Mới
             </a>
         </div>
@@ -200,7 +200,8 @@
                                             onclick="viewBlogDetail(@blog.BlogPostId)" title="Xem">
                                             <i class="fas fa-eye"></i>
                                         </button>
-                                        <a href="/Blog/Edit/@blog.BlogPostId" class="btn btn-sm btn-warning" title="Sửa">
+                                        <a asp-controller="Blog" asp-action="Edit" asp-route-id="@blog.BlogPostId" 
+                                            class="btn btn-sm btn-warning" title="Sửa">
                                             <i class="fas fa-edit"></i>
                                         </a>
                                         <button type="button" class="btn btn-sm btn-danger"
@@ -345,54 +346,84 @@
         });
 
         // View Blog Detail
-        async function viewBlogDetail(blogId) {
-            try {
-                const response = await fetch(`/Blog/GetDetail/${blogId}`);
-                if (!response.ok) throw new Error('Không thể tải chi tiết bài viết');
+        function viewBlogDetail(blogId) {
+            $.ajax({
+                url: '@Url.Action("GetDetail", "Blog")',
+                type: 'GET',
+                data: { id: blogId },
+                success: function (blog) {
+                    if (!blog || blog.success === false) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Lỗi',
+                            text: blog?.message || 'Không thể tải chi tiết bài viết.',
+                            confirmButtonColor: '#dc2626'
+                        });
+                        return;
+                    }
 
-                const blog = await response.json();
-                const updatedAtFormatted = blog.updatedAt ? dayjs(blog.updatedAt).format('DD/MM/YYYY HH:mm') : dayjs(blog.createdAt).format('DD/MM/YYYY HH:mm');
-                const createdAtFormatted = dayjs(blog.createdAt).format('DD/MM/YYYY HH:mm');
+                    const updatedAtFormatted = blog.updatedAt
+                        ? dayjs(blog.updatedAt).format('DD/MM/YYYY HH:mm')
+                        : dayjs(blog.createdAt).format('DD/MM/YYYY HH:mm');
+                    const createdAtFormatted = dayjs(blog.createdAt).format('DD/MM/YYYY HH:mm');
 
-                const content = `
-                            <div class="row g-3">
-                                <div class="col-md-12">
-                                    <img src="${blog.blogThumbnail || 'https://upload.wikimedia.org/wikipedia/commons/d/d1/Image_not_available.png'}"
-                                         class="img-fluid rounded border" style="max-height: 300px; width: 100%; object-fit: cover;">
-                                </div>
-                                <div class="col-md-12">
-                                    <h5><strong>Tiêu đề:</strong> ${blog.blogTitle}</h5>
-                                </div>
-                                <div class="col-md-12">
-                                    <p><strong>Tác giả:</strong> ${blog.authorName}</p>
-                                </div>
-                                <div class="col-md-6">
-                                    <p><strong>Ngày cập nhật:</strong> ${updatedAtFormatted}</p>
-                                </div>
-                                <div class="col-md-6">
-                                    <p><strong>Ngày tạo:</strong> ${createdAtFormatted}</p>
-                                </div>
-                                <div class="col-md-12">
-                                    <p class="mb-2"><strong>Chuyên mục:</strong> ${(blog.categoryNames || []).join(', ')}</p>
-                                </div>
-                                <div class="col-md-6">
-                                    <p><strong>Trạng thái:</strong> ${blog.isPublished ? '<span class="badge bg-success"><i class="fas fa-check-circle"></i> Xuất bản</span>' : '<span class="badge bg-secondary"><i class="fas fa-file"></i> Nháp</span>'}</p>
-                                </div>
-                                <div class="col-md-6">
-                                    <p><strong>Nổi bật:</strong> ${blog.isFeatured ? '<span class="badge bg-warning"><i class="fas fa-star"></i> Có</span>' : '<span class="badge bg-secondary">Không</span>'}</p>
-                                </div>
-                                <div class="col-md-12">
-                                    <p><strong>Mô tả:</strong></p>
-                                    <p class="text-muted">${blog.blogContent || 'Không có mô tả'}</p>
-                                </div>
+                    const content = `
+                        <div class="row g-3">
+                            <div class="col-md-12">
+                                <img src="${blog.blogThumbnail || 'https://upload.wikimedia.org/wikipedia/commons/d/d1/Image_not_available.png'}"
+                                     class="img-fluid rounded border"
+                                     style="max-height: 300px; width: 100%; object-fit: cover;">
                             </div>
-                        `;
-                document.getElementById('blogDetailContent').innerHTML = content;
-                const modal = new bootstrap.Modal(document.getElementById('blogDetailModal'));
-                modal.show();
-            } catch (error) {
-                Swal.fire('Lỗi', error.message, 'error');
-            }
+                            <div class="col-md-12">
+                                <h5><strong>Tiêu đề:</strong> ${blog.blogTitle}</h5>
+                            </div>
+                            <div class="col-md-12">
+                                <p><strong>Tác giả:</strong> ${blog.authorName}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Ngày cập nhật:</strong> ${updatedAtFormatted}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Ngày tạo:</strong> ${createdAtFormatted}</p>
+                            </div>
+                            <div class="col-md-12">
+                                <p class="mb-2"><strong>Chuyên mục:</strong> ${(blog.categoryNames || []).join(', ')}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Trạng thái:</strong>
+                                    ${blog.isPublished
+                                        ? '<span class="badge bg-success"><i class="fas fa-check-circle"></i> Xuất bản</span>'
+                                        : '<span class="badge bg-secondary"><i class="fas fa-file"></i> Nháp</span>'}
+                                </p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Nổi bật:</strong>
+                                    ${blog.isFeatured
+                                        ? '<span class="badge bg-warning"><i class="fas fa-star"></i> Có</span>'
+                                        : '<span class="badge bg-secondary">Không</span>'}
+                                </p>
+                            </div>
+                            <div class="col-md-12">
+                                <p><strong>Mô tả:</strong></p>
+                                <p class="text-muted">${blog.blogContent || 'Không có mô tả'}</p>
+                            </div>
+                        </div>
+                    `;
+
+                    $('#blogDetailContent').html(content);
+
+                    const modal = new bootstrap.Modal(document.getElementById('blogDetailModal'));
+                    modal.show();
+                },
+                error: function (xhr) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Lỗi',
+                        text: xhr.responseJSON?.message || 'Không thể tải chi tiết bài viết.',
+                        confirmButtonColor: '#dc2626'
+                    });
+                }
+            });
         }
 
         // Confirm Delete Blog
@@ -419,8 +450,9 @@
                 const token = $('input[name="__RequestVerificationToken"]').val();
 
                 $.ajax({
-                    url: `/Blog/Delete/${blogId}`,
+                    url: '@Url.Action("Delete", "Blog")',
                     type: 'POST',
+                    data: { id: id },
                     headers: {
                         'RequestVerificationToken': token
                     },

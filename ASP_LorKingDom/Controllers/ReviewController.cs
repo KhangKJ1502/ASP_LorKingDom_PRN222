@@ -14,17 +14,20 @@ namespace WebUI.Controllers
 		private readonly IProductService _productService;
 		private readonly IWebHostEnvironment _env;
         private readonly IReviewProductReactionService _reactionService;
+        private readonly IReviewProductImageService _reviewImageService;
 
         public ReviewController(
 			IReviewProductService reviewService,
 			IOrderService orderService,
-			IProductService productService,
+            IReviewProductImageService reviewImageService,
+            IProductService productService,
 			IWebHostEnvironment env,
             IReviewProductReactionService reactionService)
 		{
 			_reviewService = reviewService;
 			_orderService = orderService;
-			_productService = productService;
+            _reviewImageService = reviewImageService;
+            _productService = productService;
 			_env = env;
             _reactionService = reactionService;
         }
@@ -66,6 +69,32 @@ namespace WebUI.Controllers
 				return StatusCode(500, $"Internal server error: {ex.Message}");
 			}
 		}
+
+        private async Task<string> SaveReviewImageAsync(IFormFile file)
+        {
+            try
+            {
+                var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "reviews");
+
+                if (!Directory.Exists(uploadsFolder))
+                    Directory.CreateDirectory(uploadsFolder);
+
+                var uniqueFileName = $"{Guid.NewGuid()}_{Path.GetFileName(file.FileName)}";
+                var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                using (var fileStream = new FileStream(filePath, FileMode.Create))
+                {
+                    await file.CopyToAsync(fileStream);
+                }
+
+                return $"/images/reviews/{uniqueFileName}";
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error saving review image: {ex.Message}");
+                return string.Empty;
+            }
+        }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -176,7 +205,7 @@ namespace WebUI.Controllers
 					Rating = request.Rating,
 					Comment = request.Comment.Trim(),
 					IsVerifiedPurchase = true,
-					ImageUrls = new List<string>()
+
 				};
 
 				// Handle image uploads
@@ -207,8 +236,27 @@ namespace WebUI.Controllers
 
 				var reviewId = await _reviewService.CreateAsync(dto);
 
-				// Mark product as reviewed in order
-				await _orderService.MarkProductAsReviewedAsync(accountId, request.ProductId);
+                if (request.Images != null && request.Images.Any())
+                {
+                    foreach (var image in request.Images.Take(5))
+                    {
+                        if (image.Length > 0)
+                        {
+                            var imageUrl = await SaveReviewImageAsync(image);
+                            if (!string.IsNullOrEmpty(imageUrl))
+                            {
+                                await _reviewImageService.CreateAsync(new ReviewProductImageDto
+                                {
+                                    ReviewProductId = reviewId,
+                                    ImageUrl = imageUrl
+                                });
+                            }
+                        }
+                    }
+                }
+
+                // Mark product as reviewed in order
+                await _orderService.MarkProductAsReviewedAsync(accountId, request.ProductId);
 
 				return Json(new { success = true, message = "Đánh giá của bạn đã được gửi thành công!" });
 			}

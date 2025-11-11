@@ -60,6 +60,13 @@ namespace BLL.Services
             var entity = await _repo.GetByIdAsync(id);
             if (entity == null) return false;
 
+            // Kiểm tra có bài viết nào thuộc danh mục này không
+            var hasBlogPosts = entity.BlogPosts?.Any(bp => !bp.IsDeleted) ?? false;
+            if (hasBlogPosts)
+            {
+                throw new InvalidOperationException("Không thể xóa danh mục này vì còn bài viết liên quan. Vui lòng xóa hoặc chuyển các bài viết sang danh mục khác trước.");
+            }
+
             entity.IsDeleted = true;
             entity.UpdatedAt = DateTime.Now;
             await _repo.UpdateAsync(entity);
