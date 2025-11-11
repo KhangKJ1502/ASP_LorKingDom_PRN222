@@ -60,6 +60,7 @@ namespace DAL
             services.AddScoped<IReviewProductRepository, ReviewProductRepository>();
             services.AddScoped<IReviewProductReplyRepository, ReviewProductReplyRepository>();
             services.AddScoped<IReviewProductReactionRepository, ReviewProductReactionRepository>();
+            services.AddScoped<IReviewProductImageRepository, ReviewProductImageRepository>();
 
             // Nhánh Voucher
             services.AddScoped<IVoucherRepository, VoucherRepository>();

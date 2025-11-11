@@ -3,7 +3,7 @@
 <div class="p-4">
     <!-- Header: Product + Rating -->
     <div class="d-flex gap-3 mb-4 align-items-start">
-        <img src="@(Model.ImageUrls?.FirstOrDefault() ?? "/images/placeholder.png")"
+        <img src="@(Model.ProductImageUrl ?? "/images/placeholder.png")"
              alt="@Model.ProductName"
              class="rounded shadow-sm"
              style="width: 90px; height: 90px; object-fit: cover; border: 2px solid #fed7aa;" />
