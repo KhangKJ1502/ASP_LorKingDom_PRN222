@@ -48,7 +48,7 @@ namespace WebUI.Workers
         // ==================== MAIN EXECUTION ====================
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _logger.LogInformation("✅ PromotionWorkerService STARTED. Interval: {Interval}", _interval);
+            _logger.LogInformation("PromotionWorkerService STARTED. Interval: {Interval}", _interval);
 
             // Delay ngẫu nhiên 0-3s để tránh spike khi startup nhiều workers
             var startupJitterMs = Random.Shared.Next(0, 3000);
@@ -59,7 +59,7 @@ namespace WebUI.Workers
             try
             {
                 // Chạy ngay lần đầu tiên (không đợi interval đầu tiên)
-                _logger.LogInformation("🔄 Running initial promotion check...");
+                _logger.LogInformation("Running initial promotion check...");
                 await SafeProcessOnceAsync(stoppingToken);
 
                 // Sau đó chạy theo interval
@@ -70,16 +70,16 @@ namespace WebUI.Workers
             }
             catch (OperationCanceledException)
             {
-                _logger.LogInformation("⏸️ PromotionWorkerService cancelled.");
+                _logger.LogInformation("PromotionWorkerService cancelled.");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "💥 PromotionWorkerService crashed unexpectedly.");
+                _logger.LogError(ex, "PromotionWorkerService crashed unexpectedly.");
             }
             finally
             {
                 timer.Dispose();
-                _logger.LogInformation("⛔ PromotionWorkerService STOPPED.");
+                _logger.LogInformation("PromotionWorkerService STOPPED.");
             }
         }
 
@@ -95,7 +95,7 @@ namespace WebUI.Workers
             // Kiểm tra xem job trước đã chạy xong chưa
             if (!await _gate.WaitAsync(0, ct))
             {
-                _logger.LogWarning("⚠️ Previous promotion check is still running; skipping this tick.");
+                _logger.LogWarning("Previous promotion check is still running; skipping this tick.");
                 return;
             }
 
@@ -106,17 +106,17 @@ namespace WebUI.Workers
             }
             catch (OperationCanceledException) 
             { 
-                _logger.LogDebug("🛑 Promotion processing cancelled.");
+                _logger.LogDebug("Promotion processing cancelled.");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "❌ Error occurred while processing expired promotions.");
+                _logger.LogError(ex, "Error occurred while processing expired promotions.");
             }
             finally
             {
                 sw.Stop();
                 _gate.Release();
-                _logger.LogDebug("⏱️ Promotion check finished in {ElapsedMs} ms.", sw.ElapsedMilliseconds);
+                _logger.LogDebug("Promotion check finished in {ElapsedMs} ms.", sw.ElapsedMilliseconds);
             }
         }
 
@@ -145,7 +145,7 @@ namespace WebUI.Workers
                 int expiredCount = 0;
                 int notStartedCount = 0;
 
-                _logger.LogDebug("🔍 Checking {Count} active promotions...", activePromotions.Count());
+                _logger.LogDebug("Checking {Count} active promotions...", activePromotions.Count());
 
                 // ===== BƯỚC 2: Xử lý từng promotion =====
                 foreach (var promo in activePromotions)
@@ -154,7 +154,7 @@ namespace WebUI.Workers
                     if (now > promo.EndDate)
                     {
                         _logger.LogInformation(
-                            "⏰ Promotion '{Code}' (ID: {Id}) EXPIRED. EndDate: {EndDate}, Now: {Now}",
+                            "Promotion '{Code}' (ID: {Id}) EXPIRED. EndDate: {EndDate}, Now: {Now}",
                             promo.PromotionCode, promo.PromotionId, promo.EndDate.ToString("yyyy-MM-dd HH:mm"), now.ToString("yyyy-MM-dd HH:mm"));
 
                         // Tự động set về Inactive
@@ -175,13 +175,13 @@ namespace WebUI.Workers
                             expiredCount++;
 
                             _logger.LogInformation(
-                                "✅ Successfully set promotion '{Code}' to Inactive.",
+                                "Successfully set promotion '{Code}' to Inactive.",
                                 promo.PromotionCode);
                         }
                         catch (Exception ex)
                         {
                             _logger.LogError(ex,
-                                "❌ Failed to set promotion '{Code}' to Inactive.",
+                                "Failed to set promotion '{Code}' to Inactive.",
                                 promo.PromotionCode);
                         }
                     }
@@ -190,7 +190,7 @@ namespace WebUI.Workers
                     {
                         notStartedCount++;
                         _logger.LogDebug(
-                            "📅 Promotion '{Code}' (ID: {Id}) is Active but NOT STARTED yet. StartDate: {StartDate}",
+                            "Promotion '{Code}' (ID: {Id}) is Active but NOT STARTED yet. StartDate: {StartDate}",
                             promo.PromotionCode, promo.PromotionId, promo.StartDate.ToString("yyyy-MM-dd HH:mm"));
                     }
                     // TRƯỜNG HỢP 3: Promotion đang trong thời gian active → OK
@@ -200,24 +200,24 @@ namespace WebUI.Workers
                 if (expiredCount > 0 || notStartedCount > 0)
                 {
                     _logger.LogInformation(
-                        "📊 Promotion check completed: {Expired} expired → Inactive, {NotStarted} not started yet.",
+                        "Promotion check completed: {Expired} expired → Inactive, {NotStarted} not started yet.",
                         expiredCount, notStartedCount);
                 }
                 else
                 {
-                    _logger.LogDebug("✔️ All promotions are in valid time range.");
+                    _logger.LogDebug("All promotions are in valid time range.");
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "💥 Error while checking promotions.");
+                _logger.LogError(ex, "Error while checking promotions.");
             }
         }
 
         // ==================== GRACEFUL SHUTDOWN ====================
         public override Task StopAsync(CancellationToken stoppingToken)
         {
-            _logger.LogInformation("🛑 PromotionWorkerService is stopping gracefully...");
+            _logger.LogInformation("PromotionWorkerService is stopping gracefully...");
             return base.StopAsync(stoppingToken);
         }
     }

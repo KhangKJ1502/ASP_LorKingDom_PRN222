@@ -20,6 +20,7 @@
 
 <link rel="stylesheet" href="~/css/admin-staff.css" asp-append-version="true" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <div class="container-fluid px-5">
@@ -66,21 +67,6 @@
                     </div>
                 </div>
             </div>
-
-            @if (TempData["Error"] is string e)
-            {
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <i class="fa-solid fa-circle-exclamation me-2"></i>@e
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            }
-            @if (TempData["Success"] is string s)
-            {
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    <i class="fa-solid fa-circle-check me-2"></i>@s
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            }
 
             <!-- Table list trực tiếp -->
             <div class="table-responsive">
@@ -644,16 +630,32 @@
             const result = await Swal.fire({
                 icon: 'warning',
                 title: 'Vô hiệu hóa nhân viên?',
-                text: 'Nhân viên sẽ không thể đăng nhập vào hệ thống.',
+                html: '<p class="mb-0">Nhân viên sẽ không thể đăng nhập vào hệ thống.</p><p class="text-muted mb-0 mt-2" style="font-size: 0.9em;">⚠️ Các quyền truy cập của nhân viên sẽ bị thu hồi ngay lập tức.</p>',
                 showCancelButton: true,
                 confirmButtonColor: '#ef4444',
                 cancelButtonColor: '#6c757d',
                 confirmButtonText: '<i class="fa-solid fa-ban me-1"></i> Vô hiệu hóa',
-                cancelButtonText: 'Hủy',
-                reverseButtons: true
+                cancelButtonText: '<i class="fa-solid fa-xmark me-1"></i> Hủy',
+                reverseButtons: true,
+                showClass: {
+                    popup: 'animate__animated animate__fadeInDown animate__faster'
+                },
+                hideClass: {
+                    popup: 'animate__animated animate__fadeOutUp animate__faster'
+                }
             });
 
             if (result.isConfirmed) {
+                // Show loading
+                Swal.fire({
+                    title: 'Đang xử lý...',
+                    html: 'Vui lòng đợi trong giây lát',
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
                 event.target.submit();
             }
             return false;
@@ -665,16 +667,32 @@
             const result = await Swal.fire({
                 icon: 'question',
                 title: 'Khôi phục nhân viên?',
-                text: 'Nhân viên sẽ có thể đăng nhập trở lại.',
+                html: '<p class="mb-0">Nhân viên sẽ có thể đăng nhập trở lại.</p><p class="text-success mb-0 mt-2" style="font-size: 0.9em;">✓ Tài khoản sẽ được kích hoạt với đầy đủ quyền truy cập.</p>',
                 showCancelButton: true,
                 confirmButtonColor: '#22c55e',
                 cancelButtonColor: '#6c757d',
                 confirmButtonText: '<i class="fa-solid fa-check-circle me-1"></i> Khôi phục',
-                cancelButtonText: 'Hủy',
-                reverseButtons: true
+                cancelButtonText: '<i class="fa-solid fa-xmark me-1"></i> Hủy',
+                reverseButtons: true,
+                showClass: {
+                    popup: 'animate__animated animate__fadeInDown animate__faster'
+                },
+                hideClass: {
+                    popup: 'animate__animated animate__fadeOutUp animate__faster'
+                }
             });
 
             if (result.isConfirmed) {
+                // Show loading
+                Swal.fire({
+                    title: 'Đang xử lý...',
+                    html: 'Vui lòng đợi trong giây lát',
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
                 event.target.submit();
             }
             return false;
@@ -682,6 +700,44 @@
 
         // ===== DOM Ready =====
         document.addEventListener('DOMContentLoaded', function(){
+          // Hiển thị thông báo Success/Error từ TempData
+          const errorMsg = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(TempData["Error"]?.ToString() ?? ""));
+          const successMsg = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(TempData["Success"]?.ToString() ?? ""));
+          
+          if (errorMsg) {
+              Swal.fire({
+                  icon: 'error',
+                  title: 'Lỗi!',
+                  text: errorMsg,
+                  confirmButtonColor: '#ef4444',
+                  timer: 4000,
+                  timerProgressBar: true,
+                  showClass: {
+                      popup: 'animate__animated animate__fadeInDown'
+                  },
+                  hideClass: {
+                      popup: 'animate__animated animate__fadeOutUp'
+                  }
+              });
+          }
+          
+          if (successMsg) {
+              Swal.fire({
+                  icon: 'success',
+                  title: 'Thành công!',
+                  text: successMsg,
+                  confirmButtonColor: '#22c55e',
+                  timer: 3000,
+                  timerProgressBar: true,
+                  showClass: {
+                      popup: 'animate__animated animate__fadeInDown'
+                  },
+                  hideClass: {
+                      popup: 'animate__animated animate__fadeOutUp'
+                  }
+              });
+          }
+
           bindAvatarPreview('add');
           bindAvatarPreview('edit');
 

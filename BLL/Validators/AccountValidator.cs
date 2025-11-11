@@ -52,7 +52,7 @@ namespace BLL.Validators
             return result;
         }
 
-        // VN phone: optional; accept 0xxxxxxxxx or +84xxxxxxxxx (normalize ở service/controller)
+        // VN phone
         public static ValidationResult ValidatePhoneNumber(string phoneNumber)
         {
             var result = new ValidationResult();
@@ -84,7 +84,7 @@ namespace BLL.Validators
                 // Check if it matches Vietnamese phone format (10 digits starting with 0)
                 if (!Regex.IsMatch(cleaned, @"^0\d{9}$"))
                 {
-                    result.AddError("Số điện thoại phải có 10 số (bắt đầu từ 0) hoặc định dạng +84xxxxxxxxx.");
+                    result.AddError("Số điện thoại phải có 10 số (bắt đầu từ 0)");
                     return result;
                 }
 

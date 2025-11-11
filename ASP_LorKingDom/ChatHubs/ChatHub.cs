@@ -7,8 +7,6 @@ namespace WebUI.Hubs;
 
 /// <summary>
 /// ==================== SIGNALR CHAT HUB ====================
-/// SignalR Hub cho real-time chat giữa Customer ↔ Staff
-/// 
 /// CHỨC NĂNG:
 /// 1. Real-time messaging (send/receive)
 /// 2. Online/Offline presence tracking
@@ -25,13 +23,11 @@ namespace WebUI.Hubs;
 /// </summary>
 public class ChatHub : Hub
 {
-    // ==================== DEPENDENCIES ====================
     private readonly IChatService _chatService;
     private readonly ILogger<ChatHub> _logger;
 
     // ==================== IN-MEMORY STATE TRACKING ====================
     // Lưu trạng thái staff trong memory (lost khi restart server)
-    // TODO: Có thể chuyển sang Redis nếu cần scale horizontal
     private static readonly ConcurrentDictionary<string, int> _staffConnCount = new();     // staffId -> số connections
     private static readonly ConcurrentDictionary<string, string> _staffNames = new();      // staffId -> tên hiển thị
     private static readonly ConcurrentDictionary<string, bool> _staffPageState = new();    // staffId -> có đang ở trang chat không
@@ -42,7 +38,6 @@ public class ChatHub : Hub
         _logger = logger;
     }
 
-    // ==================== HELPER METHODS ====================
     /// <summary>Query string helper - lấy value từ query parameter</summary>
     private static string Q(HttpContext? http, string key)
         => http?.Request.Query[key].ToString() ?? string.Empty;
@@ -487,48 +482,3 @@ public class ChatHub : Hub
     }
 }
 
-// ==================== SIGNALR HUB USAGE NOTES ====================
-// 
-// 📌 CLIENT EVENTS (Server → Client):
-//    - "receive": Nhận tin nhắn mới
-//    - "conversationUpdated": Conversation metadata thay đổi
-//    - "conversationList": Danh sách conversations (gửi cho staff)
-//    - "presenceChanged": User online/offline
-//    - "staffPresence": Staff online/offline
-//    - "typing": Typing indicator
-//
-// 📌 SERVER METHODS (Client → Server):
-//    - StartChatAsCustomer(customerId)
-//    - StartChatWithStaff(customerId, staffId)
-//    - GetOnlineStaff()
-//    - GetConversations()
-//    - GetMessages(conversationId)
-//    - OpenConversation(conversationId)
-//    - SendMessage(conversationId, senderId, text)
-//    - Typing(conversationId, userId, isTyping)
-//    - UpdatePageState(isOnPage)
-//
-// 📌 SIGNALR GROUPS:
-//    - "user:{userId}": Tất cả connections của user
-//    - "conv:{conversationId}": Tất cả connections trong conversation
-//
-// 📌 IN-MEMORY STATE (lost on server restart):
-//    - _staffConnCount: Số connections của staff
-//    - _staffNames: Tên hiển thị của staff
-//    - _staffPageState: Staff có đang ở trang chat không
-//
-// 📌 CHUYỂN ĐỔI CHẾ ĐỘ GUEST/CUSTOMER:
-//    - Tìm các block comment "CHẾ ĐỘ 1" và "CHẾ ĐỘ 2"
-//    - Comment/uncomment theo hướng dẫn trong code
-//    - Cần đồng bộ với _ChatWidget.cshtml
-//
-// 📌 MONITORING:
-//    - Xem logs với emoji icons: 📤📋👤👨‍💼💬⌨️👁️✅❌⚠️⛔
-//    - Track presence changes với "presenceChanged" events
-//    - Monitor staff page state với UpdatePageState logs
-//
-// 📌 SCALING CONSIDERATIONS:
-//    - In-memory state không scale horizontal
-//    - Cần Redis backplane nếu deploy multiple instances
-//    - Xem thêm: https://learn.microsoft.com/aspnet/core/signalr/scale
-// ================================================================

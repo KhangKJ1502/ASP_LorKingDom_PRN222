@@ -172,7 +172,7 @@
 									<a asp-controller="Order" asp-action="Manage">Quản lý đơn hàng</a>
 								</li>
 								<li>
-									<a asp-controller="OrderRefundAdmin" asp-action="Index">Quản lý huỷ đơn hàng</a>
+									<a asp-controller="OrderRefundAdmin" asp-action="Index">Quản lý hoàn trả hàng</a>
 								</li>
 							</ul>
 						</li>
@@ -318,65 +318,17 @@
 							<i class="moon-icon" data-feather="moon" aria-hidden="true"></i>
 						</button>
 						<div class="notification-wrapper">
-							<button class="gray-circle-btn dropdown-btn" title="To messages" type="button">
-								<span class="sr-only">To messages</span>
-								<span class="icon notification active" aria-hidden="true">
+							<button class="gray-circle-btn dropdown-btn" title="Thông báo" type="button" id="adminNotificationBtn">
+								<span class="sr-only">Thông báo</span>
+								<span class="icon notification" aria-hidden="true" id="adminNotificationIcon">
 								</span>
+								<span class="notification-badge" id="adminNotificationBadge" style="display:none; position:absolute; top:-5px; right:-5px; background:#ef4444; color:white; border-radius:50%; width:18px; height:18px; font-size:10px; display:flex; align-items:center; justify-content:center; font-weight:bold;">0</span>
 							</button>
-							<ul class="users-item-dropdown notification-dropdown dropdown">
-								<li>
-									<a href="##">
-										<div class="notification-dropdown-icon info">
-											<i data-feather="check"></i>
-										</div>
-										<div class="notification-dropdown-text">
-											<span class="notification-dropdown__title">
-												System just updated
-											</span>
-											<span class="notification-dropdown__subtitle">
-												The system has been successfully upgraded. Read more
-												here.
-											</span>
-										</div>
-									</a>
+							<ul class="users-item-dropdown notification-dropdown dropdown" id="adminNotificationDropdown">
+								<li class="text-center py-3">
+									<i data-feather="loader" class="spin-animation" aria-hidden="true"></i>
+									<span class="ms-2">Đang tải...</span>
 								</li>
-								<li>
-									<a href="##">
-										<div class="notification-dropdown-icon danger">
-											<i data-feather="info" aria-hidden="true"></i>
-										</div>
-										<div class="notification-dropdown-text">
-											<span class="notification-dropdown__title">
-												The cache is full!
-											</span>
-											<span class="notification-dropdown__subtitle">
-												Unnecessary caches take up a lot of memory space and
-												interfere ...
-											</span>
-										</div>
-									</a>
-								</li>
-								<li>
-									<a href="##">
-										<div class="notification-dropdown-icon info">
-											<i data-feather="check" aria-hidden="true"></i>
-										</div>
-										<div class="notification-dropdown-text">
-											<span class="notification-dropdown__title">
-												New Subscriber here!
-											</span>
-											<span class="notification-dropdown__subtitle">
-												A new subscriber has subscribed.
-											</span>
-										</div>
-									</a>
-								</li>
-								<li>
-									<a class="link-to-page" href="##">
-										Go to Notifications page
-									</a>
-								</li>
-
 							</ul>
 						</div>
 						<div class="nav-user-wrapper">
@@ -506,8 +458,6 @@
 		@Html.AntiForgeryToken()
 	</form>
 
-	<!-- ✅ Section riêng của page -->
-	@RenderSection("Scripts", required: false)
 	@Html.AntiForgeryToken()
 
 	<script>
@@ -551,6 +501,119 @@
 			});
 		}
 	</script>
+
+	<!-- Admin Notification Script -->
+	<script>
+		(function() {
+			// Load admin notifications (chỉ cho admin/staff, không phải customer)
+			async function loadAdminNotifications() {
+				try {
+					const response = await fetch('/MyNotifications/GetLatestUnread');
+					if (!response.ok) return;
+					
+					const data = await response.json();
+					if (!data.success) return;
+					
+					// Update badge
+					const badge = document.getElementById('adminNotificationBadge');
+					const icon = document.getElementById('adminNotificationIcon');
+					if (data.totalUnread > 0) {
+						badge.textContent = data.totalUnread > 99 ? '99+' : data.totalUnread;
+						badge.style.display = 'flex';
+						icon.classList.add('active');
+					} else {
+						badge.style.display = 'none';
+						icon.classList.remove('active');
+					}
+					
+					// Update dropdown
+					const dropdown = document.getElementById('adminNotificationDropdown');
+					if (!data.items || data.items.length === 0) {
+						dropdown.innerHTML = `
+							<li class="text-center py-3 text-muted">
+								<i data-feather="bell-off" aria-hidden="true"></i>
+								<p class="mb-0 mt-2">Không có thông báo mới</p>
+							</li>
+							<li>
+								<a class="link-to-page" href="/MyNotifications/Index">
+									Xem tất cả thông báo
+								</a>
+							</li>
+						`;
+					} else {
+						const items = data.items.slice(0, 5).map(n => {
+							const iconType = n.title.toLowerCase().includes('thành công') ? 'check' : 
+											 n.title.toLowerCase().includes('lỗi') ? 'alert-circle' : 
+											 n.title.toLowerCase().includes('cảnh báo') ? 'alert-triangle' : 'info';
+							const iconColor = n.title.toLowerCase().includes('thành công') ? 'info' : 
+											  n.title.toLowerCase().includes('lỗi') ? 'danger' : 'info';
+							
+							return `
+								<li>
+									<a href="/MyNotifications/Index">
+										<div class="notification-dropdown-icon ${iconColor}">
+											<i data-feather="${iconType}" aria-hidden="true"></i>
+										</div>
+										<div class="notification-dropdown-text">
+											<span class="notification-dropdown__title">
+												${escapeHtml(n.title)}
+											</span>
+											<span class="notification-dropdown__subtitle">
+												${escapeHtml(n.message.substring(0, 80))}${n.message.length > 80 ? '...' : ''}
+											</span>
+											<span class="notification-dropdown__time text-muted" style="font-size:0.85em;">
+												<i data-feather="clock" style="width:12px;height:12px;"></i> ${n.timeAgo}
+											</span>
+										</div>
+									</a>
+								</li>
+							`;
+						}).join('');
+						
+						dropdown.innerHTML = items + `
+							<li>
+								<a class="link-to-page" href="/MyNotifications/Index">
+									Xem tất cả thông báo (${data.totalUnread})
+								</a>
+							</li>
+						`;
+					}
+					
+					// Reinit feather icons
+					if (typeof feather !== 'undefined') {
+						feather.replace();
+					}
+				} catch (error) {
+					console.error('Load admin notifications error:', error);
+				}
+			}
+			
+			function escapeHtml(text) {
+				const div = document.createElement('div');
+				div.textContent = text || '';
+				return div.innerHTML;
+			}
+			
+			// Load on page load
+			loadAdminNotifications();
+			
+			// Auto refresh every 30 seconds
+			setInterval(() => {
+				if (!document.hidden) {
+					loadAdminNotifications();
+				}
+			}, 30000);
+			
+			// Refresh when tab becomes visible
+			document.addEventListener('visibilitychange', function() {
+				if (!document.hidden) {
+					loadAdminNotifications();
+				}
+			});
+		})();
+	</script>
+
+	@await RenderSectionAsync("Scripts", required: false)
 </body>
 
 </html>

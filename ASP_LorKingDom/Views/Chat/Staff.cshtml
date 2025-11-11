@@ -54,7 +54,6 @@
                 <h3 id="chatTitle">Chưa chọn hội thoại</h3>
                 <p id="chatStatus">Vui lòng chọn một hội thoại để bắt đầu</p>
             </div>
-            <button id="openBtn" class="action-btn" style="display:none">🚪 Join Room</button>
         </div>
 
         <div id="chatBody" class="messages-area">
@@ -177,7 +176,6 @@
         function setDetailHeader(card) {
             const title = document.getElementById('chatTitle');
             const status = document.getElementById('chatStatus');
-            const openBtn = document.getElementById('openBtn');
 
             if (card) {
                 title.textContent = `Khách hàng: ${card.customerUserId}`;
@@ -186,11 +184,9 @@
                         <span class="status-dot"></span>
                         ${card.customerOnline ? 'Đang online' : 'Offline'}
                     </span>`;
-                openBtn.style.display = '';
             } else {
                 title.textContent = 'Chưa chọn hội thoại';
                 status.textContent = 'Vui lòng chọn một hội thoại để bắt đầu';
-                openBtn.style.display = 'none';
             }
         }
 
@@ -241,25 +237,25 @@
                 const cached = JSON.parse(sessionStorage.getItem(key) || '[]');
 
                 if (cached.length > 0) {
-                    console.log("📦 Loading", cached.length, "messages from cache");
+                    console.log("Loading", cached.length, "messages from cache");
                     cached.forEach(m => addChatLine(m.senderId, m.text, m.sentAt, false));
                 } else {
-                    console.log("🔍 Fetching messages from server...");
+                    console.log("Fetching messages from server...");
                     const msgs = await conn.invoke("GetMessages", convId);
-                    console.log("📥 Received", msgs.length, "messages");
+                    console.log("Received", msgs.length, "messages");
                     msgs.forEach(m => addChatLine(m.senderId, m.text, m.sentAt, false));
                     sessionStorage.setItem(key, JSON.stringify(msgs));
                 }
             } catch (err) {
-                console.error("❌ Error loading messages:", err);
+                console.error("Error loading messages:", err);
             }
 
             try {
-                console.log("🔗 Joining conversation group...");
+                console.log("Joining conversation group...");
                 await conn.invoke("OpenConversation", convId);
-                console.log("✅ Successfully joined conversation");
+                console.log("Successfully joined conversation");
             } catch (err) {
-                console.error("❌ Error opening conversation:", err);
+                console.error("Error opening conversation:", err);
             }
 
             renderList();
@@ -298,6 +294,16 @@
         }
 
         // ===== SignalR events
+        
+        // Nhận danh sách conversations khi staff connect
+        conn.on("conversationList", (list) => {
+            console.log("📋 Received conversationList:", list);
+            list.forEach(conv => {
+                convMap.set(conv.conversationId, conv);
+            });
+            renderList();
+        });
+        
         conn.on("receive", (m) => {
             console.log("📨 Received message:", m);
             console.log("Current conversation:", currentConv);
@@ -352,10 +358,6 @@
         // ===== DOM events
         document.getElementById('q').addEventListener('input', renderList);
         document.getElementById('f').addEventListener('change', renderList);
-
-        document.getElementById('openBtn').addEventListener('click', () => {
-            if (currentConv) openConv(currentConv);
-        });
 
         document.getElementById('sendBtn').addEventListener('click', async () => {
             if (!currentConv) {
@@ -441,10 +443,10 @@
                     customerOnline: x.customerOnline
                 }));
 
-                console.log("📊 ConvMap size:", convMap.size);
+                console.log("ConvMap size:", convMap.size);
                 renderList();
             } catch (err) {
-                console.error('❌ Connection error:', err);
+                console.error('Connection error:', err);
                 // optional retry
                 setTimeout(start, 5000);
             }

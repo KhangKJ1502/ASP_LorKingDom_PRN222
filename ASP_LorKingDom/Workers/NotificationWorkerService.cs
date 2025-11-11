@@ -46,7 +46,7 @@ namespace WebUI.BackgroundServices
         // ==================== MAIN EXECUTION ====================
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _logger.LogInformation("✅ NotificationWorkerService STARTED. Interval: {Interval}", _interval);
+            _logger.LogInformation("NotificationWorkerService STARTED. Interval: {Interval}", _interval);
 
             // Delay ngẫu nhiên 0-5s để tránh spike khi startup nhiều workers cùng lúc
             var startupJitterMs = Random.Shared.Next(0, 5000);
@@ -64,16 +64,16 @@ namespace WebUI.BackgroundServices
             }
             catch (OperationCanceledException) 
             { 
-                _logger.LogInformation("⏸️ NotificationWorkerService cancelled.");
+                _logger.LogInformation("NotificationWorkerService cancelled.");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "💥 NotificationWorkerService crashed unexpectedly.");
+                _logger.LogError(ex, "NotificationWorkerService crashed unexpectedly.");
             }
             finally
             {
                 timer.Dispose();
-                _logger.LogInformation("⛔ NotificationWorkerService STOPPED.");
+                _logger.LogInformation("NotificationWorkerService STOPPED.");
             }
         }
 
@@ -89,7 +89,7 @@ namespace WebUI.BackgroundServices
             // Kiểm tra xem job trước đã chạy xong chưa
             if (!await _gate.WaitAsync(0, ct))
             {
-                _logger.LogWarning("⚠️ Previous notification dispatch is still running; skipping this tick.");
+                _logger.LogWarning("Previous notification dispatch is still running; skipping this tick.");
                 return;
             }
 
@@ -100,11 +100,11 @@ namespace WebUI.BackgroundServices
             }
             catch (OperationCanceledException) 
             { 
-                _logger.LogDebug("🛑 Notification processing cancelled.");
+                _logger.LogDebug("Notification processing cancelled.");
             }
             catch (Exception ex) 
             { 
-                _logger.LogError(ex, "❌ Error occurred while processing due notifications."); 
+                _logger.LogError(ex, "Error occurred while processing due notifications."); 
             }
             finally
             {
@@ -132,13 +132,13 @@ namespace WebUI.BackgroundServices
             if (count > 0)
             {
                 _logger.LogInformation(
-                    "📤 Processed {Count} due notification(s) at {UtcTime}.",
+                    "Processed {Count} due notification(s) at {UtcTime}.",
                     count,
                     DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss"));
             }
             else
             {
-                _logger.LogDebug("✔️ No due notifications at {UtcTime}.", 
+                _logger.LogDebug("✔No due notifications at {UtcTime}.", 
                     DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss"));
             }
         }
@@ -146,7 +146,7 @@ namespace WebUI.BackgroundServices
         // ==================== GRACEFUL SHUTDOWN ====================
         public override Task StopAsync(CancellationToken stoppingToken)
         {
-            _logger.LogInformation("🛑 NotificationWorkerService is stopping gracefully...");
+            _logger.LogInformation("NotificationWorkerService is stopping gracefully...");
             return base.StopAsync(stoppingToken);
         }
     }
