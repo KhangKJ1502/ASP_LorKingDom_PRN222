@@ -9,10 +9,11 @@ namespace BLL.Interfaces
     {
         Task<List<ProductDto>> GetAllAsync(string? keyword = null);
         Task<ProductDto?> GetByIdAsync(int id);
-        Task<int> CreateAsync(ProductDto dto);     
-        Task<bool> UpdateAsync(ProductDto dto);  
+        Task<int> CreateAsync(ProductDto dto);
+        Task<bool> UpdateAsync(ProductDto dto);
         Task<bool> SetPromotionAsync(int productId, int? promotionId);
-        Task<PagedResult<ProductDto>> GetStorefrontPagedAsync(string? keyword, int page, int pageSize);
+        Task<PagedResult<ProductDto>> GetStorefrontPagedAsync(
+            string? keyword, int page, int pageSize, int? priceRangeId = null);
         Task<PagedResult<ProductDto>> GetAdminPagedAsync(string? keyword, int page, int pageSize);
 
     }

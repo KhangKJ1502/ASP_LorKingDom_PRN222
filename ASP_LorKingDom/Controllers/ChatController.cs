@@ -106,28 +106,9 @@ namespace WebUI.Controllers
                 });
             }
 
-            // --- 3. Lấy danh sách STAFF ONLINE từ _store ---
-            // _store.Users được cập nhật trong ChatService.UserConnectedAsync()
-            // khi staff connect hub với isStaff=true
-            var onlineStaffList = _store.Users
-                .Values
-                .Where(u => u.IsStaff)
-                .Where(u => _store.IsOnline(u.UserId))
-                .Select(u => new OnlineStaff
-                {
-                    StaffId = u.UserId, // ví dụ "22" (trùng ClaimTypes.NameIdentifier khi staff login)
-                    StaffName = string.IsNullOrWhiteSpace(u.DisplayName)
-                                ? "Nhân viên hỗ trợ"
-                                : u.DisplayName
-                })
-                .ToList();
-
-            // --- 4. đẩy info xuống View ---
+            // --- 3. đẩy info xuống View ---
             ViewBag.UserId = finalUserId;
             ViewBag.Name = finalName;
-
-            ViewBag.SelectedStaffIdFromCookie = existedStaffId; // staff KH đã gán trước đó
-            ViewBag.OnlineStaff = onlineStaffList;              // danh sách online ngay lúc render
 
             return View();
         }
@@ -137,7 +118,7 @@ namespace WebUI.Controllers
         // =========================================
         [Authorize(
       AuthenticationSchemes = "AdminScheme",
-      Roles = "Admin,Staff,WareHouse"
+      Roles = "Admin,Staff"
   )]
         public IActionResult Staff()
         {
@@ -172,7 +153,7 @@ namespace WebUI.Controllers
 
             // 5. Check role
             if (string.IsNullOrWhiteSpace(claimRole)
-                || !(claimRole == "Admin" || claimRole == "Staff" || claimRole == "WareHouse"))
+                || !(claimRole == "Admin" || claimRole == "Staff"))
             {
                 _logger.LogWarning($"[Staff()] Role không hợp lệ: {claimRole} -> 403");
                 return Forbid("Bạn không có quyền truy cập trang hỗ trợ khách hàng.");

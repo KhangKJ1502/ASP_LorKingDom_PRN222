@@ -145,7 +145,6 @@
                 <button onclick="addToCart(@(Model?.Id ?? 0), parseInt(document.getElementById('quantity').value))" class="btn btn-primary w-full" @(stock <= 0 ? "disabled" : "")>
                     Thêm vào giỏ
                 </button>
-                <button class="btn btn-secondary" type="button" onclick="toggleFavorite(this)">Yêu thích</button>
             </div>
 
             <div class="info-banner">

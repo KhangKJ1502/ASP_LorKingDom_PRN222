@@ -62,7 +62,7 @@ namespace BLL.Services
         public async Task<int> CreateAsync(ProductDto dto)
         {
             if (dto == null) throw new ArgumentNullException(nameof(dto));
-            dto.Id = 0; 
+            dto.Id = 0;
             ProductValidator.ValidateForCreate(dto);
             var name = dto.ProductName.Trim();
             if (await _repo.ExistsByNameAsync(name))
@@ -71,7 +71,7 @@ namespace BLL.Services
             var status = ProductValidator.NormalizeStatus(dto.ProductStatus);
             if (status == "Discontinued")
             {
-               
+
             }
             else
             {
@@ -114,6 +114,7 @@ namespace BLL.Services
 
         public async Task<bool> UpdateAsync(ProductDto dto)
         {
+            ProductValidator.ValidateForUpdate(dto);
             if (dto == null) throw new ArgumentNullException(nameof(dto));
             if (dto.Id <= 0) throw new ArgumentException("ProductId không hợp lệ.");
             ProductValidator.Validate(dto);
@@ -144,7 +145,7 @@ namespace BLL.Services
             if (status == "Discontinued")
             {
                 e.ProductStatus = "Discontinued";
-                e.IsDeleted = true;   
+                e.IsDeleted = true;
             }
             else
             {
@@ -211,8 +212,8 @@ namespace BLL.Services
 
             CategoryName = x.Category?.CategoryName,
             BrandName = x.Brand?.BrandName,
-            MaterialName = x.Material?.MaterialName,      
-            AgeRange = x.Age?.AgeRange,               
+            MaterialName = x.Material?.MaterialName,
+            AgeRange = x.Age?.AgeRange,
             SexName = x.Sex?.SexName,
             OriginName = x.Origin?.OriginName,
 
@@ -234,16 +235,16 @@ namespace BLL.Services
             if (promotion == null) return false;
             if (promotion.IsDeleted) return false;
             if (promotion.Status != "Active") return false;
-            
+
             var now = DateTime.Now;
             if (now < promotion.StartDate || now > promotion.EndDate) return false;
-            
+
             return true;
         }
 
-        public async Task<PagedResult<ProductDto>> GetStorefrontPagedAsync(string? keyword, int page, int pageSize)
+        public async Task<PagedResult<ProductDto>> GetAdminPagedAsync(string? keyword, int page, int pageSize)
         {
-            var (items, total) = await _repo.QueryStorefrontPagedAsync(keyword, page, pageSize);
+            var (items, total) = await _repo.QueryAdminPagedAsync(keyword, page, pageSize);
             return new PagedResult<ProductDto>
             {
                 Items = items.Select(Map).ToList(),
@@ -252,9 +253,11 @@ namespace BLL.Services
                 PageSize = pageSize
             };
         }
-        public async Task<PagedResult<ProductDto>> GetAdminPagedAsync(string? keyword, int page, int pageSize)
+
+        public async Task<PagedResult<ProductDto>> GetStorefrontPagedAsync(
+      string? keyword, int page, int pageSize, int? priceRangeId = null)
         {
-            var (items, total) = await _repo.QueryAdminPagedAsync(keyword, page, pageSize);
+            var (items, total) = await _repo.QueryStorefrontPagedAsync(keyword, page, pageSize, priceRangeId);
             return new PagedResult<ProductDto>
             {
                 Items = items.Select(Map).ToList(),
@@ -276,17 +279,17 @@ namespace BLL.Services
                 var promotion = await _promotionRepo.GetByIdAsync(promotionId.Value);
                 if (promotion == null)
                     throw new ArgumentException("Promotion không tồn tại", nameof(promotionId));
-                
+
                 if (promotion.IsDeleted)
                     throw new InvalidOperationException("Không thể gán promotion đã bị xóa");
-                
+
                 if (promotion.Status != "Active")
                     throw new InvalidOperationException("Chỉ có thể gán promotion đang Active");
-                
+
                 var now = DateTime.Now;
                 if (now < promotion.StartDate)
                     throw new InvalidOperationException($"Promotion chưa bắt đầu (ngày bắt đầu: {promotion.StartDate:dd/MM/yyyy})");
-                
+
                 if (now > promotion.EndDate)
                     throw new InvalidOperationException($"Promotion đã hết hạn (ngày kết thúc: {promotion.EndDate:dd/MM/yyyy})");
             }
@@ -298,6 +301,9 @@ namespace BLL.Services
             return true;
         }
 
-
+        //public Task<PagedResult<ProductDto>> GetAdminPagedAsync(string? keyword, int page, int pageSize)
+        //{
+        //    throw new NotImplementedException();
+        //}
     }
 }

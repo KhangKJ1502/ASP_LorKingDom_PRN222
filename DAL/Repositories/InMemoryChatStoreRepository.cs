@@ -29,22 +29,35 @@ public class InMemoryChatStoreRepository : IChatStoreRepository
         lock (_lock)
         {
             if (!_staffPool.Contains(staffId))
+            {
                 _staffPool.Add(staffId);
+                Console.WriteLine($"[REGISTER STAFF] Added: {staffId}, Pool: [{string.Join(", ", _staffPool)}]");
+            }
         }
     }
 
     public void UnregisterStaff(string staffId)
     {
-        lock (_lock) _staffPool.Remove(staffId);
+        lock (_lock)
+        {
+            _staffPool.Remove(staffId);
+            Console.WriteLine($"[UNREGISTER STAFF] Removed: {staffId}, Pool: [{string.Join(", ", _staffPool)}]");
+        }
     }
 
     public string? PickStaff()
     {
         lock (_lock)
         {
-            if (_staffPool.Count == 0) return null;
+            if (_staffPool.Count == 0)
+            {
+                Console.WriteLine($"[PICK STAFF] No staff in pool!");
+                return null;
+            }
             _index = (_index + 1) % _staffPool.Count;
-            return _staffPool[_index];
+            var selected = _staffPool[_index];
+            Console.WriteLine($"[PICK STAFF] Selected: {selected} (index={_index}, pool=[{string.Join(", ", _staffPool)}])");
+            return selected;
         }
     }
 }

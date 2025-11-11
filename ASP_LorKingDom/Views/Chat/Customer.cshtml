@@ -1,5 +1,4 @@
-﻿@using DAL.Models
-@{
+﻿@{
     // 1. Lấy info khách
     var userId = (string)ViewBag.UserId
                  ?? User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
@@ -8,12 +7,6 @@
     var name = (string)ViewBag.Name
                ?? User?.Identity?.Name
                ?? "Khách hàng";
-
-    // 2. Lấy danh sách staff online mà controller đã bỏ vào ViewBag
-    var onlineStaff = ViewBag.OnlineStaff as List<OnlineStaff> ?? new List<OnlineStaff>();
-
-    // 3. Staff mà khách đã từng chat (cookie staffId mà controller đưa xuống)
-    var preSelectedStaffId = ViewBag.SelectedStaffIdFromCookie as string;
 }
 <link rel="stylesheet" href="~/css/chat-customer.css">
 <div id="chatWidget">
@@ -45,42 +38,6 @@
                         <span class="status-dot"></span>
                         <span class="status-text">Đang kiểm tra...</span>
                     </p>
-
-                    <!-- Staff selector (chỉ hiện nếu có staff online) -->
-                    <div class="staff-select-row"
-                         id="staffSelectRow"
-                         style="@(onlineStaff.Any() ? "display:flex;flex-direction:column;margin-top:8px;" : "display:none;")">
-
-                        <label for="staffSelect"
-                               class="staff-select-label"
-                               style="font-size:12px;color:#fff;font-weight:500;">
-                            Chọn nhân viên online:
-                        </label>
-
-                        <select id="staffSelect"
-                                class="staff-select"
-                                style="font-size:13px;border-radius:6px;border:1px solid rgba(255,255,255,0.4);padding:6px 8px;background:rgba(255,255,255,0.15);color:#fff;outline:none;cursor:pointer;">
-                            <option value="">— Chọn nhân viên —</option>
-
-                            @foreach (var s in onlineStaff)
-                            {
-                                var isSelected = (!string.IsNullOrEmpty(preSelectedStaffId) && preSelectedStaffId == s.StaffId);
-
-                                if (isSelected)
-                                {
-                                    <option value="@s.StaffId" data-name="@s.StaffName" selected>
-                                        @s.StaffName (@s.StaffId)
-                                    </option>
-                                }
-                                else
-                                {
-                                    <option value="@s.StaffId" data-name="@s.StaffName">
-                                        @s.StaffName (@s.StaffId)
-                                    </option>
-                                }
-                            }
-                        </select>
-                    </div>
                 </div>
             </div>
 
@@ -154,7 +111,6 @@
     const typingIndicator = document.getElementById('typingIndicator');
     const agentStatus = document.getElementById('agentStatus');
     const notificationDot = document.getElementById('notificationDot');
-    const staffSelect = document.getElementById('staffSelect');
 
     // cookie helpers
     function getCookie(name) {
@@ -238,33 +194,6 @@
         }
     }
 
-    // khi KH chọn staff khác bằng dropdown
-    if (staffSelect) {
-        staffSelect.addEventListener('change', async function () {
-            const newStaffId = staffSelect.value;
-            const staffName = staffSelect.options[staffSelect.selectedIndex]?.getAttribute('data-name') || "Nhân viên hỗ trợ";
-
-            if (!newStaffId) return;
-
-            // lưu cookie để nhớ agent
-            setCookie("staffId", newStaffId, 30);
-            setCookie("staffName", staffName, 30);
-
-            // chuyển hội thoại sang staff mới
-            try {
-                if (conn && convId) {
-                    convId = await conn.invoke("StartChatWithStaff", USER_ID, newStaffId);
-                    console.log("Staff switched -> new convId:", convId);
-
-                    // tạm set online cho đẹp, presenceChanged sẽ sync thật
-                    setAgentStatus(true);
-                }
-            } catch (err) {
-                console.error("switch staff error:", err);
-            }
-        });
-    }
-
     // chat actions
     async function sendMessage() {
         const text = messageInput.value.trim();
@@ -337,17 +266,26 @@
 
         try {
             if (staffId) {
-                // ưu tiên staffId từ cookie
-                convId = await conn.invoke("StartChatWithStaff", USER_ID, staffId);
-                console.log("StartChatWithStaff ->", convId);
-                setAgentStatus(true);
+                console.log("📌 Found staffId in cookie:", staffId);
+                try {
+                    // Thử dùng staff từ cookie
+                    convId = await conn.invoke("StartChatWithStaff", USER_ID, staffId);
+                    console.log("✅ StartChatWithStaff ->", convId);
+                    setAgentStatus(true);
+                } catch (err) {
+                    console.warn("⚠️ StartChatWithStaff failed, falling back to auto-assign:", err);
+                    // Nếu staff không còn available, fallback auto-assign
+                    convId = await conn.invoke("StartChatAsCustomer", USER_ID);
+                    console.log("✅ StartChatAsCustomer (fallback) ->", convId);
+                }
             } else {
-                // fallback auto-assign
+                console.log("📌 No staffId cookie, using auto-assign");
+                // Auto-assign
                 convId = await conn.invoke("StartChatAsCustomer", USER_ID);
-                console.log("StartChatAsCustomer ->", convId);
+                console.log("✅ StartChatAsCustomer ->", convId);
             }
         } catch (err) {
-            console.error("startConversation failed:", err);
+            console.error("❌ startConversation failed:", err);
             agentStatus.querySelector('.status-text').textContent = 'Lỗi kết nối';
         }
     }
