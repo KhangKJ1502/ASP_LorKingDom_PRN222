@@ -1,4 +1,5 @@
-/* Admin Staff Management Styles */
+
+/* ===== SEARCH BOX ===== */
 .search-box .form-control {
     border: 1px solid #000 !important;
     box-shadow: none !important;
@@ -9,12 +10,14 @@
     border-left: none !important;
 }
 
-.deleted-row {
+/* ===== TABLE ===== */
+.staff-table__row--deleted {
     opacity: 0.6;
-    background: #f8f9fa;
+    background-color: #f8f9fa;
 }
 
-.modal-header-gradient {
+/* ===== MODAL ===== */
+.modal-header--gradient {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: #fff;
     border-radius: 16px 16px 0 0;
@@ -22,7 +25,8 @@
     border: none;
 }
 
-.avatar-preview {
+/* ===== AVATAR - LARGE (Modal preview) ===== */
+.avatar--large {
     width: 100px;
     height: 100px;
     border-radius: 50%;
@@ -31,51 +35,50 @@
     object-fit: cover;
 }
 
-.avatar-placeholder,
-.avatar-placeholder-small {
+.avatar__placeholder--large {
+    width: 100px;
+    height: 100px;
     border-radius: 50%;
+    border: 3px solid #667eea;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     color: #fff;
     font-weight: 700;
+    font-size: 2.5rem;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-.avatar-placeholder {
-    width: 100px;
-    height: 100px;
-    font-size: 2.5rem;
-    border: 3px solid #667eea;
-}
-
-.staff-avatar {
+/* ===== AVATAR - SMALL (Table cell) ===== */
+.avatar--small {
     width: 45px;
     height: 45px;
     border-radius: 50%;
-    object-fit: cover;
     border: 2px solid #e9ecef;
+    object-fit: cover;
 }
 
-.avatar-placeholder-small {
+.avatar__placeholder--small {
     width: 45px;
     height: 45px;
-    font-size: 1rem;
+    border-radius: 50%;
     border: 2px solid #e9ecef;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-weight: 700;
+    font-size: 1rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
+/* ===== INFO BOX ===== */
 .info-box {
     background: #e7f3ff;
     border-left: 4px solid #667eea;
     padding: 0.5rem 0.75rem;
     border-radius: 6px;
     margin-top: 0.5rem;
-}
-
-.toast-top-right {
-    top: 120px !important;
-    right: 24px !important;
-    left: auto !important;
-    bottom: auto !important;
 }

@@ -259,7 +259,6 @@
                         ");
                 };
 
-                // helper render item disabled (ví dụ ... )
                 Func<string, IHtmlContent> renderDisabledItem = (string text) =>
                 {
                     return new HtmlString($@"
@@ -425,11 +424,11 @@
                                     name="Type"
                                     id="type"
                                     required>
-                                <option value="info">ℹ️ Thông tin - Tin tức chung</option>
-                                <option value="promo">🎉 Khuyến mãi - Ưu đãi đặc biệt</option>
-                                <option value="warning">⚠️ Cảnh báo - Thông báo quan trọng</option>
-                                <option value="system">⚙️ Hệ thống - Bảo trì, cập nhật</option>
-                                <option value="error">❌ Lỗi - Sự cố cần xử lý</option>
+                                <option value="info">Thông tin - Tin tức chung</option>
+                                <option value="promo">Khuyến mãi - Ưu đãi đặc biệt</option>
+                                <option value="warning">Cảnh báo - Thông báo quan trọng</option>
+                                <option value="system">Hệ thống - Bảo trì, cập nhật</option>
+                                <option value="error">Lỗi - Sự cố cần xử lý</option>
                             </select>
                         </div>
 
@@ -495,7 +494,7 @@
                                    value="@(edit?.TargetUserId?.ToString() ?? "")"
                                    placeholder="Nhập ID người dùng (VD: 123)"
                                    min="1" />
-                            <small class="text-muted">💡 Xem ID trong danh sách quản lý khách hàng</small>
+                            <small class="text-muted">Xem ID trong danh sách quản lý khách hàng</small>
                         </div>
 
                         <!-- Nội dung -->
@@ -806,61 +805,75 @@
         });
 
         // Quick schedule time buttons
-        function setScheduleTime(preset) {
-            const scheduledInput = document.getElementById('scheduledAt');
-            const expireInput = document.getElementById('expireAt');
-            let scheduleDate = new Date();
-            let expireDate = null;
+        // Quick schedule time buttons
+              function setScheduleTime(preset) {
+                  const scheduledInput = document.getElementById('scheduledAt');
+                  const expireInput = document.getElementById('expireAt');
+                  let scheduleDate = new Date();
+                  let expireDate = null;
 
-            switch(preset) {
-                case 'now':
-                    // Ngay bây giờ
-                    break;
-                
-                case '1hour':
-                    // Sau 1 giờ
-                    scheduleDate.setHours(scheduleDate.getHours() + 1);
-                    expireDate = new Date(scheduleDate);
-                    expireDate.setDate(expireDate.getDate() + 7); // Hết hạn sau 7 ngày
-                    break;
-                
-                case 'tomorrow':
-                    // Ngày mai 9h sáng
-                    scheduleDate.setDate(scheduleDate.getDate() + 1);
-                    scheduleDate.setHours(9, 0, 0, 0);
-                    expireDate = new Date(scheduleDate);
-                    expireDate.setDate(expireDate.getDate() + 7);
-                    break;
-                
-                case 'nextweek':
-                    // Tuần sau cùng giờ
-                    scheduleDate.setDate(scheduleDate.getDate() + 7);
-                    expireDate = new Date(scheduleDate);
-                    expireDate.setDate(expireDate.getDate() + 30); // Hết hạn sau 30 ngày
-                    break;
-            }
+                  switch(preset) {
+                      case 'now':
+                          // Ngay bây giờ
+                          expireDate = new Date(scheduleDate);
+                          expireDate.setDate(expireDate.getDate() + 3); // GỢI Ý: Thêm hết hạn sau 3 ngày
+                          break;
 
-            // Format to datetime-local format (YYYY-MM-DDTHH:mm)
-            const formatDateTime = (date) => {
-                const year = date.getFullYear();
-                const month = String(date.getMonth() + 1).padStart(2, '0');
-                const day = String(date.getDate()).padStart(2, '0');
-                const hours = String(date.getHours()).padStart(2, '0');
-                const minutes = String(date.getMinutes()).padStart(2, '0');
-                return `${year}-${month}-${day}T${hours}:${minutes}`;
-            };
+                      case '1hour':
+                          // Sau 1 giờ
+                          scheduleDate.setHours(scheduleDate.getHours() + 1);
+                          expireDate = new Date(scheduleDate);
+                          expireDate.setDate(expireDate.getDate() + 7); // Hết hạn sau 7 ngày
+                          break;
 
-            scheduledInput.value = formatDateTime(scheduleDate);
-            if (expireDate) {
-                expireInput.value = formatDateTime(expireDate);
-            }
+                      case 'tomorrow':
+                          // Ngày mai 9h sáng
+                          scheduleDate.setDate(scheduleDate.getDate() + 1);
+                          scheduleDate.setHours(9, 0, 0, 0);
+                          expireDate = new Date(scheduleDate);
+                          expireDate.setDate(expireDate.getDate() + 7);
+                          break;
 
-            // Highlight the input briefly to show it changed
-            scheduledInput.classList.add('border-success', 'border-2');
-            setTimeout(() => {
-                scheduledInput.classList.remove('border-success', 'border-2');
-            }, 1000);
-        }
+                      case 'nextweek':
+                          // Tuần sau (sửa: 9h sáng)
+                          scheduleDate.setDate(scheduleDate.getDate() + 7);
+                          scheduleDate.setHours(9, 0, 0, 0); // <-- SỬA LỖI: Thêm dòng này
+                          expireDate = new Date(scheduleDate);
+                          expireDate.setDate(expireDate.getDate() + 30); // Hết hạn sau 30 ngày
+                          break;
+                  }
+
+                  // Format to datetime-local format (YYYY-MM-DDTHH:mm)
+                  const formatDateTime = (date) => {
+                      if (!date) return ""; // Tránh lỗi nếu date là null
+                      const year = date.getFullYear();
+                      const month = String(date.getMonth() + 1).padStart(2, '0');
+                      const day = String(date.getDate()).padStart(2, '0');
+                      const hours = String(date.getHours()).padStart(2, '0');
+                      const minutes = String(date.getMinutes()).padStart(2, '0');
+                      return `${year}-${month}-${day}T${hours}:${minutes}`;
+                  };
+
+                  if (scheduledInput) {
+                      scheduledInput.value = formatDateTime(scheduleDate);
+                      // Highlight
+                      scheduledInput.classList.add('border-success', 'border-2');
+                      setTimeout(() => {
+                          scheduledInput.classList.remove('border-success', 'border-2');
+                      }, 1000);
+                  }
+
+                  if (expireInput) {
+                      expireInput.value = formatDateTime(expireDate);
+                      // Highlight
+                      if (expireDate) { // Chỉ highlight nếu có giá trị
+                           expireInput.classList.add('border-success', 'border-2');
+                          setTimeout(() => {
+                              expireInput.classList.remove('border-success', 'border-2');
+                          }, 1000);
+                      }
+                  }
+              }
 
         // SweetAlert2 confirmation functions
         async function confirmSendNow(event) {

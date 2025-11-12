@@ -428,10 +428,10 @@
                 updatePageState(true);
 
                 // load danh sách hội thoại cho staff hiện tại
-                console.log("📋 Loading conversations for staff:", STAFF_ID);
+                console.log("Loading conversations for staff:", STAFF_ID);
                 const res = await fetch(`/api/chat-dashboard/conversations?staffId=${encodeURIComponent(STAFF_ID)}`);
                 const data = await res.json();
-                console.log("📥 Loaded", data.length, "conversations");
+                console.log("Loaded", data.length, "conversations");
 
                 data.forEach(x => convMap.set(x.conversationId, {
                     conversationId: x.conversationId,

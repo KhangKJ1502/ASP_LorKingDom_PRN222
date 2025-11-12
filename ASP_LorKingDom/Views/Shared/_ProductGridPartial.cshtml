@@ -133,7 +133,6 @@
 						</div>
 						<div class="product-price">
 							@{
-								// If product has a promotion, show original price struck-through and discounted price
 								if (p.PromotionId != null && p.PromotionDiscountPercent.HasValue && p.PromotionDiscountPercent.Value > 0)
 								{
 									var discount = p.PromotionDiscountPercent.Value;

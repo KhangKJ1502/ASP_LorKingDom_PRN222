@@ -5,8 +5,6 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace WebUI.Hubs;
 
-/// <summary>
-/// ==================== SIGNALR CHAT HUB ====================
 /// CHỨC NĂNG:
 /// 1. Real-time messaging (send/receive)
 /// 2. Online/Offline presence tracking
@@ -19,14 +17,12 @@ namespace WebUI.Hubs;
 /// CLIENT LIBRARIES:
 /// - JavaScript: @microsoft/signalr (CDN hoặc npm)
 /// - Đã include trong _ChatWidget.cshtml và Staff.cshtml
-/// =========================================================
-/// </summary>
+
 public class ChatHub : Hub
 {
     private readonly IChatService _chatService;
     private readonly ILogger<ChatHub> _logger;
 
-    // ==================== IN-MEMORY STATE TRACKING ====================
     // Lưu trạng thái staff trong memory (lost khi restart server)
     private static readonly ConcurrentDictionary<string, int> _staffConnCount = new();     // staffId -> số connections
     private static readonly ConcurrentDictionary<string, string> _staffNames = new();      // staffId -> tên hiển thị
@@ -38,15 +34,15 @@ public class ChatHub : Hub
         _logger = logger;
     }
 
-    /// <summary>Query string helper - lấy value từ query parameter</summary>
+    /// Query string helper - lấy value từ query parameter
     private static string Q(HttpContext? http, string key)
         => http?.Request.Query[key].ToString() ?? string.Empty;
 
-    /// <summary>Query string helper - parse boolean</summary>
+    /// Query string helper - parse boolean
     private static bool QBool(HttpContext? http, string key)
         => bool.TryParse(Q(http, key), out var b) && b;
 
-    /// <summary>Broadcast online/offline status đến tất cả clients</summary>
+    /// Broadcast online/offline status đến tất cả clients
     private async Task BroadcastPresence(string userId, bool isOnline)
     {
         try
@@ -60,16 +56,14 @@ public class ChatHub : Hub
         }
     }
 
-    /// <summary>Kiểm tra staff có đang ở trang chat không (để biết có cần gửi notification không)</summary>
+    /// Kiểm tra staff có đang ở trang chat không (để biết có cần gửi notification không)
     private bool IsStaffOnChatPage(string staffId)
         => _staffPageState.TryGetValue(staffId, out var on) && on;
 
     // ==================== SIGNALR LIFECYCLE EVENTS ====================
     
-    /// <summary>
     /// Được gọi khi client connect vào SignalR hub
     /// Query params: ?userId=xxx&isStaff=true/false&name=xxx
-    /// </summary>
     public override async Task OnConnectedAsync()
     {
         try
@@ -79,8 +73,6 @@ public class ChatHub : Hub
             var isStaff = QBool(http, "isStaff");
             var name = Q(http, "name");
 
-            // ==================== CHẾ ĐỘ 1: GUEST (Không cần đăng nhập) ====================
-            // Bỏ comment block dưới để cho phép guest chat
             if (string.IsNullOrWhiteSpace(userId))
             {
                 _logger.LogWarning("Connection rejected: missing userId");
@@ -88,7 +80,6 @@ public class ChatHub : Hub
                 return;
             }
 
-            // ==================== CHẾ ĐỘ 2: CUSTOMER (Phải đăng nhập) ====================
             // Comment block trên và bỏ comment block dưới để chỉ cho phép authenticated users
             //if (string.IsNullOrWhiteSpace(userId) || userId.StartsWith("guest_"))
             //{
@@ -104,7 +95,6 @@ public class ChatHub : Hub
             //    Context.Abort();
             //    return;
             //}
-            // ==================== KẾT THÚC CHẾ ĐỘ 2 ====================
 
             // Lưu connection vào database (mapping userId ↔ connectionId)
             await _chatService.UserConnectedAsync(userId, isStaff, string.IsNullOrWhiteSpace(name) ? "Unknown" : name, Context.ConnectionId);
@@ -148,9 +138,7 @@ public class ChatHub : Hub
         await base.OnConnectedAsync();
     }
 
-    /// <summary>
     /// Được gọi khi client disconnect khỏi SignalR hub
-    /// </summary>
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
         try
@@ -200,25 +188,20 @@ public class ChatHub : Hub
         await base.OnDisconnectedAsync(exception);
     }
 
-    // ==================== RPC METHODS (Client → Server) ====================
     
-    /// <summary>
     /// [CUSTOMER] Bắt đầu chat (auto-assign staff)
     /// Called from: _ChatWidget.cshtml
     /// Returns: conversationId
-    /// </summary>
     public async Task<string> StartChatAsCustomer(string customerId)
     {
         try
         {
-            // ==================== CHẾ ĐỘ 2: CUSTOMER (Phải đăng nhập) ====================
             // Bỏ comment block dưới để yêu cầu đăng nhập
             //if (string.IsNullOrWhiteSpace(customerId) || customerId.StartsWith("guest_"))
             //{
             //    _logger.LogWarning("StartChatAsCustomer rejected: guest user - customerId: {CustomerId}", customerId);
             //    throw new UnauthorizedAccessException("Vui lòng đăng nhập để sử dụng tính năng chat.");
             //}
-            // ==================== KẾT THÚC CHẾ ĐỘ 2 ====================
 
             // Tìm hoặc tạo conversation mới với staff available
             var conversationId = await _chatService.StartChatAsCustomerAsync(customerId);
@@ -243,23 +226,20 @@ public class ChatHub : Hub
         }
     }
 
-    /// <summary>
+
     /// [CUSTOMER] Bắt đầu chat với staff cụ thể
     /// Called from: Customer UI (khi chọn staff từ danh sách online)
     /// Returns: conversationId
-    /// </summary>
     public async Task<string> StartChatWithStaff(string customerId, string staffId)
     {
         try
         {
-            // ==================== CHẾ ĐỘ 2: CUSTOMER (Phải đăng nhập) ====================
             // Bỏ comment block dưới để yêu cầu đăng nhập
             //if (string.IsNullOrWhiteSpace(customerId) || customerId.StartsWith("guest_"))
             //{
             //    _logger.LogWarning("StartChatWithStaff rejected: guest user - customerId: {CustomerId}", customerId);
             //    throw new UnauthorizedAccessException("Vui lòng đăng nhập để sử dụng tính năng chat.");
             //}
-            // ==================== KẾT THÚC CHẾ ĐỘ 2 ====================
 
             // Tìm hoặc tạo conversation với staff được chọn
             var conversationId = await _chatService.StartChatWithStaffAsync(customerId, staffId);
@@ -290,10 +270,8 @@ public class ChatHub : Hub
         }
     }
 
-    /// <summary>
     /// [UI] Lấy danh sách staff đang online
     /// Returns: [{ staffId, name }]
-    /// </summary>
     public Task<IEnumerable<object>> GetOnlineStaff()
     {
         var list = _staffConnCount
@@ -311,11 +289,10 @@ public class ChatHub : Hub
         return Task.FromResult(list);
     }
 
-    /// <summary>
+
     /// [STAFF] Lấy danh sách conversations
     /// Called from: Staff.cshtml on page load
     /// Returns: List của ConversationDto
-    /// </summary>
     public async Task<List<ConversationDto>> GetConversations()
     {
         try
@@ -335,11 +312,11 @@ public class ChatHub : Hub
         }
     }
 
-    /// <summary>
+
     /// [CUSTOMER/STAFF] Lấy danh sách messages của một conversation
     /// Called from: Staff.cshtml / _ChatWidget.cshtml khi mở conversation
     /// Returns: List của MessageDto
-    /// </summary>
+
     public async Task<List<MessageDto>> GetMessages(string conversationId)
     {
         try
@@ -355,10 +332,9 @@ public class ChatHub : Hub
         }
     }
 
-    /// <summary>
+
     /// [STAFF] Mở một conversation (set unread = 0)
     /// Called from: Staff.cshtml khi click vào conversation
-    /// </summary>
     public async Task OpenConversation(string conversationId)
     {
         try
@@ -380,14 +356,13 @@ public class ChatHub : Hub
         }
     }
 
-    /// <summary>
     /// [CUSTOMER/STAFF] Gửi tin nhắn
     /// Called from: _ChatWidget.cshtml / Staff.cshtml
     /// Flow:
     ///   1. Save message vào database
     ///   2. Broadcast message đến tất cả clients trong conversation group
     ///   3. Update conversation metadata (lastMessage, unread count)
-    /// </summary>
+
     public async Task SendMessage(string conversationId, string senderId, string text)
     {
         try
@@ -398,14 +373,13 @@ public class ChatHub : Hub
                 return;
             }
 
-            // ==================== CHẾ ĐỘ 2: CUSTOMER (Phải đăng nhập) ====================
+
             // Bỏ comment block dưới để yêu cầu đăng nhập
             //if (string.IsNullOrWhiteSpace(senderId) || senderId.StartsWith("guest_"))
             //{
             //    _logger.LogWarning("SendMessage rejected: guest user attempt - sender: {Sender}", senderId);
             //    throw new UnauthorizedAccessException("Vui lòng đăng nhập để gửi tin nhắn.");
             //}
-            // ==================== KẾT THÚC CHẾ ĐỘ 2 ====================
 
             _logger.LogInformation("SendMessage - Conv:{Conv}, From:{From}, Text:{Text}", conversationId, senderId, text.Substring(0, Math.Min(50, text.Length)));
 
@@ -435,11 +409,10 @@ public class ChatHub : Hub
         }
     }
 
-    /// <summary>
+ 
     /// [CUSTOMER/STAFF] Broadcast typing indicator
     /// Called from: Client khi user đang gõ tin nhắn
     /// Gửi đến: Tất cả clients khác trong conversation (excluding caller)
-    /// </summary>
     public async Task Typing(string conversationId, string userId, bool isTyping)
     {
         try
@@ -453,11 +426,10 @@ public class ChatHub : Hub
         }
     }
 
-    /// <summary>
     /// [STAFF] Update page state (có đang ở trang chat không)
     /// Called from: Staff.cshtml on page visibility change
     /// Mục đích: Biết staff có đang xem chat không để quyết định có gửi notification không
-    /// </summary>
+ 
     public Task UpdatePageState(bool isOnPage)
     {
         try

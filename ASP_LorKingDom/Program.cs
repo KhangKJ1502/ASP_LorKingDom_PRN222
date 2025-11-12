@@ -52,13 +52,12 @@ builder.Services.AddCors(options =>
 builder.Services.AddDAL(conn);
 builder.Services.AddBLL();
 builder.Services.AddControllersWithViews();
+builder.Services.AddScoped<IAvatarService, AvatarService>();
+
 
 // Anti-Forgery (khớp header JS)
 builder.Services.AddAntiforgery(o => o.HeaderName = "RequestVerificationToken");
 
-// (Chỉ giữ nếu AddDAL/AddBLL CHƯA đăng ký 2 service này)
-builder.Services.AddScoped<IAddressRepository, AddressRepository>();
-builder.Services.AddScoped<IAddressService, AddressService>();
 
 // Session
 builder.Services.AddSession(o =>
@@ -111,9 +110,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
             }
         };
     });
-// Program.cs
-builder.Services.AddScoped<IProductImageRepository, ProductImageRepository>();
-builder.Services.AddScoped<IProductImageService, ProductImageService>(); // bạn đã có
+
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 builder.Logging.SetMinimumLevel(LogLevel.Debug);

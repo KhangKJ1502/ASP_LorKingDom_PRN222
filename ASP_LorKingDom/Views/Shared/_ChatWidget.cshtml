@@ -1,17 +1,15 @@
 ﻿@{
-    // ==================== CẶP CHẾ ĐỘ A: AUTHENTICATION (Đăng nhập) ====================
     
-    // ✅ A1: GUEST MODE (Đang dùng) - Cho phép chat không cần đăng nhập
+    //  GUEST MODE (Đang dùng) - Cho phép chat không cần đăng nhập
     var userId = User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? ("guest_" + Guid.NewGuid().ToString("N").Substring(0, 8));
     var name = User?.Identity?.Name ?? "Khách hàng";
     var isAuthenticated = false; // Guest luôn = false
     
-    // 🔐 A2: CUSTOMER MODE - Yêu cầu đăng nhập (Comment A1, bỏ comment A2)
+    // CUSTOMER MODE - Yêu cầu đăng nhập (Comment A1, bỏ comment A2)
     // var isAuthenticated = User?.Identity?.IsAuthenticated ?? false;
     // var userId = isAuthenticated ? (User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "") : "";
     // var name = isAuthenticated ? (User?.Identity?.Name ?? "Khách hàng") : "";
-    
-    // ==================== KẾT THÚC CẶP A ====================
+
 }
 
 <div id="chatWidget">
@@ -345,13 +343,12 @@
             }
         }
 
-        // ==================== LAZY LOADING IMPLEMENTATION ====================
         // Biến để track xem đã kết nối chưa (tránh connect nhiều lần)
         let isConnected = false;
         let isConnecting = false;
 
         async function init() {
-            if (isConnected || isConnecting) return; // ✅ Đã connect rồi, không connect lại
+            if (isConnected || isConnecting) return; 
             isConnecting = true;
 
             // Hiển thị trạng thái đang kết nối
@@ -359,7 +356,7 @@
 
             try {
                 await initSignalR();
-                // ✅ Chỉ tạo conversation khi user GỬI TIN NHẮN ĐẦU TIÊN (xem hàm sendMessage)
+                // Chỉ tạo conversation khi user GỬI TIN NHẮN ĐẦU TIÊN (xem hàm sendMessage)
                 isConnected = true;
                 setAgentStatus(false, 'Sẵn sàng');
                 console.log("SignalR đã kết nối thành công!");
@@ -379,38 +376,5 @@
             // Sau khi kết nối (hoặc đã kết nối rồi), toggle chat box
             toggleChatBox();
         });
- 
-
-        // 🔐 A2+B2: CUSTOMER + AUTO-CONNECT - Tự động kết nối, yêu cầu đăng nhập KHI CLICK
-        // (Comment B2, bỏ comment block dưới)
-        //
-        // window.addEventListener('DOMContentLoaded', () => {
-        //     console.log("🔌 Auto-connecting SignalR...");
-        //     init(); // Tự động connect khi page load
-        // });
-        //
-        // chatToggleBtn.addEventListener('click', () => {
-        //     // Kiểm tra đăng nhập khi click
-        //     if (!IS_AUTHENTICATED) {
-        //         Swal.fire({
-        //             icon: 'warning',
-        //             title: 'Vui lòng đăng nhập',
-        //             html: 'Bạn cần <strong>đăng nhập</strong> để sử dụng tính năng chat.<br><br>Đăng nhập ngay để được hỗ trợ!',
-        //             showCancelButton: true,
-        //             confirmButtonText: '🔐 Đăng nhập',
-        //             cancelButtonText: 'Đóng',
-        //             confirmButtonColor: '#667eea',
-        //             cancelButtonColor: '#6c757d'
-        //         }).then((result) => {
-        //             if (result.isConfirmed) {
-        //                 window.location.href = '/Auth/Login?returnUrl=' + encodeURIComponent(window.location.pathname);
-        //             }
-        //         });
-        //         return;
-        //     }
-        //     toggleChatBox(); // Chỉ mở/đóng chat box
-        // });
-        
-        // ==================== KẾT THÚC CẶP A×B ====================
     })();
 </script>
