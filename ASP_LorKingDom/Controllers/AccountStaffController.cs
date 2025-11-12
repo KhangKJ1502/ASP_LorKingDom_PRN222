@@ -17,15 +17,20 @@ namespace WebUI.Controllers
     {
         private readonly IAccountService _accountService;
         private readonly IRoleRepository _roleRepository;
+        private readonly IAvatarService _avatarService;
 
-        public AccountStaffController(IAccountService accountService, IRoleRepository roleRepo)
+        public AccountStaffController(
+            IAccountService accountService, 
+            IRoleRepository roleRepo,
+          IAvatarService avatarService)
         {
             _accountService = accountService;
             _roleRepository = roleRepo;
+            _avatarService = avatarService;
         }
 
-        // ===== INDEX - View List (Không filter) =====
-            [HttpGet("AccountStaff/Manage")]
+        [HttpGet("AccountStaff/Index")]
+        [HttpGet("AccountStaff/Manage")]
         public async Task<IActionResult> Index(int page = 1, int pageSize = 10)
         {
             await LoadRolesAsync();
@@ -38,8 +43,7 @@ namespace WebUI.Controllers
             return View("~/Views/Admin/ManageAccountStaff.cshtml", pagedResult);
         }
 
-        // ===== SEARCH - Tìm kiếm với query =====
-        [HttpGet]
+        [HttpGet("AccountStaff/Search")]
         public async Task<IActionResult> Search(string? q, int page = 1, int pageSize = 10)
         {
             await LoadRolesAsync();
@@ -53,175 +57,152 @@ namespace WebUI.Controllers
             return View("~/Views/Admin/ManageAccountStaff.cshtml", pagedResult);
         }
 
-        // ===== CREATE =====
         [HttpPost("account-staff/create")]
         public async Task<IActionResult> CreateStaff(
-            [FromForm] AccountDto model,
-            [FromForm] string? q,
-            [FromForm] IFormFile? AvatarFile,
-            [FromForm] string? ConfirmPassword,
-            [FromForm] int pageSize = 10)
+            [Bind("AccountName,Email,PhoneNumber,RoleId,Password,ConfirmPassword,Status,IsDeleted,SearchQuery,PageSize")] BLL.DTOs.StaffFormModel model,
+            IFormFile? AvatarFile)
         {
             await LoadRolesAsync();
-            
-            // CRITICAL: Force Id = 0 để đảm bảo đây là Create, không phải Update
             model.Id = 0;
             
-            // Validate image file nếu có
+            // 1) Xử lý avatar (nếu có)
+            string? imagePath = null;
             if (AvatarFile is { Length: > 0 })
             {
-                var imgV = AccountValidator.ValidateImageFile(AvatarFile.Length, AvatarFile.ContentType);
-                if (!imgV.IsValid)
+                var (success, pathOrError) = await _avatarService.SaveAvatarAsync(AvatarFile);
+                if (!success)
                 {
-                    return await ShowAddValidationError(string.Join("; ", imgV.Errors), model, q, pageSize);
+                    var errorDto = model.ToAccountDto();
+                    return await ShowAddValidationError(pathOrError, errorDto, model.SearchQuery, model.PageSize);
                 }
-                
-                var (ok, pathOrErr) = await TrySaveAvatarAsync(AvatarFile);
-                if (!ok)
-                {
-                    return await ShowAddValidationError(pathOrErr, model, q, pageSize);
-                }
-                model.Image = pathOrErr;
+                imagePath = pathOrError;
             }
 
-            // Set default values
-            model.Status = model.IsDeleted ? "Inactive" : "Active";
-            model.CreatedAt = DateTime.Now;
-            model.UpdatedAt = null;
+            // 2) Chuyển sang AccountDto
+            var accountDto = model.ToAccountDto();
+            accountDto.Image = imagePath;
+            accountDto.Status = model.IsDeleted ? "Inactive" : "Active";
+            accountDto.CreatedAt = DateTime.Now;
 
             try
             {
-                // Service sẽ validate tất cả: format, role exists, email unique, phone unique
-                var newId = await _accountService.CreateAsync(model);
+                // 3) Service sẽ validate và create
+                var newId = await _accountService.CreateAsync(accountDto);
                 
                 TempData["Success"] = newId > 0 
                     ? "Thêm nhân viên thành công!" 
-                    : "Thêm nhân viên thất bại! Vui lòng thử lại.";
+                    : "Thêm nhân viên thất bại!";
                 
-                return RedirectToListOrSearch(q, 1, pageSize);
+                return RedirectToListOrSearch(model.SearchQuery, 1, model.PageSize);
             }
             catch (InvalidOperationException ex)
             {
-                // Validation errors từ Service
-                return await ShowAddValidationError(ex.Message, model, q, pageSize);
+                // Validation errors từ Service (email trùng, phone trùng, etc.)
+                // CRITICAL: Phải giữ lại password để restore form
+                accountDto.Password = model.Password;
+                accountDto.Image = imagePath;
+                
+                // Xóa avatar nếu upload thất bại
+                if (!string.IsNullOrWhiteSpace(imagePath))
+                    _avatarService.DeleteAvatar(imagePath);
+                    
+                return await ShowAddValidationError(ex.Message, accountDto, model.SearchQuery, model.PageSize);
             }
             catch (Exception ex)
             {
-                return await ShowAddValidationError($"Lỗi: {ex.Message}", model, q, pageSize);
+                // Unexpected errors
+                accountDto.Password = model.Password;
+                accountDto.Image = imagePath;
+                
+                // Xóa avatar nếu upload thất bại
+                if (!string.IsNullOrWhiteSpace(imagePath))
+                    _avatarService.DeleteAvatar(imagePath);
+                    
+                return await ShowAddValidationError($"Lỗi: {ex.Message}", accountDto, model.SearchQuery, model.PageSize);
             }
         }
 
         // ===== UPDATE =====
         [HttpPost("account-staff/update")]
         public async Task<IActionResult> UpdateStaff(
-            [FromForm] int Id,
-            [FromForm] string AccountName,
-            [FromForm] string? PhoneNumber,
-            [FromForm] int? RoleId,
-            [FromForm] string Email,
-            [FromForm] string Status,
-            [FromForm] bool IsDeleted,
-            [FromForm] string? NewPassword,
-            [FromForm] string? ConfirmNewPassword,
-            [FromForm] string? q,
-            [FromForm] string? ExistingImage,
-            [FromForm] bool RemoveImage = false,
-            [FromForm] IFormFile? AvatarFile = null,
-            [FromForm] int pageSize = 10)
+            [Bind("Id,AccountName,Email,PhoneNumber,RoleId,NewPassword,ConfirmNewPassword,Status,IsDeleted,ExistingImage,RemoveImage,SearchQuery,PageSize")] BLL.DTOs.StaffFormModel model,
+            IFormFile? AvatarFile)
         {
             await LoadRolesAsync();
 
-            // CRITICAL: Id phải > 0 để đảm bảo đây là Update, không phải Create
-            if (Id <= 0)
+            // 1) Validate Id
+            if (model.Id <= 0)
             {
-                TempData["Error"] = "ID nhân viên không hợp lệ. Không thể cập nhật.";
-                return RedirectToListOrSearch(q, 1, pageSize);
+                TempData["Error"] = "ID nhân viên không hợp lệ.";
+                return RedirectToListOrSearch(model.SearchQuery, 1, model.PageSize);
             }
             
-            // Kiểm tra staff có tồn tại không
-            var existing = await _accountService.GetByIdAsync(Id);
+            // 2) Kiểm tra staff có tồn tại
+            var existing = await _accountService.GetByIdAsync(model.Id);
             if (existing == null)
             {
-                TempData["Error"] = "Không tìm thấy nhân viên cần cập nhật!";
-                return RedirectToListOrSearch(q, 1, pageSize);
+                TempData["Error"] = "Không tìm thấy nhân viên!";
+                return RedirectToListOrSearch(model.SearchQuery, 1, model.PageSize);
             }
 
-            // Validate image file nếu có
+            // 3) Xử lý avatar
+            string? newImagePath = model.ExistingImage;
+            
             if (AvatarFile is { Length: > 0 })
             {
-                var imgV = AccountValidator.ValidateImageFile(AvatarFile.Length, AvatarFile.ContentType);
-                if (!imgV.IsValid)
+                // Upload avatar mới
+                var (success, pathOrError) = await _avatarService.SaveAvatarAsync(AvatarFile);
+                if (!success)
                 {
-                    var temp = new AccountDto
-                    {
-                        Id = Id,
-                        AccountName = AccountName,
-                        PhoneNumber = PhoneNumber,
-                        RoleId = RoleId,
-                        Email = Email,
-                        Status = Status,
-                        IsDeleted = IsDeleted,
-                        Image = ExistingImage
-                    };
-                    return await ShowEditValidationError(string.Join("; ", imgV.Errors), temp, q, pageSize);
+                    var tempDto = model.ToAccountDto();
+                    tempDto.Image = model.ExistingImage;
+                    return await ShowEditValidationError(pathOrError, tempDto, model.SearchQuery, model.PageSize);
                 }
                 
-                var (ok, pathOrErr) = await TrySaveAvatarAsync(AvatarFile);
-                if (!ok)
-                {
-                    var temp = new AccountDto
-                    {
-                        Id = Id,
-                        AccountName = AccountName,
-                        PhoneNumber = PhoneNumber,
-                        RoleId = RoleId,
-                        Email = Email,
-                        Status = Status,
-                        IsDeleted = IsDeleted,
-                        Image = ExistingImage
-                    };
-                    return await ShowEditValidationError(pathOrErr, temp, q, pageSize);
-                }
-                DeleteOldAvatar(existing.Image);
-                existing.Image = pathOrErr;
+                // Xóa avatar cũ
+                _avatarService.DeleteAvatar(existing.Image);
+                newImagePath = pathOrError;
             }
-            else if (RemoveImage)
+            else if (model.RemoveImage)
             {
-                DeleteOldAvatar(existing.Image);
-                existing.Image = null;
+                // Xóa avatar
+                _avatarService.DeleteAvatar(existing.Image);
+                newImagePath = null;
             }
 
-            // Update existing staff info
-            existing.AccountName = AccountName?.Trim() ?? existing.AccountName;
-            existing.PhoneNumber = PhoneNumber;
-            existing.RoleId = RoleId;
-            existing.IsDeleted = IsDeleted;
-            existing.Status = IsDeleted ? "Inactive" : Status;
-            existing.UpdatedAt = DateTime.Now;
-
-            if (!string.IsNullOrWhiteSpace(NewPassword))
-                existing.Password = NewPassword; // Service sẽ hash và validate
+            // 4) Chuyển sang DTO và update
+            var accountDto = model.ToAccountDto();
+            accountDto.Id = model.Id;
+            accountDto.Email = existing.Email; // Không cho phép đổi email
+            accountDto.Image = newImagePath;
+            accountDto.Status = model.IsDeleted ? "Inactive" : model.Status;
+            accountDto.Password = !string.IsNullOrWhiteSpace(model.NewPassword) ? model.NewPassword : existing.Password;
+            accountDto.CreatedAt = existing.CreatedAt;
 
             try
             {
-                // Service sẽ validate tất cả: format, role exists, phone unique
-                var success = await _accountService.UpdateAsync(existing.Id, existing);
-                TempData["Success"] = success ? "Cập nhật nhân viên thành công!" : "Cập nhật thất bại!";
-                return RedirectToListOrSearch(q, 1, pageSize);
+                // 5) Service validate và update
+                var success = await _accountService.UpdateAsync(model.Id, accountDto);
+                
+                TempData["Success"] = success 
+                    ? "Cập nhật nhân viên thành công!" 
+                    : "Cập nhật thất bại!";
+                
+                return RedirectToListOrSearch(model.SearchQuery, 1, model.PageSize);
             }
             catch (InvalidOperationException ex)
             {
-                // Validation errors từ Service
-                return await ShowEditValidationError(ex.Message, existing, q, pageSize);
+                // Validation errors (phone trùng, email change attempt, etc.)
+                return await ShowEditValidationError(ex.Message, accountDto, model.SearchQuery, model.PageSize);
             }
             catch (KeyNotFoundException ex)
             {
-                TempData["Error"] = ex.Message;
-                return RedirectToListOrSearch(q, 1, pageSize);
+                TempData["Error"] = $"{ex.Message}";
+                return RedirectToListOrSearch(model.SearchQuery, 1, model.PageSize);
             }
             catch (Exception ex)
             {
-                return await ShowEditValidationError($"Lỗi: {ex.Message}", existing, q, pageSize);
+                return await ShowEditValidationError($"❌ Lỗi: {ex.Message}", accountDto, model.SearchQuery, model.PageSize);
             }
         }
 
@@ -291,9 +272,9 @@ namespace WebUI.Controllers
             return new PagedResult<AccountDto>
             {
                 Items = pagedItems,
-                Page = page,           // ✅ Dùng Page thay vì CurrentPage
+                Page = page,      
                 PageSize = pageSize,
-                Total = totalItems     // ✅ Dùng Total thay vì TotalItems
+                Total = totalItems  
             };
         }
 
@@ -303,8 +284,6 @@ namespace WebUI.Controllers
             var all = await _accountService.GetAllStaffForAdminAsync();
             var filtered = Filter(all, q);
             var ordered = filtered.OrderByDescending(c => c.CreatedAt).ToList();
-
-            // ✅ Trả về PagedResult thay vì List
             var pagedResult = GetPagedResult(ordered, page, pageSize);
 
             if (editModel != null) ViewBag.EditStaff = editModel;
@@ -319,51 +298,7 @@ namespace WebUI.Controllers
             ViewBag.Roles = roles.OrderBy(r => r.RoleName).Select(r => new { r.RoleId, r.RoleName }).ToList();
         }
 
-        private static string GetWebRoot() => Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
-
-        private async Task<(bool ok, string msg)> TrySaveAvatarAsync(IFormFile file)
-        {
-            var okTypes = new[] { "image/png", "image/jpeg", "image/jpg", "image/webp", "image/gif" };
-            const long MAX = 2 * 1024 * 1024;
-
-            if (!okTypes.Contains(file.ContentType.ToLower())) return (false, "Định dạng ảnh không hợp lệ. Hỗ trợ PNG/JPG/WebP/GIF.");
-            if (file.Length == 0) return (false, "File ảnh rỗng.");
-            if (file.Length > MAX) return (false, "Kích thước ảnh tối đa 2MB.");
-
-            try
-            {
-                var uploads = Path.Combine(GetWebRoot(), "uploads", "staff");
-                Directory.CreateDirectory(uploads);
-
-                var ext = Path.GetExtension(file.FileName).ToLower();
-                var name = $"{Guid.NewGuid():N}{ext}";
-
-                await using var stream = System.IO.File.Create(Path.Combine(uploads, name));
-                await file.CopyToAsync(stream);
-
-                return (true, $"/uploads/staff/{name}");
-            }
-            catch (Exception ex)
-            {
-                return (false, $"Lỗi lưu file: {ex.Message}");
-            }
-        }
-
-        private void DeleteOldAvatar(string? imagePath)
-        {
-            if (string.IsNullOrWhiteSpace(imagePath)) return;
-            try
-            {
-                var fileName = Path.GetFileName(imagePath);
-                if (fileName.Contains("..") || Path.IsPathRooted(fileName)) return;
-
-                var fullPath = Path.Combine(GetWebRoot(), "uploads", "staff", fileName);
-                if (System.IO.File.Exists(fullPath)) System.IO.File.Delete(fullPath);
-            }
-            catch { /* ignore */ }
-        }
-
-        // Helper method to avoid repeated redirect logic
+        // ===== Helper Methods =====
         private IActionResult RedirectToListOrSearch(string? q, int page, int pageSize)
         {
             return string.IsNullOrWhiteSpace(q)

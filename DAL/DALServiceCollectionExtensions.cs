@@ -12,7 +12,6 @@ namespace DAL
         {
             services.AddDbContext<AspLorKingDomContext>(opt => opt.UseSqlServer(connectionString));
 
-            // Repo của bạn ...
             // services.AddScoped<IProductRepository, ProductRepository>();
             services.AddScoped<IAddressRepository, AddressRepository>();
 

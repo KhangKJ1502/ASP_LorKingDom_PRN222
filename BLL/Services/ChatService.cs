@@ -49,7 +49,7 @@ public class ChatService : IChatService
         if (!_store.CustomerIndex.TryGetValue(customerId, out var convId)
             || !_store.Conversations.TryGetValue(convId, out var conv))
         {
-            var staff = _store.PickStaff() ?? "staff1";
+            var staff = _store.PickStaff() ?? "1";
             conv = new Conversation { CustomerUserId = customerId, StaffUserId = staff };
             _store.Conversations[conv.ConversationId] = conv;
             _store.CustomerIndex[customerId] = conv.ConversationId;
@@ -128,7 +128,6 @@ public class ChatService : IChatService
             _store.Conversations[existedConv.ConversationId] = existedConv;
             return existedConv.ConversationId;
         }
-
         // Tạo mới
         var conv = new Conversation
         {

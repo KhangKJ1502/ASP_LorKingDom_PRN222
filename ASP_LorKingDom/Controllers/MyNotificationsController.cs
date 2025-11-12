@@ -38,8 +38,6 @@ namespace WebUI.Controllers
 
             // DỮ LIỆU CHO TAB HIỆN TẠI (có filter isRead, có phân trang)
             var PagedResult = await _svc.GetMyNotificationsAsync(currentUserId, isRead, page, pageSize);
-
-            // ====== DỮ LIỆU TOÀN CỤC CHO BADGE (LUÔN ĐÚNG BẤT KỂ TAB) ======
             var totalUnread = await _svc.GetUnreadCountAsync(currentUserId);
             var allPage = await _svc.GetMyNotificationsAsync(currentUserId, null, 1, 1);
             var totalAll = allPage.Total;
@@ -72,7 +70,6 @@ namespace WebUI.Controllers
             return View("~/Views/MyNotifications/Index.cshtml", PagedResult);
         }
 
-        // --- API cho offcanvas: lấy danh sách 10 thông báo chưa đọc mới nhất ---
         [HttpGet]
         public async Task<IActionResult> GetLatestUnread()
         {
@@ -99,7 +96,6 @@ namespace WebUI.Controllers
             });
         }
 
-        // đánh dấu 1 thông báo là đã đọc
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> MarkRead(int id, bool? returnFilter = null)
@@ -186,7 +182,6 @@ namespace WebUI.Controllers
             return Json(new { success = true, unread = unreadCount });
         }
 
-        // đánh dấu tất cả là đã đọc
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> MarkAllRead()
@@ -221,7 +216,6 @@ namespace WebUI.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // API badge đỏ trên header
         [HttpGet]
         [AllowAnonymous]
         public async Task<IActionResult> GetUnreadCount()
@@ -234,7 +228,6 @@ namespace WebUI.Controllers
             return Json(new { success = true, count });
         }
 
-        // polling xem có thông báo mới không
         [HttpGet]
         public async Task<IActionResult> CheckNewNotifications(DateTime? lastCheck = null)
         {
@@ -295,7 +288,6 @@ namespace WebUI.Controllers
                    Request.Headers["Accept"].ToString().Contains("application/json");
         }
 
-        // helper cho GetLatestUnread()
         private static string GetTimeAgo(DateTime? dt)
         {
             if (!dt.HasValue) return "";

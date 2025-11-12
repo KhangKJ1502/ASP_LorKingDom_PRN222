@@ -7,7 +7,7 @@ using WebUI.Filters;
 namespace WebUI.Controllers
 {
     [Authorize(AuthenticationSchemes = "AdminScheme")]
-    [AdminAndStaffOnly] // Staff: Customer Management
+    [AdminAndStaffOnly]
     [AutoValidateAntiforgeryToken]
     public class AccountCustomerController : Controller
     {

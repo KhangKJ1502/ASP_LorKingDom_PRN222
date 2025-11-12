@@ -9,8 +9,7 @@ using System.Threading.Tasks;
 
 namespace WebUI.Workers
 {
-    /// <summary>
-    /// ==================== PROMOTION WORKER SERVICE ====================
+
     /// Background service tự động quản lý lifecycle của Promotions:
     /// 
     /// CHỨC NĂNG:
@@ -21,19 +20,14 @@ namespace WebUI.Workers
     /// CÁCH THAY ĐỔI INTERVAL:
     /// - Sửa _interval = TimeSpan.FromMinutes(X)
     /// - X khuyến nghị: 5-60 phút (không cần quá thường xuyên)
-    /// 
-    /// CÁCH TẮT WORKER:
-    /// - Comment dòng trong Program.cs:
-    ///   // builder.Services.AddHostedService<PromotionWorkerService>();
-    /// =====================================================================
-    /// </summary>
+
     public class PromotionWorkerService : BackgroundService
     {
-        // ==================== DEPENDENCIES ====================
+
         private readonly ILogger<PromotionWorkerService> _logger;
         private readonly IServiceProvider _serviceProvider;
 
-        // ==================== CONFIGURATION ====================
+      
         private readonly TimeSpan _interval = TimeSpan.FromMinutes(5); // Kiểm tra mỗi 5 phút
         private readonly SemaphoreSlim _gate = new(1, 1); // Đảm bảo chỉ 1 job chạy tại 1 thời điểm
 
@@ -44,8 +38,6 @@ namespace WebUI.Workers
             _logger = logger;
             _serviceProvider = serviceProvider;
         }
-
-        // ==================== MAIN EXECUTION ====================
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             _logger.LogInformation("PromotionWorkerService STARTED. Interval: {Interval}", _interval);
@@ -83,13 +75,12 @@ namespace WebUI.Workers
             }
         }
 
-        // ==================== SAFE EXECUTION WRAPPER ====================
-        /// <summary>
+      
         /// Wrapper đảm bảo:
         /// 1. Chỉ 1 job chạy tại 1 thời điểm (SemaphoreSlim)
         /// 2. Đo thời gian thực thi
         /// 3. Catch exceptions để worker không crash
-        /// </summary>
+
         private async Task SafeProcessOnceAsync(CancellationToken ct)
         {
             // Kiểm tra xem job trước đã chạy xong chưa
@@ -120,8 +111,7 @@ namespace WebUI.Workers
             }
         }
 
-        // ==================== BUSINESS LOGIC ====================
-        /// <summary>
+
         /// Logic chính: Kiểm tra và cập nhật promotions
         /// 
         /// FLOW:
@@ -130,7 +120,6 @@ namespace WebUI.Workers
         ///    - Nếu HẾT HẠN (now > EndDate) → Set Status = "Inactive"
         ///    - Nếu CHƯA BẮT ĐẦU (now < StartDate) → Log warning
         /// 3. Log tổng kết số lượng đã xử lý
-        /// </summary>
         private async Task ProcessExpiredPromotionsAsync(CancellationToken ct)
         {
             // Tạo scope mới để có DbContext mới
@@ -139,7 +128,6 @@ namespace WebUI.Workers
 
             try
             {
-                // ===== BƯỚC 1: Lấy tất cả promotions Active =====
                 var activePromotions = await promotionService.GetActiveAsync();
                 var now = DateTime.Now;
                 int expiredCount = 0;
@@ -196,7 +184,6 @@ namespace WebUI.Workers
                     // TRƯỜNG HỢP 3: Promotion đang trong thời gian active → OK
                 }
 
-                // ===== BƯỚC 3: Log tổng kết =====
                 if (expiredCount > 0 || notStartedCount > 0)
                 {
                     _logger.LogInformation(
@@ -214,7 +201,6 @@ namespace WebUI.Workers
             }
         }
 
-        // ==================== GRACEFUL SHUTDOWN ====================
         public override Task StopAsync(CancellationToken stoppingToken)
         {
             _logger.LogInformation("PromotionWorkerService is stopping gracefully...");
@@ -223,7 +209,7 @@ namespace WebUI.Workers
     }
 }
 
-// ==================== USAGE NOTES ====================
+
 // 1. Worker này được đăng ký trong Program.cs:
 //    builder.Services.AddHostedService<PromotionWorkerService>();
 //
@@ -246,4 +232,4 @@ namespace WebUI.Workers
 //    ✅ Promotion hết hạn → Status = "Inactive"
 //    ⚠️ Promotion chưa bắt đầu → Warning log (không thay đổi)
 //    ✔️ Promotion đang active → Không làm gì
-// =====================================================================
+

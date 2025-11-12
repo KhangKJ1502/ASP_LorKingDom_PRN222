@@ -9,8 +9,7 @@ using System.Threading.Tasks;
 
 namespace WebUI.BackgroundServices
 {
-    /// <summary>
-    /// ==================== NOTIFICATION WORKER SERVICE ====================
+
     /// Background service tự động gửi thông báo định kỳ
     /// - Kiểm tra notifications đến hạn trong database
     /// - Gửi thông báo cho users (email, push, SignalR, etc.)
@@ -19,19 +18,13 @@ namespace WebUI.BackgroundServices
     /// CÁCH THAY ĐỔI INTERVAL:
     /// - Sửa _interval = TimeSpan.FromMinutes(X)
     /// - Restart server để áp dụng
-    /// 
-    /// CÁCH TẮT WORKER:
-    /// - Comment dòng trong Program.cs: 
-    ///   // builder.Services.AddHostedService<NotificationWorkerService>();
-    /// =====================================================================
-    /// </summary>
+
     public class NotificationWorkerService : BackgroundService
     {
-        // ==================== DEPENDENCIES ====================
+
         private readonly ILogger<NotificationWorkerService> _logger;
         private readonly IServiceProvider _serviceProvider;
 
-        // ==================== CONFIGURATION ====================
         private readonly TimeSpan _interval = TimeSpan.FromMinutes(1); // Kiểm tra mỗi 1 phút
         private readonly SemaphoreSlim _gate = new(1, 1); // Đảm bảo chỉ 1 job chạy tại 1 thời điểm
 
@@ -43,7 +36,6 @@ namespace WebUI.BackgroundServices
             _serviceProvider = serviceProvider;
         }
 
-        // ==================== MAIN EXECUTION ====================
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             _logger.LogInformation("NotificationWorkerService STARTED. Interval: {Interval}", _interval);
@@ -77,13 +69,13 @@ namespace WebUI.BackgroundServices
             }
         }
 
-        // ==================== SAFE EXECUTION WRAPPER ====================
-        /// <summary>
+
+
         /// Wrapper đảm bảo:
         /// 1. Chỉ 1 job chạy tại 1 thời điểm (SemaphoreSlim)
         /// 2. Đo thời gian thực thi
         /// 3. Catch exceptions để worker không crash
-        /// </summary>
+
         private async Task SafeProcessOnceAsync(CancellationToken ct)
         {
             // Kiểm tra xem job trước đã chạy xong chưa
@@ -114,13 +106,12 @@ namespace WebUI.BackgroundServices
             }
         }
 
-        // ==================== BUSINESS LOGIC ====================
-        /// <summary>
+
         /// Logic chính: Gửi notifications đến hạn
         /// - Tạo scoped service để có DbContext mới mỗi lần chạy
         /// - Gọi NotificationService.DispatchDueAsync()
         /// - Log số lượng notifications đã gửi
-        /// </summary>
+
         private async Task ProcessDueNotificationsAsync(CancellationToken ct)
         {
             // Tạo scope mới để có DbContext mới (avoid tracking issues)
@@ -143,7 +134,6 @@ namespace WebUI.BackgroundServices
             }
         }
 
-        // ==================== GRACEFUL SHUTDOWN ====================
         public override Task StopAsync(CancellationToken stoppingToken)
         {
             _logger.LogInformation("NotificationWorkerService is stopping gracefully...");
@@ -152,7 +142,7 @@ namespace WebUI.BackgroundServices
     }
 }
 
-// ==================== USAGE NOTES ====================
+
 // 1. Worker này được đăng ký trong Program.cs:
 //    builder.Services.AddHostedService<NotificationWorkerService>();
 //
@@ -165,8 +155,4 @@ namespace WebUI.BackgroundServices
 // 4. Để tạm tắt worker:
 //    - Comment dòng AddHostedService trong Program.cs
 //    - HOẶC thêm check condition trong ExecuteAsync()
-//
-// 5. Monitor worker:
-//    - Xem logs: Tìm "NotificationWorkerService" trong console
-//    - Check database: Xem bảng NotificationLogs
-// =====================================================================
+

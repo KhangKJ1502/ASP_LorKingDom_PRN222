@@ -70,7 +70,7 @@ namespace BLL.Services
         {
             // 1) Validate format
             var validation = AccountValidator.ValidateCreateStaff(
-                dto.AccountName, dto.Email, dto.PhoneNumber, dto.RoleId, dto.Password, dto.Password);
+                dto.AccountName, dto.Email, dto.PhoneNumber ?? "", dto.RoleId, dto.Password ?? "", dto.Password ?? "");
 
             if (!validation.IsValid)
                 throw new InvalidOperationException(string.Join("; ", validation.Errors));
@@ -79,21 +79,22 @@ namespace BLL.Services
             await ValidateRoleExists(dto.RoleId);
             var normEmail = NormalizeEmail(dto.Email);
             await ValidateEmailUnique(normEmail);
-            var normPhone = NormalizePhone(dto.PhoneNumber);
+            var normPhone = NormalizePhone(dto.PhoneNumber ?? "");
             await ValidatePhoneUnique(normPhone);
 
             // 3) Map entity
+            var hashedPassword = BCrypt.Net.BCrypt.HashPassword((dto.Password ?? "").Trim());
+            
             var entity = new Account
             {
                 RoleId = dto.RoleId,
-
-                AccountName = dto.AccountName,
-                PhoneNumber = dto.PhoneNumber,
-                Email = dto.Email.Trim().ToLower(),
+                AccountName = (dto.AccountName ?? "").Trim(),
+                PhoneNumber = normPhone,
+                Email = normEmail,
                 Image = dto.Image,
-                Password = BCrypt.Net.BCrypt.HashPassword(dto.Password.Trim()),
+                Password = hashedPassword,
                 IsDeleted = dto.IsDeleted,
-                Status = string.IsNullOrWhiteSpace(dto.Status) ? "Active" : dto.Status,
+                Status = string.IsNullOrWhiteSpace(dto.Status) ? AccountConstants.StatusActive : dto.Status,
                 CreatedAt = DateTime.Now,
                 UpdatedAt = DateTime.Now,
                 Provider = AccountConstants.ProviderLocal
@@ -110,7 +111,8 @@ namespace BLL.Services
 
             // 1) Validate format (password optional)
             var validation = AccountValidator.ValidateUpdateStaff(
-                dto.AccountName, dto.Email, dto.PhoneNumber, dto.RoleId, dto.Status, dto.Password, dto.Password);
+                dto.AccountName, dto.Email, dto.PhoneNumber ?? "", dto.RoleId, dto.Status ?? "Active", 
+                dto.Password, dto.Password);
 
             if (!validation.IsValid)
                 throw new InvalidOperationException(string.Join("; ", validation.Errors));
@@ -125,19 +127,19 @@ namespace BLL.Services
             // Không cho đổi email
             var normDtoEmail = NormalizeEmail(dto.Email);
             if (!string.Equals(entity.Email, normDtoEmail, StringComparison.OrdinalIgnoreCase))
-                throw new InvalidOperationException("Không được phép thay đổi email.");
+                throw new InvalidOperationException("❌ Không được phép thay đổi email.");
 
             // Phone unique (trừ chính nó)
-            var normPhone = NormalizePhone(dto.PhoneNumber);
+            var normPhone = NormalizePhone(dto.PhoneNumber ?? "");
             await ValidatePhoneUnique(normPhone, id);
 
             // 4) Cập nhật
             entity.RoleId = dto.RoleId;
-            entity.AccountName = dto.AccountName?.Trim();
+            entity.AccountName = (dto.AccountName ?? "").Trim();
             entity.PhoneNumber = normPhone;
             entity.Image = dto.Image;
             entity.IsDeleted = dto.IsDeleted;
-            entity.Status = dto.IsDeleted ? AccountConstants.StatusInactive : NormalizeStatus(dto.Status);
+            entity.Status = dto.IsDeleted ? AccountConstants.StatusInactive : NormalizeStatus(dto.Status ?? "Active");
             entity.UpdatedAt = DateTime.Now;
 
             // 5) Update password nếu có (không hash nếu đã là bcrypt)

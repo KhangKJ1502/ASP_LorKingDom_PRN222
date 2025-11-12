@@ -68,36 +68,6 @@ namespace WebUI.Controllers
             return View("~/Views/Admin/AssignPromotion.cshtml", dto);
         }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AssignPromotion(int productId, int? promotionId)
-        {
-            try
-            {
-                var ok = await _productSvc.SetPromotionAsync(productId, promotionId);
-                if (ok)
-                    TempData["Success"] = promotionId.HasValue ? "Đã gán khuyến mãi cho sản phẩm." : "✅ Đã gỡ khuyến mãi khỏi sản phẩm.";
-                else
-                    TempData["Error"] = "Không tìm thấy sản phẩm hoặc cập nhật thất bại.";
-
-                return RedirectToAction(nameof(Manage));
-            }
-            catch (InvalidOperationException ex)
-            {
-                TempData["Error"] = $"{ex.Message}";
-                return RedirectToAction(nameof(AssignPromotion), new { id = productId });
-            }
-            catch (ArgumentException ex)
-            {
-                TempData["Error"] = $"{ex.Message}";
-                return RedirectToAction(nameof(AssignPromotion), new { id = productId });
-            }
-            catch (Exception ex)
-            {
-                TempData["Error"] = $"Lỗi: {ex.GetBaseException().Message}";
-                return RedirectToAction(nameof(Manage));
-            }
-        }
 
         public async Task<IActionResult> Manage(string? q, int page = 1, int pageSize = 8)
         {

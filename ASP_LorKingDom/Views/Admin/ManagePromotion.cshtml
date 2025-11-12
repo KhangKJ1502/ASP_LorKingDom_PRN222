@@ -8,6 +8,7 @@
 
     var keyword = (string?)ViewBag.Keyword ?? "";
     var edit = ViewBag.EditPromotion as BLL.DTOs.PromotionDto;
+    var add = ViewBag.AddPromotion as BLL.DTOs.PromotionDto;
 
     // ép Kind để tránh tự trừ múi giờ khi render ra input datetime-local
     DateTime? editStart = null;
@@ -16,6 +17,14 @@
     {
         editStart = DateTime.SpecifyKind(edit.StartDate, DateTimeKind.Unspecified);
         editEnd = DateTime.SpecifyKind(edit.EndDate, DateTimeKind.Unspecified);
+    }
+    
+    DateTime? addStart = null;
+    DateTime? addEnd = null;
+    if (add != null)
+    {
+        addStart = DateTime.SpecifyKind(add.StartDate, DateTimeKind.Unspecified);
+        addEnd = DateTime.SpecifyKind(add.EndDate, DateTimeKind.Unspecified);
     }
 
     var currentPage = Model?.Page ?? 1;
@@ -791,11 +800,54 @@
                 }, 5000);
             });
 
-            // Chỉ mở modal EDIT khi có data edit
-            const needShowEdit = '@(edit != null ? "true" : "false")';
-            if (needShowEdit === "true") {
+            // Kiểm tra có lỗi validation không
+            const errorMessage = @Html.Raw(Json.Serialize(ViewBag.ErrorMessage ?? ""));
+            const hasAddData = '@(add != null ? "true" : "false")' === "true";
+            const hasEditData = '@(edit != null ? "true" : "false")' === "true";
+
+            console.log('Debug Modal:', { errorMessage, hasAddData, hasEditData });
+
+            // Ưu tiên: Add > Edit với lỗi > Edit không lỗi
+            if (hasAddData) {
+                // Mở Add modal (có hoặc không có lỗi)
+                const modalEl = document.getElementById('addPromotionModal');
+                if (modalEl) {
+                    const modal = new bootstrap.Modal(modalEl);
+                    modal.show();
+                    
+                    // Hiển thị Swal.fire nếu có lỗi
+                    if (errorMessage) {
+                        setTimeout(() => {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Lỗi xảy ra!',
+                                html: errorMessage,
+                                confirmButtonColor: '#d33',
+                                confirmButtonText: '<i class="fa-solid fa-check me-1"></i> Đã hiểu'
+                            });
+                        }, 300);
+                    }
+                }
+            } else if (hasEditData) {
+                // Mở Edit modal (có hoặc không có lỗi)
                 const modalEl = document.getElementById('editPromotionModal');
-                if (modalEl) new bootstrap.Modal(modalEl).show();
+                if (modalEl) {
+                    const modal = new bootstrap.Modal(modalEl);
+                    modal.show();
+                    
+                    // Hiển thị Swal.fire nếu có lỗi
+                    if (errorMessage) {
+                        setTimeout(() => {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Lỗi xảy ra!',
+                                html: errorMessage,
+                                confirmButtonColor: '#d33',
+                                confirmButtonText: '<i class="fa-solid fa-check me-1"></i> Đã hiểu'
+                            });
+                        }, 300);
+                    }
+                }
             }
 
             // Initialize character counters
@@ -873,6 +925,7 @@
         }
 
         // Quick promotion duration buttons
+        // Quick promotion duration buttons
         function setPromotionDuration(preset, formType) {
             const startId = formType === 'add' ? 'addStartDate' : 'editStartDate';
             const endId   = formType === 'add' ? 'addEndDate'   : 'editEndDate';
@@ -886,14 +939,20 @@
                 d.setHours(0, 0, 0, 0);
             };
             const toEndOfDay = (d) => {
-                d.setHours(23, 59, 0, 0);
+                d.setHours(23, 59, 59, 999); // Code mới (nhưng của bạn vẫn OK vì input chỉ lấy phút)
             };
+
+            // Trình định dạng của bạn không lấy giây, nên 23:59:00 là đủ
+            const toEndOfDayForInput = (d) => {
+                 d.setHours(23, 59, 0, 0);
+            };
+
 
             switch (preset) {
                 case 'today': {
                     toStartOfDay(startDate);
                     endDate = new Date(startDate);
-                    toEndOfDay(endDate);
+                    toEndOfDayForInput(endDate); // Dùng hàm cũ của bạn
                     break;
                 }
                 case 'weekend': {
@@ -905,20 +964,25 @@
 
                     const sunday = new Date(saturday);
                     sunday.setDate(sunday.getDate() + 1);
-                    toEndOfDay(sunday);
+                    toEndOfDayForInput(sunday); // Dùng hàm cũ của bạn
 
                     startDate = saturday;
                     endDate = sunday;
                     break;
                 }
                 case 'week': {
+                    toStartOfDay(startDate); // <-- SỬA LỖI: Thêm dòng này
                     endDate.setDate(endDate.getDate() + 7);
-                    toEndOfDay(endDate);
+                    toEndOfDayForInput(endDate); // Dùng hàm cũ của bạn
                     break;
                 }
                 case 'month': {
-                    endDate.setDate(endDate.getDate() + 30);
-                    toEndOfDay(endDate);
+                    toStartOfDay(startDate); 
+                    // Logic cộng 30 ngày có thể không chính xác (vd: tháng 2)
+                    // Cân nhắc dùng logic cộng 1 tháng
+                    endDate.setMonth(endDate.getMonth() + 1);
+                    // endDate.setDate(endDate.getDate() + 30); // Code cũ của bạn
+                    toEndOfDayForInput(endDate); // Dùng hàm cũ của bạn
                     break;
                 }
             }

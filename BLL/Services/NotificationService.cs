@@ -43,8 +43,6 @@ namespace BLL.Services
             _roleRepo = roleRepo;
         }
 
-        // =================== Admin ===================
-
         public async Task<PagedResult<NotificationDto>> SearchAsync(NotificationFilterDto f)
         {
             var (items, total) = await _notificationRepo.SearchAsync(
@@ -79,7 +77,7 @@ namespace BLL.Services
         {
             await ValidateCreateAsync(dto);
 
-            // ✅ Validate CreatedBy account exists
+            //  Validate CreatedBy account exists
             var createdByAccount = await _accountRepo.GetByIdAsync(dto.CreatedBy);
             if (createdByAccount == null)
                 throw new InvalidOperationException($"Người tạo #{dto.CreatedBy} không tồn tại");
@@ -124,7 +122,7 @@ namespace BLL.Services
 
             await ValidateUpdateAsync(dto, entity);
 
-            // ✅ Validate CreatedBy account exists (nếu thay đổi)
+            // Validate CreatedBy account exists (nếu thay đổi)
             if (entity.CreatedBy != dto.CreatedBy)
             {
                 var createdByAccount = await _accountRepo.GetByIdAsync(dto.CreatedBy);
@@ -158,13 +156,9 @@ namespace BLL.Services
         {
             var entity = await _notificationRepo.GetByIdAsync(id);
             if (entity == null)
-                return false; // Không tìm thấy
-
-            // Chỉ cho phép xóa thông báo chưa gửi
+                return false; 
             if (entity.IsSent)
                 throw new InvalidOperationException("Không thể xóa thông báo đã gửi");
-
-            // CRITICAL FIX: Thêm log TRƯỚC KHI xóa Notification
             await _logRepo.AddAsync(new NotificationLog
             {
                 NotificationId = id,
@@ -173,7 +167,6 @@ namespace BLL.Services
                 SentAt = DateTime.UtcNow
             });
 
-            // Xóa Notification (cascade sẽ xóa luôn log vừa tạo ở trên - đây là expected behavior)
             await _notificationRepo.DeleteAsync(id);
 
             return true;
@@ -211,7 +204,6 @@ namespace BLL.Services
         }
 
         // =================== Worker ===================
-
         public async Task<int> DispatchDueAsync()
         {
             var now = DateTime.UtcNow;
@@ -239,7 +231,6 @@ namespace BLL.Services
             return success;
         }
 
-        // =================== Private helpers ===================
 
         private static NotificationDto MapToDto(Notification e) => new()
         {
@@ -342,7 +333,6 @@ namespace BLL.Services
                     break;
 
                 case "ByCondition":
-                    // TODO: validate conditionJson khi implement logic lọc
                     _ = conditionJson;
                     break;
 

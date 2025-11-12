@@ -301,9 +301,5 @@ namespace BLL.Services
             return true;
         }
 
-        //public Task<PagedResult<ProductDto>> GetAdminPagedAsync(string? keyword, int page, int pageSize)
-        //{
-        //    throw new NotImplementedException();
-        //}
     }
 }
