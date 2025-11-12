@@ -11,16 +11,13 @@ namespace RazerUI.Pages.AdminAuth
     {
         private readonly IAccountService _accountService;
         private readonly IRoleService _roleService;
-        private readonly ILogger<LoginModel> _logger;
 
         public LoginModel(
             IAccountService accountService,
-            IRoleService roleService,
-            ILogger<LoginModel> logger)
+            IRoleService roleService)
         {
             _accountService = accountService;
             _roleService = roleService;
-            _logger = logger;
         }
 
         [BindProperty]
@@ -39,8 +36,6 @@ namespace RazerUI.Pages.AdminAuth
             [Required(ErrorMessage = "Mật khẩu là bắt buộc")]
             [DataType(DataType.Password)]
             public string Password { get; set; } = string.Empty;
-
-            public bool RememberMe { get; set; }
 
             public string? ReturnUrl { get; set; }
         }
@@ -98,11 +93,9 @@ namespace RazerUI.Pages.AdminAuth
                 await HttpContext.SignInAsync("AdminScheme", principal,
                     new AuthenticationProperties
                     {
-                        IsPersistent = Input.RememberMe,
-                        ExpiresUtc = Input.RememberMe ? DateTimeOffset.UtcNow.AddDays(7) : null
+                        IsPersistent = false,
+                        ExpiresUtc = null
                     });
-
-                _logger.LogInformation("User {Email} logged in as {Role}", email, roleName);
 
                 // Base URL của WebUI
                 const string webUIBaseUrl = "https://localhost:7777";
@@ -110,11 +103,7 @@ namespace RazerUI.Pages.AdminAuth
                 // Nếu có returnUrl từ WebUI
                 if (!string.IsNullOrEmpty(Input.ReturnUrl))
                 {
-                    // Nếu returnUrl đã là absolute URL (có http/https), dùng trực tiếp
-                    if (Input.ReturnUrl.StartsWith("http://") || Input.ReturnUrl.StartsWith("https://"))
-                    {
-                        return Redirect(Input.ReturnUrl);
-                    }
+                    var checkUrl = "Đây là url: " + Input.ReturnUrl;
 
                     // Nếu là relative path (/Blog/Manage), thêm WebUI base URL
                     var absoluteUrl = Input.ReturnUrl.StartsWith("/")
@@ -126,7 +115,7 @@ namespace RazerUI.Pages.AdminAuth
 
                 // Nếu không có returnUrl, redirect về WebUI dashboard tương ứng role
                 string webUIRedirect;
-                if (roleName == "WareHouse" || roleName == "Admin") // Lưu ý: WareHouse có H viết hoa
+                if (roleName == "WareHouse" || roleName == "Admin")
                 {
                     webUIRedirect = $"{webUIBaseUrl}/Statistics/ProductStatistics";
                 }
@@ -143,7 +132,6 @@ namespace RazerUI.Pages.AdminAuth
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error during login");
                 ErrorMessage = "Đã xảy ra lỗi: " + ex.Message;
                 return Page();
             }

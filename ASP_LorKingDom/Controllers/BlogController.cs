@@ -34,11 +34,6 @@ namespace WebUI.Controllers
 
 
         /// Displays the blog listing page with filtering, search, and pagination.
-        /// <param name="q">Search query for blog title or content</param>
-        /// <param name="category">Category filter</param>
-        /// <param name="page">Current page number (default: 1)</param>
-        /// <param name="pageSize">Number of items per page (default: 6)</param>
-        /// <returns>View with filtered and paginated blog list</returns>
         [HttpGet]
         public async Task<IActionResult> Index(string? q, string? category, int page = 1, int pageSize = 6)
         {
@@ -104,9 +99,6 @@ namespace WebUI.Controllers
         }
 
         /// Displays detailed view of a single blog post.
-        /// Shows related blogs from the same category and blog comments.
-        /// <param name="id">Blog post ID</param>
-        /// <returns>View with blog details, related blogs, and comments</returns>
         [HttpGet]
         public async Task<IActionResult> Detail(int id)
         {
@@ -136,13 +128,6 @@ namespace WebUI.Controllers
 
 
         /// Displays the admin blog management page with filtering and pagination.
-        /// <param name="q">Search query for blog title or author name</param>
-        /// <param name="category">Category filter</param>
-        /// <param name="status">Publish status filter ("published" or "draft")</param>
-        /// <param name="featured">Featured status filter</param>
-        /// <param name="page">Current page number (default: 1)</param>
-        /// <param name="pageSize">Number of items per page (default: 10)</param>
-        /// <returns>Admin view with filtered and paginated blog list</returns>
         [HttpGet("Blog/Manage")]
         [Authorize(AuthenticationSchemes = "AdminScheme")]
         [AdminAndStaffOnly]
@@ -211,9 +196,6 @@ namespace WebUI.Controllers
         }
 
         /// Retrieves detailed information of a blog post for admin viewing.
-        /// Returns blog data in JSON format for modal display.
-        /// <param name="id">Blog post ID</param>
-        /// <returns>JSON object with blog details</returns>
         [Authorize(AuthenticationSchemes = "AdminScheme")]
         [AdminAndStaffOnly]
         public async Task<IActionResult> GetDetail(int id)
@@ -238,8 +220,6 @@ namespace WebUI.Controllers
         }
 
         /// Displays the blog creation form.
-        /// Loads available categories for selection.
-        /// <returns>View with blog creation form</returns>
         [Authorize(AuthenticationSchemes = "AdminScheme")]
         [AdminAndStaffOnly]
         public async Task<IActionResult> Create()
@@ -250,10 +230,6 @@ namespace WebUI.Controllers
         }
 
         /// Creates a new blog post with the provided information.
-        /// <param name="dto">Blog post data transfer object</param>
-        /// <param name="categoryIds">Array of selected category IDs</param>
-        /// <param name="thumbnail">Optional thumbnail image file</param>
-        /// <returns>JSON result indicating success or failure</returns>
         [HttpPost]
         [Authorize(AuthenticationSchemes = "AdminScheme")]
         [AdminAndStaffOnly]
@@ -318,8 +294,6 @@ namespace WebUI.Controllers
         }
 
         /// Displays the blog edit form with existing blog data.
-        /// <param name="id">Blog post ID to edit</param>
-        /// <returns>View with blog edit form</returns>
         [Authorize(AuthenticationSchemes = "AdminScheme")]
         [AdminAndStaffOnly]
         public async Task<IActionResult> Edit(int id)
@@ -337,11 +311,6 @@ namespace WebUI.Controllers
         }
 
         /// Updates an existing blog post with new information.
-        /// <param name="id">Blog post ID to update</param>
-        /// <param name="dto">Updated blog post data</param>
-        /// <param name="categoryIds">Array of selected category IDs</param>
-        /// <param name="thumbnail">Optional new thumbnail image file</param>
-        /// <returns>JSON result indicating success or failure</returns>
         [HttpPost]
         [Authorize(AuthenticationSchemes = "AdminScheme")]
         [AdminAndStaffOnly]
@@ -410,8 +379,6 @@ namespace WebUI.Controllers
         }
 
         /// Soft deletes a blog post.
-        /// <param name="id">Blog post ID to delete</param>
-        /// <returns>JSON result indicating success or failure</returns>
         [HttpPost]
         [Authorize(AuthenticationSchemes = "AdminScheme")]
         [AdminAndStaffOnly]

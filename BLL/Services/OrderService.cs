@@ -11,7 +11,6 @@ namespace BLL.Services
         private readonly ICartRepository _cartRepo;
         private readonly IProductRepository _productRepo;
         private readonly IVoucherRepository _voucherRepo;
-        private readonly IAddressRepository _addressRepo;
         private readonly IWalletRepository _walletRepo;
         private readonly IWalletTransactionRepository _walletTransactionRepo;
 
@@ -20,7 +19,6 @@ namespace BLL.Services
             ICartRepository cartRepo,
             IProductRepository productRepo,
             IVoucherRepository voucherRepo,
-            IAddressRepository addressRepo,
             IWalletRepository walletRepo,
             IWalletTransactionRepository walletTransactionRepo)
         {
@@ -28,7 +26,6 @@ namespace BLL.Services
             _cartRepo = cartRepo;
             _productRepo = productRepo;
             _voucherRepo = voucherRepo;
-            _addressRepo = addressRepo;
             _walletRepo = walletRepo;
             _walletTransactionRepo = walletTransactionRepo;
         }
@@ -53,8 +50,8 @@ namespace BLL.Services
                 }
 
                 // 3. Calculate amounts:
-                // - totalAmountOriginal: Tổng giá gốc (không sale) - lưu vào DB
-                // - subtotalAfterSale: Tổng giá sau sale - dùng để tính voucher và hiển thị
+                // - totalAmountOriginal: Tổng giá gốc (không sale) -> lưu vào DB
+                // - subtotalAfterSale: Tổng giá sau sale -> dùng để tính voucher và hiển thị
                 decimal totalAmountOriginal = 0;  // Giá gốc không sale
                 decimal subtotalAfterSale = 0;     // Giá sau sale
 
@@ -133,7 +130,7 @@ namespace BLL.Services
                         return (false, $"Đơn hàng phải từ {voucher.MinOrderAmount.Value:N0}₫ mới dùng được mã này", null);
                     }
 
-                    // 🎯 TÍNH DISCOUNT DỰA VÀO VOUCHER TYPE (tính trên giá sau sale)
+                    // TÍNH DISCOUNT DỰA VÀO VOUCHER TYPE (tính trên giá sau sale)
                     var voucherType = voucher.VoucherType?.VoucherTypeName?.ToLower() ?? "";
                     if (voucherType.Contains("percent") || voucherType.Contains("%"))
                     {
@@ -152,7 +149,7 @@ namespace BLL.Services
                     }
                 }
 
-                // 7. Calculate final amount for payment (not saved to DB)
+                // 7. Calculate final amount for payment (for UI)
                 // finalAmount = subtotalAfterSale + shipping - voucher
                 decimal finalAmount = subtotalAfterSale + shippingFee - discount;
                 finalAmount = Math.Max(finalAmount, 0);
@@ -313,11 +310,13 @@ namespace BLL.Services
             };
         }
 
+        // Cancel order of Customer
         public async Task<bool> UpdateOrderStatusAsync(int orderId, int newStatusId)
         {
             return await _orderRepo.UpdateOrderStatusAsync(orderId, newStatusId);
         }
 
+        // Update order status of Manager
         public async Task<bool> UpdateOrderStatusAsync(int orderId, int newStatusId, int? changedBy, string? note = null)
         {
             return await _orderRepo.UpdateOrderStatusAsync(orderId, newStatusId, changedBy, note);
@@ -375,7 +374,7 @@ namespace BLL.Services
                     ProductId = od.ProductId,
                     ProductName = od.Product?.ProductName,
                     // Ưu tiên ảnh IsMain, nếu không có thì lấy ảnh đầu tiên
-                    MainImageUrl = od.Product?.ProductImages?.FirstOrDefault(img => img.IsMain)?.ImageUrl 
+                    MainImageUrl = od.Product?.ProductImages?.FirstOrDefault(img => img.IsMain)?.ImageUrl
                                    ?? od.Product?.ProductImages?.FirstOrDefault()?.ImageUrl,
                     Quantity = od.Quantity,
                     UnitPrice = od.UnitPrice,

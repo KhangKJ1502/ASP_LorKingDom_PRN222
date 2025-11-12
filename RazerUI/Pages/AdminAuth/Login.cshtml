@@ -1,4 +1,5 @@
 @page
+@using System.Text.Json
 @model RazerUI.Pages.AdminAuth.LoginModel
 @{
     ViewData["Title"] = "Đăng nhập quản lý";
@@ -238,15 +239,6 @@
                 <span asp-validation-for="Input.Password" class="text-danger"></span>
             </div>
 
-            @* Uncomment nếu muốn thêm Remember Me và Forgot Password *@
-            @* <div class="form-options">
-                <label class="remember-checkbox">
-                    <input type="checkbox" asp-for="Input.RememberMe" />
-                    <span>Ghi nhớ đăng nhập</span>
-                </label>
-                <a href="#" class="forgot-link" data-bs-toggle="modal" data-bs-target="#forgotPasswordModal">Quên mật khẩu?</a>
-            </div> *@
-
             <button type="submit" class="btn-login">
                 <i class="fas fa-sign-in-alt me-2"></i> Đăng nhập
             </button>
@@ -276,7 +268,7 @@
             Swal.fire({
                 icon: 'error',
                 title: 'Đăng nhập thất bại',
-                text: '@Model.ErrorMessage',
+                text: @Html.Raw(JsonSerializer.Serialize(Model.ErrorMessage)),
                 confirmButtonColor: '#dc2626',
                 timer: 5000
             });
@@ -289,7 +281,7 @@
             Swal.fire({
                 icon: 'success',
                 title: 'Thành công',
-                text: '@Model.SuccessMessage',
+                text: @Html.Raw(JsonSerializer.Serialize(Model.SuccessMessage)),
                 confirmButtonColor: '#667eea',
                 allowOutsideClick: false
             }).then(() => {

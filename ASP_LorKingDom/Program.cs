@@ -76,7 +76,6 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     {
         o.LoginPath = "/Auth/Login";
         o.LogoutPath = "/Auth/Logout";
-        o.AccessDeniedPath = "/Home/Error";
         o.Cookie.HttpOnly = true;
         o.Cookie.IsEssential = true;
         o.Cookie.SameSite = SameSiteMode.Lax;
@@ -110,7 +109,13 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
             }
         };
     });
+<<<<<<< HEAD
 
+=======
+// Program.cs
+builder.Services.AddScoped<IProductImageRepository, ProductImageRepository>();
+builder.Services.AddScoped<IProductImageService, ProductImageService>();
+>>>>>>> 152ee399ec97d21de895bfa0577531b62c3f6dfe
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 builder.Logging.SetMinimumLevel(LogLevel.Debug);

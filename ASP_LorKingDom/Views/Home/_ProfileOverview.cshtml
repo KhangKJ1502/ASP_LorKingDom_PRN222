@@ -361,7 +361,7 @@
                         </label>
                         <input type="password" class="form-control" id="newPassword" name="newPassword" required
                             style="border: 2px solid #fed7aa; border-radius: 8px;">
-                        <small class="text-muted">Mật khẩu phải có ít nhất 8 ký tự</small>
+                        <small class="text-muted">Mật khẩu phải có ít nhất 6 ký tự</small>
                     </div>
                     <div class="mb-3">
                         <label for="confirmPassword" class="form-label" style="font-weight: 600; color: #374151;">
@@ -526,11 +526,11 @@
                     return;
                 }
 
-                if (newPassword.length < 8) {
+                if (newPassword.length < 6) {
                     Swal.fire({
                         icon: 'error',
                         title: 'Lỗi',
-                        text: 'Mật khẩu phải có ít nhất 8 ký tự.'
+                        text: 'Mật khẩu phải có ít nhất 6 ký tự.'
                     });
                     return;
                 }
@@ -539,7 +539,7 @@
                 const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
 
                 $.ajax({
-                    url: '/Home/ChangePassword',
+                    url: '@Url.Action("ChangePassword", "Home")',
                     type: 'POST',
                     data: {
                         currentPassword: currentPassword,
