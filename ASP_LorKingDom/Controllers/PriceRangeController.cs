@@ -5,8 +5,8 @@ using WebUI.Filters;
 
 namespace WebUI.Controllers
 {
-    //[Authorize(AuthenticationSchemes = "AdminScheme")]
-    //[AdminAndWarehouseOnly] // Warehouse: Price Range Management
+    [Authorize(AuthenticationSchemes = "AdminScheme")]
+    [AdminAndWarehouseOnly] // Warehouse: Price Range Management
     public class PriceRangeController : Controller
     {
         private readonly IPriceRangeService _service;
@@ -33,7 +33,7 @@ namespace WebUI.Controllers
                 TempData["Success"] = "Thêm khoảng giá thành công!";
                 return RedirectToAction(nameof(Manage), new { q });
             }
-            catch (ArgumentException ex) 
+            catch (ArgumentException ex)
             {
                 var list = await _service.GetAllAsync(q);
                 ViewBag.Query = q;

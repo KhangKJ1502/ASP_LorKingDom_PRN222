@@ -43,7 +43,7 @@ namespace BLL.DTOs
                 Id = this.Id,
                 AccountName = this.AccountName?.Trim() ?? string.Empty,
                 Email = this.Email?.Trim().ToLower() ?? string.Empty,
-                PhoneNumber = this.PhoneNumber?.Trim(),
+                PhoneNumber = string.IsNullOrWhiteSpace(this.PhoneNumber) ? null : this.PhoneNumber.Trim(),
                 RoleId = this.RoleId,
                 Password = this.Id == 0 ? this.Password : this.NewPassword, // Create vs Update
                 Status = this.Status,

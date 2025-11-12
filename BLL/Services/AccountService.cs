@@ -84,7 +84,7 @@ namespace BLL.Services
 
             // 3) Map entity
             var hashedPassword = BCrypt.Net.BCrypt.HashPassword((dto.Password ?? "").Trim());
-            
+
             var entity = new Account
             {
                 RoleId = dto.RoleId,
@@ -111,7 +111,7 @@ namespace BLL.Services
 
             // 1) Validate format (password optional)
             var validation = AccountValidator.ValidateUpdateStaff(
-                dto.AccountName, dto.Email, dto.PhoneNumber ?? "", dto.RoleId, dto.Status ?? "Active", 
+                dto.AccountName, dto.Email, dto.PhoneNumber ?? "", dto.RoleId, dto.Status ?? "Active",
                 dto.Password, dto.Password);
 
             if (!validation.IsValid)
@@ -191,8 +191,12 @@ namespace BLL.Services
         public Task<bool> ExistsByEmailAsync(string email) =>
             _accountRepo.ExistsByEmailAsync(NormalizeEmail(email));
 
-        public Task<bool> ExistsByPhoneNumberAsync(string phoneNumber, int? excludeAccountId = null) =>
-            _accountRepo.ExistsByPhoneAsync(NormalizePhone(phoneNumber), excludeAccountId);
+        public async Task<bool> ExistsByPhoneNumberAsync(string? phoneNumber, int? excludeAccountId = null)
+        {
+            var normalized = NormalizePhone(phoneNumber);
+            if (string.IsNullOrWhiteSpace(normalized)) return false;
+            return await _accountRepo.ExistsByPhoneAsync(normalized, excludeAccountId);
+        }
 
         public async Task<AccountDto?> AuthenticateAsync(string email, string password)
         {
@@ -254,7 +258,7 @@ namespace BLL.Services
                 throw new InvalidOperationException($"Email '{normalizedEmail}' đã tồn tại trong hệ thống.");
         }
 
-        private async Task ValidatePhoneUnique(string normalizedPhone, int? excludeId = null)
+        private async Task ValidatePhoneUnique(string? normalizedPhone, int? excludeId = null)
         {
             if (string.IsNullOrWhiteSpace(normalizedPhone)) return; // optional
             if (await _accountRepo.ExistsByPhoneAsync(normalizedPhone, excludeId))
@@ -264,9 +268,9 @@ namespace BLL.Services
         private static string NormalizeEmail(string email) =>
             string.IsNullOrWhiteSpace(email) ? email : email.Trim().ToLowerInvariant();
 
-        private static string NormalizePhone(string phone)
+        private static string? NormalizePhone(string? phone)
         {
-            if (string.IsNullOrWhiteSpace(phone)) return phone;
+            if (string.IsNullOrWhiteSpace(phone)) return null; // Return null instead of empty string
             var trimmed = phone.Trim();
             // remove whitespaces/dashes/brackets
             trimmed = System.Text.RegularExpressions.Regex.Replace(trimmed, @"[\s\-\(\)]+", "");

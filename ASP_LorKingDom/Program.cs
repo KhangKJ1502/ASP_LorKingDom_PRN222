@@ -3,8 +3,6 @@ using BLL;
 using BLL.Interfaces;
 using BLL.Services;
 using DAL;
-using DAL.Interfaces;
-using DAL.Repositories;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.DataProtection;
 using WebUI.BackgroundServices;
@@ -94,8 +92,8 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         o.Cookie.Name = "AdminAuth"; // SHARED cookie name với RazorUI
         o.Cookie.Domain = null; // cho phép share giữa localhost:7777 và localhost:7226
         o.Cookie.Path = "/"; // Cookie available cho tất cả path
-        o.Cookie.SameSite = SameSiteMode.Lax;
-        o.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+        o.Cookie.SameSite = SameSiteMode.Lax; // Gửi cookie khi điều hướng giữa domain cùng nguồn gốc
+        o.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest; // Nếu request dùng HTTPS → cookie chỉ gửi qua HTTPS
         o.ExpireTimeSpan = TimeSpan.FromDays(7);
         o.SlidingExpiration = false;
 
@@ -109,13 +107,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
             }
         };
     });
-<<<<<<< HEAD
 
-=======
-// Program.cs
-builder.Services.AddScoped<IProductImageRepository, ProductImageRepository>();
-builder.Services.AddScoped<IProductImageService, ProductImageService>();
->>>>>>> 152ee399ec97d21de895bfa0577531b62c3f6dfe
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 builder.Logging.SetMinimumLevel(LogLevel.Debug);

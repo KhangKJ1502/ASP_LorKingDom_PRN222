@@ -202,7 +202,7 @@ namespace ASP_LorKingDom.Controllers
 
                 // Update basic info
                 account.AccountName = accountName.Trim();
-                account.PhoneNumber = phoneNumber?.Trim();
+                account.PhoneNumber = string.IsNullOrWhiteSpace(phoneNumber) ? null : phoneNumber.Trim();
 
                 // Update avatar if provided
                 string? newAvatarPath = null;
