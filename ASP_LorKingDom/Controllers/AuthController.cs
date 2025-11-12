@@ -359,8 +359,8 @@ namespace WebUI.Controllers
             if (newPassword != confirmPassword)
                 return Json(new { success = false, message = "Mật khẩu xác nhận không khớp." });
 
-            if (newPassword.Length < 8)
-                return Json(new { success = false, message = "Mật khẩu phải tối thiểu 8 ký tự." });
+            if (newPassword.Length < 6)
+                return Json(new { success = false, message = "Mật khẩu phải tối thiểu 6 ký tự." });
 
             try
             {

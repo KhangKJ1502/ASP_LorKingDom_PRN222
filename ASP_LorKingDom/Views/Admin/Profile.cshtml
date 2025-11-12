@@ -258,6 +258,13 @@
                     Swal.showLoading();
 
                     const formData = new FormData($('#profileForm')[0]);
+                    
+                    // Add avatar file if selected
+                    const avatarFile = $('#avatarInput')[0].files[0];
+                    if (avatarFile) {
+                        formData.append('avatar', avatarFile);
+                    }
+                    
                     const token = $('input[name="__RequestVerificationToken"]').val();
 
                     $.ajax({
@@ -285,6 +292,9 @@
                                     $('#changePasswordCheck').prop('checked', false);
                                     $('#passwordFields').removeClass('show');
                                     $('#currentPassword, #newPassword, #confirmPassword').val('');
+                                    
+                                    // Reset avatar input
+                                    $('#avatarInput').val('');
                                 });
                             } else {
                                 Swal.fire({

@@ -247,12 +247,12 @@
         gap: 0.5rem;
     }
 
-        .btn-view-refund-status:hover {
-            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-            color: white;
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(37, 99, 235, 0.3);
-        }
+    .btn-view-refund-status:hover {
+        background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(37, 99, 235, 0.3);
+    }
 
     .btn-return {
         background: white;
@@ -473,11 +473,18 @@
                         }
                         <div class="order-total">Tổng: @finalAmountOrder.ToString("N0") ₫</div>
                         <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                            <a asp-controller="Order" asp-action="OrderDetails" asp-route-id="@order.OrderId" class="btn-view-detail">
+                            <a asp-controller="Order" asp-action="OrderDetails" asp-route-id="@order.OrderId"
+                                class="btn-view-detail">
                                 Xem chi tiết
                             </a>
 
-
+                            @* ========== NÚT HỦY ĐỠN - Cho trạng thái Pending và Confirmed ========== *@
+                            @if (order.StatusId == 1 || order.StatusId == 2)
+                            {
+                                <button class="btn-cancel" onclick="cancelOrder(@order.OrderId)">
+                                    <i class="fas fa-times"></i> Hủy đơn
+                                </button>
+                            }
 
                             @if (order.StatusId == 4)
                             {
@@ -508,7 +515,7 @@
                                 @if (order.OrderDetails.Any(d => !d.Reviewed))
                                 {
                                     <button class="btn-write-review" onclick="navigateToReviewsTab('pending')"
-                                            style="background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); color: white; padding: 0.625rem 1rem; border-radius: 0.5rem; border: none; font-weight: 600; cursor: pointer; transition: all 0.3s ease; white-space: nowrap; display: inline-flex; align-items: center; gap: 0.5rem;">
+                                        style="background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); color: white; padding: 0.625rem 1rem; border-radius: 0.5rem; border: none; font-weight: 600; cursor: pointer; transition: all 0.3s ease; white-space: nowrap; display: inline-flex; align-items: center; gap: 0.5rem;">
                                         <i class="fas fa-star"></i> Đánh giá sản phẩm
                                     </button>
                                 }
@@ -517,8 +524,8 @@
                                 {
                                     var reviewedProductId = order.OrderDetails.FirstOrDefault(d => d.Reviewed)?.ProductId ?? 0;
                                     <button class="btn btn-outline-success btn-sm d-flex align-items-center gap-1"
-                                            onclick="openReviewPopup(@reviewedProductId)"
-                                            style="font-weight: 600; padding: 0.5rem 1rem; border-radius: 0.5rem;">
+                                        onclick="openReviewPopup(@reviewedProductId)"
+                                        style="font-weight: 600; padding: 0.5rem 1rem; border-radius: 0.5rem;">
                                         <i class="fas fa-eye"></i> Xem đánh giá
                                     </button>
                                 }

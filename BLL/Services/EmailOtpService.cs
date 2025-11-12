@@ -16,7 +16,7 @@ namespace BLL.Services
         private const int SmtpPort = 587;
         private const string FromEmail = "vuquangduc1404@gmail.com";
         private const string FromName = "LordKingDom";
-        private const string AppPassword = "bmexrjlskuwzqesp"; // 🔒 App Password Gmail
+        private const string AppPassword = "bmexrjlskuwzqesp";
 
         public EmailOtpService(IEmailOtpRepository emailOtpRepo)
         {
@@ -29,8 +29,8 @@ namespace BLL.Services
         public async Task SendOtpAsync(string email, string purpose = "Register")
         {
             // Kiểm tra nếu đã có OTP active
-            //if (await _emailOtpRepo.ExistsActiveOtpAsync(email, purpose))
-            //    throw new InvalidOperationException("OTP đã được gửi. Vui lòng chờ hoặc gửi lại sau.");
+            if (await _emailOtpRepo.ExistsActiveOtpAsync(email, purpose))
+                throw new InvalidOperationException("OTP đã được gửi. Vui lòng chờ hoặc gửi lại sau.");
 
             // Tạo OTP ngẫu nhiên (6 chữ số)
             var otpCode = new Random().Next(100000, 999999).ToString();
@@ -89,17 +89,13 @@ namespace BLL.Services
             return true;
         }
 
-        /// <summary>
         /// Kiểm tra xem có thể gửi lại OTP hay không.
-        /// </summary>
         public async Task<bool> CanResendOtpAsync(string email, string purpose = "Register")
         {
             return !await _emailOtpRepo.ExistsActiveOtpAsync(email, purpose);
         }
 
-        /// <summary>
-        /// 🆕 Gửi thư chào mừng người dùng sau khi đăng ký thành công.
-        /// </summary>
+        ///  Gửi thư chào mừng người dùng sau khi đăng ký thành công.
         public async Task SendWelcomeEmailAsync(string email, string accountName)
         {
             string subject = "🎉 Chào mừng bạn đến với Lordkingdom!";
@@ -159,10 +155,8 @@ namespace BLL.Services
             await SendEmailAsync(email, subject, body, isHtml: true); // Giả sử bạn có method SendEmailAsync
         }
 
-        /// <summary>
         /// Hàm dùng chung để gửi email qua SMTP Gmail.
         /// Có thể gửi dạng text hoặc HTML.
-        /// </summary>
         private async Task SendEmailAsync(string toEmail, string subject, string body, bool isHtml = false)
         {
             var message = new MimeMessage();

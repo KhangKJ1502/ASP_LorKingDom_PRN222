@@ -11,7 +11,6 @@ namespace ASP_LorKingDom.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly ILogger<HomeController> _logger;
         private readonly IProductService _productSvc;
         private readonly IWishlistService _wishlistSvc;
         private readonly IReviewProductService _reviewSvc;
@@ -19,14 +18,12 @@ namespace ASP_LorKingDom.Controllers
         private readonly IAddressService _addressService;
         private readonly IPriceRangeService _priceRangeSvc;
         public HomeController(
-            ILogger<HomeController> logger,
             IProductService productSvc,
             IWishlistService wishlistSvc,
             IAccountService accountService,
             IAddressService addressService,
             IReviewProductService reviewSvc, IPriceRangeService priceRangeService)
         {
-            _logger = logger;
             _productSvc = productSvc;
             _wishlistSvc = wishlistSvc;
             _accountService = accountService;
@@ -150,7 +147,6 @@ namespace ASP_LorKingDom.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error loading profile page");
                 return RedirectToAction("Index");
             }
         }
@@ -164,23 +160,19 @@ namespace ASP_LorKingDom.Controllers
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 if (string.IsNullOrEmpty(userId))
                 {
-                    _logger.LogWarning("ProfileOverview: No user ID found in claims");
                     return Unauthorized();
                 }
 
                 var account = await _accountService.GetByIdAsync(int.Parse(userId));
                 if (account == null)
                 {
-                    _logger.LogWarning("ProfileOverview: Account not found for user ID {UserId}", userId);
                     return NotFound();
                 }
 
-                _logger.LogInformation("ProfileOverview: Loading for user {UserId}", userId);
                 return PartialView("~/Views/Home/_ProfileOverview.cshtml", account);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error loading profile overview");
                 return StatusCode(500, "Đã xảy ra lỗi khi tải thông tin.");
             }
         }
@@ -192,25 +184,17 @@ namespace ASP_LorKingDom.Controllers
         {
             try
             {
-                _logger.LogInformation("UpdateProfile called with accountName: {AccountName}, phoneNumber: {PhoneNumber}, hasAvatar: {HasAvatar}",
-                    accountName, phoneNumber, avatar != null);
-
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 if (string.IsNullOrEmpty(userId))
                 {
-                    _logger.LogWarning("UpdateProfile: No user ID found in claims");
                     return Json(new { success = false, message = "Không thể xác định người dùng." });
                 }
 
                 var account = await _accountService.GetByIdAsync(int.Parse(userId));
                 if (account == null)
                 {
-                    _logger.LogWarning("UpdateProfile: Account not found for user ID {UserId}", userId);
                     return Json(new { success = false, message = "Không tìm thấy tài khoản." });
                 }
-
-                _logger.LogInformation("UpdateProfile: Current account - Name: {Name}, Email: {Email}, Phone: {Phone}",
-                    account.AccountName, account.Email, account.PhoneNumber);
 
                 // Validate account name
                 if (string.IsNullOrWhiteSpace(accountName))
@@ -224,8 +208,6 @@ namespace ASP_LorKingDom.Controllers
                 string? newAvatarPath = null;
                 if (avatar != null && avatar.Length > 0)
                 {
-                    _logger.LogInformation("UpdateProfile: Processing avatar upload - FileName: {FileName}, Size: {Size}",
-                        avatar.FileName, avatar.Length);
 
                     // Validate file type
                     var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
@@ -254,15 +236,12 @@ namespace ASP_LorKingDom.Controllers
 
                     newAvatarPath = $"/uploads/avatars/{fileName}";
                     account.Image = newAvatarPath;
-                    _logger.LogInformation("UpdateProfile: Avatar saved to {Path}", newAvatarPath);
                 }
 
-                _logger.LogInformation("UpdateProfile: About to call AccountService.UpdateAsync for user {UserId}", userId);
 
                 // Update account (email will remain the same as per AccountService validation)
                 await _accountService.UpdateAsync(account.Id, account);
 
-                _logger.LogInformation("UpdateProfile: Successfully updated account for user {UserId}", userId);
 
                 return Json(new
                 {
@@ -275,7 +254,6 @@ namespace ASP_LorKingDom.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error updating profile: {Message}", ex.Message);
                 return Json(new { success = false, message = "Đã xảy ra lỗi: " + ex.Message });
             }
         }
@@ -310,10 +288,8 @@ namespace ASP_LorKingDom.Controllers
                     return Json(new { success = false, message = "Mật khẩu hiện tại không đúng." });
 
                 // Update password
-                account.Password = newPassword; // AccountService will hash it
+                account.Password = newPassword;
                 await _accountService.UpdateAsync(account.Id, account);
-
-                _logger.LogInformation("Password changed successfully for user {UserId}", userId);
 
                 return Json(new
                 {
@@ -323,14 +299,11 @@ namespace ASP_LorKingDom.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error changing password");
                 return Json(new { success = false, message = "Đã xảy ra lỗi: " + ex.Message });
             }
         }
 
-        /// <summary>
         /// API endpoint to get user's saved addresses for checkout
-        /// </summary>
         [Authorize]
         [HttpGet]
         public async Task<IActionResult> GetUserAddresses()
@@ -357,7 +330,6 @@ namespace ASP_LorKingDom.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error getting user addresses");
                 return Json(new { success = false, message = "Không thể tải địa chỉ" });
             }
         }

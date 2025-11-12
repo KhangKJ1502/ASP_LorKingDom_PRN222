@@ -40,7 +40,7 @@
             <button type="submit" class="btn btn-primary w-100 mb-3">Xác nhận</button>
         </form>
 
-        <!-- Form RESEND (tách riêng, POST + antiforgery) -->
+        <!-- Form RESEND  -->
         <form id="resendForm" class="text-center">
             @Html.AntiForgeryToken()
             <input type="hidden" name="email" value="@ViewBag.Email" />
@@ -70,108 +70,98 @@
         });
 
         // Verify OTP Form
-        document.getElementById('verifyOtpForm').addEventListener('submit', async function (e) {
+        $('#verifyOtpForm').on('submit', function (e) {
             e.preventDefault();
 
-            const formData = new FormData(this);
-            const otpCode = Array.from(document.querySelectorAll('.otp-input'))
-                .map(input => input.value)
-                .join('');
-
-            formData.set('otpCode', otpCode);
-
-            const submitBtn = this.querySelector('button[type="submit"]');
-            const originalText = submitBtn.innerHTML;
-
-            // Show loading state
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<span class="spinner-border me-2"></span>Đang xác minh...';
-
-            try {
-                const response = await fetch('@Url.Action("VerifyOtp", "Auth")', {
-                    method: 'POST',
-                    body: formData
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Thành công',
-                        text: data.message,
-                        confirmButtonColor: '#28a745',
-                        allowOutsideClick: false
-                    }).then(() => {
-                        window.location.href = data.redirectUrl;
-                    });
-                } else {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Xác minh OTP thất bại',
-                        text: data.message,
-                        confirmButtonColor: '#f97316',
-                        timer: 5000
-                    });
-                    // Reset button state
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = originalText;
-                }
-            } catch (error) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Lỗi',
-                    text: 'Đã xảy ra lỗi khi xác minh OTP',
-                    confirmButtonColor: '#f97316'
-                });
-                // Reset button state
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = originalText;
-            }
-        });
-
-        // Resend OTP Form
-        document.getElementById('resendForm').addEventListener('submit', async function (e) {
-            e.preventDefault();
+            const otpCode = Array.from($('.otp-input')).map(i => i.value).join('');
+            $('#otpCode').val(otpCode);
 
             const formData = new FormData(this);
+            const submitBtn = $(this).find('button[type="submit"]');
+            const originalText = submitBtn.html();
 
-            try {
-                const response = await fetch('@Url.Action("ResendOtp", "Auth")', {
-                    method: 'POST',
-                    body: formData
-                });
+            submitBtn.prop('disabled', true).html('<span class="spinner-border me-2"></span>Đang xác minh...');
 
-                const data = await response.json();
-
-                if (data.success) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Thành công',
-                        text: data.message,
-                        confirmButtonColor: '#28a745',
-                        timer: 3000
-                    });
-
-                    // Reset countdown
-                    startCountdown();
-                } else {
+            $.ajax({
+                url: '@Url.Action("VerifyOtp", "Auth")',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (data) {
+                    if (data.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Thành công',
+                            text: data.message,
+                            confirmButtonColor: '#28a745',
+                            allowOutsideClick: false
+                        }).then(() => {
+                            window.location.href = data.redirectUrl;
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Xác minh OTP thất bại',
+                            text: data.message,
+                            confirmButtonColor: '#f97316',
+                            timer: 5000
+                        });
+                        submitBtn.prop('disabled', false).html(originalText);
+                    }
+                },
+                error: function () {
                     Swal.fire({
                         icon: 'error',
                         title: 'Lỗi',
-                        text: data.message,
-                        confirmButtonColor: '#f97316',
-                        timer: 5000
+                        text: 'Đã xảy ra lỗi khi xác minh OTP',
+                        confirmButtonColor: '#f97316'
+                    });
+                    submitBtn.prop('disabled', false).html(originalText);
+                }
+            });
+        });
+
+        // Resend OTP Form
+        $('#resendForm').on('submit', function (e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+
+            $.ajax({
+                url: '@Url.Action("ResendOtp", "Auth")',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function (data) {
+                    if (data.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Thành công',
+                            text: data.message,
+                            confirmButtonColor: '#28a745',
+                            timer: 3000
+                        });
+                        startCountdown(); // Reset countdown
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Lỗi',
+                            text: data.message,
+                            confirmButtonColor: '#f97316',
+                            timer: 5000
+                        });
+                    }
+                },
+                error: function () {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Lỗi',
+                        text: 'Đã xảy ra lỗi khi gửi lại OTP',
+                        confirmButtonColor: '#f97316'
                     });
                 }
-            } catch (error) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Lỗi',
-                    text: 'Đã xảy ra lỗi khi gửi lại OTP',
-                    confirmButtonColor: '#f97316'
-                });
-            }
+            });
         });
 
         // Countdown function
@@ -198,7 +188,7 @@
         }
 
         // Countdown timer on load
-        document.addEventListener('DOMContentLoaded', function () {
+        $(document).ready(function () {
             startCountdown();
         });
     </script>

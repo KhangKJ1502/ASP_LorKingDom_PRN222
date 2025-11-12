@@ -282,7 +282,7 @@
 @section Scripts {
     <script>
         $(document).ready(function () {
-            const addressRadios = $('input[name="addressSelection"]');
+            // const addressRadios = $('input[name="addressSelection"]');
             const newAddressForm = $('#new-address-form');
             const newAddressInputs = newAddressForm.find('input, select');
             const shippingRadios = $('input[name="shippingMethod"]');
@@ -365,11 +365,12 @@
                             `;
 
                 $('#savedAddressesContainer').html(html);
-
-                // Re-bind event handlers
+             
                 $('input[name="addressSelection"]').on('change', updateAddressForm);
-                updateAddressForm(); // Initialize
-            }            // Render when no addresses found
+                updateAddressForm(); // Khởi tạo
+            }
+
+            // Render khi ko tìm thấy địa chỉ
             function renderNoAddresses() {
                 const html = `
                                     <div class="saved-address-option">
@@ -384,11 +385,10 @@
 
                 $('#savedAddressesContainer').html(html);
 
-                // Show new address form immediately
+                // Hiển thị form địa chỉ mới
                 newAddressForm.show();
                 newAddressInputs.prop('required', true);
 
-                // Re-bind event handlers
                 $('input[name="addressSelection"]').on('change', updateAddressForm);
             }
 
@@ -413,7 +413,7 @@
                     // Chọn "Thêm địa chỉ mới" → hiển thị form nhập
                     newAddressForm.show();
                     newAddressInputs.prop('required', true);
-                    // Clear values when switching to new address
+                    // Clear value input
                     $('#streetInput').val('');
                     $('#cityInput').val('');
                     $('#districtInput').val('');
@@ -422,15 +422,15 @@
                     newAddressForm.hide();
                     newAddressInputs.prop('required', false);
 
-                    // Fill inputs with saved address data (even though hidden, they will be submitted)
+                    // Điền dữ liệu địa chỉ đã lưu vào các mục nhập
                     const addr = savedAddressesData[selected];
                     if (addr) {
                         $('#streetInput').val(addr.street);
                         $('#cityInput').val(addr.city);
                         $('#districtInput').val(addr.district);
-                        console.log('Filled address:', addr); // Debug
+                        // console.log('Filled address:', addr); 
                     } else {
-                        console.error('Address not found for:', selected); // Debug
+                        console.error('Address not found for:', selected); 
                     }
                 }
             }
@@ -444,11 +444,10 @@
                 $(this).addClass('was-validated');
             });
 
-            // Initialize on page load
             loadSavedAddresses();
             updateTotal(); // Tính lại tổng tiền khi load trang
 
-            // 🎯 Mở modal ưu đãi
+            // Mở modal ưu đãi
             $('#openVoucherModal').on('click', function () {
                 const voucherModal = new bootstrap.Modal(document.getElementById('voucherModal'));
                 voucherModal.show();
@@ -576,11 +575,13 @@
                 // Cập nhật trạng thái các nút trong modal
                 $('.btn-apply-voucher').removeClass('btn-success').addClass('btn-primary')
                     .html('<i class="fas fa-plus me-1"></i>Áp dụng');
+
                 $('.voucher-card').removeClass('selected');
 
                 $(`.btn-apply-voucher[data-voucher-code="${voucherCode}"]`)
                     .removeClass('btn-primary').addClass('btn-success')
                     .html('<i class="fas fa-check me-1"></i>Đã áp dụng');
+
                 $(`.voucher-card[data-voucher-code="${voucherCode}"]`).addClass('selected');
 
                 // Đóng modal và thông báo
@@ -672,10 +673,10 @@
                     formDataObj.promoCode = appliedVoucherCode;
                 }
 
-                console.log('Sending data:', formDataObj);
+                // console.log('Sending data:', formDataObj);
 
                 $.ajax({
-                    url: '/Order/Create',
+                    url: '@Url.Action("Create", "Order")',
                     type: 'POST',
                     data: formDataObj,
                     headers: {

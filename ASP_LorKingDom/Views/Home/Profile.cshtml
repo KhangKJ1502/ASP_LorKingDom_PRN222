@@ -3,7 +3,6 @@
     ViewData["Title"] = "My Profile";
 }
 @inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
-<!-- Đặt gần cuối <body > -->
 
 <style>
     .toast {
@@ -332,7 +331,7 @@
             }
 
             $.ajax({
-                url: '/Home/UpdateProfile',
+                url: '@Url.Action("UpdateProfile", "Home")',
                 type: 'POST',
                 data: formData,
                 processData: false,
@@ -432,11 +431,11 @@
                 return;
             }
 
-            if (newPassword.length < 8) {
+            if (newPassword.length < 6) {
                 Swal.fire({
                     icon: 'warning',
                     title: 'Mật khẩu không hợp lệ',
-                    text: 'Mật khẩu mới phải có ít nhất 8 ký tự',
+                    text: 'Mật khẩu mới phải có ít nhất 6 ký tự',
                     confirmButtonColor: '#f97316'
                 });
                 return;
@@ -461,7 +460,7 @@
 
             // AJAX submit
             $.ajax({
-                url: '/Home/ChangePassword',
+                url: '@Url.Action("ChangePassword", "Home")',
                 type: 'POST',
                 data: {
                     currentPassword: currentPassword,

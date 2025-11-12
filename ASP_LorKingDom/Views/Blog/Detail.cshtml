@@ -666,7 +666,7 @@
             @:    if (result.isConfirmed) {
             @:        window.location.href = '/Auth/Login?returnUrl=' + encodeURIComponent(window.location.href);
             @:    }
-            @:});
+            @:}); 
             @:return false;
         }
         
@@ -676,7 +676,7 @@
         const commentActions = form.closest('.comment-actions');
         const reviewId = commentActions.data('review-id');
 
-        // Use jQuery AJAX like Login page
+        // Use jQuery AJAX
         $.ajax({
             url: form.attr('action'),
             type: 'POST',
@@ -702,15 +702,7 @@
                     } else if (data.currentUserReaction === 'dislike') {
                         dislikeBtn.addClass('active');
                     }
-                    
-                    // Show success message
-                    // Swal.fire({
-                    //     icon: 'success',
-                    //     title: 'Thành công',
-                    //     text: data.message || 'Đã cập nhật cảm xúc',
-                    //     timer: 1500,
-                    //     showConfirmButton: false
-                    // });
+                   
                 } else {
                     Swal.fire({
                         icon: 'error',
@@ -758,7 +750,7 @@
                 const form = $(formElement);
                 const token = form.find('input[name="__RequestVerificationToken"]').val();
 
-                // Use jQuery AJAX like Login page
+                // Use jQuery AJAX 
                 $.ajax({
                     url: form.attr('action'),
                     type: 'POST',
