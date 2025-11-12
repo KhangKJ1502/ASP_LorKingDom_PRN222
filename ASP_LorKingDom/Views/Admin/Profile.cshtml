@@ -34,13 +34,6 @@
                 </div>
             </div>
 
-            <!-- Info Box -->
-            <div class="info-box">
-                <i class="fas fa-info-circle"></i>
-                <span>Thông tin cơ bản được tự động cập nhật từ hệ thống. Liên hệ Admin để thay đổi role hoặc
-                    quyền.</span>
-            </div>
-
             <!-- Form -->
             <form id="profileForm">
                 @Html.AntiForgeryToken()
@@ -80,7 +73,6 @@
                                 <option value="Active">Active</option>
                                 <option value="Inactive">Inactive</option>
                             </select>
-                            <span class="info-text">Được quản lý bởi Admin</span>
                         </div>
                     </div>
                 </div>
@@ -103,7 +95,6 @@
                                     <label for="currentPassword">Mật khẩu hiện tại</label>
                                     <input type="password" id="currentPassword" name="currentPassword"
                                         class="form-input input-change-password" placeholder="Nhập mật khẩu hiện tại">
-                                    <span class="info-text">Để xác minh đó là bạn</span>
                                 </div>
                             </div>
 
@@ -112,7 +103,7 @@
                                     <label for="newPassword">Mật khẩu mới</label>
                                     <input type="password" id="newPassword" name="newPassword"
                                         class="form-input input-change-password" placeholder="Nhập mật khẩu mới">
-                                    <span class="info-text">Tối thiểu 8 ký tự, bao gồm chữ và số</span>
+                                    <span class="info-text">Tối thiểu 6 ký tự</span>
                                 </div>
                             </div>
 
@@ -162,77 +153,79 @@
 
 @section Scripts {
     <script>
-        // Load profile data
-        async function loadProfile() {
-            try {
-                const response = await fetch('@Url.Action("GetProfile", "AdminAuth")');
-                if (!response.ok) throw new Error('Không thể tải thông tin');
+        function loadProfile() {
+            $.ajax({
+                url: '@Url.Action("GetProfile", "AdminAuth")',
+                type: 'GET',
+                success: function (data) {
+                    if (!data || data.success === false) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Lỗi',
+                            text: data?.message || 'Không thể tải thông tin tài khoản',
+                            confirmButtonColor: '#dc2626'
+                        });
+                        return;
+                    }
 
-                const data = await response.json();
+                    // Update form fields
+                    $('#accountName').val(data.accountName || '');
+                    $('#email').val(data.email || '');
+                    $('#phoneNumber').val(data.phoneNumber || '');
+                    $('#status').val(data.status || 'Active');
 
-                // Update form fields
-                document.getElementById('accountName').value = data.accountName || '';
-                document.getElementById('email').value = data.email || '';
-                document.getElementById('phoneNumber').value = data.phoneNumber || '';
-                document.getElementById('status').value = data.status || 'Active';
+                    // Update avatar
+                    const avatarUrl = data.image || '/Assets/image/avatar/avatar-illustrated-02.png';
+                    $('#avatarPreview').attr('src', avatarUrl);
+                    $('#accountNameDisplay').text(data.accountName || '-');
 
-                // Update avatar
-                const avatarUrl = data.image || '/Assets/image/avatar/avatar-illustrated-02.png';
-                document.getElementById('avatarPreview').src = avatarUrl;
-                document.getElementById('accountNameDisplay').textContent = data.accountName || '-';
-
-                // Get role from claims (server-side)
-                const roleElement = document.getElementById('roleDisplay');
-                if (roleElement && roleElement.getAttribute('data-role')) {
-                    // Already set by server
-                } else {
-                    roleElement.textContent = data.role || 'Staff';
+                    // Update role
+                    const roleElement = $('#roleDisplay');
+                    if (!roleElement.attr('data-role')) {
+                        roleElement.text(data.role || 'Staff');
+                    }
+                },
+                error: function () {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Lỗi',
+                        text: 'Không thể tải thông tin tài khoản',
+                        confirmButtonColor: '#dc2626'
+                    });
                 }
-            } catch (error) {
-                Swal.fire('Lỗi', 'Không thể tải thông tin tài khoản', 'error');
-            }
+            });
         }
 
-        // Toggle password fields
-        document.getElementById('changePasswordCheck').addEventListener('change', function () {
-            const passwordFields = document.getElementById('passwordFields');
-            const hiddenInput = document.getElementById('changePasswordHidden');
 
-            if (this.checked) {
-                passwordFields.classList.add('show');
-                document.getElementById('currentPassword').required = true;
-                document.getElementById('newPassword').required = true;
-                document.getElementById('confirmPassword').required = true;
-                hiddenInput.value = 'true';
-            } else {
-                passwordFields.classList.remove('show');
-                document.getElementById('currentPassword').required = false;
-                document.getElementById('newPassword').required = false;
-                document.getElementById('confirmPassword').required = false;
-                hiddenInput.value = 'false';
-            }
+        // Toggle password fields
+        $('#changePasswordCheck').on('change', function () {
+            const isChecked = this.checked;
+            const passwordFields = $('#passwordFields');
+            const hiddenInput = $('#changePasswordHidden');
+
+            passwordFields.toggleClass('show', isChecked);
+            hiddenInput.val(isChecked ? 'true' : 'false');
+
+            $('#currentPassword, #newPassword, #confirmPassword').prop('required', isChecked);
         });
 
         // Avatar upload preview
-        document.getElementById('avatarInput').addEventListener('change', function (e) {
+        $('#avatarInput').on('change', function (e) {
             const file = e.target.files[0];
             if (file) {
                 const reader = new FileReader();
-                reader.onload = function (event) {
-                    document.getElementById('avatarPreview').src = event.target.result;
-                };
+                reader.onload = (event) => $('#avatarPreview').attr('src', event.target.result);
                 reader.readAsDataURL(file);
             }
         });
 
         // Form submit
-        document.getElementById('profileForm').addEventListener('submit', function (e) {
+        $('#profileForm').on('submit', function (e) {
             e.preventDefault();
 
-            const form = $(this);
-            const changePassword = document.getElementById('changePasswordCheck').checked;
-            const newPassword = document.getElementById('newPassword').value;
-            const confirmPassword = document.getElementById('confirmPassword').value;
+            const changePassword = $('#changePasswordCheck').is(':checked');
+            const newPassword = $('#newPassword').val();
+            const confirmPassword = $('#confirmPassword').val();
 
             // Validate password
             if (changePassword && newPassword !== confirmPassword) {
@@ -245,19 +238,18 @@
                 return;
             }
 
-            if (changePassword && newPassword.length < 8) {
+            if (changePassword && newPassword.length < 6) {
                 Swal.fire({
                     icon: 'error',
                     title: 'Lỗi',
-                    text: 'Mật khẩu phải tối thiểu 8 ký tự',
+                    text: 'Mật khẩu phải tối thiểu 6 ký tự',
                     confirmButtonColor: '#dc2626'
                 });
                 return;
             }
 
-            const btn = this.querySelector('button[type="submit"]');
-            btn.disabled = true;
-            btn.innerHTML = '<span class="loading-spinner"></span>Đang lưu...';
+            const btn = $(this).find('button[type="submit"]');
+            btn.prop('disabled', true).html('<span class="loading-spinner"></span>Đang lưu...');
 
             Swal.fire({
                 title: 'Đang cập nhật...',
@@ -265,7 +257,7 @@
                 didOpen: () => {
                     Swal.showLoading();
 
-                    const formData = new FormData(this);
+                    const formData = new FormData($('#profileForm')[0]);
                     const token = $('input[name="__RequestVerificationToken"]').val();
 
                     $.ajax({
@@ -278,6 +270,8 @@
                             'RequestVerificationToken': token
                         },
                         success: function (data) {
+                            Swal.close();
+
                             if (data.success) {
                                 Swal.fire({
                                     icon: 'success',
@@ -286,11 +280,11 @@
                                     confirmButtonColor: '#10b981'
                                 }).then(() => {
                                     loadProfile();
-                                    document.getElementById('changePasswordCheck').checked = false;
-                                    document.getElementById('passwordFields').classList.remove('show');
-                                    document.getElementById('currentPassword').value = '';
-                                    document.getElementById('newPassword').value = '';
-                                    document.getElementById('confirmPassword').value = '';
+
+                                    // Reset password fields
+                                    $('#changePasswordCheck').prop('checked', false);
+                                    $('#passwordFields').removeClass('show');
+                                    $('#currentPassword, #newPassword, #confirmPassword').val('');
                                 });
                             } else {
                                 Swal.fire({
@@ -301,7 +295,8 @@
                                 });
                             }
                         },
-                        error: function (xhr) {
+                        error: function () {
+                            Swal.close();
                             Swal.fire({
                                 icon: 'error',
                                 title: 'Lỗi',
@@ -310,8 +305,7 @@
                             });
                         },
                         complete: function () {
-                            btn.disabled = false;
-                            btn.innerHTML = '<i class="fas fa-save me-2"></i>Lưu thay đổi';
+                            btn.prop('disabled', false).html('<i class="fas fa-save me-2"></i>Lưu thay đổi');
                         }
                     });
                 }
@@ -319,6 +313,6 @@
         });
 
         // Load data on page load
-        document.addEventListener('DOMContentLoaded', loadProfile);
+        $(document).ready(loadProfile);
     </script>
 }

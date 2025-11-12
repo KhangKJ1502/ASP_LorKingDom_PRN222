@@ -111,7 +111,7 @@ namespace WebUI.Controllers
                 if (cart == null || !cart.CartItems.Any())
                     return RedirectToAction("Index", "Cart");
 
-                // Chuẩn bị dữ liệu giỏ hàng cho View
+                // Dữ liệu giỏ hàng cho View
                 var cartItems = cart.CartItems.ToList();
 
                 // Tính tổng tiền
@@ -171,7 +171,7 @@ namespace WebUI.Controllers
 
         [HttpGet("/Order/Manage")]
         [Authorize(AuthenticationSchemes = "AdminScheme")]
-        [AdminAndStaffOnly] // Staff: Order Management
+        [AdminAndStaffOnly]
         public async Task<IActionResult> Manage(string? q, int? status, DateTime? dateFrom, DateTime? dateTo, int page = 1)
         {
             try
@@ -195,14 +195,14 @@ namespace WebUI.Controllers
 
         [HttpPost("/Order/UpdateStatus")]
         [Authorize(AuthenticationSchemes = "AdminScheme")]
-        [AdminAndStaffOnly] // Staff: Order Management
+        [AdminAndStaffOnly]
         public async Task<IActionResult> UpdateStatus(int orderId, int statusId)
         {
             try
             {
                 // Get current admin/staff ID
                 var adminId = GetAccountId();
-                
+
                 var success = await _orderService.UpdateOrderStatusAsync(orderId, statusId, adminId, "Admin/Staff cập nhật trạng thái");
                 if (success)
                 {
@@ -221,7 +221,7 @@ namespace WebUI.Controllers
 
         [HttpGet("/Order/GetOrderDetail")]
         [Authorize(AuthenticationSchemes = "AdminScheme")]
-        [AdminAndStaffOnly] // Staff: Order Management
+        [AdminAndStaffOnly]
         public async Task<IActionResult> GetOrderDetail(int id)
         {
             try

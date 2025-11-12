@@ -18,7 +18,7 @@ namespace ASP_LorKingDom.Controllers
         }
 
         [HttpGet]
-        [ManagementOnly] // All roles: Profile
+        [ManagementOnly]
         public async Task<IActionResult> Profile()
         {
             string? role = "";
@@ -33,7 +33,7 @@ namespace ASP_LorKingDom.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [ManagementOnly] // All roles: Update Profile
+        [ManagementOnly]
         public async Task<JsonResult> UpdateProfile(string accountName, string phoneNumber, bool changePassword = false,
             string? currentPassword = null, string? newPassword = null, IFormFile? avatar = null)
         {

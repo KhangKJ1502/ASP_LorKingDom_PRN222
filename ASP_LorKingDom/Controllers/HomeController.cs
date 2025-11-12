@@ -295,8 +295,8 @@ namespace ASP_LorKingDom.Controllers
                 if (string.IsNullOrWhiteSpace(currentPassword) || string.IsNullOrWhiteSpace(newPassword) || string.IsNullOrWhiteSpace(confirmPassword))
                     return Json(new { success = false, message = "Vui lòng điền đầy đủ thông tin." });
 
-                if (newPassword.Length < 8)
-                    return Json(new { success = false, message = "Mật khẩu mới phải có ít nhất 8 ký tự." });
+                if (newPassword.Length < 6)
+                    return Json(new { success = false, message = "Mật khẩu mới phải có ít nhất 6 ký tự." });
 
                 if (newPassword != confirmPassword)
                     return Json(new { success = false, message = "Mật khẩu mới và xác nhận mật khẩu không khớp." });

@@ -331,7 +331,6 @@
                 formData.append('avatar', selectedFile);
             }
 
-            // AJAX submit giống Login
             $.ajax({
                 url: '/Home/UpdateProfile',
                 type: 'POST',
@@ -521,9 +520,9 @@
         `;
         content.html(loadingHtml);
 
-        // Use jQuery AJAX like Login page
+        // Use jQuery AJAX 
         $.ajax({
-            url: '/Order/OrderHistory',
+            url: '@Url.Action("OrderHistory", "Order")',
             type: 'GET',
             data: { page: page },
             success: function (html) {
