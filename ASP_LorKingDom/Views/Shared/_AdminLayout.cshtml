@@ -505,111 +505,61 @@
 	<!-- Admin Notification Script -->
 	<script>
 		(function() {
-			// Load admin notifications (chỉ cho admin/staff, không phải customer)
 			async function loadAdminNotifications() {
 				try {
-					const response = await fetch('/MyNotifications/GetLatestUnread');
-					if (!response.ok) return;
-					
-					const data = await response.json();
-					if (!data.success) return;
-					
-					// Update badge
 					const badge = document.getElementById('adminNotificationBadge');
 					const icon = document.getElementById('adminNotificationIcon');
-					if (data.totalUnread > 0) {
-						badge.textContent = data.totalUnread > 99 ? '99+' : data.totalUnread;
-						badge.style.display = 'flex';
-						icon.classList.add('active');
-					} else {
+					const dropdown = document.getElementById('adminNotificationDropdown');
+					if (badge) {
 						badge.style.display = 'none';
+					}
+					if (icon) {
 						icon.classList.remove('active');
 					}
-					
-					// Update dropdown
-					const dropdown = document.getElementById('adminNotificationDropdown');
-					if (!data.items || data.items.length === 0) {
+
+					if (dropdown) {
 						dropdown.innerHTML = `
-							<li class="text-center py-3 text-muted">
-								<i data-feather="bell-off" aria-hidden="true"></i>
-								<p class="mb-0 mt-2">Không có thông báo mới</p>
-							</li>
-							<li>
-								<a class="link-to-page" href="/MyNotifications/Index">
-									Xem tất cả thông báo
-								</a>
-							</li>
-						`;
-					} else {
-						const items = data.items.slice(0, 5).map(n => {
-							const iconType = n.title.toLowerCase().includes('thành công') ? 'check' : 
-											 n.title.toLowerCase().includes('lỗi') ? 'alert-circle' : 
-											 n.title.toLowerCase().includes('cảnh báo') ? 'alert-triangle' : 'info';
-							const iconColor = n.title.toLowerCase().includes('thành công') ? 'info' : 
-											  n.title.toLowerCase().includes('lỗi') ? 'danger' : 'info';
-							
-							return `
-								<li>
-									<a href="/MyNotifications/Index">
-										<div class="notification-dropdown-icon ${iconColor}">
-											<i data-feather="${iconType}" aria-hidden="true"></i>
-										</div>
-										<div class="notification-dropdown-text">
-											<span class="notification-dropdown__title">
-												${escapeHtml(n.title)}
-											</span>
-											<span class="notification-dropdown__subtitle">
-												${escapeHtml(n.message.substring(0, 80))}${n.message.length > 80 ? '...' : ''}
-											</span>
-											<span class="notification-dropdown__time text-muted" style="font-size:0.85em;">
-												<i data-feather="clock" style="width:12px;height:12px;"></i> ${n.timeAgo}
-											</span>
-										</div>
-									</a>
-								</li>
-							`;
-						}).join('');
-						
-						dropdown.innerHTML = items + `
-							<li>
-								<a class="link-to-page" href="/MyNotifications/Index">
-									Xem tất cả thông báo (${data.totalUnread})
-								</a>
+							<li class="text-center py-4">
+								<div style="padding: 20px;">
+									<i data-feather="bell" style="width:48px;height:48px;color:#6c757d;margin-bottom:12px;" aria-hidden="true"></i>
+									<h6 class="mb-2" style="color:#495057;">Thông Báo</h6>
+									<p class="text-muted mb-0" style="font-size:0.9em;">
+										Tính năng đang được phát triển
+									</p>
+									<span class="badge bg-warning text-dark mt-2">Coming Soon</span>
+								</div>
 							</li>
 						`;
+						if (typeof feather !== 'undefined') {
+							feather.replace();
+						}
 					}
-					
-					// Reinit feather icons
-					if (typeof feather !== 'undefined') {
-						feather.replace();
-					}
+
 				} catch (error) {
 					console.error('Load admin notifications error:', error);
+
+					// Fallback UI on error
+					const dropdown = document.getElementById('adminNotificationDropdown');
+					if (dropdown) {
+						dropdown.innerHTML = `
+							<li class="text-center py-3 text-muted">
+								<i data-feather="alert-circle" style="color:#dc3545;" aria-hidden="true"></i>
+								<p class="mb-0 mt-2">Không thể tải thông báo</p>
+							</li>
+						`;
+						if (typeof feather !== 'undefined') {
+							feather.replace();
+						}
+					}
 				}
 			}
-			
+
 			function escapeHtml(text) {
 				const div = document.createElement('div');
 				div.textContent = text || '';
 				return div.innerHTML;
 			}
-			
-			// Load on page load
 			loadAdminNotifications();
-			
-			// Auto refresh every 30 seconds
-			setInterval(() => {
-				if (!document.hidden) {
-					loadAdminNotifications();
-				}
-			}, 30000);
-			
-			// Refresh when tab becomes visible
-			document.addEventListener('visibilitychange', function() {
-				if (!document.hidden) {
-					loadAdminNotifications();
-				}
-			});
 		})();
 	</script>
 

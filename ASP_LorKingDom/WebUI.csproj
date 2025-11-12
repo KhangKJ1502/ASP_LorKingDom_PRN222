@@ -13,6 +13,7 @@
     <Folder Include="wwwroot\Assets\image\svg\" />
     <Folder Include="wwwroot\Assets\img-product\" />
     <Folder Include="wwwroot\Assets\svg\" />
+    <Folder Include="wwwroot\images\reviews\" />
     <Folder Include="wwwroot\uploads\blogs\" />
     <Folder Include="wwwroot\uploads\reviews\" />
   </ItemGroup>

@@ -76,9 +76,9 @@
                             <option value="Requested" selected="@(statusFilter == "Requested")">Yêu cầu hoàn tiền</option>
                             <option value="Approved" selected="@(statusFilter == "Approved")">Đã duyệt</option>
                             <option value="Rejected" selected="@(statusFilter == "Rejected")">Từ chối</option>
-                            <option value="Processing" selected="@(statusFilter == "Processing")">Đang xử lý</option>
+                            @* <option value="Processing" selected="@(statusFilter == "Processing")">Đang xử lý</option> *@
                             <option value="Refunded" selected="@(statusFilter == "Refunded")">Đã hoàn tiền</option>
-                            <option value="Cancelled" selected="@(statusFilter == "Cancelled")">Đã hủy</option>
+                            @* <option value="Cancelled" selected="@(statusFilter == "Cancelled")">Đã hủy</option> *@
                         </select>
                     </div>
 
@@ -98,7 +98,7 @@
                     <div class="col-md-1">
                         <button class="btn btn-outline-secondary w-100" type="button" 
                                 onclick="window.location.href='@Url.Action("Index", "OrderRefundAdmin")'">
-                            <i class="fa-solid fa-times"></i> Xóa
+                            <i class="fa-solid fa-times"></i> Làm mới
                         </button>
                     </div>
                 </div>
@@ -128,7 +128,7 @@
                 <table class="table table-bordered table-striped table-hover">
                     <thead class="table-dark">
                         <tr>
-                            <th style="width:100px; text-align:center;">RefundID</th>
+                            <th style="width:100px; text-align:center;">ID</th>
                             <th>Đơn hàng</th>
                             <th>Người yêu cầu</th>
                             <th>Người duyệt</th>
@@ -166,7 +166,7 @@
 
                                     <td>
                                         <div class="fw-semibold text-dark">
-                                            @(refund.OrderCode ?? $"Order #{refund.OrderId}")
+                                            @(refund.OrderCode ?? $"#{refund.OrderId}")
                                         </div>
                                         <div class="text-muted small">
                                             ID: @refund.OrderId
@@ -444,6 +444,7 @@
             });
         });
 
+
         async function viewRefundDetail(refundId) {
             const id = parseInt(refundId, 10);
             if (isNaN(id) || id <= 0) {
@@ -457,13 +458,12 @@
             }
 
             const modalEl = document.getElementById('refundDetailModal');
-            const modal = new bootstrap.Modal(modalEl);
-            const spinner = document.getElementById('modalSpinner');
+            // FIX: Sử dụng getOrCreateInstance thay vì tạo instance mới mỗi lần
+            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
             const content = document.getElementById('refundDetailContent');
 
             // Show modal with spinner
-            spinner.classList.remove('hide');
-            content.innerHTML = '<div class="modal-spinner" id="modalSpinner"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Đang tải...</span></div></div>';
+            content.innerHTML = '<div class="modal-spinner"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Đang tải...</span></div></div>';
             modal.show();
 
             try {
