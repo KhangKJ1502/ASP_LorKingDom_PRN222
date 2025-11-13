@@ -15,6 +15,9 @@ namespace BLL.Validators
             if (string.IsNullOrWhiteSpace(addressLine))
                 throw new ArgumentException("Địa chỉ chi tiết không được để trống.");
 
+            if (string.IsNullOrWhiteSpace(ward))
+                throw new ArgumentException("Phường/Xã không được để trống.");
+
             // Ward có thể rỗng, nhưng không vượt quá 255 ký tự
             if (!string.IsNullOrEmpty(ward) && ward.Length > 255)
                 throw new ArgumentException("Phường/Xã không được vượt quá 255 ký tự.");

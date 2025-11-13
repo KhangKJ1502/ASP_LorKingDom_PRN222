@@ -11,13 +11,6 @@ namespace WebUI.Hubs;
 /// 3. Typing indicators
 /// 4. Conversation management
 /// 5. Staff page state tracking (on chat page hay không)
-/// 
-/// ENDPOINT: /chatHub?userId=xxx&isStaff=true/false&name=xxx
-/// 
-/// CLIENT LIBRARIES:
-/// - JavaScript: @microsoft/signalr (CDN hoặc npm)
-/// - Đã include trong _ChatWidget.cshtml và Staff.cshtml
-
 public class ChatHub : Hub
 {
     private readonly IChatService _chatService;
@@ -59,8 +52,6 @@ public class ChatHub : Hub
     /// Kiểm tra staff có đang ở trang chat không (để biết có cần gửi notification không)
     private bool IsStaffOnChatPage(string staffId)
         => _staffPageState.TryGetValue(staffId, out var on) && on;
-
-    // ==================== SIGNALR LIFECYCLE EVENTS ====================
     
     /// Được gọi khi client connect vào SignalR hub
     /// Query params: ?userId=xxx&isStaff=true/false&name=xxx
@@ -80,21 +71,6 @@ public class ChatHub : Hub
                 return;
             }
 
-            // Comment block trên và bỏ comment block dưới để chỉ cho phép authenticated users
-            //if (string.IsNullOrWhiteSpace(userId) || userId.StartsWith("guest_"))
-            //{
-            //    _logger.LogWarning("Connection rejected: unauthenticated user or guest - userId: {UserId}", userId);
-            //    Context.Abort();
-            //    return;
-            //}
-
-            //var authenticatedUserId = http?.User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-            //if (!isStaff && string.IsNullOrWhiteSpace(authenticatedUserId))
-            //{
-            //    _logger.LogWarning("Connection rejected: user not authenticated in HTTP context");
-            //    Context.Abort();
-            //    return;
-            //}
 
             // Lưu connection vào database (mapping userId ↔ connectionId)
             await _chatService.UserConnectedAsync(userId, isStaff, string.IsNullOrWhiteSpace(name) ? "Unknown" : name, Context.ConnectionId);
@@ -102,7 +78,6 @@ public class ChatHub : Hub
             // Add vào SignalR group để có thể gửi message targeted
             await Groups.AddToGroupAsync(Context.ConnectionId, $"user:{userId}");
 
-            // ===== XỬ LÝ STAFF =====
             if (isStaff)
             {
                 // Cập nhật in-memory state
@@ -196,7 +171,7 @@ public class ChatHub : Hub
     {
         try
         {
-            // Bỏ comment block dưới để yêu cầu đăng nhập
+            // Bỏ dan vao staff comment block dưới để yêu cầu đăng nhập StartChatAsCustomer
             //if (string.IsNullOrWhiteSpace(customerId) || customerId.StartsWith("guest_"))
             //{
             //    _logger.LogWarning("StartChatAsCustomer rejected: guest user - customerId: {CustomerId}", customerId);
@@ -234,13 +209,6 @@ public class ChatHub : Hub
     {
         try
         {
-            // Bỏ comment block dưới để yêu cầu đăng nhập
-            //if (string.IsNullOrWhiteSpace(customerId) || customerId.StartsWith("guest_"))
-            //{
-            //    _logger.LogWarning("StartChatWithStaff rejected: guest user - customerId: {CustomerId}", customerId);
-            //    throw new UnauthorizedAccessException("Vui lòng đăng nhập để sử dụng tính năng chat.");
-            //}
-
             // Tìm hoặc tạo conversation với staff được chọn
             var conversationId = await _chatService.StartChatWithStaffAsync(customerId, staffId);
 

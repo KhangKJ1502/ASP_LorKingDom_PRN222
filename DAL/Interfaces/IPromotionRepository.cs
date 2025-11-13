@@ -19,6 +19,7 @@ namespace DAL.Interfaces
         Task<bool> SetStatusAsync(int id, string status);   
         Task<List<Promotion>> GetActivePromotionsAsync();
         Task<List<Promotion>> GetActiveByProductAsync(int productId);
+        Task<List<Promotion>> GetActiveInTimeRangeAsync(); // Mới: lấy Active trong khoảng thời gian hợp lệ
         Task<bool> ExistsByNameAsync(string code, int? excludeId = null);
         Task<bool> HasOverlapAsync(int productId, DateTime start, DateTime end, int? excludeId = null);
     }

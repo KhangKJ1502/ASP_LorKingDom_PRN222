@@ -155,24 +155,23 @@ namespace DAL.Repositories
 
         public async Task<List<Promotion>> GetActivePromotionsAsync()
         {
-            var now = DateTime.Now;
+            var now = DateTime.UtcNow;
+            // Lấy TẤT CẢ promotions có Status = "Active" (không quan tâm thời gian)
+            // Để worker có thể kiểm tra và update thành "Inactive" nếu quá hạn
             return await _context.Promotions
                 .Where(p => !p.IsDeleted
-                            && p.Status == "Active"
-                            && p.StartDate <= now
-                            && p.EndDate >= now)
+                            && p.Status == "Active")
                 .OrderByDescending(p => p.CreatedAt)
                 .ToListAsync();
         }
 
         public Task<List<Promotion>> GetActiveByProductAsync(int productId)
         {
-            var now = DateTime.Now;
+            // Lấy TẤT CẢ promotions có Status = "Active" (không quan tâm thời gian)
+            // Để worker có thể kiểm tra và update thành "Inactive" nếu quá hạn
             return _context.Promotions
                 .Where(p => !p.IsDeleted
                             && p.Status == "Active"
-                            && p.StartDate <= now
-                            && p.EndDate >= now
                             && p.Products.Any(pr => pr.ProductId == productId))
                 .OrderByDescending(p => p.CreatedAt)
                 .ToListAsync();
@@ -198,6 +197,19 @@ namespace DAL.Repositories
                 query = query.Where(p => p.PromotionId != excludeId.Value);
 
             return query.AnyAsync();
+        }
+
+        // Hàm mới: Lấy promotions Active đang trong thời gian hợp lệ (để dùng cho display, không dùng cho worker)
+        public async Task<List<Promotion>> GetActiveInTimeRangeAsync()
+        {
+            var now = DateTime.Now; // Use local time to match database DateTime
+            return await _context.Promotions
+                .Where(p => !p.IsDeleted
+                            && p.Status == "Active"
+                            && p.StartDate <= now
+                            && p.EndDate > now)
+                .OrderByDescending(p => p.CreatedAt)
+                .ToListAsync();
         }
     }
 }
