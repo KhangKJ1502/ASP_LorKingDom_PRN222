@@ -48,6 +48,13 @@
         font-weight: 600;
     }
 
+    /* Disabled status dropdown (for cancelled orders) */
+    .status-badge:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+        pointer-events: none;
+    }
+
     /* Refund Status Colors */
     .refund-pending {
         background-color: #fff3cd;
@@ -303,7 +310,8 @@
 
                                         <select class="form-select form-select-sm status-badge @statusClass"
                                                 onchange="updateOrderStatus(@order.OrderId, this.value)"
-                                                style="width: auto; display: inline-block; font-weight: 600;">
+                                                style="width: auto; display: inline-block; font-weight: 600;"
+                                                @(order.StatusId == 5 ? "disabled" : "")>
                                             <option value="1" selected="@(order.StatusId == 1)">Chờ xác nhận</option>
                                             <option value="2" selected="@(order.StatusId == 2)">Đã xác nhận</option>
                                             <option value="3" selected="@(order.StatusId == 3)">Đang vận chuyển</option>

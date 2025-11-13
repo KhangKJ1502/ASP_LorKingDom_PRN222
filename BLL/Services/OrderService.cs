@@ -313,13 +313,83 @@ namespace BLL.Services
         // Cancel order of Customer
         public async Task<bool> UpdateOrderStatusAsync(int orderId, int newStatusId)
         {
+            // Check if cancelling order (status = 5)
+            if (newStatusId == 5)
+            {
+                await HandleOrderCancellationAsync(orderId);
+            }
+
             return await _orderRepo.UpdateOrderStatusAsync(orderId, newStatusId);
         }
 
         // Update order status of Manager
         public async Task<bool> UpdateOrderStatusAsync(int orderId, int newStatusId, int? changedBy, string? note = null)
         {
+            // Check if cancelling order (status = 5)
+            if (newStatusId == 5)
+            {
+                await HandleOrderCancellationAsync(orderId);
+            }
+
             return await _orderRepo.UpdateOrderStatusAsync(orderId, newStatusId, changedBy, note);
+        }
+
+        /// Handle order cancellation: restore product stock and refund wallet amount
+        private async Task HandleOrderCancellationAsync(int orderId)
+        {
+            // Get order with details
+            var order = await _orderRepo.GetByIdAsync(orderId);
+            if (order == null) return;
+
+            // 1. Restore product stock quantities
+            if (order.OrderDetails != null && order.OrderDetails.Any())
+            {
+                foreach (var detail in order.OrderDetails)
+                {
+                    var product = await _productRepo.GetByIdAsync(detail.ProductId);
+                    if (product != null)
+                    {
+                        product.Quantity += detail.Quantity;
+                        await _productRepo.UpdateAsync(product);
+                    }
+                }
+            }
+
+            // 2. Refund wallet amount if paid by wallet
+            if (order.PaidByWalletAmount > 0 && order.AccountId > 0)
+            {
+                // Get customer wallet
+                var wallet = await _walletRepo.GetByAccountIdAsync(order.AccountId);
+                if (wallet != null)
+                {
+                    // Calculate balance before and after
+                    var balanceBefore = wallet.Balance;
+                    wallet.Balance += order.PaidByWalletAmount;
+                    var balanceAfter = wallet.Balance;
+
+                    await _walletRepo.UpdateAsync(wallet);
+
+                    // Create refund transaction record
+                    var refundTransaction = new WalletTransaction
+                    {
+                        WalletId = wallet.WalletId,
+                        AccountId = order.AccountId,
+                        TxnType = "Refund",
+                        Direction = "CR",
+                        Amount = order.PaidByWalletAmount,
+                        BalanceBefore = balanceBefore,
+                        BalanceAfter = balanceAfter,
+                        RelatedOrderId = orderId,
+                        Method = "Wallet",
+                        Status = "Completed",
+                        Reason = $"Hoàn tiền hủy đơn hàng #{orderId}",
+                        IdempotencyKey = $"CANCEL_ORDER_{orderId}_{DateTime.Now.Ticks}",
+                        CreatedAt = DateTime.Now,
+                        CompletedAt = DateTime.Now
+                    };
+                    await _walletTransactionRepo.AddAsync(refundTransaction);
+                }
+            }
         }
 
         private OrderDto MapToDto(Order order)

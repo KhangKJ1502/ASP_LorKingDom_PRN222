@@ -60,11 +60,22 @@ namespace WebUI.Controllers
                         ExpiresUtc = rememberMe ? DateTimeOffset.UtcNow.AddDays(7) : null
                     });
 
+                string redirectUrl = "/";
+                if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+                {
+                    // Exclude POST-only endpoints that would cause 405 errors
+                    var excludedPaths = new[] { "/Wishlist/Toggle" };
+                    if (!excludedPaths.Any(p => returnUrl.StartsWith(p, StringComparison.OrdinalIgnoreCase)))
+                    {
+                        redirectUrl = returnUrl;
+                    }
+                }
+
                 return Json(new
                 {
                     success = true,
                     message = "Đăng nhập thành công! Chào mừng bạn trở lại.",
-                    redirectUrl = returnUrl ?? "/"
+                    redirectUrl = redirectUrl
                 });
             }
             catch (ArgumentException ex)
