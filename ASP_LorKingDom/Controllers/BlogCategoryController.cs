@@ -20,9 +20,6 @@ namespace WebUI.Controllers
 
         /// Display blog category management page with search and pagination
         /// GET: /BlogCategory/Manage
-        /// <param name="q">Search query for category name or description</param>
-        /// <param name="page">Current page number (default: 1)</param>
-        /// <param name="pageSize">Number of items per page (default: 10)</param>
         public async Task<IActionResult> Manage(string? q, int page = 1, int pageSize = 10)
         {
             // Get all active categories
@@ -72,7 +69,7 @@ namespace WebUI.Controllers
                 var category = await _service.GetByIdAsync(id);
                 if (category == null)
                 {
-                    return NotFound(new { success = false, message = "Category not found." });
+                    return NotFound(new { success = false, message = "Không tìm thấy danh mục!" });
                 }
 
                 return Json(category);
@@ -106,10 +103,6 @@ namespace WebUI.Controllers
 
         /// Create or update a blog category
         /// POST: /BlogCategory/SaveBlogCategory
-        /// <param name="id">Category ID (0 for create, >0 for update)</param>
-        /// <param name="name">Category name</param>
-        /// <param name="description">Category description (optional)</param>
-        /// <param name="isDeleted">Soft delete flag (not used in create/update)</param>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<JsonResult> SaveBlogCategory(int id, string name, string? description, bool isDeleted = false)
@@ -119,7 +112,7 @@ namespace WebUI.Controllers
                 // Validate input
                 if (string.IsNullOrWhiteSpace(name))
                 {
-                    return Json(new { success = false, message = "Category name is required." });
+                    return Json(new { success = false, message = "Tên danh mục là bắt buộc!" });
                 }
 
                 if (id == 0)
@@ -133,7 +126,7 @@ namespace WebUI.Controllers
                     };
 
                     await _service.CreateAsync(newCategory);
-                    return Json(new { success = true, message = "Blog category created successfully!" });
+                    return Json(new { success = true, message = "Tạo danh mục thành công!" });
                 }
                 else
                 {
@@ -141,14 +134,14 @@ namespace WebUI.Controllers
                     var existingCategory = await _service.GetByIdAsync(id);
                     if (existingCategory == null)
                     {
-                        return Json(new { success = false, message = "Category not found." });
+                        return Json(new { success = false, message = "Không tìm thấy danh mục!" });
                     }
 
                     existingCategory.BlogCategoryName = name.Trim();
                     existingCategory.Description = description?.Trim();
 
                     await _service.UpdateAsync(id, existingCategory);
-                    return Json(new { success = true, message = "Blog category updated successfully!" });
+                    return Json(new { success = true, message = "Cập nhật danh mục thành công!" });
                 }
             }
             catch (Exception ex)
@@ -168,10 +161,10 @@ namespace WebUI.Controllers
                 var success = await _service.SoftDeleteAsync(id);
                 if (!success)
                 {
-                    return Json(new { success = false, message = "Failed to delete blog category." });
+                    return Json(new { success = false, message = "Xoá danh mục thất bại!" });
                 }
 
-                return Json(new { success = true, message = "Blog category deleted successfully!" });
+                return Json(new { success = true, message = "Xoá danh mục thành công!" });
             }
             catch (InvalidOperationException ex)
             {

@@ -200,6 +200,19 @@ namespace WebUI.Controllers
         {
             try
             {
+                // Get current order to check status
+                var order = await _orderService.GetOrderByIdAsync(orderId);
+                if (order == null)
+                {
+                    return Json(new { success = false, message = "Không tìm thấy đơn hàng!" });
+                }
+
+                // Prevent updating if order is already cancelled (status = 5)
+                if (order.StatusId == 5)
+                {
+                    return Json(new { success = false, message = "Không thể thay đổi trạng thái đơn hàng đã hủy! Đơn hàng đã được hoàn tiền và hoàn lại số lượng sản phẩm." });
+                }
+
                 // Get current admin/staff ID
                 var adminId = GetAccountId();
 
@@ -210,7 +223,7 @@ namespace WebUI.Controllers
                 }
                 else
                 {
-                    return Json(new { success = false, message = "Không tìm thấy đơn hàng!" });
+                    return Json(new { success = false, message = "Không thể cập nhật trạng thái!" });
                 }
             }
             catch (Exception ex)
