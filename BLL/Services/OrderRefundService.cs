@@ -288,28 +288,90 @@ namespace BLL.Services
                 // Tính số tiền hoàn = số tiền user đã trả thực tế (bao gồm sale, shipping, voucher)
                 var finalAmount = order.PaidByWalletAmount + order.PaidByExternalAmount;
 
-                var refund = new OrderRefund
-                {
-                    OrderId = dto.OrderId,
-                    AccountId = accountId,
-                    RequestedBy = accountId,
-                    RefundMode = dto.RefundMode,
-                    RefundStatus = "Requested",
-                    TotalAmount = order.TotalAmount,
-                    RefundAmount = finalAmount,
-                    Reason = dto.Reason,
-                    CreatedAt = DateTime.Now,
-                    UpdatedAt = DateTime.Now
-                };
+                // Kiểm tra xem đã có refund trước đó chưa
+                var existingRefunds = await _repo.GetByOrderIdAsync(dto.OrderId);
 
-                var refundId = await _repo.CreateAsync(refund);
+                // Kiểm tra có refund đã được approve/processed chưa
+                var approvedRefund = existingRefunds
+                    .FirstOrDefault(r => r.RefundStatus == "Approved" || r.RefundStatus == "Processed");
 
-                return new RefundRequestResultDto
+                if (approvedRefund != null)
                 {
-                    Success = true,
-                    Message = "Yêu cầu hoàn tiền đã được gửi thành công. Chúng tôi sẽ xem xét và phản hồi sớm nhất.",
-                    RefundId = refundId
-                };
+                    return new RefundRequestResultDto
+                    {
+                        Success = false,
+                        Message = "Đơn hàng này đã được hoàn tiền. Không thể tạo yêu cầu hoàn tiền mới."
+                    };
+                }
+
+                // Kiểm tra có refund đang pending chưa
+                var pendingRefund = existingRefunds
+                    .FirstOrDefault(r => r.RefundStatus == "Requested" || r.RefundStatus == "Pending");
+
+                if (pendingRefund != null)
+                {
+                    return new RefundRequestResultDto
+                    {
+                        Success = false,
+                        Message = "Đã có yêu cầu hoàn tiền đang chờ xử lý. Vui lòng đợi kết quả từ quản lý."
+                    };
+                }
+
+                // Kiểm tra có refund bị rejected chưa - nếu có thì UPDATE thay vì INSERT
+                var rejectedRefund = existingRefunds
+                    .FirstOrDefault(r => r.RefundStatus == "Rejected");
+
+                long refundId;
+
+                if (rejectedRefund != null)
+                {
+                    // UPDATE refund cũ thay vì tạo mới
+                    rejectedRefund.RefundMode = dto.RefundMode;
+                    rejectedRefund.RefundStatus = "Requested";
+                    rejectedRefund.TotalAmount = finalAmount;
+                    rejectedRefund.RefundAmount = finalAmount;
+                    rejectedRefund.Reason = dto.Reason;
+                    rejectedRefund.UpdatedAt = DateTime.Now;
+                    rejectedRefund.ApprovedBy = null;
+                    rejectedRefund.ApprovedAt = null;
+                    rejectedRefund.ProcessedAt = null;
+
+                    await _repo.UpdateAsync(rejectedRefund);
+                    refundId = rejectedRefund.RefundId;
+
+                    return new RefundRequestResultDto
+                    {
+                        Success = true,
+                        Message = $"Yêu cầu hoàn tiền đã được gửi lại thành công. Số tiền yêu cầu hoàn: {finalAmount:N0} ₫",
+                        RefundId = refundId
+                    };
+                }
+                else
+                {
+                    // Tạo refund mới (lần đầu tiên)
+                    var refund = new OrderRefund
+                    {
+                        OrderId = dto.OrderId,
+                        AccountId = accountId,
+                        RequestedBy = accountId,
+                        RefundMode = dto.RefundMode,
+                        RefundStatus = "Requested",
+                        TotalAmount = finalAmount,
+                        RefundAmount = finalAmount,
+                        Reason = dto.Reason,
+                        CreatedAt = DateTime.Now,
+                        UpdatedAt = DateTime.Now
+                    };
+
+                    refundId = await _repo.CreateAsync(refund);
+
+                    return new RefundRequestResultDto
+                    {
+                        Success = true,
+                        Message = $"Yêu cầu hoàn tiền đã được gửi thành công. Số tiền yêu cầu hoàn: {finalAmount:N0} ₫",
+                        RefundId = refundId
+                    };
+                }
             }
             catch (Exception ex)
             {
