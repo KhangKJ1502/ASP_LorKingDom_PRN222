@@ -5,8 +5,8 @@ using WebUI.Filters;
 
 namespace WebUI.Controllers
 {
-    //[Authorize(AuthenticationSchemes = "AdminScheme")]
-    //[AdminAndWarehouseOnly] // Warehouse: Price Range Management
+    [Authorize(AuthenticationSchemes = "AdminScheme")]
+    [AdminAndWarehouseOnly] // Warehouse: Price Range Management
     public class PriceRangeController : Controller
     {
         private readonly IPriceRangeService _service;

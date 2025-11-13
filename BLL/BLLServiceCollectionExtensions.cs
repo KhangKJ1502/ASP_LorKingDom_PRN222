@@ -10,12 +10,9 @@ namespace BLL
     {
         public static IServiceCollection AddBLL(this IServiceCollection services)
         {
-            // Services của bạn ...
+    
             // services.AddScoped<IProductService, ProductService>();
             services.AddScoped<IAddressService, AddressService>();
-
-            // ✳️ Thêm dòng này:
-            //services.AddScoped<ISystemHealthService, SystemHealthService>();
 
             // Nhánh Authentication
             services.AddScoped<IAccountService, AccountService>();

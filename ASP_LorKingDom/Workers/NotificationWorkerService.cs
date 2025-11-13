@@ -10,14 +10,6 @@ using System.Threading.Tasks;
 namespace WebUI.BackgroundServices
 {
 
-    /// Background service tự động gửi thông báo định kỳ
-    /// - Kiểm tra notifications đến hạn trong database
-    /// - Gửi thông báo cho users (email, push, SignalR, etc.)
-    /// - Chạy mỗi 1 phút (có thể cấu hình)
-    /// 
-    /// CÁCH THAY ĐỔI INTERVAL:
-    /// - Sửa _interval = TimeSpan.FromMinutes(X)
-    /// - Restart server để áp dụng
 
     public class NotificationWorkerService : BackgroundService
     {
@@ -68,8 +60,6 @@ namespace WebUI.BackgroundServices
                 _logger.LogInformation("NotificationWorkerService STOPPED.");
             }
         }
-
-
 
         /// Wrapper đảm bảo:
         /// 1. Chỉ 1 job chạy tại 1 thời điểm (SemaphoreSlim)
@@ -129,7 +119,7 @@ namespace WebUI.BackgroundServices
             }
             else
             {
-                _logger.LogDebug("✔No due notifications at {UtcTime}.", 
+                _logger.LogDebug("No due notifications at {UtcTime}.", 
                     DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss"));
             }
         }
@@ -141,18 +131,4 @@ namespace WebUI.BackgroundServices
         }
     }
 }
-
-
-// 1. Worker này được đăng ký trong Program.cs:
-//    builder.Services.AddHostedService<NotificationWorkerService>();
-//
-// 2. Worker sẽ tự động chạy khi application start
-//
-// 3. Để thay đổi interval:
-//    - Sửa: private readonly TimeSpan _interval = TimeSpan.FromMinutes(X);
-//    - X có thể là: 1 (mỗi phút), 5 (mỗi 5 phút), 60 (mỗi giờ), etc.
-//
-// 4. Để tạm tắt worker:
-//    - Comment dòng AddHostedService trong Program.cs
-//    - HOẶC thêm check condition trong ExecuteAsync()
 

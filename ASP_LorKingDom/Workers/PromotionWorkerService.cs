@@ -6,20 +6,10 @@ using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace WebUI.Workers
 {
-
-    /// Background service tự động quản lý lifecycle của Promotions:
-    /// 
-    /// CHỨC NĂNG:
-    /// 1. Kiểm tra promotions đã HẾT HẠN → Set Status = "Inactive"
-    /// 2. Kiểm tra promotions CHƯA BẮT ĐẦU → Warning log (optional)
-    /// 3. Chạy mỗi 5 phút (có thể cấu hình)
-    /// 
-    /// CÁCH THAY ĐỔI INTERVAL:
-    /// - Sửa _interval = TimeSpan.FromMinutes(X)
-    /// - X khuyến nghị: 5-60 phút (không cần quá thường xuyên)
 
     public class PromotionWorkerService : BackgroundService
     {
@@ -28,7 +18,7 @@ namespace WebUI.Workers
         private readonly IServiceProvider _serviceProvider;
 
       
-        private readonly TimeSpan _interval = TimeSpan.FromMinutes(5); // Kiểm tra mỗi 5 phút
+        private readonly TimeSpan _interval = TimeSpan.FromMinutes(1); // Kiểm tra mỗi 5 phút
         private readonly SemaphoreSlim _gate = new(1, 1); // Đảm bảo chỉ 1 job chạy tại 1 thời điểm
 
         public PromotionWorkerService(
@@ -40,7 +30,7 @@ namespace WebUI.Workers
         }
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _logger.LogInformation("PromotionWorkerService STARTED. Interval: {Interval}", _interval);
+            _logger.LogInformation("========== [START] PromotionWorkerService STARTED at {StartTime:yyyy-MM-dd HH:mm:ss.fff}. Interval: {Interval} ==========", DateTime.Now, _interval);
 
             // Delay ngẫu nhiên 0-3s để tránh spike khi startup nhiều workers
             var startupJitterMs = Random.Shared.Next(0, 3000);
@@ -51,12 +41,13 @@ namespace WebUI.Workers
             try
             {
                 // Chạy ngay lần đầu tiên (không đợi interval đầu tiên)
-                _logger.LogInformation("Running initial promotion check...");
+                _logger.LogInformation("[RUN #1] Running initial promotion check at {Time:HH:mm:ss}...", DateTime.Now);
                 await SafeProcessOnceAsync(stoppingToken);
 
                 // Sau đó chạy theo interval
                 while (await timer.WaitForNextTickAsync(stoppingToken))
                 {
+                    _logger.LogInformation("[RUN] Periodic promotion check triggered at {Time:HH:mm:ss}...", DateTime.Now);
                     await SafeProcessOnceAsync(stoppingToken);
                 }
             }
@@ -71,7 +62,7 @@ namespace WebUI.Workers
             finally
             {
                 timer.Dispose();
-                _logger.LogInformation("PromotionWorkerService STOPPED.");
+                _logger.LogInformation("========== [STOP] PromotionWorkerService STOPPED at {StopTime:HH:mm:ss} ==========", DateTime.Now);
             }
         }
 
@@ -107,19 +98,10 @@ namespace WebUI.Workers
             {
                 sw.Stop();
                 _gate.Release();
-                _logger.LogDebug("Promotion check finished in {ElapsedMs} ms.", sw.ElapsedMilliseconds);
+                _logger.LogInformation("[DONE] Promotion check completed in {ElapsedMs}ms at {EndTime:HH:mm:ss}", sw.ElapsedMilliseconds, DateTime.Now);
             }
         }
 
-
-        /// Logic chính: Kiểm tra và cập nhật promotions
-        /// 
-        /// FLOW:
-        /// 1. Lấy tất cả promotions đang Active
-        /// 2. Với mỗi promotion:
-        ///    - Nếu HẾT HẠN (now > EndDate) → Set Status = "Inactive"
-        ///    - Nếu CHƯA BẮT ĐẦU (now < StartDate) → Log warning
-        /// 3. Log tổng kết số lượng đã xử lý
         private async Task ProcessExpiredPromotionsAsync(CancellationToken ct)
         {
             // Tạo scope mới để có DbContext mới
@@ -129,23 +111,28 @@ namespace WebUI.Workers
             try
             {
                 var activePromotions = await promotionService.GetActiveAsync();
-                var now = DateTime.Now;
+                var now = DateTime.Now; // Use Local time to match database DateTime (not UTC)
                 int expiredCount = 0;
                 int notStartedCount = 0;
 
-                _logger.LogDebug("Checking {Count} active promotions...", activePromotions.Count());
+                _logger.LogInformation("[SCAN] at {Now:HH:mm:ss} - Found {Count} active promotions", now, activePromotions.Count);
 
                 // ===== BƯỚC 2: Xử lý từng promotion =====
                 foreach (var promo in activePromotions)
                 {
-                    // *** TRƯỜNG HỢP 1: Promotion đã HẾT HẠN ***
-                    if (now > promo.EndDate)
+                    _logger.LogDebug("[DEBUG] Checking promotion: Code={Code}, ID={Id}, EndDate={End}, Now={Now}",
+                        promo.PromotionCode, promo.PromotionId, 
+                        promo.EndDate.ToString("yyyy-MM-dd HH:mm:ss"),
+                        now.ToString("yyyy-MM-dd HH:mm:ss"));
+
+                    // Kiểm tra nếu EndDate đã quá hạn
+                    if (now >= promo.EndDate)
                     {
                         _logger.LogInformation(
-                            "Promotion '{Code}' (ID: {Id}) EXPIRED. EndDate: {EndDate}, Now: {Now}",
+                            "[EXPIRED] Promotion Code={Code}, ID={Id} | EndDate={EndDate} <= Now={Now}",
                             promo.PromotionCode, promo.PromotionId, promo.EndDate.ToString("yyyy-MM-dd HH:mm"), now.ToString("yyyy-MM-dd HH:mm"));
 
-                        // Tự động set về Inactive
+                        // Tự động set về Expired (theo DB schema)
                         try
                         {
                             var updateDto = new BLL.DTOs.PromotionUpdateDto
@@ -156,43 +143,44 @@ namespace WebUI.Workers
                                 DiscountPercent = promo.DiscountPercent,
                                 StartDate = promo.StartDate,
                                 EndDate = promo.EndDate,
-                                Status = "Inactive" // Set về Inactive
+                                Status = "Expired"
                             };
 
-                            await promotionService.UpdateAsync(updateDto);
-                            expiredCount++;
-
-                            _logger.LogInformation(
-                                "Successfully set promotion '{Code}' to Inactive.",
-                                promo.PromotionCode);
+                            _logger.LogInformation("[DEBUG] Attempting to update promotion '{Code}' to Expired...", promo.PromotionCode);
+                            var updateResult = await promotionService.UpdateAsync(updateDto);
+                            
+                            if (updateResult)
+                            {
+                                expiredCount++;
+                                _logger.LogInformation(
+                                    "[SUCCESS] Promotion '{Code}' (ID: {Id}) updated to Expired. Total expired so far: {Count}",
+                                    promo.PromotionCode, promo.PromotionId, expiredCount);
+                            }
+                            else
+                            {
+                                _logger.LogError(
+                                    "[ERROR] Update returned FALSE for promotion '{Code}' (ID: {Id}). Check validation or database.",
+                                    promo.PromotionCode, promo.PromotionId);
+                            }
                         }
                         catch (Exception ex)
                         {
                             _logger.LogError(ex,
-                                "Failed to set promotion '{Code}' to Inactive.",
-                                promo.PromotionCode);
+                                "[EXCEPTION] While updating promotion '{Code}' (ID: {Id}) to Expired.",
+                                promo.PromotionCode, promo.PromotionId);
                         }
                     }
-                    // *** TRƯỜNG HỢP 2: Promotion CHƯA BẮT ĐẦU (optional warning) ***
-                    else if (now < promo.StartDate)
-                    {
-                        notStartedCount++;
-                        _logger.LogDebug(
-                            "Promotion '{Code}' (ID: {Id}) is Active but NOT STARTED yet. StartDate: {StartDate}",
-                            promo.PromotionCode, promo.PromotionId, promo.StartDate.ToString("yyyy-MM-dd HH:mm"));
-                    }
-                    // TRƯỜNG HỢP 3: Promotion đang trong thời gian active → OK
                 }
 
-                if (expiredCount > 0 || notStartedCount > 0)
+                if (expiredCount > 0)
                 {
                     _logger.LogInformation(
-                        "Promotion check completed: {Expired} expired → Inactive, {NotStarted} not started yet.",
-                        expiredCount, notStartedCount);
+                        "[RESULT] Check at {Now:HH:mm:ss} -> {Expired} EXPIRED (set Expired)",
+                        DateTime.Now, expiredCount);
                 }
                 else
                 {
-                    _logger.LogDebug("All promotions are in valid time range.");
+                    _logger.LogInformation("[RESULT] No expired promotions found at {Now:HH:mm:ss}. NO ACTION.", DateTime.Now);
                 }
             }
             catch (Exception ex)
@@ -208,28 +196,3 @@ namespace WebUI.Workers
         }
     }
 }
-
-
-// 1. Worker này được đăng ký trong Program.cs:
-//    builder.Services.AddHostedService<PromotionWorkerService>();
-//
-// 2. Worker sẽ:
-//    - Chạy NGAY khi application start (initial check)
-//    - Sau đó chạy theo interval (mặc định 5 phút)
-//
-// 3. Để thay đổi interval:
-//    - Sửa: private readonly TimeSpan _interval = TimeSpan.FromMinutes(X);
-//    - Khuyến nghị: 5-60 phút (không cần quá thường xuyên)
-//
-// 4. Để tạm tắt worker:
-//    - Comment dòng AddHostedService trong Program.cs
-//
-// 5. Monitor worker:
-//    - Xem logs: Tìm "PromotionWorkerService" trong console
-//    - Check database: Xem bảng Promotions → Status
-//
-// 6. Logic tự động:
-//    ✅ Promotion hết hạn → Status = "Inactive"
-//    ⚠️ Promotion chưa bắt đầu → Warning log (không thay đổi)
-//    ✔️ Promotion đang active → Không làm gì
-
