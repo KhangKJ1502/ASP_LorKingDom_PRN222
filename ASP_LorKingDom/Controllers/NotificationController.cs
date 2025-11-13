@@ -12,7 +12,7 @@ using WebUI.Filters;
 namespace WebUI.Controllers
 {
     [Authorize(AuthenticationSchemes = "AdminScheme")]
-    [AdminAndStaffOnly] // Staff: Notification Management
+    [AdminAndStaffOnly]
     [AutoValidateAntiforgeryToken]
     public class NotificationController : Controller
     {
@@ -39,7 +39,6 @@ namespace WebUI.Controllers
             {
                 ViewBag.EditNotification = await _svc.GetByIdAsync(nid);
             }
-
             return View("~/Views/Admin/ManageNotification.cshtml", pagedResult);
         }
 
@@ -57,7 +56,6 @@ namespace WebUI.Controllers
             {
                 ViewBag.EditNotification = await _svc.GetByIdAsync(nid);
             }
-
             return View("~/Views/Admin/ManageNotification.cshtml", pagedResult);
         }
 

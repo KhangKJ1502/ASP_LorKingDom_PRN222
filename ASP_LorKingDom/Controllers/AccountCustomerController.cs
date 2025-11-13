@@ -84,22 +84,17 @@ namespace WebUI.Controllers
                     TempData["Error"] = "Không tìm thấy khách hàng!";
                     return RedirectToListOrSearch(q, 1, pageSize);
                 }
-
-                // Update model
                 existing.AccountName = model.AccountName.Trim();
                 existing.PhoneNumber = string.IsNullOrWhiteSpace(model.PhoneNumber) ? null : model.PhoneNumber.Trim();
                 existing.Status = model.IsDeleted ? "Inactive" : model.Status;
                 existing.IsDeleted = model.IsDeleted;
                 existing.UpdatedAt = DateTime.Now;
-
-                // Service sẽ validate phone format và unique
                 var success = await _accountService.UpdateAsync(model.Id, existing);
                 TempData["Success"] = success ? "Cập nhật thành công!" : "Cập nhật thất bại!";
                 return RedirectToListOrSearch(q, 1, pageSize);
             }
             catch (InvalidOperationException ex)
             {
-                // Validation errors từ Service
                 return await ShowValidationError(ex.Message, model, q, pageSize);
             }
             catch (KeyNotFoundException ex)
@@ -168,8 +163,6 @@ namespace WebUI.Controllers
 
             return RedirectToListOrSearch(q, 1, pageSize);
         }
-
-        // ===== Helpers =====
         private IActionResult RedirectToListOrSearch(string? q, int page, int pageSize)
         {
             return string.IsNullOrWhiteSpace(q)

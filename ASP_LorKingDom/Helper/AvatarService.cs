@@ -13,7 +13,7 @@ namespace BLL.Services
     {
         private readonly IWebHostEnvironment _env;
         private static readonly string[] AllowedTypes = { "image/png", "image/jpeg", "image/jpg", "image/webp", "image/gif" };
-        private const long MaxFileSize = 2 * 1024 * 1024; // 2MB
+        private const long MaxFileSize = 5 * 1024 * 1024; // 5MB
         private const string UploadFolder = "uploads/staff";
 
         public AvatarService(IWebHostEnvironment env)
@@ -50,11 +50,9 @@ namespace BLL.Services
 
             try
             {
-                // Tạo folder nếu chưa tồn tại
                 var uploadsPath = Path.Combine(_env.WebRootPath, UploadFolder);
                 Directory.CreateDirectory(uploadsPath);
 
-                // Generate unique filename
                 var extension = Path.GetExtension(file.FileName).ToLower();
                 var fileName = $"{Guid.NewGuid():N}{extension}";
                 var fullPath = Path.Combine(uploadsPath, fileName);
@@ -85,7 +83,6 @@ namespace BLL.Services
             {
                 var fileName = Path.GetFileName(imagePath);
 
-                // Security: Chặn path traversal
                 if (fileName.Contains("..") || Path.IsPathRooted(fileName))
                     return;
 
@@ -98,7 +95,7 @@ namespace BLL.Services
             }
             catch
             {
-                // Ignore errors when deleting old files
+          
             }
         }
     }

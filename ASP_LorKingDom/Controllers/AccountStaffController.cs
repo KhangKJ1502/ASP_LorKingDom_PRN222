@@ -10,9 +10,9 @@ using WebUI.Filters;
 namespace WebUI.Controllers
 {
     [Authorize(AuthenticationSchemes = "AdminScheme")]
-    [AdminOnly] // Only Admin: Staff Management
+    [AdminOnly] 
     [AutoValidateAntiforgeryToken]
-    [RequestSizeLimit(5 * 1024 * 1024)] // 5MB
+    [RequestSizeLimit(5 * 1024 * 1024)] 
     public class AccountStaffController : Controller
     {
         private readonly IAccountService _accountService;
@@ -59,13 +59,11 @@ namespace WebUI.Controllers
 
         [HttpPost("account-staff/create")]
         public async Task<IActionResult> CreateStaff(
-            [Bind("AccountName,Email,PhoneNumber,RoleId,Password,ConfirmPassword,Status,IsDeleted,SearchQuery,PageSize")] BLL.DTOs.StaffFormModel model,
+            [Bind("AccountName,Email,PhoneNumber,RoleId,Password,ConfirmPassword,Status,IsDeleted,SearchQuery,PageSize")]StaffFormModel model,
             IFormFile? AvatarFile)
         {
             await LoadRolesAsync();
             model.Id = 0;
-            
-            // 1) Xử lý avatar (nếu có)
             string? imagePath = null;
             if (AvatarFile is { Length: > 0 })
             {
@@ -77,8 +75,6 @@ namespace WebUI.Controllers
                 }
                 imagePath = pathOrError;
             }
-
-            // 2) Chuyển sang AccountDto
             var accountDto = model.ToAccountDto();
             accountDto.Image = imagePath;
             accountDto.Status = model.IsDeleted ? "Inactive" : "Active";
@@ -86,9 +82,7 @@ namespace WebUI.Controllers
 
             try
             {
-                // 3) Service sẽ validate và create
                 var newId = await _accountService.CreateAsync(accountDto);
-                
                 TempData["Success"] = newId > 0 
                     ? "Thêm nhân viên thành công!" 
                     : "Thêm nhân viên thất bại!";
@@ -97,12 +91,8 @@ namespace WebUI.Controllers
             }
             catch (InvalidOperationException ex)
             {
-                // Validation errors từ Service (email trùng, phone trùng, etc.)
-                // CRITICAL: Phải giữ lại password để restore form
                 accountDto.Password = model.Password;
                 accountDto.Image = imagePath;
-                
-                // Xóa avatar nếu upload thất bại
                 if (!string.IsNullOrWhiteSpace(imagePath))
                     _avatarService.DeleteAvatar(imagePath);
                     
@@ -110,11 +100,8 @@ namespace WebUI.Controllers
             }
             catch (Exception ex)
             {
-                // Unexpected errors
                 accountDto.Password = model.Password;
                 accountDto.Image = imagePath;
-                
-                // Xóa avatar nếu upload thất bại
                 if (!string.IsNullOrWhiteSpace(imagePath))
                     _avatarService.DeleteAvatar(imagePath);
                     
@@ -122,7 +109,7 @@ namespace WebUI.Controllers
             }
         }
 
-        // ===== UPDATE =====
+
         [HttpPost("account-staff/update")]
         public async Task<IActionResult> UpdateStaff(
             [Bind("Id,AccountName,Email,PhoneNumber,RoleId,NewPassword,ConfirmNewPassword,Status,IsDeleted,ExistingImage,RemoveImage,SearchQuery,PageSize")] BLL.DTOs.StaffFormModel model,
@@ -130,27 +117,21 @@ namespace WebUI.Controllers
         {
             await LoadRolesAsync();
 
-            // 1) Validate Id
             if (model.Id <= 0)
             {
                 TempData["Error"] = "ID nhân viên không hợp lệ.";
                 return RedirectToListOrSearch(model.SearchQuery, 1, model.PageSize);
-            }
-            
-            // 2) Kiểm tra staff có tồn tại
+            }      
             var existing = await _accountService.GetByIdAsync(model.Id);
             if (existing == null)
             {
                 TempData["Error"] = "Không tìm thấy nhân viên!";
                 return RedirectToListOrSearch(model.SearchQuery, 1, model.PageSize);
             }
-
-            // 3) Xử lý avatar
             string? newImagePath = model.ExistingImage;
             
             if (AvatarFile is { Length: > 0 })
             {
-                // Upload avatar mới
                 var (success, pathOrError) = await _avatarService.SaveAvatarAsync(AvatarFile);
                 if (!success)
                 {
@@ -158,22 +139,17 @@ namespace WebUI.Controllers
                     tempDto.Image = model.ExistingImage;
                     return await ShowEditValidationError(pathOrError, tempDto, model.SearchQuery, model.PageSize);
                 }
-                
-                // Xóa avatar cũ
                 _avatarService.DeleteAvatar(existing.Image);
                 newImagePath = pathOrError;
             }
             else if (model.RemoveImage)
             {
-                // Xóa avatar
                 _avatarService.DeleteAvatar(existing.Image);
                 newImagePath = null;
             }
-
-            // 4) Chuyển sang DTO và update
             var accountDto = model.ToAccountDto();
             accountDto.Id = model.Id;
-            accountDto.Email = existing.Email; // Không cho phép đổi email
+            accountDto.Email = existing.Email;
             accountDto.Image = newImagePath;
             accountDto.Status = model.IsDeleted ? "Inactive" : model.Status;
             accountDto.Password = !string.IsNullOrWhiteSpace(model.NewPassword) ? model.NewPassword : existing.Password;
@@ -181,7 +157,6 @@ namespace WebUI.Controllers
 
             try
             {
-                // 5) Service validate và update
                 var success = await _accountService.UpdateAsync(model.Id, accountDto);
                 
                 TempData["Success"] = success 
@@ -192,7 +167,6 @@ namespace WebUI.Controllers
             }
             catch (InvalidOperationException ex)
             {
-                // Validation errors (phone trùng, email change attempt, etc.)
                 return await ShowEditValidationError(ex.Message, accountDto, model.SearchQuery, model.PageSize);
             }
             catch (KeyNotFoundException ex)
@@ -202,11 +176,10 @@ namespace WebUI.Controllers
             }
             catch (Exception ex)
             {
-                return await ShowEditValidationError($"❌ Lỗi: {ex.Message}", accountDto, model.SearchQuery, model.PageSize);
+                return await ShowEditValidationError($"Lỗi: {ex.Message}", accountDto, model.SearchQuery, model.PageSize);
             }
         }
 
-        // ===== DELETE / RESTORE =====
         [HttpPost]
         public async Task<IActionResult> DeleteStaff(int id, string? q, int pageSize = 10)
         {
@@ -247,7 +220,6 @@ namespace WebUI.Controllers
             return RedirectToListOrSearch(q, 1, pageSize);
         }
 
-        // ===== Helpers =====
         private static List<AccountDto> Filter(List<AccountDto> all, string? q)
         {
             if (string.IsNullOrWhiteSpace(q)) return all;
@@ -298,7 +270,6 @@ namespace WebUI.Controllers
             ViewBag.Roles = roles.OrderBy(r => r.RoleName).Select(r => new { r.RoleId, r.RoleName }).ToList();
         }
 
-        // ===== Helper Methods =====
         private IActionResult RedirectToListOrSearch(string? q, int page, int pageSize)
         {
             return string.IsNullOrWhiteSpace(q)
@@ -306,7 +277,6 @@ namespace WebUI.Controllers
                 : RedirectToAction(nameof(Search), new { q, page, pageSize });
         }
 
-        // Helper method for Add validation error display
         private async Task<IActionResult> ShowAddValidationError(string errorMessage, AccountDto model, string? q, int pageSize)
         {
             ViewBag.ShowErrorModal = true;
@@ -316,7 +286,6 @@ namespace WebUI.Controllers
             return await ReloadManagePage(q, 1, pageSize, model);
         }
 
-        // Helper method for Edit validation error display
         private async Task<IActionResult> ShowEditValidationError(string errorMessage, AccountDto model, string? q, int pageSize)
         {
             ViewBag.ShowErrorModal = true;

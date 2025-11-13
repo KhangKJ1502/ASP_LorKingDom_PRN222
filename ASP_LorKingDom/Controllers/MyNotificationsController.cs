@@ -175,8 +175,6 @@ namespace WebUI.Controllers
             {
                 await _svc.MarkReadAsync(id);
             }
-
-            // cập nhật lại số chưa đọc cho badge
             var unreadCount = await _svc.GetUnreadCountAsync(currentUserId);
 
             return Json(new { success = true, unread = unreadCount });

@@ -20,16 +20,11 @@ namespace BLL.DTOs
         public int OrdersToday { get; set; }
         public int OrdersThisMonth { get; set; }
         public int NewCustomersThisMonth { get; set; }
-
-        // Top selling products
         public List<TopSellingProductDto> TopSellingProducts { get; set; } = new();
-
         // Revenue by month (last 12 months)
         public List<MonthlyRevenueDto> MonthlyRevenues { get; set; } = new();
-
         // Order status breakdown
         public Dictionary<string, int> OrdersByStatus { get; set; } = new();
-
         // Revenue trend (last 7 days)
         public List<DailyRevenueDto> DailyRevenues { get; set; } = new();
     }
@@ -71,20 +66,12 @@ namespace BLL.DTOs
         public int DiscontinuedProducts { get; set; }
         public int LowStockProducts { get; set; }
         public decimal TotalInventoryValue { get; set; }
-
-        // Sales by category
         public List<CategorySalesDto> SalesByCategory { get; set; } = new();
 
         // Top performing products
         public List<TopSellingProductDto> TopProducts { get; set; } = new();
-
-        // Worst performing products
         public List<TopSellingProductDto> WorstProducts { get; set; } = new();
-
-        // Stock alerts
         public List<LowStockProductDto> LowStockAlerts { get; set; } = new();
-
-        // Sales by brand
         public List<BrandSalesDto> SalesByBrand { get; set; } = new();
     }
 

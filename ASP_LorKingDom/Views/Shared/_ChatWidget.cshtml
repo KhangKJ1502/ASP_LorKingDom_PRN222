@@ -1,7 +1,7 @@
 ﻿@{
     
     //  GUEST MODE (Đang dùng) - Cho phép chat không cần đăng nhập
-    var userId = User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? ("guest_" + Guid.NewGuid().ToString("N").Substring(0, 8));
+     var userId = User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? ("guest_" + Guid.NewGuid().ToString("N").Substring(0, 8));
     var name = User?.Identity?.Name ?? "Khách hàng";
     var isAuthenticated = false; // Guest luôn = false
     
@@ -88,19 +88,14 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
 <script>
     (function () {
-        // ===== Razor -> JS =====
         const USER_ID = "@userId";
         const DISPLAY_NAME = "@name";
         const IS_AUTHENTICATED = @Json.Serialize(isAuthenticated);
         const HUB = `/chatHub?userId=${encodeURIComponent(USER_ID)}&isStaff=false&name=${encodeURIComponent(DISPLAY_NAME)}`;
-
-        // state
         let conn = null;
         let convId = null;
         let typingTimer = null;
         let isBoxOpen = false;
-
-        // dom
         const toggleBtn = document.getElementById('chatToggleBtn');
         const chatBox = document.getElementById('chatBox');
         const minimizeBtn = document.getElementById('minimizeBtn');
@@ -188,10 +183,7 @@
             }
         }
 
-        // ===== chat actions =====
-        // ==================== CẶP CHẾ ĐỘ A: AUTHENTICATION ====================
-        
-        // ✅ A1: GUEST MODE (Đang dùng) - Gửi tin nhắn không cần đăng nhập
+        // Gửi tin nhắn không cần đăng nhập
         async function sendMessage() {
             const text = messageInput.value.trim();
             if (!text) return;
@@ -199,14 +191,14 @@
             // Chỉ tạo conversation khi GỬI TIN NHẮN ĐẦU TIÊN
             if (!convId) {
                 try {
-                    console.log("🔌 Tạo conversation khi gửi tin nhắn đầu tiên...");
+                    console.log("Tạo conversation khi gửi tin nhắn đầu tiên...");
                     await startConversation();
                     if (!convId) {
-                        console.error("❌ Không thể tạo conversation");
+                        console.error(" Không thể tạo conversation");
                         return;
                     }
                 } catch (err) {
-                    console.error("❌ Lỗi khi tạo conversation:", err);
+                    console.error("Lỗi khi tạo conversation:", err);
                     return;
                 }
             }
@@ -218,47 +210,6 @@
                 console.error("SendMessage error:", err);
             }
         }
-
-        // 🔐 A2: CUSTOMER MODE - Yêu cầu đăng nhập khi gửi tin nhắn (Comment A1, bỏ comment A2)
-        // async function sendMessage() {
-        //     // Kiểm tra đăng nhập
-        //     if (!IS_AUTHENTICATED) {
-        //         Swal.fire({
-        //             icon: 'warning',
-        //             title: 'Vui lòng đăng nhập',
-        //             text: 'Bạn cần đăng nhập để gửi tin nhắn.',
-        //             confirmButtonColor: '#667eea'
-        //         });
-        //         return;
-        //     }
-        //
-        //     const text = messageInput.value.trim();
-        //     if (!text) return;
-        //
-        //     // Chỉ tạo conversation khi GỬI TIN NHẮN ĐẦU TIÊN
-        //     if (!convId) {
-        //         try {
-        //             console.log("🔌 Tạo conversation khi gửi tin nhắn đầu tiên...");
-        //             await startConversation();
-        //             if (!convId) {
-        //                 console.error("❌ Không thể tạo conversation");
-        //                 return;
-        //             }
-        //         } catch (err) {
-        //             console.error("❌ Lỗi khi tạo conversation:", err);
-        //             return;
-        //         }
-        //     }
-        //
-        //     messageInput.value = '';
-        //     try {
-        //         await conn.invoke("SendMessage", convId, USER_ID, text);
-        //     } catch (err) {
-        //         console.error("SendMessage error:", err);
-        //     }
-        // }
-        
-        // ==================== KẾT THÚC CẶP A ====================
 
         function handleTyping() {
             if (!convId) return;
@@ -320,30 +271,19 @@
             console.log("SignalR connected");
         }
 
-        // Gọi RPC server để lấy / tạo conversation đúng staff
+        // Gọi RPC server để tạo conversation (auto-assign staff)
         async function startConversation() {
-            const { staffId } = getAssignedStaff();
-
             try {
-                if (staffId) {
-                    // Ưu tiên staffId từ cookie
-                    convId = await conn.invoke("StartChatWithStaff", USER_ID, staffId);
-                    console.log("StartChatWithStaff ->", convId);
-
-                    // bật tạm trạng thái online = true tới khi presenceChanged sync lại
-                    setAgentStatus(true);
-                } else {
-                    // fallback: auto-assign staff
-                    convId = await conn.invoke("StartChatAsCustomer", USER_ID);
-                    console.log("StartChatAsCustomer ->", convId);
-                }
+                console.log("🔌 Bắt đầu chat - auto-assign staff...");
+                convId = await conn.invoke("StartChatAsCustomer", USER_ID);
+                console.log("✅ StartChatAsCustomer ->", convId);
+                setAgentStatus(true, 'Kết nối thành công');
             } catch (err) {
                 console.error("startConversation failed:", err);
                 agentStatus.querySelector('.status-text').textContent = 'Lỗi kết nối';
             }
         }
 
-        // Biến để track xem đã kết nối chưa (tránh connect nhiều lần)
         let isConnected = false;
         let isConnecting = false;
 
@@ -366,6 +306,47 @@
                 isConnecting = false;
             }
         }
+
+                // 🔐 A2: CUSTOMER MODE - Yêu cầu đăng nhập khi gửi tin nhắn (Comment A1, bỏ comment A2)
+        // async function sendMessage() {
+        //     // Kiểm tra đăng nhập
+        //     if (!IS_AUTHENTICATED) {
+        //         Swal.fire({
+        //             icon: 'warning',
+        //             title: 'Vui lòng đăng nhập',
+        //             text: 'Bạn cần đăng nhập để gửi tin nhắn.',
+        //             confirmButtonColor: '#667eea'
+        //         });
+        //         return;
+        //     }
+        //
+        //     const text = messageInput.value.trim();
+        //     if (!text) return;
+        //
+        //     // Chỉ tạo conversation khi GỬI TIN NHẮN ĐẦU TIÊN
+        //     if (!convId) {
+        //         try {
+        //             console.log("🔌 Tạo conversation khi gửi tin nhắn đầu tiên...");
+        //             await startConversation();
+        //             if (!convId) {
+        //                 console.error("❌ Không thể tạo conversation");
+        //                 return;
+        //             }
+        //         } catch (err) {
+        //             console.error("❌ Lỗi khi tạo conversation:", err);
+        //             return;
+        //         }
+        //     }
+        //
+        //     messageInput.value = '';
+        //     try {
+        //         await conn.invoke("SendMessage", convId, USER_ID, text);
+        //     } catch (err) {
+        //         console.error("SendMessage error:", err);
+        //     }
+        // }
+
+        // ==================== KẾT THÚC CẶP A ====================
 
         chatToggleBtn.addEventListener('click', async () => {
             // Nếu chưa kết nối, kết nối trước rồi mới mở chat box
