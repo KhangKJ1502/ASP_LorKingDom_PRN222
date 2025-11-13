@@ -163,7 +163,6 @@ public class ChatHub : Hub
         await base.OnDisconnectedAsync(exception);
     }
 
-    
     /// [CUSTOMER] Bắt đầu chat (auto-assign staff)
     /// Called from: _ChatWidget.cshtml
     /// Returns: conversationId
@@ -202,42 +201,6 @@ public class ChatHub : Hub
     }
 
 
-    /// [CUSTOMER] Bắt đầu chat với staff cụ thể
-    /// Called from: Customer UI (khi chọn staff từ danh sách online)
-    /// Returns: conversationId
-    public async Task<string> StartChatWithStaff(string customerId, string staffId)
-    {
-        try
-        {
-            // Tìm hoặc tạo conversation với staff được chọn
-            var conversationId = await _chatService.StartChatWithStaffAsync(customerId, staffId);
-
-            // Add caller vào SignalR group
-            await Groups.AddToGroupAsync(Context.ConnectionId, $"conv:{conversationId}");
-
-            // Notify staff về conversation mới
-            var conv = await _chatService.OpenByStaffAsync(conversationId);
-            if (conv != null)
-            {
-                await Clients.Group($"user:{staffId}").SendAsync("conversationUpdated", conv);
-            }
-
-            _logger.LogInformation("Customer {CustomerId} started chat with staff {StaffId} - ConvId: {ConvId}", customerId, staffId, conversationId);
-            return conversationId;
-        }
-        catch (NotImplementedException)
-        {
-            // Fallback: nếu chưa implement StartChatWithStaffAsync → dùng auto-assign
-            _logger.LogWarning("StartChatWithStaffAsync not implemented, falling back to auto-assign");
-            return await StartChatAsCustomer(customerId);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error StartChatWithStaff customer {CustomerId} staff {StaffId}", customerId, staffId);
-            throw;
-        }
-    }
-
     /// [UI] Lấy danh sách staff đang online
     /// Returns: [{ staffId, name }]
     public Task<IEnumerable<object>> GetOnlineStaff()
@@ -253,7 +216,7 @@ public class ChatHub : Hub
             .ToList()
             .AsEnumerable();
 
-        _logger.LogInformation("📋 GetOnlineStaff: {Count} staff(s) online", list.Count());
+        _logger.LogInformation("GetOnlineStaff: {Count} staff(s) online", list.Count());
         return Task.FromResult(list);
     }
 
@@ -284,7 +247,6 @@ public class ChatHub : Hub
     /// [CUSTOMER/STAFF] Lấy danh sách messages của một conversation
     /// Called from: Staff.cshtml / _ChatWidget.cshtml khi mở conversation
     /// Returns: List của MessageDto
-
     public async Task<List<MessageDto>> GetMessages(string conversationId)
     {
         try
@@ -340,8 +302,6 @@ public class ChatHub : Hub
                 _logger.LogWarning("SendMessage rejected: empty message");
                 return;
             }
-
-
             // Bỏ comment block dưới để yêu cầu đăng nhập
             //if (string.IsNullOrWhiteSpace(senderId) || senderId.StartsWith("guest_"))
             //{
@@ -351,7 +311,6 @@ public class ChatHub : Hub
 
             _logger.LogInformation("SendMessage - Conv:{Conv}, From:{From}, Text:{Text}", conversationId, senderId, text.Substring(0, Math.Min(50, text.Length)));
 
-            // BƯỚC 1: Lưu message vào database
             var (message, conversation) = await _chatService.SendAsync(conversationId, senderId, text);
 
             // BƯỚC 2: Broadcast message realtime đến tất cả clients trong conversation

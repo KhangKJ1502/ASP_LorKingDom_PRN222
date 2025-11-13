@@ -10,7 +10,7 @@ using WebUI.Filters;
 namespace WebUI.Controllers
 {
     [Authorize(AuthenticationSchemes = "AdminScheme")]
-    [AdminAndStaffOnly] // Staff: Promotion Management
+    [AdminAndStaffOnly]
     public class PromotionController : Controller
     {
         private readonly IPromotionService _promotionService;
@@ -22,7 +22,6 @@ namespace WebUI.Controllers
             _productService = productService;
         }
 
-        // ===== Manage products under a promotion =====
         [HttpGet]
         public async Task<IActionResult> ManageProducts(int promotionId, string? q, int page = 1, int pageSize = 20)
         {
@@ -32,15 +31,12 @@ namespace WebUI.Controllers
                 TempData["ErrorMessage"] = "Không tìm thấy khuyến mãi.";
                 return RedirectToAction(nameof(Index));
             }
-
-            // lấy tất cả product (admin view) và đánh dấu sản phẩm đang được gán promotion này
             var paged = await _productService.GetAdminPagedAsync(q, page, pageSize);
             foreach (var p in paged.Items)
             {
                 if (p.PromotionId == promotionId)
                     p.IsOnSale = true; 
             }
-
             ViewBag.Promotion = promo;
             ViewBag.Query = q ?? "";
             return View("~/Views/Admin/ManagePromotionProducts.cshtml", paged);
@@ -50,20 +46,17 @@ namespace WebUI.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AssignProducts(int promotionId, int[]? productIds)
         {
-            // Kiểm tra promotion có hợp lệ trước
             var promotion = await _promotionService.GetByIdAsync(promotionId);
             if (promotion == null)
             {
                 TempData["ErrorMessage"] = "Promotion không tồn tại.";
                 return RedirectToAction(nameof(Index));
             }
-
             if (promotion.Status != "Active")
             {
                 TempData["ErrorMessage"] = "Chỉ có thể gán sản phẩm cho promotion đang Active.";
                 return RedirectToAction(nameof(ManageProducts), new { promotionId });
             }
-
             var now = DateTime.Now;
             if (now < promotion.StartDate)
             {
@@ -83,19 +76,14 @@ namespace WebUI.Controllers
 
             if (productIds == null || productIds.Length == 0)
             {
-                // Unassign all currently assigned
                 foreach (var id in currentlyAssigned)
                     await _productService.SetPromotionAsync(id, null);
             }
             else
             {
                 var selected = productIds.Distinct().ToHashSet();
-
-                // Assign selected
                 foreach (var pid in selected)
                     await _productService.SetPromotionAsync(pid, promotionId);
-
-                // Unassign those that were previously assigned but now not selected
                 var toUnassign = currentlyAssigned.Except(selected);
                 foreach (var id in toUnassign)
                     await _productService.SetPromotionAsync(id, null);
@@ -145,8 +133,6 @@ namespace WebUI.Controllers
                 TempData["ErrorMessage"] = "Không tìm thấy khuyến mãi cần sửa.";
                 return RedirectToListOrSearch(keyword, page, pageSize);
             }
-
-            // ghi nhớ id để Manage() biết mở modal edit
             TempData["EditPromotionId"] = id;
 
             return RedirectToListOrSearch(keyword, page, pageSize);
@@ -179,11 +165,7 @@ namespace WebUI.Controllers
             }
             catch (ArgumentException ex)
             {
-                // Validation errors (format, required fields)
-                // KHÔNG set TempData vì dùng Swal.fire
                 ViewBag.ErrorMessage = ex.Message;
-                
-                // Convert DTO to PromotionDto for Add modal
                 ViewBag.AddPromotion = new PromotionDto
                 {
                     PromotionCode = dto.PromotionCode,
@@ -193,18 +175,13 @@ namespace WebUI.Controllers
                     EndDate = dto.EndDate,
                     Status = dto.Status
                 };
-                
                 await PrepareManagePageAsync(keyword, page, pageSize);
                 return View("~/Views/Admin/ManagePromotion.cshtml", 
                     ViewData["PagedResult"] as PagedResult<PromotionDto>);
             }
             catch (InvalidOperationException ex)
             {
-                // Business logic errors (duplicate code, overlap)
-                // KHÔNG set TempData vì dùng Swal.fire
                 ViewBag.ErrorMessage = ex.Message;
-                
-                // Convert DTO to PromotionDto for Add modal
                 ViewBag.AddPromotion = new PromotionDto
                 {
                     PromotionCode = dto.PromotionCode,
@@ -221,11 +198,7 @@ namespace WebUI.Controllers
             }
             catch (Exception ex)
             {
-                // Unexpected errors
-                // KHÔNG set TempData vì dùng Swal.fire
                 ViewBag.ErrorMessage = $"Lỗi không xác định: {ex.Message}";
-                
-                // Convert DTO to PromotionDto for Add modal
                 ViewBag.AddPromotion = new PromotionDto
                 {
                     PromotionCode = dto.PromotionCode,
@@ -258,7 +231,6 @@ namespace WebUI.Controllers
                 TempData["ErrorMessage"] = "ID khuyến mãi không hợp lệ.";
                 return RedirectToListOrSearch(keyword, page, pageSize);
             }
-
             try
             {
                 var ok = await _promotionService.UpdateAsync(new PromotionUpdateDto
@@ -283,11 +255,7 @@ namespace WebUI.Controllers
             }
             catch (ArgumentException ex)
             {
-                // Validation errors (format, required fields)
-                // KHÔNG set TempData vì dùng Swal.fire
                 ViewBag.ErrorMessage = ex.Message;
-                
-                // Convert DTO to PromotionDto for edit modal
                 ViewBag.EditPromotion = new PromotionDto
                 {
                     PromotionId = dto.PromotionId,
@@ -305,11 +273,7 @@ namespace WebUI.Controllers
             }
             catch (InvalidOperationException ex)
             {
-                // Business logic errors (duplicate code, overlap)
-                // KHÔNG set TempData vì dùng Swal.fire
                 ViewBag.ErrorMessage = ex.Message;
-                
-                // Convert DTO to PromotionDto for edit modal
                 ViewBag.EditPromotion = new PromotionDto
                 {
                     PromotionId = dto.PromotionId,
@@ -327,11 +291,7 @@ namespace WebUI.Controllers
             }
             catch (Exception ex)
             {
-                // Unexpected errors
-                // KHÔNG set TempData vì dùng Swal.fire
                 ViewBag.ErrorMessage = $"Lỗi không xác định: {ex.Message}";
-                
-                // Convert DTO to PromotionDto for edit modal
                 ViewBag.EditPromotion = new PromotionDto
                 {
                     PromotionId = dto.PromotionId,
@@ -418,7 +378,6 @@ namespace WebUI.Controllers
 
         // ===========================
         // GET: /Promotion/CheckCodeExists?code=...&excludeId=...
-        // AJAX validate duy nh?t m�
         // ===========================
         [HttpGet]
         public async Task<IActionResult> CheckCodeExists(string code, int? excludeId)

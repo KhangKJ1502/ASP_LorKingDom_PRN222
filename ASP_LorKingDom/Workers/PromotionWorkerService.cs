@@ -1,4 +1,5 @@
 using BLL.Interfaces;
+using BLL.DTOs;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -113,7 +114,6 @@ namespace WebUI.Workers
                 var activePromotions = await promotionService.GetActiveAsync();
                 var now = DateTime.Now; // Use Local time to match database DateTime (not UTC)
                 int expiredCount = 0;
-                int notStartedCount = 0;
 
                 _logger.LogInformation("[SCAN] at {Now:HH:mm:ss} - Found {Count} active promotions", now, activePromotions.Count);
 
@@ -135,7 +135,7 @@ namespace WebUI.Workers
                         // Tự động set về Expired (theo DB schema)
                         try
                         {
-                            var updateDto = new BLL.DTOs.PromotionUpdateDto
+                            var updateDto = new PromotionUpdateDto
                             {
                                 PromotionId = promo.PromotionId,
                                 PromotionCode = promo.PromotionCode,

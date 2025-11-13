@@ -50,7 +50,6 @@ namespace WebUI.Controllers
 
         // ------------------------------
         // GET: /OrderRefundAdmin/GetRefundDetail/{id}
-        // -> Dùng cho modal chi tiết hoàn tiền (AJAX)
         // ------------------------------
         [HttpGet("GetRefundDetail/{id}")]
         public async Task<IActionResult> GetRefundDetail(long id)
@@ -121,7 +120,6 @@ namespace WebUI.Controllers
 
         // ------------------------------
         // POST: /OrderRefundAdmin/UpdateStatus
-        // (Giữ lại để tương thích ngược - cho các trạng thái khác: Processing, Completed, Cancelled)
         // ------------------------------
         [HttpPost("UpdateStatus")]
         [ValidateAntiForgeryToken]
@@ -157,8 +155,6 @@ namespace WebUI.Controllers
         // ===================================================================
         // PRIVATE HELPERS
         // ===================================================================
-
-        // Tải danh sách refund + gắn ViewBag filter
         private async Task<IActionResult> LoadRefundListAsync(
             string? keyword,
             string? status,

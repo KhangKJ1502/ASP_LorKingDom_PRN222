@@ -92,12 +92,19 @@ namespace DAL.Repositories
 
         public async Task<decimal> GetRevenueThisYearAsync()
         {
-            var year = DateTime.Now.Year;
-            var firstDay = new DateTime(year, 1, 1);
+            //var year = DateTime.Now.Year;
+            //var firstDay = new DateTime(year, 1, 1);
+            //return await _ctx.Orders
+            //    .Where(o => !o.IsDeleted && o.PaymentCompletedAt != null &&
+            //               o.PaymentCompletedAt.Value >= firstDay)
+            //    .SumAsync(o => o.TotalAmount);
+            var now = DateTime.Now;
+            var firstDay = new DateTime(now.Year, now.Month, 1);
+            var nextMonth = firstDay.AddMonths(1);
             return await _ctx.Orders
-                .Where(o => !o.IsDeleted && o.PaymentCompletedAt != null &&
-                           o.PaymentCompletedAt.Value >= firstDay)
+                .Where(o => !o.IsDeleted && o.PaymentCompletedAt >= firstDay && o.PaymentCompletedAt < nextMonth)
                 .SumAsync(o => o.TotalAmount);
+
         }
 
         public async Task<int> GetOrdersTodayAsync()
