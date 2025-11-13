@@ -49,7 +49,7 @@ namespace ASP_LorKingDom.Controllers
 
                 // Update basic info
                 user.AccountName = accountName?.Trim() ?? user.AccountName;
-                user.PhoneNumber = phoneNumber?.Trim();
+                user.PhoneNumber = string.IsNullOrWhiteSpace(phoneNumber) ? null : phoneNumber.Trim();
 
                 // Update avatar if provided
                 if (avatar != null && avatar.Length > 0)

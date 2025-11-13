@@ -110,7 +110,7 @@ namespace BLL.Services
                             Cảm ơn bạn đã gia nhập cộng đồng <strong>Lordkingdom</strong>.<br/>
                             Hãy bắt đầu hành trình cùng chúng tôi để lan tỏa năng lượng tích cực!
                         </p>
-                        <a href='https://lordkingdom.com' target='_blank'
+                        <a href='https://localhost:7777/' target='_blank'
                            style='display:inline-block;margin-top:16px;
                                   background:linear-gradient(135deg,#f97316,#fb923c);
                                   color:white;padding:12px 28px;border-radius:10px;

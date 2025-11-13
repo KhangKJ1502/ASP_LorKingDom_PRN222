@@ -1,5 +1,4 @@
-﻿using System;
-using BLL.DTOs;
+﻿using BLL.DTOs;
 
 namespace BLL.Validators
 {
@@ -9,6 +8,9 @@ namespace BLL.Validators
         {
             if (string.IsNullOrWhiteSpace(city))
                 throw new ArgumentException("Thành phố không được để trống.");
+
+            if (string.IsNullOrWhiteSpace(ward))
+                throw new ArgumentException("Phường/Xã không được để trống.");
 
             if (string.IsNullOrWhiteSpace(addressLine))
                 throw new ArgumentException("Địa chỉ chi tiết không được để trống.");

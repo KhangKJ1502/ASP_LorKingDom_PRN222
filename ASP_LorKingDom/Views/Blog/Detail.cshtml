@@ -473,7 +473,7 @@
                         <div class="comment-form card mb-4">
                             <div class="card-body">
                                 <h5 class="mb-3">Viết bình luận</h5>
-                                <form id="commentForm" method="post" action="/Blog/@Model.BlogPostId/Reviews" onsubmit="return handleCommentSubmit(event)">
+                                <form id="commentForm" action="/Blog/@Model.BlogPostId/Reviews" onsubmit="return handleCommentSubmit(event)">
                                     @Html.AntiForgeryToken()
                                     <div class="mb-3">
                                         <textarea name="comment" id="commentText" class="form-control" rows="3"

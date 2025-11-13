@@ -21,7 +21,7 @@ namespace BLL.Interfaces
         Task<int> CreateAsync(AccountDto dto);
         Task<bool> UpdateAsync(int id, AccountDto dto);
         Task<bool> ExistsByEmailAsync(string email);
-        Task<bool> ExistsByPhoneNumberAsync(string phoneNumber, int? excludeAccountId = null);
+        Task<bool> ExistsByPhoneNumberAsync(string? phoneNumber, int? excludeAccountId = null);
 
         Task<AccountDto?> AuthenticateAsync(string email, string password);
         Task<bool> ResetPasswordAsync(string email, string newPassword);

@@ -33,7 +33,7 @@ namespace WebUI.Controllers
                 TempData["Success"] = "Thêm khoảng giá thành công!";
                 return RedirectToAction(nameof(Manage), new { q });
             }
-            catch (ArgumentException ex) 
+            catch (ArgumentException ex)
             {
                 var list = await _service.GetAllAsync(q);
                 ViewBag.Query = q;
