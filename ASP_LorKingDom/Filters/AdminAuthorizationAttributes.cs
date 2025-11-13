@@ -10,7 +10,7 @@ namespace WebUI.Filters
     {
         public void OnAuthorization(AuthorizationFilterContext context)
         {
-            var user = context.HttpContext.User;
+            var user = context.HttpContext.User; // Lấy thông tin login
 
             if (!user.Identity?.IsAuthenticated ?? true)
             {
